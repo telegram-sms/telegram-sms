@@ -1,10 +1,12 @@
 package com.qwe7002.telegram_sms;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Looper;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -41,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         final EditText chat_id = (EditText) findViewById(R.id.chat_id);
         final EditText bot_token = (EditText) findViewById(R.id.bot_token);
         Button save_button = (Button) findViewById(R.id.save);
-        Button get_id = (Button) findViewById(R.id.get_id);
+        Button get_id = ( Button) findViewById(R.id.get_id);
 
         sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         bot_token.setText(sharedPreferences.getString("bot_token",""));
@@ -50,6 +52,13 @@ public class MainActivity extends AppCompatActivity {
         get_id.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
+                final ProgressDialog mpDialog = new ProgressDialog(MainActivity.this);
+                mpDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                mpDialog.setTitle("Connecting to server…");
+                mpDialog.setMessage("Please wait…");
+                mpDialog.setIndeterminate(false);
+                mpDialog.setCancelable(false);
+                mpDialog.show();
                 String request_uri = "https://api.telegram.org/bot"+bot_token.getText().toString().trim()+"/getUpdates";
                 OkHttpClient okHttpClient = new OkHttpClient();
                 Request request = new Request.Builder().url(request_uri).build();
@@ -57,12 +66,15 @@ public class MainActivity extends AppCompatActivity {
                 call.enqueue(new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
+                        mpDialog.cancel();
                         Log.d("Failure", e.getMessage());
                     }
 
                     @Override
                     public void onResponse(Call call, Response response) throws IOException {
-                        JsonObject updates = new JsonParser().parse("").getAsJsonObject();
+                        Looper.prepare();
+                        mpDialog.cancel();
+                        JsonObject updates = new JsonParser().parse(response.body().string()).getAsJsonObject();
                         JsonArray chat_list = updates.getAsJsonArray("result");
                         ArrayList<String> chat_name_list = new ArrayList<>();
                         final ArrayList<String> chat_id_list = new ArrayList<>();
@@ -80,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
 
                             }
                         }).setPositiveButton("Cancel", null).show();
+                        Looper.loop();
                     }
                 });
             }
