@@ -54,12 +54,10 @@
 
             <Button
                 android:id="@+id/save"
-                style="?android:textAppearanceSmall"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Save"
-                android:textStyle="bold" />
+                android:text="Save" />
 
             <Button
                 android:id="@+id/get_id"
