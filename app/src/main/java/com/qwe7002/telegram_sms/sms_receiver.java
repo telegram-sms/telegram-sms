@@ -79,7 +79,7 @@ public class sms_receiver extends BroadcastReceiver {
                             @Override
                             public void onFailure(Call call, IOException e) {
                                 Looper.prepare();
-                                Toast.makeText(context, "Cannot connect to the Telegram server.", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
                                 Looper.loop();
                             }
 
