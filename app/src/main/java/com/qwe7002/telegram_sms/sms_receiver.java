@@ -5,8 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Looper;
 import android.telephony.SmsMessage;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 
@@ -36,7 +38,7 @@ public class sms_receiver extends BroadcastReceiver {
         public String text;
     }
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive(final Context context, Intent intent) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
 
         String bot_token = sharedPreferences.getString("bot_token","");
@@ -73,12 +75,18 @@ public class sms_receiver extends BroadcastReceiver {
                         call.enqueue(new Callback() {
                             @Override
                             public void onFailure(Call call, IOException e) {
-                                Log.d("Failure", "onFailure: ");
+                                Looper.prepare();
+                                Toast.makeText(context, "Cannot connect to the Telegram server.", Toast.LENGTH_SHORT).show();
+                                Looper.loop();
                             }
 
                             @Override
                             public void onResponse(Call call, Response response) throws IOException {
-                                Log.d("response", response.body().string());
+                                if (response.code()!= 200) {
+                                    Looper.prepare();
+                                    Toast.makeText(context, response.body().string(), Toast.LENGTH_SHORT).show();
+                                    Looper.loop();
+                                }
                             }
                         });
                     }
