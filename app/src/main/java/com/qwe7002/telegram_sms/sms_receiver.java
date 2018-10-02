@@ -44,6 +44,9 @@ public class sms_receiver extends BroadcastReceiver {
         String bot_token = sharedPreferences.getString("bot_token","");
         String chat_id = sharedPreferences.getString("chat_id","");
         try {
+            if (bot_token.isEmpty() ||chat_id.isEmpty()){
+                return;
+            }
             if (SMS_RECEIVED.equals(intent.getAction())) {
                 Bundle bundle = intent.getExtras();
                 if (bundle != null) {

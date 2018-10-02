@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply from: 'version.gradle'
 
 android {
     compileSdkVersion 28
@@ -6,9 +7,18 @@ android {
         applicationId "com.qwe7002.telegram_sms"
         minSdkVersion 23
         targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        versionCode appVersionCode
+        versionName appVersionName
+    }
+
+
+    signingConfigs {
+        releaseConfig {
+            storeFile file("keys.jks")
+            storePassword project.hasProperty("KEYSTORE_PASS") ? KEYSTORE_PASS : System.getenv("KEYSTORE_PASS")
+            keyAlias project.hasProperty("ALIAS_NAME") ? ALIAS_NAME : System.getenv("ALIAS_NAME")
+            keyPassword project.hasProperty("ALIAS_PASS") ? ALIAS_PASS : System.getenv("ALIAS_PASS")
+        }
     }
     buildTypes {
         release {

@@ -61,6 +61,12 @@
                 android:text="Save"
                 android:textStyle="bold" />
 
+            <Button
+                android:id="@+id/get_id"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Get Chat ID" />
+
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
