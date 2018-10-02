@@ -33,18 +33,20 @@ public class sms_receiver extends BroadcastReceiver {
     public sms_receiver() {
 
     }
+
     public class request_json {
         public String chat_id;
         public String text;
     }
+
     @Override
     public void onReceive(final Context context, Intent intent) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
 
-        String bot_token = sharedPreferences.getString("bot_token","");
-        String chat_id = sharedPreferences.getString("chat_id","");
+        String bot_token = sharedPreferences.getString("bot_token", "");
+        String chat_id = sharedPreferences.getString("chat_id", "");
         try {
-            if (bot_token.isEmpty() ||chat_id.isEmpty()){
+            if (bot_token.isEmpty() || chat_id.isEmpty()) {
                 return;
             }
             if (SMS_RECEIVED.equals(intent.getAction())) {
@@ -62,16 +64,15 @@ public class sms_receiver extends BroadcastReceiver {
                         Date date = new Date(messages[0].getTimestampMillis());
                         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         String msgDate = format.format(date);
-                        String request_uri = "https://api.telegram.org/bot"+bot_token+"/sendMessage";
+                        String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
                         request_json request_body = new request_json();
                         request_body.chat_id = chat_id;
-                        request_body.text = "From: " + msgAddress + "\nBody: " + msgBody
-                                + "\nDate: " + msgDate;
+                        request_body.text = "From: " + msgAddress + "\nDate: " + msgDate + "\nContent: " + msgBody;
                         Gson gson = new Gson();
                         String request_body_raw = gson.toJson(request_body);
                         Log.d("body", request_body_raw);
 
-                        RequestBody body = RequestBody.create(JSON,request_body_raw);
+                        RequestBody body = RequestBody.create(JSON, request_body_raw);
                         OkHttpClient okHttpClient = new OkHttpClient();
                         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
                         Call call = okHttpClient.newCall(request);
@@ -85,7 +86,7 @@ public class sms_receiver extends BroadcastReceiver {
 
                             @Override
                             public void onResponse(Call call, Response response) throws IOException {
-                                if (response.code()!= 200) {
+                                if (response.code() != 200) {
                                     Looper.prepare();
                                     Toast.makeText(context, response.body().string(), Toast.LENGTH_SHORT).show();
                                     Looper.loop();

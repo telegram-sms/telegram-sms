@@ -52,6 +52,9 @@ public class MainActivity extends AppCompatActivity {
         get_id.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
+                if(bot_token.getText().toString().isEmpty()){
+                    return;
+                }
                 final ProgressDialog mpDialog = new ProgressDialog(MainActivity.this);
                 mpDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 mpDialog.setTitle("Connecting to server…");
