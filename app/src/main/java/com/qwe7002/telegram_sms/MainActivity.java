@@ -24,7 +24,6 @@ import com.google.gson.JsonParser;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Map;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -40,10 +39,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final EditText chat_id = (EditText) findViewById(R.id.chat_id);
-        final EditText bot_token = (EditText) findViewById(R.id.bot_token);
-        Button save_button = (Button) findViewById(R.id.save);
-        Button get_id = ( Button) findViewById(R.id.get_id);
+        final EditText chat_id = findViewById(R.id.chat_id);
+        final EditText bot_token = findViewById(R.id.bot_token);
+        Button save_button = findViewById(R.id.save);
+        Button get_id = findViewById(R.id.get_id);
 
         sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         bot_token.setText(sharedPreferences.getString("bot_token",""));

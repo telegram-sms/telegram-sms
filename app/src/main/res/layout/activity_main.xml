@@ -44,12 +44,17 @@
 
                 <EditText
                     android:id="@+id/chat_id"
-                    android:layout_width="match_parent"
+                    android:layout_width="226dp"
                     android:layout_height="wrap_content"
                     android:hint="Chat ID"
                     android:maxLines="1"
                     android:singleLine="true" />
 
+                <Button
+                    android:id="@+id/get_id"
+                    android:layout_width="125dp"
+                    android:layout_height="wrap_content"
+                    android:text="Get Chat ID" />
             </android.support.design.widget.TextInputLayout>
 
             <Button
@@ -59,11 +64,6 @@
                 android:layout_marginTop="16dp"
                 android:text="Save" />
 
-            <Button
-                android:id="@+id/get_id"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Get Chat ID" />
 
         </LinearLayout>
     </ScrollView>
