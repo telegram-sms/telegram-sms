@@ -36,11 +36,6 @@ public class sms_receiver extends BroadcastReceiver {
 
     }
 
-    public class request_json {
-        public String chat_id;
-        public String text;
-    }
-
     @Override
     public void onReceive(final Context context, Intent intent) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
