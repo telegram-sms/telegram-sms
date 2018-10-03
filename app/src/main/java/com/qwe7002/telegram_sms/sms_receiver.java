@@ -17,6 +17,7 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -29,12 +30,7 @@ import okhttp3.Response;
 import static android.content.Context.MODE_PRIVATE;
 
 public class sms_receiver extends BroadcastReceiver {
-    public static final String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-
-    public sms_receiver() {
-
-    }
 
     @Override
     public void onReceive(final Context context, Intent intent) {
@@ -42,11 +38,16 @@ public class sms_receiver extends BroadcastReceiver {
 
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
+        String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
         try {
             if (bot_token.isEmpty() || chat_id.isEmpty()) {
                 return;
             }
-            if (SMS_RECEIVED.equals(intent.getAction())) {
+            if (Objects.equals(intent.getAction(), "android.intent.action.BOOT_COMPLETED")) {
+                Intent service = new Intent(context, registry_service.class);
+                context.startService(service);
+            }
+            if ("android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction())) {
                 Bundle bundle = intent.getExtras();
                 if (bundle != null) {
                     Object[] pdus = (Object[]) bundle.get("pdus");
@@ -61,7 +62,6 @@ public class sms_receiver extends BroadcastReceiver {
                         Date date = new Date(messages[0].getTimestampMillis());
                         @SuppressLint("SimpleDateFormat") SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         String msgDate = format.format(date);
-                        String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
                         request_json request_body = new request_json();
                         request_body.chat_id = chat_id;
                         request_body.text = "From: " + msgAddress + "\nDate: " + msgDate + "\nContent: " + msgBody;
