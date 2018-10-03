@@ -44,16 +44,16 @@
 
                 <EditText
                     android:id="@+id/chat_id"
-                    android:layout_width="226dp"
-                    android:layout_height="wrap_content"
+                    android:layout_width="198dp"
+                    android:layout_height="match_parent"
                     android:hint="Chat ID"
                     android:maxLines="1"
                     android:singleLine="true" />
 
                 <Button
                     android:id="@+id/get_id"
-                    android:layout_width="125dp"
-                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:text="Get Chat ID" />
             </android.support.design.widget.TextInputLayout>
 
