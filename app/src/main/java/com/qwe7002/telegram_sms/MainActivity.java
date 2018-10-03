@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -16,7 +17,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -24,16 +27,20 @@ import com.google.gson.JsonParser;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 
 public class MainActivity extends AppCompatActivity {
     SharedPreferences sharedPreferences;
+    static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,8 +91,11 @@ public class MainActivity extends AppCompatActivity {
                             JsonObject item_obj = item.getAsJsonObject();
                             JsonObject message_obj = item_obj.get("message").getAsJsonObject();
                             JsonObject chat_obj = message_obj.get("chat").getAsJsonObject();
-                            chat_name_list.add(chat_obj.get("username").getAsString());
-                            chat_id_list.add(chat_obj.get("id").getAsString());
+
+                            if(!chat_id_list.contains(chat_obj.get("id").getAsString())) {
+                                chat_name_list.add(chat_obj.get("username").getAsString());
+                                chat_id_list.add(chat_obj.get("id").getAsString());
+                            }
                         }
                         new AlertDialog.Builder(v.getContext()).setTitle("Select Chat").setItems(chat_name_list.toArray(new String[0]), new DialogInterface.OnClickListener() {
                             @Override
@@ -102,17 +112,57 @@ public class MainActivity extends AppCompatActivity {
 
         save_button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_SMS,Manifest.permission.RECEIVE_SMS}, 1);
                 }
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString("bot_token",bot_token.getText().toString().trim());
-                editor.putString("chat_id", chat_id.getText().toString().trim());
-                editor.apply();
-                Snackbar.make(v, "Success",Snackbar.LENGTH_LONG)
-                        .show();
+                final ProgressDialog mpDialog = new ProgressDialog(MainActivity.this);
+                mpDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                mpDialog.setTitle("Connecting to server…");
+                mpDialog.setMessage("Please wait…");
+                mpDialog.setIndeterminate(false);
+                mpDialog.setCancelable(false);
+                mpDialog.show();
+                String request_uri = "https://api.telegram.org/bot" + bot_token.getText().toString().trim() + "/sendMessage";
+                request_json request_body = new request_json();
+                request_body.chat_id = chat_id.getText().toString().trim();
+                request_body.text = "You have successfully connected to the Telegram SMS bot.";
+                Gson gson = new Gson();
+                String request_body_raw = gson.toJson(request_body);
+                RequestBody body = RequestBody.create(JSON, request_body_raw);
+                OkHttpClient okHttpClient = new OkHttpClient();
+                Request request = new Request.Builder().url(request_uri).method("POST", body).build();
+                Call call = okHttpClient.newCall(request);
+                call.enqueue(new Callback() {
+                    @Override
+                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                        Looper.prepare();
+                        mpDialog.cancel();
+                        Snackbar.make(v, "SendSMSError:" + e.getMessage(),Snackbar.LENGTH_LONG)
+                                .show();
+                        Looper.loop();
+                    }
 
+                    @Override
+                    public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                        Looper.prepare();
+                        mpDialog.cancel();
+                        if (response.code() != 200) {
+                            assert response.body() != null;
+                            Snackbar.make(v, "SendSMSError:" + response.body().string(),Snackbar.LENGTH_LONG)
+                                    .show();
+                            return;
+                        }
+
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("bot_token",bot_token.getText().toString().trim());
+                        editor.putString("chat_id", chat_id.getText().toString().trim());
+                        editor.apply();
+                        Snackbar.make(v, "Success",Snackbar.LENGTH_LONG)
+                                .show();
+                        Looper.loop();
+                    }
+                });
             }
         });
     }
