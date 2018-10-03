@@ -65,7 +65,4 @@ proguard/
 # Log Files
 
 *.log
-
----------------------
-
-本文来自 林炜亮 的CSDN 博客 ，全文地址请点击：https://blog.csdn.net/u014738560/article/details/50394904?utm_source=copy 
+version.gradle
