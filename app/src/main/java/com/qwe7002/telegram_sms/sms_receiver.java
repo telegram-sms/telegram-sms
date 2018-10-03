@@ -69,12 +69,9 @@ public class sms_receiver extends BroadcastReceiver {
                         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
                         request_json request_body = new request_json();
                         request_body.chat_id = chat_id;
-                        request_body.text = "From: " + msgAddress + "\nBody: " + msgBody
-                                + "\nDate: " + msgDate;
+                        request_body.text = "From: " + msgAddress + "\nDate: " + msgDate + "\nContent: " + msgBody;
                         Gson gson = new Gson();
                         String request_body_raw = gson.toJson(request_body);
-                        Log.d("body", request_body_raw);
-
                         RequestBody body = RequestBody.create(JSON, request_body_raw);
                         OkHttpClient okHttpClient = new OkHttpClient();
                         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
