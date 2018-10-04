@@ -41,11 +41,8 @@ public class sms_receiver extends BroadcastReceiver {
         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
         try {
             if (bot_token.isEmpty() || chat_id.isEmpty()) {
+                Log.i("tg-sms", "onReceive: token not found");
                 return;
-            }
-            if (Objects.equals(intent.getAction(), "android.intent.action.BOOT_COMPLETED")) {
-                Intent service = new Intent(context, registry_service.class);
-                context.startService(service);
             }
             if ("android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction())) {
                 Bundle bundle = intent.getExtras();

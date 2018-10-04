@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -15,17 +16,21 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <service android:name=".registry_service"></service>
-        <receiver
-            android:name=".boot_receiver"
+        <service android:name="com.qwe7002.telegram_sms.registry_service"
             android:enabled="true"
-            android:exported="true">
+            android:exported="true"
+            android:process=":remote">
+            <intent-filter>
+                <action android:name="com.qwe7002.telegram_sms.registry_service" />
+            </intent-filter>
+        </service>
+        <receiver
+            android:name=".boot_receiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </receiver>
-
-
         <receiver
             android:name=".sms_receiver"
             android:permission="android.permission.BROADCAST_SMS">

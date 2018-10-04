@@ -37,6 +37,7 @@ public class battery_receiver extends BroadcastReceiver {
         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
         try {
             if (bot_token.isEmpty() || chat_id.isEmpty()) {
+                Log.i("tg-sms", "onReceive: token not found");
                 return;
             }
             if (Intent.ACTION_BATTERY_LOW.equals(intent.getAction())) {
