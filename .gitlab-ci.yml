@@ -14,7 +14,6 @@ release_github:
   - master
   stage: deploy
   script:
-  - git config --global http.https://github.com.proxy ${proxy}
   - git push --set-upstream https://${github_key}@github.com/qwe7002/telegram-sms.git HEAD:master
   - bash upload-github-release-asset.sh github_api_token=${github_key} owner=qwe7002 repo=telegram-sms tag=$(date "+%Y%m%d%H%M%S") filename="./app/build/outputs/apk/release/app-release.apk"
 
