@@ -19,7 +19,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -29,7 +28,6 @@ import com.google.gson.JsonParser;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -43,6 +41,7 @@ import okhttp3.Response;
 public class MainActivity extends AppCompatActivity {
     SharedPreferences sharedPreferences;
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,13 +58,13 @@ public class MainActivity extends AppCompatActivity {
         Button get_id = findViewById(R.id.get_id);
 
         sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
-        bot_token.setText(sharedPreferences.getString("bot_token",""));
-        chat_id.setText(sharedPreferences.getString("chat_id",""));
+        bot_token.setText(sharedPreferences.getString("bot_token", ""));
+        chat_id.setText(sharedPreferences.getString("chat_id", ""));
 
         get_id.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                if(bot_token.getText().toString().isEmpty()){
+                if (bot_token.getText().toString().isEmpty()) {
                     return;
                 }
                 final ProgressDialog mpDialog = new ProgressDialog(MainActivity.this);
@@ -75,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
                 mpDialog.setIndeterminate(false);
                 mpDialog.setCancelable(false);
                 mpDialog.show();
-                String request_uri = "https://api.telegram.org/bot"+bot_token.getText().toString().trim()+"/getUpdates";
+                String request_uri = "https://api.telegram.org/bot" + bot_token.getText().toString().trim() + "/getUpdates";
                 OkHttpClient okHttpClient = new OkHttpClient();
                 Request request = new Request.Builder().url(request_uri).build();
                 Call call = okHttpClient.newCall(request);
@@ -93,25 +92,31 @@ public class MainActivity extends AppCompatActivity {
                         //Log.d("tg-sms", "onResponse: "+response.body().string());
                         JsonObject updates = new JsonParser().parse(response.body().string()).getAsJsonObject();
                         JsonArray chat_list = updates.getAsJsonArray("result");
-                        ArrayList<String> chat_name_list = new ArrayList<>();
+                        final ArrayList<String> chat_name_list = new ArrayList<>();
                         final ArrayList<String> chat_id_list = new ArrayList<>();
-                        for (JsonElement item :chat_list) {
+                        for (JsonElement item : chat_list) {
                             JsonObject item_obj = item.getAsJsonObject();
                             JsonObject message_obj = item_obj.get("message").getAsJsonObject();
                             JsonObject chat_obj = message_obj.get("chat").getAsJsonObject();
 
-                            if(!chat_id_list.contains(chat_obj.get("id").getAsString())) {
+                            if (!chat_id_list.contains(chat_obj.get("id").getAsString())) {
                                 chat_name_list.add(chat_obj.get("username").getAsString());
                                 chat_id_list.add(chat_obj.get("id").getAsString());
                             }
                         }
-                        new AlertDialog.Builder(v.getContext()).setTitle("Select Chat").setItems(chat_name_list.toArray(new String[0]), new DialogInterface.OnClickListener() {
+                        MainActivity.this.runOnUiThread(new Runnable() {
                             @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                chat_id.setText(chat_id_list.get(i));
+                            public void run() {
 
+                                new AlertDialog.Builder(v.getContext()).setTitle("Select Chat").setItems(chat_name_list.toArray(new String[0]), new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        chat_id.setText(chat_id_list.get(i));
+
+                                    }
+                                }).setPositiveButton("Cancel", null).show();
                             }
-                        }).setPositiveButton("Cancel", null).show();
+                        });
                         Looper.loop();
                     }
                 });
@@ -122,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(final View v) {
                 if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_SMS,Manifest.permission.RECEIVE_SMS}, 1);
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS}, 1);
                 }
                 final ProgressDialog mpDialog = new ProgressDialog(MainActivity.this);
                 mpDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -146,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
                         Looper.prepare();
                         mpDialog.cancel();
-                        Snackbar.make(v, "SendSMSError:" + e.getMessage(),Snackbar.LENGTH_LONG)
+                        Snackbar.make(v, "SendSMSError:" + e.getMessage(), Snackbar.LENGTH_LONG)
                                 .show();
                         Looper.loop();
                     }
@@ -157,16 +162,16 @@ public class MainActivity extends AppCompatActivity {
                         mpDialog.cancel();
                         if (response.code() != 200) {
                             assert response.body() != null;
-                            Snackbar.make(v, "SendSMSError:" + response.body().string(),Snackbar.LENGTH_LONG)
+                            Snackbar.make(v, "SendSMSError:" + response.body().string(), Snackbar.LENGTH_LONG)
                                     .show();
                             return;
                         }
 
                         SharedPreferences.Editor editor = sharedPreferences.edit();
-                        editor.putString("bot_token",bot_token.getText().toString().trim());
+                        editor.putString("bot_token", bot_token.getText().toString().trim());
                         editor.putString("chat_id", chat_id.getText().toString().trim());
                         editor.apply();
-                        Snackbar.make(v, "Success",Snackbar.LENGTH_LONG)
+                        Snackbar.make(v, "Success", Snackbar.LENGTH_LONG)
                                 .show();
                         Looper.loop();
                     }
