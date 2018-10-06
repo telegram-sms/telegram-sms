@@ -89,19 +89,21 @@ public class MainActivity extends AppCompatActivity {
                     public void onResponse(Call call, Response response) throws IOException {
                         Looper.prepare();
                         mpDialog.cancel();
-                        //Log.d("tg-sms", "onResponse: "+response.body().string());
+                        Log.d("tg-sms", "onResponse: "+response.body());
                         JsonObject updates = new JsonParser().parse(response.body().string()).getAsJsonObject();
                         JsonArray chat_list = updates.getAsJsonArray("result");
                         final ArrayList<String> chat_name_list = new ArrayList<>();
                         final ArrayList<String> chat_id_list = new ArrayList<>();
                         for (JsonElement item : chat_list) {
                             JsonObject item_obj = item.getAsJsonObject();
-                            JsonObject message_obj = item_obj.get("message").getAsJsonObject();
-                            JsonObject chat_obj = message_obj.get("chat").getAsJsonObject();
+                            if (item_obj.has("message")) {
+                                JsonObject message_obj = item_obj.get("message").getAsJsonObject();
+                                JsonObject chat_obj = message_obj.get("chat").getAsJsonObject();
 
-                            if (!chat_id_list.contains(chat_obj.get("id").getAsString())) {
-                                chat_name_list.add(chat_obj.get("username").getAsString());
-                                chat_id_list.add(chat_obj.get("id").getAsString());
+                                if (!chat_id_list.contains(chat_obj.get("id").getAsString())) {
+                                    chat_name_list.add(chat_obj.get("username").getAsString());
+                                    chat_id_list.add(chat_obj.get("id").getAsString());
+                                }
                             }
                         }
                         MainActivity.this.runOnUiThread(new Runnable() {

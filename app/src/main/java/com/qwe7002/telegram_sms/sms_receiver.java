@@ -54,7 +54,10 @@ public class sms_receiver extends BroadcastReceiver {
                         messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
                     }
                     if (messages.length > 0) {
-                        String msgBody = messages[0].getMessageBody();
+                        StringBuilder msgBody = new StringBuilder();
+                        for (SmsMessage item :messages) {
+                            msgBody.append(item.getMessageBody());
+                        }
                         String msgAddress = messages[0].getOriginatingAddress();
                         Date date = new Date(messages[0].getTimestampMillis());
                         @SuppressLint("SimpleDateFormat") SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
