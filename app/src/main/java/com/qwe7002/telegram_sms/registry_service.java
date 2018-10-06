@@ -32,15 +32,13 @@ public class registry_service extends Service {
             Notification notification = new Notification.Builder(getApplicationContext(), CHANNEL_ID).build();
             startForeground(1, notification);
         }
-
-
-
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(receiver);
+
     }
 
     @Override
