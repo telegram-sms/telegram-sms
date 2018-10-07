@@ -17,6 +17,7 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 import okhttp3.Call;
@@ -32,6 +33,14 @@ import static android.content.Context.MODE_PRIVATE;
 public class sms_receiver extends BroadcastReceiver {
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
+    public static boolean isNumeric(String str){
+        for (int i = str.length();--i>=0;){
+            if (!Character.isDigit(str.charAt(i))){
+                return false;
+            }
+        }
+        return true;
+    }
     @Override
     public void onReceive(final Context context, Intent intent) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
@@ -65,6 +74,22 @@ public class sms_receiver extends BroadcastReceiver {
                         request_json request_body = new request_json();
                         request_body.chat_id = chat_id;
                         request_body.text = "From: " + msgAddress + "\nDate: " + msgDate + "\nContent: " + msgBody;
+                        if (msgAddress.equals(sharedPreferences.getString("trusted_phone_number", ""))){
+                            String[] msg_send_list = msgBody.toString().split("\n");
+                            if(isNumeric(msg_send_list[0])) {
+                                String msg_send_to = msg_send_list[0];
+                                StringBuilder msg_send_content = new StringBuilder();
+                                for (int i = 1; i < msg_send_list.length; i++) {
+                                    msg_send_content.append(msg_send_list[i] + "\n");
+                                }
+                                android.telephony.SmsManager smsManager = android.telephony.SmsManager.getDefault();
+                                List<String> divideContents = smsManager.divideMessage(msg_send_content.toString());
+                                for (String text : divideContents) {
+                                    smsManager.sendTextMessage(msg_send_to, null, text, null, null);
+                                }
+                                request_body.text = "To:" + msg_send_to + "\nContent:" + msg_send_content.toString();
+                            }
+                        }
                         Gson gson = new Gson();
                         String request_body_raw = gson.toJson(request_body);
                         RequestBody body = RequestBody.create(JSON, request_body_raw);
