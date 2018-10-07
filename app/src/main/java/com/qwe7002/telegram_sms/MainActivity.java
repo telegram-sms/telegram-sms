@@ -54,13 +54,15 @@ public class MainActivity extends AppCompatActivity {
         }
         final EditText chat_id = findViewById(R.id.chat_id);
         final EditText bot_token = findViewById(R.id.bot_token);
+        final EditText trusted_phone_number = findViewById(R.id.TPM);
+
         Button save_button = findViewById(R.id.save);
         Button get_id = findViewById(R.id.get_id);
 
         sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         bot_token.setText(sharedPreferences.getString("bot_token", ""));
         chat_id.setText(sharedPreferences.getString("chat_id", ""));
-
+        trusted_phone_number.setText(sharedPreferences.getString("trusted_phone_number",""));
         get_id.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
@@ -172,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString("bot_token", bot_token.getText().toString().trim());
                         editor.putString("chat_id", chat_id.getText().toString().trim());
+                        editor.putString("trusted_phone_number",trusted_phone_number.getText().toString().trim());
                         editor.apply();
                         Snackbar.make(v, "Success", Snackbar.LENGTH_LONG)
                                 .show();
