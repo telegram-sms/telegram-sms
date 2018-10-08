@@ -16,8 +16,8 @@ import com.google.gson.Gson;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -85,9 +85,11 @@ public class sms_receiver extends BroadcastReceiver {
                                 msg_send_content.append(msg_send_list[i]);
                             }
                             android.telephony.SmsManager smsManager = android.telephony.SmsManager.getDefault();
-                            List<String> divideContents = smsManager.divideMessage(msg_send_content.toString());
-                            for (String text : divideContents) {
-                                smsManager.sendTextMessage(msg_send_to, null, text, null, null);
+                            if (msg_send_content.length() > 70) {
+                                ArrayList<String> divideContents = smsManager.divideMessage(msg_send_content.toString());
+                                smsManager.sendMultipartTextMessage(msg_send_to, null, divideContents, null, null);
+                            } else {
+                                smsManager.sendTextMessage(msg_send_to, null, msg_send_content.toString(), null, null);
                             }
                             request_body.text = "Send SMS\nTo: " + msg_send_to + "\nContent: " + msg_send_content.toString();
                         }
