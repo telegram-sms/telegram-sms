@@ -14,7 +14,7 @@ public class boot_receiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (Objects.equals(intent.getAction(), "android.intent.action.BOOT_COMPLETED")) {
             Log.d("tg-sms", "onReceive: boot_completed");
-            Intent service = new Intent(context, registry_service.class);
+            Intent service = new Intent(context, battery_listener_service.class);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(service);
             } else {

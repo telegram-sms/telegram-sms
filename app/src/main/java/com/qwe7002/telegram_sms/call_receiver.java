@@ -64,7 +64,7 @@ class call_listener extends PhoneStateListener {
         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
         request_json request_body = new request_json();
         request_body.chat_id = chat_id;
-        request_body.text = "Missed Call\nIncoming numbler: " + incomingNumber;
+        request_body.text = "[Missed Call]\nIncoming numbler: " + incomingNumber;
         Gson gson = new Gson();
         String request_body_raw = gson.toJson(request_body);
         RequestBody body = RequestBody.create(JSON, request_body_raw);

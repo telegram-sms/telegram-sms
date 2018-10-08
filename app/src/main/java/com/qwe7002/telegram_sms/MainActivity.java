@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Intent service = new Intent(getApplicationContext(), registry_service.class);
+        Intent service = new Intent(getApplicationContext(), battery_listener_service.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             this.startForegroundService(service);
         } else {
@@ -139,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
                 String request_uri = "https://api.telegram.org/bot" + bot_token.getText().toString().trim() + "/sendMessage";
                 request_json request_body = new request_json();
                 request_body.chat_id = chat_id.getText().toString().trim();
-                request_body.text = "System message\nYou have successfully connected to the Telegram SMS bot.";
+                request_body.text = "[System Message]\nYou have successfully connected to the Telegram SMS bot.";
                 Gson gson = new Gson();
                 String request_body_raw = gson.toJson(request_body);
                 RequestBody body = RequestBody.create(JSON, request_body_raw);

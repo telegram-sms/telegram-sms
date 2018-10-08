@@ -19,7 +19,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <service android:name="com.qwe7002.telegram_sms.registry_service"
+        <service
+            android:name="com.qwe7002.telegram_sms.battery_listener_service"
             android:enabled="true"
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE"
             android:exported="true"
