@@ -22,7 +22,10 @@ public class registry_service extends Service {
         battery_receiver receiver = new battery_receiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_LOW);
+        filter.addAction(Intent.ACTION_POWER_CONNECTED);
+        filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
         registerReceiver(receiver, filter);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME,
                     NotificationManager.IMPORTANCE_MIN);
@@ -33,7 +36,6 @@ public class registry_service extends Service {
             startForeground(1, notification);
         }
     }
-
     @Override
     public void onDestroy() {
         super.onDestroy();

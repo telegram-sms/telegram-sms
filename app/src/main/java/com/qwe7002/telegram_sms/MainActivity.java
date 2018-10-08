@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(final View v) {
                 if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS}, 1);
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG}, 1);
                 }
                 final ProgressDialog mpDialog = new ProgressDialog(MainActivity.this);
                 mpDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -143,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
                 String request_uri = "https://api.telegram.org/bot" + bot_token.getText().toString().trim() + "/sendMessage";
                 request_json request_body = new request_json();
                 request_body.chat_id = chat_id.getText().toString().trim();
-                request_body.text = "You have successfully connected to the Telegram SMS bot.";
+                request_body.text = "System message\nYou have successfully connected to the Telegram SMS bot.";
                 Gson gson = new Gson();
                 String request_body_raw = gson.toJson(request_body);
                 RequestBody body = RequestBody.create(JSON, request_body_raw);
@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
                         Looper.prepare();
                         mpDialog.cancel();
-                        Snackbar.make(v, "SendSMSError:" + e.getMessage(), Snackbar.LENGTH_LONG)
+                        Snackbar.make(v, "Send Error:" + e.getMessage(), Snackbar.LENGTH_LONG)
                                 .show();
                         Looper.loop();
                     }
@@ -166,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
                         mpDialog.cancel();
                         if (response.code() != 200) {
                             assert response.body() != null;
-                            Snackbar.make(v, "SendSMSError:" + response.body().string(), Snackbar.LENGTH_LONG)
+                            Snackbar.make(v, "Send Error:" + response.body().string(), Snackbar.LENGTH_LONG)
                                     .show();
                             return;
                         }

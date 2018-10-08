@@ -1,12 +1,9 @@
 package com.qwe7002.telegram_sms;
 
-import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.os.IBinder;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -28,6 +25,7 @@ import static android.content.Context.MODE_PRIVATE;
 
 public class battery_receiver extends BroadcastReceiver {
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+
     @Override
     public void onReceive(final Context context, Intent intent) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
@@ -40,37 +38,47 @@ public class battery_receiver extends BroadcastReceiver {
                 Log.i("tg-sms", "onReceive: token not found");
                 return;
             }
-            if (Intent.ACTION_BATTERY_LOW.equals(intent.getAction())) {
-                request_json request_body = new request_json();
-                request_body.chat_id = chat_id;
-                request_body.text = "Device battery is low.";
-                Gson gson = new Gson();
-                String request_body_raw = gson.toJson(request_body);
-                RequestBody body = RequestBody.create(JSON, request_body_raw);
-                OkHttpClient okHttpClient = new OkHttpClient();
-                Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-                Call call = okHttpClient.newCall(request);
-                call.enqueue(new Callback() {
-                    @Override
-                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
+            request_json request_body = new request_json();
+            request_body.chat_id = chat_id;
+            switch (intent.getAction()) {
+                case Intent.ACTION_BATTERY_LOW:
+                    request_body.text = "System message\nDevice battery is low.";
+                    break;
+                case Intent.ACTION_POWER_CONNECTED:
+                    request_body.text = "System message\nAC Charger connected.";
+                    break;
+                case Intent.ACTION_POWER_DISCONNECTED:
+                    request_body.text = "System message\nAC Charger disconnected.";
+                    break;
+            }
+
+
+            Gson gson = new Gson();
+            String request_body_raw = gson.toJson(request_body);
+            RequestBody body = RequestBody.create(JSON, request_body_raw);
+            OkHttpClient okHttpClient = new OkHttpClient();
+            Request request = new Request.Builder().url(request_uri).method("POST", body).build();
+            Call call = okHttpClient.newCall(request);
+            call.enqueue(new Callback() {
+                @Override
+                public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    Looper.prepare();
+                    Toast.makeText(context, "SendSMSError:" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Looper.loop();
+                }
+
+                @Override
+                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    if (response.code() != 200) {
                         Looper.prepare();
-                        Toast.makeText(context, "SendSMSError:" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        assert response.body() != null;
+                        Toast.makeText(context, "SendSMSError:" + response.body().string(), Toast.LENGTH_SHORT).show();
                         Looper.loop();
                     }
-
-                    @Override
-                    public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                        if (response.code() != 200) {
-                            Looper.prepare();
-                            assert response.body() != null;
-                            Toast.makeText(context, "SendSMSError:" + response.body().string(), Toast.LENGTH_SHORT).show();
-                            Looper.loop();
-                        }
-                    }
-                });
+                }
+            });
 
 
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }
