@@ -32,7 +32,7 @@ import static android.content.Context.MODE_PRIVATE;
 public class sms_receiver extends BroadcastReceiver {
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
-    public static boolean isNumeric(String str) {
+    public static boolean is_numeric(String str) {
         for (int i = str.length(); --i >= 0; ) {
             if (!Character.isDigit(str.charAt(i))) {
                 return false;
@@ -75,18 +75,21 @@ public class sms_receiver extends BroadcastReceiver {
                     request_body.text = "New SMS\nFrom: " + msgAddress + "\nDate: " + msgDate + "\nContent: " + msgBody;
                     if (msgAddress.equals(sharedPreferences.getString("trusted_phone_number", ""))) {
                         String[] msg_send_list = msgBody.toString().split("\n");
-                        if (isNumeric(msg_send_list[0])) {
+                        if (is_numeric(msg_send_list[0])) {
                             String msg_send_to = msg_send_list[0];
                             StringBuilder msg_send_content = new StringBuilder();
                             for (int i = 1; i < msg_send_list.length; i++) {
-                                msg_send_content.append(msg_send_list[i] + "\n");
+                                if (msg_send_list.length != 2 && i != 1) {
+                                    msg_send_content.append("\n");
+                                }
+                                msg_send_content.append(msg_send_list[i]);
                             }
                             android.telephony.SmsManager smsManager = android.telephony.SmsManager.getDefault();
                             List<String> divideContents = smsManager.divideMessage(msg_send_content.toString());
                             for (String text : divideContents) {
                                 smsManager.sendTextMessage(msg_send_to, null, text, null, null);
                             }
-                            request_body.text = "To: " + msg_send_to + "\nContent: " + msg_send_content.toString();
+                            request_body.text = "Send SMS\nTo: " + msg_send_to + "\nContent: " + msg_send_content.toString();
                         }
                     }
                     Gson gson = new Gson();
