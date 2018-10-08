@@ -30,7 +30,7 @@ import okhttp3.Response;
 
 import static android.content.Context.MODE_PRIVATE;
 
-public class registry_service extends Service {
+public class battery_listener_service extends Service {
     battery_receiver receiver = null;
     final String CHANNEL_ID = "1";
     final String CHANNEL_NAME="tg-sms";
@@ -75,7 +75,6 @@ class battery_receiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, Intent intent) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-        Log.d("tg-sms", "onReceive: battery_low");
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
@@ -85,15 +84,16 @@ class battery_receiver extends BroadcastReceiver {
         }
         request_json request_body = new request_json();
         request_body.chat_id = chat_id;
+        StringBuilder prebody = new StringBuilder("[System Message]\n");
         switch (intent.getAction()) {
             case Intent.ACTION_BATTERY_LOW:
-                request_body.text = "System message\nDevice battery is low.";
+                request_body.text = prebody.append("Device battery is low.").toString();
                 break;
             case Intent.ACTION_POWER_CONNECTED:
-                request_body.text = "System message\nAC Charger connected.";
+                request_body.text = prebody.append("AC Charger Connected.").toString();
                 break;
             case Intent.ACTION_POWER_DISCONNECTED:
-                request_body.text = "System message\nAC Charger disconnected.";
+                request_body.text = prebody.append("AC Charger Disconnected.").toString();
                 break;
         }
 

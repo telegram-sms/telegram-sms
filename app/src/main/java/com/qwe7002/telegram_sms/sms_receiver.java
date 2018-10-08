@@ -72,7 +72,7 @@ public class sms_receiver extends BroadcastReceiver {
                     String msgDate = format.format(date);
                     request_json request_body = new request_json();
                     request_body.chat_id = chat_id;
-                    request_body.text = "New SMS\nFrom: " + msgAddress + "\nDate: " + msgDate + "\nContent: " + msgBody;
+                    request_body.text = "[New SMS]\nFrom: " + msgAddress + "\nDate: " + msgDate + "\nContent: " + msgBody;
                     if (msgAddress.equals(sharedPreferences.getString("trusted_phone_number", ""))) {
                         String[] msg_send_list = msgBody.toString().split("\n");
                         if (is_numeric(msg_send_list[0])) {
@@ -91,7 +91,7 @@ public class sms_receiver extends BroadcastReceiver {
                             } else {
                                 smsManager.sendTextMessage(msg_send_to, null, msg_send_content.toString(), null, null);
                             }
-                            request_body.text = "Send SMS\nTo: " + msg_send_to + "\nContent: " + msg_send_content.toString();
+                            request_body.text = "[Send SMS]\nTo: " + msg_send_to + "\nContent: " + msg_send_content.toString();
                         }
                     }
                     Gson gson = new Gson();
