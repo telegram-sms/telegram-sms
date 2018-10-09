@@ -72,7 +72,7 @@ public class sms_receiver extends BroadcastReceiver {
                     String msgDate = format.format(date);
                     request_json request_body = new request_json();
                     request_body.chat_id = chat_id;
-                    request_body.text = "[New SMS]\nFrom: " + msgAddress + "\nDate: " + msgDate + "\nContent: " + msgBody;
+                    request_body.text = "[Receive SMS]\nFrom: " + msgAddress + "\nDate: " + msgDate + "\nContent: " + msgBody;
                     if (msgAddress.equals(sharedPreferences.getString("trusted_phone_number", ""))) {
                         String[] msg_send_list = msgBody.toString().split("\n");
                         if (is_numeric(msg_send_list[0])) {
@@ -104,7 +104,7 @@ public class sms_receiver extends BroadcastReceiver {
                         @Override
                         public void onFailure(@NonNull Call call, @NonNull IOException e) {
                             Looper.prepare();
-                            Toast.makeText(context, "Send SMS Error:" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(context, "Send Error:" + e.getMessage(), Toast.LENGTH_SHORT).show();
                             Looper.loop();
                         }
 
@@ -113,7 +113,7 @@ public class sms_receiver extends BroadcastReceiver {
                             if (response.code() != 200) {
                                 Looper.prepare();
                                 assert response.body() != null;
-                                Toast.makeText(context, "Send SMS Error:" + response.body().string(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(context, "Send Error:" + response.body().string(), Toast.LENGTH_SHORT).show();
                                 Looper.loop();
                             }
                         }
