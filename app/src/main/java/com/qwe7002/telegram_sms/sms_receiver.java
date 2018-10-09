@@ -1,6 +1,5 @@
 package com.qwe7002.telegram_sms;
 
-import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -15,9 +14,7 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -67,12 +64,9 @@ public class sms_receiver extends BroadcastReceiver {
                         msgBody.append(item.getMessageBody());
                     }
                     String msgAddress = messages[0].getOriginatingAddress();
-                    Date date = new Date(messages[0].getTimestampMillis());
-                    @SuppressLint("SimpleDateFormat") SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    String msgDate = format.format(date);
                     request_json request_body = new request_json();
                     request_body.chat_id = chat_id;
-                    request_body.text = "[Receive SMS]\nFrom: " + msgAddress + "\nDate: " + msgDate + "\nContent: " + msgBody;
+                    request_body.text = "[Receive SMS]\nFrom: " + msgAddress + "\nContent: " + msgBody;
                     if (msgAddress.equals(sharedPreferences.getString("trusted_phone_number", ""))) {
                         String[] msg_send_list = msgBody.toString().split("\n");
                         if (is_numeric(msg_send_list[0])) {
