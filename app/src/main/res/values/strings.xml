@@ -1,3 +1,18 @@
 <resources>
-    <string name="app_name">telegram-sms</string>
+    <string name="app_name">telegram sms</string>
+    <string name="receive_sms_head">[Receive SMS]</string>
+    <string name="content">Content: </string>
+    <string name="from">From: </string>
+    <string name="to">To: </string>
+    <string name="send_sms_head">[Send SMS]</string>
+    <string name="system_message_head">[System Message]</string>
+    <string name="success_connect">You have successfully connected to the Telegram SMS bot.</string>
+    <string name="connect_wait_title">Connecting to server…</string>
+    <string name="connect_wait_message">Please wait…</string>
+    <string name="select_chat">Select Chat</string>
+    <string name="missed_call_head">[Missed Call]</string>
+    <string name="incoming_numbler">Incoming numbler: </string>
+    <string name="battery_low">Device battery is low.</string>
+    <string name="ac_connect">AC Charger Connected.</string>
+    <string name="ac_disconnect">AC Charger Disconnected.</string>
 </resources>

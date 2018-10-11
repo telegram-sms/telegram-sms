@@ -69,8 +69,8 @@ public class MainActivity extends AppCompatActivity {
                 }
                 final ProgressDialog mpDialog = new ProgressDialog(MainActivity.this);
                 mpDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                mpDialog.setTitle("Connecting to server…");
-                mpDialog.setMessage("Please wait…");
+                mpDialog.setTitle(getString(R.string.connect_wait_title));
+                mpDialog.setMessage(getString(R.string.connect_wait_message));
                 mpDialog.setIndeterminate(false);
                 mpDialog.setCancelable(false);
                 mpDialog.show();
@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void run() {
 
-                                new AlertDialog.Builder(v.getContext()).setTitle("Select Chat").setItems(chat_name_list.toArray(new String[0]), new DialogInterface.OnClickListener() {
+                                new AlertDialog.Builder(v.getContext()).setTitle(R.string.select_chat).setItems(chat_name_list.toArray(new String[0]), new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
                                         chat_id.setText(chat_id_list.get(i));
@@ -131,15 +131,15 @@ public class MainActivity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG}, 1);
                 final ProgressDialog mpDialog = new ProgressDialog(MainActivity.this);
                 mpDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                mpDialog.setTitle("Connecting to server…");
-                mpDialog.setMessage("Please wait…");
+                mpDialog.setTitle(getString(R.string.connect_wait_title));
+                mpDialog.setMessage(getString(R.string.connect_wait_message));
                 mpDialog.setIndeterminate(false);
                 mpDialog.setCancelable(false);
                 mpDialog.show();
                 String request_uri = "https://api.telegram.org/bot" + bot_token.getText().toString().trim() + "/sendMessage";
                 request_json request_body = new request_json();
                 request_body.chat_id = chat_id.getText().toString().trim();
-                request_body.text = "[System Message]\nYou have successfully connected to the Telegram SMS bot.";
+                request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
                 Gson gson = new Gson();
                 String request_body_raw = gson.toJson(request_body);
                 RequestBody body = RequestBody.create(JSON, request_body_raw);
