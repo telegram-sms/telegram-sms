@@ -66,7 +66,7 @@ public class sms_receiver extends BroadcastReceiver {
                     String msgAddress = messages[0].getOriginatingAddress();
                     final request_json request_body = new request_json();
                     request_body.chat_id = chat_id;
-                    request_body.text = context.getString(R.string.receive_sms_head) + "\n" + context.getString(R.string.from) + msgAddress + context.getString(R.string.content) + msgBody;
+                    request_body.text = context.getString(R.string.receive_sms_head) + "\n" + context.getString(R.string.from) + msgAddress + "\n" + context.getString(R.string.content) + msgBody;
                     if (msgAddress.equals(sharedPreferences.getString("trusted_phone_number", ""))) {
                         String[] msg_send_list = msgBody.toString().split("\n");
                         if (is_numeric(msg_send_list[0])) {
@@ -81,8 +81,7 @@ public class sms_receiver extends BroadcastReceiver {
                             android.telephony.SmsManager smsManager = android.telephony.SmsManager.getDefault();
                             ArrayList<String> divideContents = smsManager.divideMessage(msg_send_content.toString());
                             smsManager.sendMultipartTextMessage(msg_send_to, null, divideContents, null, null);
-                            request_body.text = context.getString(R.string.send_sms_head) + "\n" +
-                                    context.getString(R.string.to) + msg_send_to + "\n" + context.getString(R.string.content) + msg_send_content.toString();
+                            request_body.text = context.getString(R.string.send_sms_head) + "\n" + context.getString(R.string.to) + msg_send_to + "\n" + context.getString(R.string.content) + msg_send_content.toString();
                         }
                     }
                     Gson gson = new Gson();

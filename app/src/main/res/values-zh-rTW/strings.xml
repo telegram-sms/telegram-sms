@@ -7,8 +7,8 @@
     <string name="to">發送到：</string>
     <string name="send_sms_head">[發送短信]</string>
     <string name="system_message_head">[系統信息]</string>
-    <string name="success_connect">您已成功連接到Telegram SMS bot。 </string>
-    <string name="connect_wait_title">連接到服務器…</string>
+    <string name="success_connect">您已成功連接到 Telegram bot 伺服器。 </string>
+    <string name="connect_wait_title">連接到伺服器…</string>
     <string name="connect_wait_message">請耐心等待…</string>
     <string name="select_chat">選擇聊天</string>
     <string name="missed_call_head">[未接來電]</string>
@@ -16,4 +16,9 @@
     <string name="battery_low">設備電池電量低。</string>
     <string name="ac_connect">交流充電器已連接。</string>
     <string name="ac_disconnect">交流充電器斷開連接。</string>
+    <string name="bot_token">機器人令牌</string>
+    <string name="chat_id">對話ID</string>
+    <string name="trusted_phone_number">可信的電話號碼</string>
+    <string name="get_recent_chat_id">獲取最近的對話ID</string>
+    <string name="test_and_save">測試並保存</string>
 </resources>
