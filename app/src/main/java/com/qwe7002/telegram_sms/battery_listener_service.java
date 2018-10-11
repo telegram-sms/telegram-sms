@@ -84,16 +84,16 @@ class battery_receiver extends BroadcastReceiver {
         }
         request_json request_body = new request_json();
         request_body.chat_id = chat_id;
-        StringBuilder prebody = new StringBuilder("[System Message]\n");
+        StringBuilder prebody = new StringBuilder(context.getString(R.string.system_message_head) + "\n");
         switch (intent.getAction()) {
             case Intent.ACTION_BATTERY_LOW:
-                request_body.text = prebody.append("Device battery is low.").toString();
+                request_body.text = prebody.append(R.string.battery_low).toString();
                 break;
             case Intent.ACTION_POWER_CONNECTED:
-                request_body.text = prebody.append("AC Charger Connected.").toString();
+                request_body.text = prebody.append(R.string.ac_connect).toString();
                 break;
             case Intent.ACTION_POWER_DISCONNECTED:
-                request_body.text = prebody.append("AC Charger Disconnected.").toString();
+                request_body.text = prebody.append(R.string.ac_disconnect).toString();
                 break;
         }
 
