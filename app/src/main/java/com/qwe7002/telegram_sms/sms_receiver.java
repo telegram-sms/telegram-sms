@@ -40,7 +40,7 @@ public class sms_receiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(final Context context, Intent intent) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
 
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
@@ -64,7 +64,7 @@ public class sms_receiver extends BroadcastReceiver {
                         msgBody.append(item.getMessageBody());
                     }
                     String msgAddress = messages[0].getOriginatingAddress();
-                    request_json request_body = new request_json();
+                    final request_json request_body = new request_json();
                     request_body.chat_id = chat_id;
                     request_body.text = "[Receive SMS]\nFrom: " + msgAddress + "\nContent: " + msgBody;
                     if (msgAddress.equals(sharedPreferences.getString("trusted_phone_number", ""))) {
@@ -99,6 +99,17 @@ public class sms_receiver extends BroadcastReceiver {
                         public void onFailure(@NonNull Call call, @NonNull IOException e) {
                             Looper.prepare();
                             Toast.makeText(context, "Send Error:" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            android.telephony.SmsManager smsManager = android.telephony.SmsManager.getDefault();
+                            String msg_send_to = sharedPreferences.getString("trusted_phone_number", "");
+                            if (!msg_send_to.equals("")) {
+                                String msg_send_content = request_body.text;
+                                if (msg_send_content.length() > 70) {
+                                    ArrayList<String> divideContents = smsManager.divideMessage(msg_send_content);
+                                    smsManager.sendMultipartTextMessage(msg_send_to, null, divideContents, null, null);
+                                } else {
+                                    smsManager.sendTextMessage(msg_send_to, null, msg_send_content, null, null);
+                                }
+                            }
                             Looper.loop();
                         }
 
