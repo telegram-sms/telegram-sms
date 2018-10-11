@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">テレグラム</string>
+    <string name="receive_sms_head"> [受信メール] </string>
+    <string name="content">コンテンツ：</string>
+    <string name="from">送信元：</string>
+    <string name="to">送信先：</string>
+    <string name="send_sms_head"> [メールを送信] </string>
+    <string name="system_message_head"> [システム情報] </string>
+    <string name="success_connect">テレグラムボットサーバーに正常に接続しました。</string>
+    <string name="connect_wait_title">サーバーに接続します… </string>
+    <string name="connect_wait_message">しばらくお待ちください… </string>
+    <string name="select_chat">チャットの選択</string>
+    <string name="missed_call_head"> [不在着信] </string>
+    <string name="incoming_numbler">発信者番号：</string>
+    <string name="battery_low">デバイスのバッテリが不足しています。 </string>
+    <string name="ac_connect"> AC充電器が接続されています。 </string>
+    <string name="ac_disconnect"> AC充電器が接続されていません。 </string>
+    <string name="bot_token">ロボットトークン</string>
+    <string name="chat_id">ダイアログID </string>
+    <string name="trusted_phone_number">信頼できる電話番号</string>
+    <string name="get_recent_chat_id">最新の会話IDを取得する</string>
+    <string name="test_and_save">テストと保存</string>
+</resources>
