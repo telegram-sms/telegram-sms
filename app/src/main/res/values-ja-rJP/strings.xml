@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">テレグラム</string>
-    <string name="receive_sms_head"> [受信メール] </string>
+    <string name="app_name">Telegram SMS</string>
+    <string name="receive_sms_head">[メールを受信]</string>
     <string name="content">コンテンツ：</string>
     <string name="from">送信元：</string>
     <string name="to">送信先：</string>
-    <string name="send_sms_head"> [メールを送信] </string>
-    <string name="system_message_head"> [システム情報] </string>
+    <string name="send_sms_head">[メールを送信]</string>
+    <string name="system_message_head">[システム情報]</string>
     <string name="success_connect">テレグラムボットサーバーに正常に接続しました。</string>
     <string name="connect_wait_title">サーバーに接続します… </string>
     <string name="connect_wait_message">しばらくお待ちください… </string>
     <string name="select_chat">チャットの選択</string>
-    <string name="missed_call_head"> [不在着信] </string>
+    <string name="missed_call_head">[不在着信]</string>
     <string name="incoming_numbler">発信者番号：</string>
     <string name="battery_low">デバイスのバッテリが不足しています。 </string>
     <string name="ac_connect"> AC充電器が接続されています。 </string>

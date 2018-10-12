@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">telegram sms</string>
+    <string name="app_name">Telegram SMS</string>
     <string name="receive_sms_head">[收到簡訊]</string>
     <string name="content">內容：</string>
     <string name="from">來自：</string>
@@ -10,7 +10,7 @@
     <string name="success_connect">您已成功連接到 Telegram bot 伺服器。 </string>
     <string name="connect_wait_title">連接到伺服器…</string>
     <string name="connect_wait_message">請耐心等待…</string>
-    <string name="select_chat">選擇聊天</string>
+    <string name="select_chat">選擇對話</string>
     <string name="missed_call_head">[未接來電]</string>
     <string name="incoming_numbler">來電號碼：</string>
     <string name="battery_low">設備電池電量低。</string>
