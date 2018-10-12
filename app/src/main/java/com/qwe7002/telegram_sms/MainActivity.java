@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Switch;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -56,11 +57,12 @@ public class MainActivity extends AppCompatActivity {
 
         Button save_button = findViewById(R.id.save);
         Button get_id = findViewById(R.id.get_id);
-
+        final Switch fallback_sms = findViewById(R.id.fallback_sms);
         sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         bot_token.setText(sharedPreferences.getString("bot_token", ""));
         chat_id.setText(sharedPreferences.getString("chat_id", ""));
         trusted_phone_number.setText(sharedPreferences.getString("trusted_phone_number", ""));
+        fallback_sms.setChecked(sharedPreferences.getBoolean("fallback_sms", false));
         get_id.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
@@ -171,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
                         editor.putString("bot_token", bot_token.getText().toString().trim());
                         editor.putString("chat_id", chat_id.getText().toString().trim());
                         editor.putString("trusted_phone_number", trusted_phone_number.getText().toString().trim());
+                        editor.putBoolean("fallback_sms", fallback_sms.isChecked());
                         editor.apply();
                         Snackbar.make(v, "Success", Snackbar.LENGTH_LONG)
                                 .show();

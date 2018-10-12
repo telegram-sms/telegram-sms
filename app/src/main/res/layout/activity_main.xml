@@ -57,11 +57,16 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/trusted_phone_number"
-                    android:numeric="integer"
                     android:maxLines="1"
                     android:singleLine="true" />
             </android.support.design.widget.TextInputLayout>
 
+            <Switch
+                android:id="@+id/fallback_sms"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="3dp"
+                android:text="@string/network_error_falls_back_to_sms" />
             <Button
                 android:id="@+id/get_id"
                 android:layout_width="match_parent"

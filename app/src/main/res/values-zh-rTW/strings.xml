@@ -21,4 +21,5 @@
     <string name="trusted_phone_number">可信的電話號碼</string>
     <string name="get_recent_chat_id">獲取最近的對話ID</string>
     <string name="test_and_save">測試並保存</string>
+    <string name="network_error_falls_back_to_sms">網路錯誤回退到SMS</string>
 </resources>

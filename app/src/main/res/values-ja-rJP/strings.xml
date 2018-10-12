@@ -21,4 +21,5 @@
     <string name="trusted_phone_number">信頼できる電話番号</string>
     <string name="get_recent_chat_id">最新の会話IDを取得する</string>
     <string name="test_and_save">テストと保存</string>
+    <string name="network_error_falls_back_to_sms">ネットワークエラーがSMSに戻る</string>
 </resources>
