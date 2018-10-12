@@ -6,7 +6,7 @@
     <string name="from">來自：</string>
     <string name="to">發送到：</string>
     <string name="send_sms_head">[發送簡訊]</string>
-    <string name="system_message_head">[系統信息]</string>
+    <string name="system_message_head">[系統訊息]</string>
     <string name="success_connect">您已成功連接到 Telegram bot 伺服器。 </string>
     <string name="connect_wait_title">連接到伺服器…</string>
     <string name="connect_wait_message">請耐心等待…</string>

@@ -87,13 +87,13 @@ class battery_receiver extends BroadcastReceiver {
         StringBuilder prebody = new StringBuilder(context.getString(R.string.system_message_head) + "\n");
         switch (intent.getAction()) {
             case Intent.ACTION_BATTERY_LOW:
-                request_body.text = prebody.append(R.string.battery_low).toString();
+                request_body.text = prebody.append(context.getString(R.string.battery_low)).toString();
                 break;
             case Intent.ACTION_POWER_CONNECTED:
-                request_body.text = prebody.append(R.string.ac_connect).toString();
+                request_body.text = prebody.append(context.getString(R.string.ac_connect)).toString();
                 break;
             case Intent.ACTION_POWER_DISCONNECTED:
-                request_body.text = prebody.append(R.string.ac_disconnect).toString();
+                request_body.text = prebody.append(context.getString(R.string.ac_disconnect)).toString();
                 break;
         }
 
