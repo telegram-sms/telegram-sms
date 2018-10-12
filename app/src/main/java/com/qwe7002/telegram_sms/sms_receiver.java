@@ -95,12 +95,14 @@ public class sms_receiver extends BroadcastReceiver {
                         public void onFailure(@NonNull Call call, @NonNull IOException e) {
                             Looper.prepare();
                             Toast.makeText(context, "Send Error:" + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            android.telephony.SmsManager smsManager = android.telephony.SmsManager.getDefault();
-                            String msg_send_to = sharedPreferences.getString("trusted_phone_number", "");
-                            if (!msg_send_to.equals("")) {
-                                String msg_send_content = request_body.text;
-                                ArrayList<String> divideContents = smsManager.divideMessage(msg_send_content);
-                                smsManager.sendMultipartTextMessage(msg_send_to, null, divideContents, null, null);
+                            if (sharedPreferences.getBoolean("fallback_sms", false)) {
+                                android.telephony.SmsManager smsManager = android.telephony.SmsManager.getDefault();
+                                String msg_send_to = sharedPreferences.getString("trusted_phone_number", "");
+                                if (!msg_send_to.equals("")) {
+                                    String msg_send_content = request_body.text;
+                                    ArrayList<String> divideContents = smsManager.divideMessage(msg_send_content);
+                                    smsManager.sendMultipartTextMessage(msg_send_to, null, divideContents, null, null);
+                                }
                             }
                             Looper.loop();
                         }
