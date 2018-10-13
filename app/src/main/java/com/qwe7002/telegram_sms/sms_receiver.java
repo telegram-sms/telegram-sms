@@ -1,13 +1,17 @@
 package com.qwe7002.telegram_sms;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.telephony.SmsMessage;
+import android.telephony.SubscriptionManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -45,13 +49,26 @@ public class sms_receiver extends BroadcastReceiver {
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
+        assert bot_token != null;
+        assert chat_id != null;
         if (bot_token.isEmpty() || chat_id.isEmpty()) {
             Log.i("tg-sms", "onReceive: token not found");
             return;
         }
         if ("android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction())) {
             Bundle bundle = intent.getExtras();
+
             if (bundle != null) {
+                String DualSim = "";
+                SubscriptionManager manager = SubscriptionManager.from(context);
+                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                    if (manager.getActiveSubscriptionInfoCount() == 2) {
+                        int slot = bundle.getInt("slot", -1);
+                        DualSim = "\n" + context.getString(R.string.SIM_card_slot) + (slot + 1);
+                    }
+                }
+
+                int sub = bundle.getInt("subscription", -1);
                 Object[] pdus = (Object[]) bundle.get("pdus");
                 assert pdus != null;
                 final SmsMessage[] messages = new SmsMessage[pdus.length];
@@ -64,9 +81,11 @@ public class sms_receiver extends BroadcastReceiver {
                         msgBody.append(item.getMessageBody());
                     }
                     String msgAddress = messages[0].getOriginatingAddress();
+
                     final request_json request_body = new request_json();
                     request_body.chat_id = chat_id;
-                    request_body.text = context.getString(R.string.receive_sms_head) + "\n" + context.getString(R.string.from) + msgAddress + "\n" + context.getString(R.string.content) + msgBody;
+                    request_body.text = context.getString(R.string.receive_sms_head) + DualSim + "\n" + context.getString(R.string.from) + msgAddress + "\n" + context.getString(R.string.content) + msgBody;
+                    assert msgAddress != null;
                     if (msgAddress.equals(sharedPreferences.getString("trusted_phone_number", ""))) {
                         String[] msg_send_list = msgBody.toString().split("\n");
                         if (is_numeric(msg_send_list[0])) {
@@ -79,9 +98,12 @@ public class sms_receiver extends BroadcastReceiver {
                                 msg_send_content.append(msg_send_list[i]);
                             }
                             android.telephony.SmsManager smsManager = android.telephony.SmsManager.getDefault();
+                            if (sub != -1) {
+                                smsManager = android.telephony.SmsManager.getSmsManagerForSubscriptionId(sub);
+                            }
                             ArrayList<String> divideContents = smsManager.divideMessage(msg_send_content.toString());
                             smsManager.sendMultipartTextMessage(msg_send_to, null, divideContents, null, null);
-                            request_body.text = context.getString(R.string.send_sms_head) + "\n" + context.getString(R.string.to) + msg_send_to + "\n" + context.getString(R.string.content) + msg_send_content.toString();
+                            request_body.text = context.getString(R.string.send_sms_head) + DualSim + "\n" + context.getString(R.string.to) + msg_send_to + "\n" + context.getString(R.string.content) + msg_send_content.toString();
                         }
                     }
                     Gson gson = new Gson();
@@ -98,6 +120,7 @@ public class sms_receiver extends BroadcastReceiver {
                             if (sharedPreferences.getBoolean("fallback_sms", false)) {
                                 android.telephony.SmsManager smsManager = android.telephony.SmsManager.getDefault();
                                 String msg_send_to = sharedPreferences.getString("trusted_phone_number", "");
+                                assert msg_send_to != null;
                                 if (!msg_send_to.equals("")) {
                                     String msg_send_content = request_body.text;
                                     ArrayList<String> divideContents = smsManager.divideMessage(msg_send_content);
