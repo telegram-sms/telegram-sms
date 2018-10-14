@@ -92,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
                         Looper.prepare();
                         mpDialog.cancel();
                         Log.d("tg-sms", "onResponse: " + response.body());
+                        assert response.body() != null;
                         JsonObject updates = new JsonParser().parse(response.body().string()).getAsJsonObject();
                         JsonArray chat_list = updates.getAsJsonArray("result");
                         final ArrayList<String> chat_name_list = new ArrayList<>();
@@ -101,7 +102,6 @@ public class MainActivity extends AppCompatActivity {
                             if (item_obj.has("message")) {
                                 JsonObject message_obj = item_obj.get("message").getAsJsonObject();
                                 JsonObject chat_obj = message_obj.get("chat").getAsJsonObject();
-
                                 if (!chat_id_list.contains(chat_obj.get("id").getAsString())) {
                                     chat_name_list.add(chat_obj.get("username").getAsString());
                                     chat_id_list.add(chat_obj.get("id").getAsString());
@@ -111,7 +111,6 @@ public class MainActivity extends AppCompatActivity {
                         MainActivity.this.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-
                                 new AlertDialog.Builder(v.getContext()).setTitle(R.string.select_chat).setItems(chat_name_list.toArray(new String[0]), new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {

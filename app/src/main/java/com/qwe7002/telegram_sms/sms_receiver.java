@@ -67,7 +67,6 @@ public class sms_receiver extends BroadcastReceiver {
                         DualSim = "\n" + context.getString(R.string.SIM_card_slot) + (slot + 1);
                     }
                 }
-
                 int sub = bundle.getInt("subscription", -1);
                 Object[] pdus = (Object[]) bundle.get("pdus");
                 assert pdus != null;
