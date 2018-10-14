@@ -1,17 +1,16 @@
 package com.qwe7002.telegram_sms;
 
-import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -30,17 +29,20 @@ import okhttp3.Response;
 import static android.content.Context.MODE_PRIVATE;
 
 public class call_receiver extends BroadcastReceiver {
+    private int slot;
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (Objects.equals(intent.getAction(), "android.intent.action.PHONE_STATE")) {
-            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                SubscriptionManager manager = SubscriptionManager.from(context);
+        switch (Objects.requireNonNull(intent.getAction())) {
+            case "android.intent.action.PHONE_STATE":
                 TelephonyManager telephony = (TelephonyManager) context
                         .getSystemService(Context.TELEPHONY_SERVICE);
-                call_listener customPhoneListener = new call_listener(context);
+                call_listener customPhoneListener = new call_listener(context, slot);
                 telephony.listen(customPhoneListener,
                         PhoneStateListener.LISTEN_CALL_STATE);
-            }
+                break;
+            case "android.intent.action.SUBSCRIPTION_PHONE_STATE":
+                slot = intent.getIntExtra("slot", -1);
+                Log.d("tg-sms", "onReceive: " + slot);
         }
     }
 }
@@ -49,10 +51,12 @@ class call_listener extends PhoneStateListener {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static int lastState = TelephonyManager.CALL_STATE_IDLE;
     private Context context;
+    private int slot;
 
-    call_listener(Context context) {
+    call_listener(Context context, int slot) {
         super();
         this.context = context;
+        this.slot = slot;
     }
 
     public void onCallStateChanged(int state, String incomingNumber) {
@@ -64,14 +68,21 @@ class call_listener extends PhoneStateListener {
         lastState = state;
     }
 
+    @SuppressLint("MissingPermission")
     private void sendSmgWhenMissedCall(String incomingNumber) {
+        SubscriptionManager manager = SubscriptionManager.from(context);
+        String DualSim = "";
+        if (manager.getActiveSubscriptionInfoCount() == 2) {
+            DualSim = "\n" + context.getString(R.string.SIM_card_slot) + (slot + 1);
+        }
+
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
         request_json request_body = new request_json();
         request_body.chat_id = chat_id;
-        request_body.text = context.getString(R.string.missed_call_head) + "\n" + context.getString(R.string.incoming_numbler) + incomingNumber;
+        request_body.text = context.getString(R.string.missed_call_head) + DualSim + "\n" + context.getString(R.string.incoming_numbler) + incomingNumber;
         Gson gson = new Gson();
         String request_body_raw = gson.toJson(request_body);
         RequestBody body = RequestBody.create(JSON, request_body_raw);

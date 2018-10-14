@@ -14,12 +14,12 @@
 
     <application
         android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_descriptor"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        android:fullBackupContent="@xml/backup_descriptor"
         tools:ignore="GoogleAppIndexingWarning">
         <service
             android:name="com.qwe7002.telegram_sms.battery_listener_service"
@@ -69,6 +69,7 @@
         <receiver android:name=".call_receiver">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.intent.action.PHONE_STATE" />
+                <action android:name="android.intent.action.SUBSCRIPTION_PHONE_STATE" />
             </intent-filter>
         </receiver>
 
