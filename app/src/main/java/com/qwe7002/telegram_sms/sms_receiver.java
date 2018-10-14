@@ -61,7 +61,7 @@ public class sms_receiver extends BroadcastReceiver {
             if (bundle != null) {
                 String DualSim = "";
                 SubscriptionManager manager = SubscriptionManager.from(context);
-                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                     if (manager.getActiveSubscriptionInfoCount() == 2) {
                         int slot = bundle.getInt("slot", -1);
                         DualSim = "\n" + context.getString(R.string.SIM_card_slot) + (slot + 1);
