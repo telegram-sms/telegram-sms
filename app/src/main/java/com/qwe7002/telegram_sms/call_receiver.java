@@ -73,7 +73,9 @@ class call_listener extends PhoneStateListener {
         SubscriptionManager manager = SubscriptionManager.from(context);
         String DualSim = "";
         if (manager.getActiveSubscriptionInfoCount() == 2) {
-            DualSim = "\n" + context.getString(R.string.SIM_card_slot) + (slot + 1);
+            if (slot != -1) {
+                DualSim = "\n" + context.getString(R.string.SIM_card_slot) + (slot + 1);
+            }
         }
 
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
