@@ -18,7 +18,6 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -70,7 +69,7 @@ public class sms_receiver extends BroadcastReceiver {
                     }
                 }
 
-                int sub = bundle.getInt("subscription", -1);
+                final int sub = bundle.getInt("subscription", -1);
                 Object[] pdus = (Object[]) bundle.get("pdus");
                 assert pdus != null;
                 final SmsMessage[] messages = new SmsMessage[pdus.length];
@@ -88,7 +87,7 @@ public class sms_receiver extends BroadcastReceiver {
                     request_body.chat_id = chat_id;
                     request_body.text = context.getString(R.string.receive_sms_head) + DualSim + "\n" + context.getString(R.string.from) + msgAddress + "\n" + context.getString(R.string.content) + msgBody;
                     assert msgAddress != null;
-                    if (msgAddress.equals(sharedPreferences.getString("trusted_phone_number", ""))) {
+                    if (msgAddress.equals(sharedPreferences.getString("trusted_phone_number", null))) {
                         String[] msg_send_list = msgBody.toString().split("\n");
                         if (is_numeric(msg_send_list[0])) {
                             String msg_send_to = msg_send_list[0];
@@ -99,12 +98,7 @@ public class sms_receiver extends BroadcastReceiver {
                                 }
                                 msg_send_content.append(msg_send_list[i]);
                             }
-                            android.telephony.SmsManager smsManager = android.telephony.SmsManager.getDefault();
-                            if (sub != -1) {
-                                smsManager = android.telephony.SmsManager.getSmsManagerForSubscriptionId(sub);
-                            }
-                            ArrayList<String> divideContents = smsManager.divideMessage(msg_send_content.toString());
-                            smsManager.sendMultipartTextMessage(msg_send_to, null, divideContents, null, null);
+                            public_func.send_sms(msg_send_to, msg_send_content.toString(), sub);
                             request_body.text = context.getString(R.string.send_sms_head) + DualSim + "\n" + context.getString(R.string.to) + msg_send_to + "\n" + context.getString(R.string.content) + msg_send_content.toString();
                         }
                     }
@@ -120,13 +114,10 @@ public class sms_receiver extends BroadcastReceiver {
                             Looper.prepare();
                             Toast.makeText(context, "Send Error:" + e.getMessage(), Toast.LENGTH_SHORT).show();
                             if (sharedPreferences.getBoolean("fallback_sms", false)) {
-                                android.telephony.SmsManager smsManager = android.telephony.SmsManager.getDefault();
-                                String msg_send_to = sharedPreferences.getString("trusted_phone_number", "");
-                                assert msg_send_to != null;
-                                if (!msg_send_to.equals("")) {
-                                    String msg_send_content = request_body.text;
-                                    ArrayList<String> divideContents = smsManager.divideMessage(msg_send_content);
-                                    smsManager.sendMultipartTextMessage(msg_send_to, null, divideContents, null, null);
+                                String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
+                                String msg_send_content = request_body.text;
+                                if (msg_send_to != null) {
+                                    public_func.send_sms(msg_send_to, msg_send_content, sub);
                                 }
                             }
                             Looper.loop();

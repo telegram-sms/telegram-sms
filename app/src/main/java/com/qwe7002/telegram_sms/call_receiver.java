@@ -78,11 +78,11 @@ class call_listener extends PhoneStateListener {
             }
         }
 
-        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
-        request_json request_body = new request_json();
+        final request_json request_body = new request_json();
         request_body.chat_id = chat_id;
         request_body.text = context.getString(R.string.missed_call_head) + DualSim + "\n" + context.getString(R.string.incoming_numbler) + incomingNumber;
         Gson gson = new Gson();
@@ -96,6 +96,13 @@ class call_listener extends PhoneStateListener {
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Looper.prepare();
                 Toast.makeText(context, "Send Missed Call Error:" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                if (sharedPreferences.getBoolean("fallback_sms", false)) {
+                    String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
+                    String msg_send_content = request_body.text;
+                    if (msg_send_to != null) {
+                        public_func.send_sms(msg_send_to, msg_send_content, -1);
+                    }
+                }
                 Looper.loop();
             }
 

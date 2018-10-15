@@ -23,4 +23,6 @@
     <string name="test_and_save">測試並保存</string>
     <string name="network_error_falls_back_to_sms">網路錯誤回退到SMS</string>
     <string name="SIM_card_slot">SIM卡插槽：</string>
+    <string name="current_battery_level">當前電池電量：</string>
+    <string name="charging_is_complete">充電完成。</string>
 </resources>

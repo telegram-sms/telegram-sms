@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
@@ -19,6 +20,7 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -28,18 +30,21 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+import static android.content.Context.BATTERY_SERVICE;
 import static android.content.Context.MODE_PRIVATE;
 
 public class battery_listener_service extends Service {
     battery_receiver receiver = null;
     final String CHANNEL_ID = "1";
-    final String CHANNEL_NAME="tg-sms";
+    final String CHANNEL_NAME = "tg-sms";
+
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d("tg-sms", "onCreate: battery_receiver");
         battery_receiver receiver = new battery_receiver();
         IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_BATTERY_OKAY);
         filter.addAction(Intent.ACTION_BATTERY_LOW);
         filter.addAction(Intent.ACTION_POWER_CONNECTED);
         filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
@@ -55,6 +60,7 @@ public class battery_listener_service extends Service {
             startForeground(1, notification);
         }
     }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -74,7 +80,7 @@ class battery_receiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(final Context context, Intent intent) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
@@ -82,20 +88,24 @@ class battery_receiver extends BroadcastReceiver {
             Log.i("tg-sms", "onReceive: token not found");
             return;
         }
-        request_json request_body = new request_json();
+        final request_json request_body = new request_json();
         request_body.chat_id = chat_id;
         StringBuilder prebody = new StringBuilder(context.getString(R.string.system_message_head) + "\n");
-        switch (intent.getAction()) {
+        switch (Objects.requireNonNull(intent.getAction())) {
+            case Intent.ACTION_BATTERY_OKAY:
+                prebody = prebody.append(context.getString(R.string.charging_is_complete));
             case Intent.ACTION_BATTERY_LOW:
-                request_body.text = prebody.append(context.getString(R.string.battery_low)).toString();
+                prebody = prebody.append(context.getString(R.string.battery_low));
                 break;
             case Intent.ACTION_POWER_CONNECTED:
-                request_body.text = prebody.append(context.getString(R.string.ac_connect)).toString();
+                prebody = prebody.append(context.getString(R.string.ac_connect));
                 break;
             case Intent.ACTION_POWER_DISCONNECTED:
-                request_body.text = prebody.append(context.getString(R.string.ac_disconnect)).toString();
+                prebody = prebody.append(context.getString(R.string.ac_disconnect));
                 break;
         }
+        BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
+        request_body.text = prebody.append("\n").append(context.getString(R.string.current_battery_level)).append(batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)).append("%").toString();
 
 
         Gson gson = new Gson();
@@ -109,6 +119,13 @@ class battery_receiver extends BroadcastReceiver {
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Looper.prepare();
                 Toast.makeText(context, "SendSMSError:" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                if (sharedPreferences.getBoolean("fallback_sms", false)) {
+                    String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
+                    String msg_send_content = request_body.text;
+                    if (msg_send_to != null) {
+                        public_func.send_sms(msg_send_to, msg_send_content, -1);
+                    }
+                }
                 Looper.loop();
             }
 
