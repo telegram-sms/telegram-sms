@@ -31,7 +31,7 @@
                     android:id="@+id/bot_token"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Bot Token"
+                    android:hint="@string/bot_token"
                     android:inputType="textEmailAddress"
                     android:maxLines="1"
                     android:singleLine="true" />
@@ -45,7 +45,7 @@
                     android:id="@+id/chat_id"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Chat ID"
+                    android:hint="@string/chat_id"
                     android:maxLines="1"
                     android:singleLine="true" />
             </android.support.design.widget.TextInputLayout>
@@ -56,24 +56,29 @@
                     android:id="@+id/TPM"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Trusted phone number"
-                    android:numeric="integer"
+                    android:hint="@string/trusted_phone_number"
                     android:maxLines="1"
                     android:singleLine="true" />
             </android.support.design.widget.TextInputLayout>
 
+            <Switch
+                android:id="@+id/fallback_sms"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="3dp"
+                android:text="@string/network_error_falls_back_to_sms" />
             <Button
                 android:id="@+id/get_id"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Get recent chat ID" />
+                android:text="@string/get_recent_chat_id" />
 
             <Button
                 android:id="@+id/save"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Test and save" />
+                android:text="@string/test_and_save" />
 
 
         </LinearLayout>
