@@ -24,7 +24,6 @@ import java.util.Objects;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -76,8 +75,6 @@ public class battery_listener_service extends Service {
 }
 
 class battery_receiver extends BroadcastReceiver {
-    static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-
     @Override
     public void onReceive(final Context context, Intent intent) {
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
@@ -106,11 +103,9 @@ class battery_receiver extends BroadcastReceiver {
         }
         BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
         request_body.text = prebody.append("\n").append(context.getString(R.string.current_battery_level)).append(batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)).append("%").toString();
-
-
         Gson gson = new Gson();
         String request_body_raw = gson.toJson(request_body);
-        RequestBody body = RequestBody.create(JSON, request_body_raw);
+        RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
         OkHttpClient okHttpClient = new OkHttpClient();
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okHttpClient.newCall(request);

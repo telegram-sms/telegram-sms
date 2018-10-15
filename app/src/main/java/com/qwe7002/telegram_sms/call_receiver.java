@@ -20,7 +20,6 @@ import java.util.Objects;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -48,7 +47,6 @@ public class call_receiver extends BroadcastReceiver {
 }
 
 class call_listener extends PhoneStateListener {
-    private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static int lastState = TelephonyManager.CALL_STATE_IDLE;
     private Context context;
     private int slot;
@@ -87,7 +85,7 @@ class call_listener extends PhoneStateListener {
         request_body.text = context.getString(R.string.missed_call_head) + DualSim + "\n" + context.getString(R.string.incoming_numbler) + incomingNumber;
         Gson gson = new Gson();
         String request_body_raw = gson.toJson(request_body);
-        RequestBody body = RequestBody.create(JSON, request_body_raw);
+        RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
         OkHttpClient okHttpClient = new OkHttpClient();
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okHttpClient.newCall(request);
