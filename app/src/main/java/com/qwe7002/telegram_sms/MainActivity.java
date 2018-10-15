@@ -30,7 +30,6 @@ import java.util.ArrayList;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -39,8 +38,6 @@ import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
     SharedPreferences sharedPreferences;
-    static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -143,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
                 request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
                 Gson gson = new Gson();
                 String request_body_raw = gson.toJson(request_body);
-                RequestBody body = RequestBody.create(JSON, request_body_raw);
+                RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
                 OkHttpClient okHttpClient = new OkHttpClient();
                 Request request = new Request.Builder().url(request_uri).method("POST", body).build();
                 Call call = okHttpClient.newCall(request);
