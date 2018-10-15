@@ -23,4 +23,6 @@
     <string name="test_and_save">テストと保存</string>
     <string name="network_error_falls_back_to_sms">ネットワークエラーがSMSに戻る</string>
     <string name="SIM_card_slot">SIMカードスロット：</string>
+    <string name="current_battery_level">現在のバッテリーレベル：</string>
+    <string name="charging_is_complete">充電が完了しました。</string>
 </resources>
