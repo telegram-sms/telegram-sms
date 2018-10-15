@@ -27,6 +27,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 import static android.content.Context.MODE_PRIVATE;
+import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class sms_receiver extends BroadcastReceiver {
     public static boolean is_numeric(String str) {
@@ -84,19 +85,21 @@ public class sms_receiver extends BroadcastReceiver {
                     request_body.chat_id = chat_id;
                     request_body.text = context.getString(R.string.receive_sms_head) + DualSim + "\n" + context.getString(R.string.from) + msgAddress + "\n" + context.getString(R.string.content) + msgBody;
                     assert msgAddress != null;
-                    if (msgAddress.equals(sharedPreferences.getString("trusted_phone_number", null))) {
-                        String[] msg_send_list = msgBody.toString().split("\n");
-                        if (is_numeric(msg_send_list[0])) {
-                            String msg_send_to = msg_send_list[0];
-                            StringBuilder msg_send_content = new StringBuilder();
-                            for (int i = 1; i < msg_send_list.length; i++) {
-                                if (msg_send_list.length != 2 && i != 1) {
-                                    msg_send_content.append("\n");
+                    if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+                        if (msgAddress.equals(sharedPreferences.getString("trusted_phone_number", null))) {
+                            String[] msg_send_list = msgBody.toString().split("\n");
+                            if (is_numeric(msg_send_list[0])) {
+                                String msg_send_to = msg_send_list[0];
+                                StringBuilder msg_send_content = new StringBuilder();
+                                for (int i = 1; i < msg_send_list.length; i++) {
+                                    if (msg_send_list.length != 2 && i != 1) {
+                                        msg_send_content.append("\n");
+                                    }
+                                    msg_send_content.append(msg_send_list[i]);
                                 }
-                                msg_send_content.append(msg_send_list[i]);
+                                public_func.send_sms(msg_send_to, msg_send_content.toString(), sub);
+                                request_body.text = context.getString(R.string.send_sms_head) + DualSim + "\n" + context.getString(R.string.to) + msg_send_to + "\n" + context.getString(R.string.content) + msg_send_content.toString();
                             }
-                            public_func.send_sms(msg_send_to, msg_send_content.toString(), sub);
-                            request_body.text = context.getString(R.string.send_sms_head) + DualSim + "\n" + context.getString(R.string.to) + msg_send_to + "\n" + context.getString(R.string.content) + msg_send_content.toString();
                         }
                     }
                     Gson gson = new Gson();
@@ -110,11 +113,13 @@ public class sms_receiver extends BroadcastReceiver {
                         public void onFailure(@NonNull Call call, @NonNull IOException e) {
                             Looper.prepare();
                             Toast.makeText(context, "Send Error:" + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            if (sharedPreferences.getBoolean("fallback_sms", false)) {
-                                String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
-                                String msg_send_content = request_body.text;
-                                if (msg_send_to != null) {
-                                    public_func.send_sms(msg_send_to, msg_send_content, sub);
+                            if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+                                if (sharedPreferences.getBoolean("fallback_sms", false)) {
+                                    String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
+                                    String msg_send_content = request_body.text;
+                                    if (msg_send_to != null) {
+                                        public_func.send_sms(msg_send_to, msg_send_content, sub);
+                                    }
                                 }
                             }
                             Looper.loop();
