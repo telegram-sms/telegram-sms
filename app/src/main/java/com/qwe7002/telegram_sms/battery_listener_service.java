@@ -1,5 +1,6 @@
 package com.qwe7002.telegram_sms;
 
+import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -9,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.IBinder;
@@ -31,6 +33,7 @@ import okhttp3.Response;
 
 import static android.content.Context.BATTERY_SERVICE;
 import static android.content.Context.MODE_PRIVATE;
+import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class battery_listener_service extends Service {
     battery_receiver receiver = null;
@@ -114,11 +117,13 @@ class battery_receiver extends BroadcastReceiver {
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Looper.prepare();
                 Toast.makeText(context, "SendSMSError:" + e.getMessage(), Toast.LENGTH_SHORT).show();
-                if (sharedPreferences.getBoolean("fallback_sms", false)) {
-                    String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
-                    String msg_send_content = request_body.text;
-                    if (msg_send_to != null) {
-                        public_func.send_sms(msg_send_to, msg_send_content, -1);
+                if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+                    if (sharedPreferences.getBoolean("fallback_sms", false)) {
+                        String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
+                        String msg_send_content = request_body.text;
+                        if (msg_send_to != null) {
+                            public_func.send_sms(msg_send_to, msg_send_content, -1);
+                        }
                     }
                 }
                 Looper.loop();
