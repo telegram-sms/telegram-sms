@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -88,7 +89,7 @@ public class sms_receiver extends BroadcastReceiver {
                     if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                         if (msgAddress.equals(sharedPreferences.getString("trusted_phone_number", null))) {
                             String[] msg_send_list = msgBody.toString().split("\n");
-                            if (is_numeric(msg_send_list[0])) {
+                            if (is_numeric(msg_send_list[0])&& msg_send_list.length!=1) {
                                 String msg_send_to = msg_send_list[0];
                                 StringBuilder msg_send_content = new StringBuilder();
                                 for (int i = 1; i < msg_send_list.length; i++) {
@@ -102,6 +103,7 @@ public class sms_receiver extends BroadcastReceiver {
                             }
                         }
                     }
+
                     Gson gson = new Gson();
                     String request_body_raw = gson.toJson(request_body);
                     RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
