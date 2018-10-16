@@ -8,12 +8,12 @@
     <string name="send_sms_head">[メールを送信]</string>
     <string name="system_message_head">[システム情報]</string>
     <string name="success_connect">テレグラムボットサーバーに正常に接続しました。</string>
-    <string name="connect_wait_title">サーバーに接続します… </string>
+    <string name="connect_wait_title">サーバーを接続しています…</string>
     <string name="connect_wait_message">しばらくお待ちください… </string>
     <string name="select_chat">チャットの選択</string>
     <string name="missed_call_head">[不在着信]</string>
     <string name="incoming_numbler">発信者番号：</string>
-    <string name="battery_low">デバイスのバッテリが不足しています。 </string>
+    <string name="battery_low">低電力。</string>
     <string name="ac_connect"> AC充電器が接続されています。 </string>
     <string name="ac_disconnect"> AC充電器が接続されていません。 </string>
     <string name="bot_token">ロボットトークン</string>
@@ -24,5 +24,5 @@
     <string name="network_error_falls_back_to_sms">ネットワークエラーがSMSに戻る</string>
     <string name="SIM_card_slot">SIMカードスロット：</string>
     <string name="current_battery_level">現在のバッテリーレベル：</string>
-    <string name="charging_is_complete">充電が完了しました。</string>
+    <string name="charging_is_complete">充電完了。</string>
 </resources>
