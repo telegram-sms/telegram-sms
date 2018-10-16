@@ -116,16 +116,7 @@ class battery_receiver extends BroadcastReceiver {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Looper.prepare();
-                Toast.makeText(context, "SendSMSError:" + e.getMessage(), Toast.LENGTH_SHORT).show();
-                if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-                    if (sharedPreferences.getBoolean("fallback_sms", false)) {
-                        String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
-                        String msg_send_content = request_body.text;
-                        if (msg_send_to != null) {
-                            public_func.send_sms(msg_send_to, msg_send_content, -1);
-                        }
-                    }
-                }
+                Toast.makeText(context, "Send Battery Error:" + e.getMessage(), Toast.LENGTH_SHORT).show();
                 Looper.loop();
             }
 
@@ -134,7 +125,7 @@ class battery_receiver extends BroadcastReceiver {
                 if (response.code() != 200) {
                     Looper.prepare();
                     assert response.body() != null;
-                    Toast.makeText(context, "SendSMSError:" + response.body().string(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Send Battery Error:" + response.body().string(), Toast.LENGTH_SHORT).show();
                     Looper.loop();
                 }
             }
