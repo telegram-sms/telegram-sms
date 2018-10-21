@@ -43,7 +43,7 @@ public class battery_listener_service extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d("tg-sms", "onCreate: battery_receiver");
+        Log.d(public_func.log_tag, "onCreate: battery_receiver");
         battery_receiver receiver = new battery_receiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_OKAY);
@@ -61,6 +61,7 @@ public class battery_listener_service extends Service {
             Notification notification = new Notification.Builder(getApplicationContext(), CHANNEL_ID).build();
             startForeground(1, notification);
         }
+
     }
 
     @Override
@@ -85,7 +86,7 @@ class battery_receiver extends BroadcastReceiver {
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
         if (bot_token.isEmpty() || chat_id.isEmpty()) {
-            Log.i("tg-sms", "onReceive: token not found");
+            Log.i(public_func.log_tag, "onReceive: token not found");
             return;
         }
         final request_json request_body = new request_json();
@@ -116,7 +117,9 @@ class battery_receiver extends BroadcastReceiver {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Looper.prepare();
-                Toast.makeText(context, "Send Battery Error:" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                String error_message = "Send Battery Error:" + e.getMessage();
+                Toast.makeText(context,error_message , Toast.LENGTH_SHORT).show();
+                Log.i(public_func.log_tag, error_message);
                 Looper.loop();
             }
 
@@ -125,7 +128,9 @@ class battery_receiver extends BroadcastReceiver {
                 if (response.code() != 200) {
                     Looper.prepare();
                     assert response.body() != null;
-                    Toast.makeText(context, "Send Battery Error:" + response.body().string(), Toast.LENGTH_SHORT).show();
+                    String error_message = "Send Battery Error:" + response.body().string();
+                    Toast.makeText(context,error_message , Toast.LENGTH_SHORT).show();
+                    Log.i(public_func.log_tag, error_message);
                     Looper.loop();
                 }
             }

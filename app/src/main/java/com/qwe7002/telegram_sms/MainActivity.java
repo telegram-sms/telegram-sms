@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onResponse(Call call, Response response) throws IOException {
                         Looper.prepare();
                         mpDialog.cancel();
-                        Log.d("tg-sms", "onResponse: " + response.body());
+                        Log.d(public_func.log_tag, "onResponse: " + response.body());
                         assert response.body() != null;
                         JsonObject updates = new JsonParser().parse(response.body().string()).getAsJsonObject();
                         JsonArray chat_list = updates.getAsJsonArray("result");

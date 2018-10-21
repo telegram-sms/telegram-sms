@@ -44,7 +44,7 @@ public class call_receiver extends BroadcastReceiver {
                 break;
             case "android.intent.action.SUBSCRIPTION_PHONE_STATE":
                 slot = intent.getIntExtra("slot", -1);
-                Log.d("tg-sms", "onReceive: " + slot);
+                Log.d(public_func.log_tag, "onReceive: " + slot);
         }
     }
 }
@@ -96,7 +96,9 @@ class call_listener extends PhoneStateListener {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Looper.prepare();
-                Toast.makeText(context, "Send Missed Call Error:" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                String error_message = "Send Missed Call Error:" + e.getMessage();
+                Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
+                Log.i(public_func.log_tag, error_message);
                 if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                     if (sharedPreferences.getBoolean("fallback_sms", false)) {
                         String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
@@ -114,7 +116,9 @@ class call_listener extends PhoneStateListener {
                 if (response.code() != 200) {
                     Looper.prepare();
                     assert response.body() != null;
-                    Toast.makeText(context, "Send Missed Call Error:" + response.body().string(), Toast.LENGTH_SHORT).show();
+                    String error_message = "Send Missed Call Error:" + response.body().string();
+                    Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
+                    Log.i(public_func.log_tag, error_message);
                     Looper.loop();
                 }
             }
