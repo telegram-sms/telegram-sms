@@ -50,7 +50,7 @@ public class sms_receiver extends BroadcastReceiver {
         assert bot_token != null;
         assert chat_id != null;
         if (bot_token.isEmpty() || chat_id.isEmpty()) {
-            Log.i("tg-sms", "onReceive: token not found");
+            Log.i(public_func.log_tag, "onReceive: token not found");
             return;
         }
         if ("android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction())) {
@@ -114,7 +114,9 @@ public class sms_receiver extends BroadcastReceiver {
                         @Override
                         public void onFailure(@NonNull Call call, @NonNull IOException e) {
                             Looper.prepare();
-                            Toast.makeText(context, "Send Error:" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            String error_message = "Send Error:" + e.getMessage();
+                            Toast.makeText(context,error_message , Toast.LENGTH_SHORT).show();
+                            Log.i(public_func.log_tag, error_message);
                             if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                                 if (sharedPreferences.getBoolean("fallback_sms", false)) {
                                     String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
@@ -132,7 +134,9 @@ public class sms_receiver extends BroadcastReceiver {
                             if (response.code() != 200) {
                                 Looper.prepare();
                                 assert response.body() != null;
-                                Toast.makeText(context, "Send Error:" + response.body().string(), Toast.LENGTH_SHORT).show();
+                                String error_message = "Send Error:" + response.body().string();
+                                Toast.makeText(context,error_message , Toast.LENGTH_SHORT).show();
+                                Log.i(public_func.log_tag, error_message);
                                 Looper.loop();
                             }
                         }
