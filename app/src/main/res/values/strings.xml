@@ -24,5 +24,5 @@
     <string name="network_error_falls_back_to_sms">Network error falls back to SMS</string>
     <string name="SIM_card_slot">SIM Card Slot:</string>
     <string name="current_battery_level">Current battery level:</string>
-    <string name="charging_is_complete">Charging is complete.</string>
+    <string name="charging_is_complete">The low battery status has ended.</string>
 </resources>
