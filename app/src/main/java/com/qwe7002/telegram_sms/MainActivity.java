@@ -88,10 +88,12 @@ public class MainActivity extends AppCompatActivity {
                     public void onResponse(Call call, Response response) throws IOException {
                         Looper.prepare();
                         mpDialog.cancel();
-                        Log.d(public_func.log_tag, "onResponse: " + response.body());
+
                         assert response.body() != null;
-                        JsonObject updates = new JsonParser().parse(response.body().string()).getAsJsonObject();
-                        JsonArray chat_list = updates.getAsJsonArray("result");
+                        String result = response.body().string();
+                        Log.d(public_func.log_tag, "onResponse: " + result);
+                        JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
+                        JsonArray chat_list = result_obj.getAsJsonArray("result");
                         final ArrayList<String> chat_name_list = new ArrayList<>();
                         final ArrayList<String> chat_id_list = new ArrayList<>();
                         for (JsonElement item : chat_list) {
@@ -100,10 +102,19 @@ public class MainActivity extends AppCompatActivity {
                                 JsonObject message_obj = item_obj.get("message").getAsJsonObject();
                                 JsonObject chat_obj = message_obj.get("chat").getAsJsonObject();
                                 if (!chat_id_list.contains(chat_obj.get("id").getAsString())) {
-                                    chat_name_list.add(chat_obj.get("username").getAsString());
+                                    chat_name_list.add(chat_obj.get("username").getAsString()+"(Chat)");
                                     chat_id_list.add(chat_obj.get("id").getAsString());
                                 }
                             }
+                            if (item_obj.has("channel_post")){
+                                JsonObject message_obj = item_obj.get("channel_post").getAsJsonObject();
+                                JsonObject chat_obj = message_obj.get("chat").getAsJsonObject();
+                                if (!chat_id_list.contains(chat_obj.get("id").getAsString())) {
+                                    chat_name_list.add(chat_obj.get("title").getAsString()+"(Channel)");
+                                    chat_id_list.add(chat_obj.get("id").getAsString());
+                                }
+                            }
+
                         }
                         MainActivity.this.runOnUiThread(new Runnable() {
                             @Override
@@ -160,8 +171,10 @@ public class MainActivity extends AppCompatActivity {
                         mpDialog.cancel();
                         if (response.code() != 200) {
                             assert response.body() != null;
-                            Snackbar.make(v, "Send Error:" + response.body().string(), Snackbar.LENGTH_LONG)
-                                    .show();
+                            String result = response.body().string();
+                            Log.d(public_func.log_tag, "onResponse: " + result);
+                            JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
+                            Snackbar.make(v, "Send Error:" + result_obj.get("description"), Snackbar.LENGTH_LONG).show();
                             return;
                         }
 
