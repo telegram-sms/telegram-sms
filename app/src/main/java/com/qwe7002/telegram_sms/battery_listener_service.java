@@ -95,6 +95,7 @@ class battery_receiver extends BroadcastReceiver {
         switch (Objects.requireNonNull(intent.getAction())) {
             case Intent.ACTION_BATTERY_OKAY:
                 prebody = prebody.append(context.getString(R.string.charging_is_complete));
+                break;
             case Intent.ACTION_BATTERY_LOW:
                 prebody = prebody.append(context.getString(R.string.battery_low));
                 break;
