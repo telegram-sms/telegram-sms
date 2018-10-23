@@ -2,13 +2,16 @@ package com.qwe7002.telegram_sms;
 
 import android.Manifest;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.SmsMessage;
@@ -28,6 +31,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 import static android.content.Context.MODE_PRIVATE;
+import static android.support.v4.content.PermissionChecker.PERMISSION_DENIED;
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class sms_receiver extends BroadcastReceiver {
@@ -39,8 +43,6 @@ public class sms_receiver extends BroadcastReceiver {
         }
         return true;
     }
-
-    @Override
     public void onReceive(final Context context, Intent intent) {
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
 
@@ -84,13 +86,18 @@ public class sms_receiver extends BroadcastReceiver {
 
                     final request_json request_body = new request_json();
                     request_body.chat_id = chat_id;
-                    request_body.text = context.getString(R.string.receive_sms_head) + DualSim + "\n" + context.getString(R.string.from) + msgAddress + "\n" + context.getString(R.string.content) + msgBody;
+                    String display_address =msgAddress;
+                    String display_name = public_func.get_phone_name(context,msgAddress);
+                    if(display_name!=null){
+                        display_address=display_name+"("+msgAddress+")";
+                    }
+                    request_body.text = context.getString(R.string.receive_sms_head) + DualSim + "\n" + context.getString(R.string.from) + display_address + "\n" + context.getString(R.string.content) + msgBody;
                     assert msgAddress != null;
                     if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                         if (msgAddress.equals(sharedPreferences.getString("trusted_phone_number", null))) {
                             String[] msg_send_list = msgBody.toString().split("\n");
                             if (is_numeric(msg_send_list[0])&& msg_send_list.length!=1) {
-                                String msg_send_to = msg_send_list[0];
+                                String msg_send_to = msg_send_list[0].trim();
                                 StringBuilder msg_send_content = new StringBuilder();
                                 for (int i = 1; i < msg_send_list.length; i++) {
                                     if (msg_send_list.length != 2 && i != 1) {
