@@ -36,7 +36,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 
-public class MainActivity extends AppCompatActivity {
+public class main_activity extends AppCompatActivity {
     SharedPreferences sharedPreferences;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,19 +54,28 @@ public class MainActivity extends AppCompatActivity {
 
         Button save_button = findViewById(R.id.save);
         Button get_id = findViewById(R.id.get_id);
+        Button logcat = findViewById(R.id.logcat_button);
         final Switch fallback_sms = findViewById(R.id.fallback_sms);
         sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         bot_token.setText(sharedPreferences.getString("bot_token", ""));
         chat_id.setText(sharedPreferences.getString("chat_id", ""));
         trusted_phone_number.setText(sharedPreferences.getString("trusted_phone_number", ""));
         fallback_sms.setChecked(sharedPreferences.getBoolean("fallback_sms", false));
+        logcat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                 Intent logcat_intent = new Intent(main_activity.this,logcat_activity.class);
+                 startActivity(logcat_intent);
+            }
+        });
         get_id.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
                 if (bot_token.getText().toString().isEmpty()) {
+                    Snackbar.make(v, R.string.token_not_configure , Snackbar.LENGTH_LONG).show();
                     return;
                 }
-                final ProgressDialog mpDialog = new ProgressDialog(MainActivity.this);
+                final ProgressDialog mpDialog = new ProgressDialog(main_activity.this);
                 mpDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 mpDialog.setTitle(getString(R.string.connect_wait_title));
                 mpDialog.setMessage(getString(R.string.connect_wait_message));
@@ -81,17 +90,15 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(Call call, IOException e) {
                         mpDialog.cancel();
-                        Log.d("Failure", e.getMessage());
+                        public_func.write_log(getApplicationContext(),"Get ID Error："+e.getMessage());
                     }
 
                     @Override
                     public void onResponse(Call call, Response response) throws IOException {
                         Looper.prepare();
                         mpDialog.cancel();
-
                         assert response.body() != null;
                         String result = response.body().string();
-                        Log.d(public_func.log_tag, "onResponse: " + result);
                         JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
                         JsonArray chat_list = result_obj.getAsJsonArray("result");
                         final ArrayList<String> chat_name_list = new ArrayList<>();
@@ -116,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                         }
-                        MainActivity.this.runOnUiThread(new Runnable() {
+                        main_activity.this.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 new AlertDialog.Builder(v.getContext()).setTitle(R.string.select_chat).setItems(chat_name_list.toArray(new String[0]), new DialogInterface.OnClickListener() {
@@ -137,8 +144,12 @@ public class MainActivity extends AppCompatActivity {
         save_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG,Manifest.permission.READ_CONTACTS}, 1);
-                final ProgressDialog mpDialog = new ProgressDialog(MainActivity.this);
+                if (bot_token.getText().toString().isEmpty() || chat_id.getText().toString().isEmpty()) {
+                    Snackbar.make(v, R.string.chatid_or_token_not_config , Snackbar.LENGTH_LONG).show();
+                    return;
+                }
+                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG,Manifest.permission.READ_CONTACTS}, 1);
+                final ProgressDialog mpDialog = new ProgressDialog(main_activity.this);
                 mpDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 mpDialog.setTitle(getString(R.string.connect_wait_title));
                 mpDialog.setMessage(getString(R.string.connect_wait_message));
@@ -160,7 +171,9 @@ public class MainActivity extends AppCompatActivity {
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
                         Looper.prepare();
                         mpDialog.cancel();
-                        Snackbar.make(v, "Send Error:" + e.getMessage(), Snackbar.LENGTH_LONG)
+                        String error_message = "Network Error:" + e.getMessage();
+                        public_func.write_log(getApplicationContext(),error_message);
+                        Snackbar.make(v,error_message , Snackbar.LENGTH_LONG)
                                 .show();
                         Looper.loop();
                     }
@@ -172,9 +185,10 @@ public class MainActivity extends AppCompatActivity {
                         if (response.code() != 200) {
                             assert response.body() != null;
                             String result = response.body().string();
-                            Log.d(public_func.log_tag, "onResponse: " + result);
                             JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
-                            Snackbar.make(v, "Send Error:" + result_obj.get("description"), Snackbar.LENGTH_LONG).show();
+                            String error_message = "API Error:" + result_obj.get("description");
+                            public_func.write_log(getApplicationContext(),error_message);
+                            Snackbar.make(v,error_message , Snackbar.LENGTH_LONG).show();
                             return;
                         }
 

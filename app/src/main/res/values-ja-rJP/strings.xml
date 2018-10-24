@@ -25,4 +25,7 @@
     <string name="SIM_card_slot">SIMカードスロット：</string>
     <string name="current_battery_level">現在のバッテリーレベル：</string>
     <string name="charging_is_complete">バッテリー残量が少なくなった。</string>
+    <string name="logcat">ログを見る</string>
+    <string name="token_not_configure">まず、ロボットトークンを設定してください。</string>
+    <string name="chatid_or_token_not_config">ロボットトークンと会話IDを最初に設定してください。</string>
 </resources>

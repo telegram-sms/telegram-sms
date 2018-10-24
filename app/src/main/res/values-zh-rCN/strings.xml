@@ -25,4 +25,7 @@
     <string name="SIM_card_slot">SIM卡插槽：</string>
     <string name="current_battery_level">当前电池电量：</string>
     <string name="charging_is_complete">电池电量不足状态已结束。</string>
+    <string name="logcat">查看日志</string>
+    <string name="token_not_configure">请先配置机器人令牌。</string>
+    <string name="chatid_or_token_not_config">请先配置机器人令牌和对话ID</string>
 </resources>
