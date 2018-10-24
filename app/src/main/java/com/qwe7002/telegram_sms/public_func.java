@@ -14,7 +14,7 @@ import okhttp3.MediaType;
 
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
-public class public_func {
+class public_func {
     static final String log_tag = "tg-sms";
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     static void send_sms(String send_to, String content, int subid) {
@@ -26,7 +26,7 @@ public class public_func {
         smsManager.sendMultipartTextMessage(send_to, null, divideContents, null, null);
 
     }
-    public static String get_phone_name(Context context, String address){
+    static String get_phone_name(Context context, String address){
         if(checkSelfPermission(context, Manifest.permission.READ_CONTACTS)!= PackageManager.PERMISSION_GRANTED){
             return null;
         }
