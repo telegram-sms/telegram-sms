@@ -90,13 +90,22 @@ public class main_activity extends AppCompatActivity {
                     @Override
                     public void onFailure(Call call, IOException e) {
                         mpDialog.cancel();
-                        public_func.write_log(getApplicationContext(),"Get ID Error："+e.getMessage());
+                        public_func.write_log(getApplicationContext(),"Get ID Network Error："+e.getMessage());
                     }
 
                     @Override
                     public void onResponse(Call call, Response response) throws IOException {
                         Looper.prepare();
                         mpDialog.cancel();
+                        if (response.code() != 200) {
+                            assert response.body() != null;
+                            String result = response.body().string();
+                            JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
+                            String error_message = "Get ID API Error:" + result_obj.get("description");
+                            public_func.write_log(getApplicationContext(),error_message);
+                            Snackbar.make(v,error_message , Snackbar.LENGTH_LONG).show();
+                            return;
+                        }
                         assert response.body() != null;
                         String result = response.body().string();
                         JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
@@ -171,7 +180,7 @@ public class main_activity extends AppCompatActivity {
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
                         Looper.prepare();
                         mpDialog.cancel();
-                        String error_message = "Network Error:" + e.getMessage();
+                        String error_message = "Send Message Network Error:" + e.getMessage();
                         public_func.write_log(getApplicationContext(),error_message);
                         Snackbar.make(v,error_message , Snackbar.LENGTH_LONG)
                                 .show();
@@ -186,7 +195,7 @@ public class main_activity extends AppCompatActivity {
                             assert response.body() != null;
                             String result = response.body().string();
                             JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
-                            String error_message = "API Error:" + result_obj.get("description");
+                            String error_message = "Send Message API Error:" + result_obj.get("description");
                             public_func.write_log(getApplicationContext(),error_message);
                             Snackbar.make(v,error_message , Snackbar.LENGTH_LONG).show();
                             return;
