@@ -121,7 +121,8 @@ public class sms_receiver extends BroadcastReceiver {
                         @Override
                         public void onFailure(@NonNull Call call, @NonNull IOException e) {
                             Looper.prepare();
-                            String error_message = "Send Error:" + e.getMessage();
+                            String error_message = "Send SMS Error:" + e.getMessage();
+                            public_func.write_log(context,error_message);
                             Toast.makeText(context,error_message , Toast.LENGTH_SHORT).show();
                             Log.i(public_func.log_tag, error_message);
                             if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
@@ -141,7 +142,8 @@ public class sms_receiver extends BroadcastReceiver {
                             if (response.code() != 200) {
                                 Looper.prepare();
                                 assert response.body() != null;
-                                String error_message = "Send Error:" + response.body().string();
+                                String error_message = "Send SMS Error:" + response.body().string();
+                                public_func.write_log(context,error_message);
                                 Toast.makeText(context,error_message , Toast.LENGTH_SHORT).show();
                                 Log.i(public_func.log_tag, error_message);
                                 Looper.loop();

@@ -25,4 +25,7 @@
     <string name="SIM_card_slot">SIM Card Slot:</string>
     <string name="current_battery_level">Current battery level:</string>
     <string name="charging_is_complete">The low battery status has ended.</string>
+    <string name="logcat">View log</string>
+    <string name="token_not_configure">Please configure the robot token first.</string>
+    <string name="chatid_or_token_not_config">Please configure the robot token and chat ID first.</string>
 </resources>
