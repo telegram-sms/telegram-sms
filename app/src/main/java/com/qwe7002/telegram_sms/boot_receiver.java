@@ -27,7 +27,7 @@ import static android.content.Context.MODE_PRIVATE;
 public class boot_receiver extends BroadcastReceiver {
 
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive(final Context context, Intent intent) {
         if (Objects.equals(intent.getAction(), "android.intent.action.BOOT_COMPLETED")) {
             Log.d(public_func.log_tag, "onReceive: boot_completed");
             Intent service = new Intent(context, battery_listener_service.class);
@@ -58,14 +58,17 @@ public class boot_receiver extends BroadcastReceiver {
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    Log.i(public_func.log_tag, "Send Startup Error:" + e.getMessage());
+                    String error_message = "Send Startup Error:"+ e.getMessage();
+                    Log.i(public_func.log_tag, error_message);
+                    public_func.write_log(context,error_message);
                 }
 
                 @Override
                 public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                     if (response.code() != 200) {
                         assert response.body() != null;
-                        Log.i(public_func.log_tag, "Send Startup Error:" + response.body().string());
+                        String error_message = "Send Startup Error:" + response.body().string();
+                        public_func.write_log(context,error_message);
                     }
                 }
             });
