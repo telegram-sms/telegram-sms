@@ -32,7 +32,6 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class call_receiver extends BroadcastReceiver {
     private int slot;
-
     @Override
     public void onReceive(Context context, Intent intent) {
         switch (Objects.requireNonNull(intent.getAction())) {
@@ -86,12 +85,12 @@ class call_listener extends PhoneStateListener {
         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
         final request_json request_body = new request_json();
         request_body.chat_id = chat_id;
-        String display_address = incomingNumber;
-        String display_name = public_func.get_phone_name(context, incomingNumber);
-        if (display_name != null) {
-            display_address = display_name + "(" + incomingNumber + ")";
+        String display_address =incomingNumber;
+        String display_name = public_func.get_phone_name(context,incomingNumber);
+        if(display_name!=null){
+            display_address=display_name+"("+incomingNumber+")";
         }
-        request_body.text = context.getString(R.string.missed_call_head) + "\n" + context.getString(R.string.incoming_numbler) + display_address + DualSim;
+        request_body.text = context.getString(R.string.missed_call_head) + DualSim + "\n" + context.getString(R.string.incoming_numbler) + display_address;
         Gson gson = new Gson();
         String request_body_raw = gson.toJson(request_body);
         RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
@@ -103,7 +102,7 @@ class call_listener extends PhoneStateListener {
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Looper.prepare();
                 String error_message = "Send Missed Call Error:" + e.getMessage();
-                public_func.write_log(context, error_message);
+                public_func.write_log(context,error_message);
                 Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                 Log.i(public_func.log_tag, error_message);
                 if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
@@ -124,7 +123,7 @@ class call_listener extends PhoneStateListener {
                     Looper.prepare();
                     assert response.body() != null;
                     String error_message = "Send Missed Call Error:" + response.body().string();
-                    public_func.write_log(context, error_message);
+                    public_func.write_log(context,error_message);
                     Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                     Log.i(public_func.log_tag, error_message);
                     Looper.loop();
