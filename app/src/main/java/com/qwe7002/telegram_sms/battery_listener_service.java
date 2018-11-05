@@ -37,8 +37,6 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class battery_listener_service extends Service {
     battery_receiver receiver = null;
-    final String CHANNEL_ID = "1";
-    final String CHANNEL_NAME = "tg-sms";
 
     @Override
     public void onCreate() {
@@ -53,12 +51,12 @@ public class battery_listener_service extends Service {
         registerReceiver(receiver, filter);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME,
+            NotificationChannel channel = new NotificationChannel("1", public_func.log_tag,
                     NotificationManager.IMPORTANCE_MIN);
             NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             manager.createNotificationChannel(channel);
 
-            Notification notification = new Notification.Builder(getApplicationContext(), CHANNEL_ID).build();
+            Notification notification = new Notification.Builder(getApplicationContext(), "1").build();
             startForeground(1, notification);
         }
 
@@ -86,6 +84,8 @@ class battery_receiver extends BroadcastReceiver {
         String chat_id = sharedPreferences.getString("chat_id", "");
 
         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
+        assert chat_id != null;
+        assert bot_token != null;
         if (bot_token.isEmpty() || chat_id.isEmpty()) {
             Log.i(public_func.log_tag, "onReceive: token not found");
             return;
