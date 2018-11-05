@@ -2,18 +2,17 @@ package com.qwe7002.telegram_sms;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.provider.ContactsContract;
 import android.util.Log;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Objects;
 
 import okhttp3.MediaType;
 
@@ -34,24 +33,24 @@ public class public_func {
 
     }
 
-    public static String get_phone_name(Context context, String address) {
-        if (checkSelfPermission(context, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-            return null;
-        }
-        String contactName = null;
-        ContentResolver cr = context.getContentResolver();
-        Cursor pCur = cr.query(
-                ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
-                ContactsContract.CommonDataKinds.Phone.NUMBER + " = ?",
-                new String[]{address}, null);
-        if (Objects.requireNonNull(pCur).moveToFirst()) {
-            contactName = pCur
-                    .getString(pCur
-                            .getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-            pCur.close();
-        }
-        return contactName;
+    public static String get_phone_name(Context context, String phoneNum) {
+        if (checkSelfPermission(context, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
+            Uri uri=Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI,Uri.encode(phoneNum));
 
+            String[] projection = new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME};
+            String contactName=null;
+            Cursor cursor=context.getContentResolver().query(uri,projection,null,null,null);
+
+            if (cursor != null) {
+                if(cursor.moveToFirst()) {
+                    contactName=cursor.getString(0);
+                }
+                cursor.close();
+            }
+
+            return contactName;
+        }
+        return null;
     }
 
     public static void write_log(Context context, String log) {
@@ -60,7 +59,7 @@ public class public_func {
         Date date = new Date(System.currentTimeMillis());
         SharedPreferences sharedPreferences = context.getSharedPreferences("log-data", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        String error_log = sharedPreferences.getString("error_log", "") + "\n" + simpleDateFormat.format(date)+" " + log;
+        String error_log = sharedPreferences.getString("error_log", "") + "\n" + simpleDateFormat.format(date) + " " + log;
         editor.putString("error_log", error_log);
         editor.apply();
 
