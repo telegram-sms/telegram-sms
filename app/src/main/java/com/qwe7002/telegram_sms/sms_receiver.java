@@ -87,7 +87,7 @@ public class sms_receiver extends BroadcastReceiver {
                     if (display_name != null) {
                         display_address = display_name + "(" + msgAddress + ")";
                     }
-                    request_body.text = context.getString(R.string.receive_sms_head) + DualSim + "\n" + context.getString(R.string.from) + display_address + "\n" + context.getString(R.string.content) + msgBody;
+                    request_body.text = context.getString(R.string.receive_sms_head) + "\n" + context.getString(R.string.from) + display_address + DualSim + "\n" + context.getString(R.string.content) + msgBody;
                     assert msgAddress != null;
                     if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                         if (msgAddress.equals(sharedPreferences.getString("trusted_phone_number", null))) {
@@ -102,7 +102,7 @@ public class sms_receiver extends BroadcastReceiver {
                                     msg_send_content.append(msg_send_list[i]);
                                 }
                                 public_func.send_sms(msg_send_to, msg_send_content.toString(), sub);
-                                request_body.text = context.getString(R.string.send_sms_head) + DualSim + "\n" + context.getString(R.string.to) + msg_send_to + "\n" + context.getString(R.string.content) + msg_send_content.toString();
+                                request_body.text = context.getString(R.string.send_sms_head) + "\n" + context.getString(R.string.to) + msg_send_to + DualSim + "\n" + context.getString(R.string.content) + msg_send_content.toString();
                             }
                         }
                     }
