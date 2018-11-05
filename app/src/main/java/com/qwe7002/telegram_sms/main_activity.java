@@ -205,7 +205,6 @@ public class main_activity extends AppCompatActivity {
                             Snackbar.make(v,error_message , Snackbar.LENGTH_LONG).show();
                             return;
                         }
-
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString("bot_token", bot_token.getText().toString().trim());
                         editor.putString("chat_id", chat_id.getText().toString().trim());
