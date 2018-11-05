@@ -22,7 +22,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".logcat_activity"></activity>
+
+        <activity android:name=".logcat_activity" />
 
         <service
             android:name=".battery_listener_service"
