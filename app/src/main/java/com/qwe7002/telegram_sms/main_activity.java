@@ -90,7 +90,9 @@ public class main_activity extends AppCompatActivity {
                     @Override
                     public void onFailure(Call call, IOException e) {
                         mpDialog.cancel();
-                        public_func.write_log(getApplicationContext(),"Get ID Network Error："+e.getMessage());
+                        String error_message = "Get ID Network Error："+e.getMessage();
+                        Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
+                        public_func.write_log(getApplicationContext(),error_message);
                     }
 
                     @Override
@@ -112,6 +114,9 @@ public class main_activity extends AppCompatActivity {
                         JsonArray chat_list = result_obj.getAsJsonArray("result");
                         final ArrayList<String> chat_name_list = new ArrayList<>();
                         final ArrayList<String> chat_id_list = new ArrayList<>();
+                        if(chat_list.size()==0){
+                            Snackbar.make(v, R.string.no_recent, Snackbar.LENGTH_LONG).show();
+                        }
                         for (JsonElement item : chat_list) {
                             JsonObject item_obj = item.getAsJsonObject();
                             if (item_obj.has("message")) {
@@ -200,7 +205,6 @@ public class main_activity extends AppCompatActivity {
                             Snackbar.make(v,error_message , Snackbar.LENGTH_LONG).show();
                             return;
                         }
-
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString("bot_token", bot_token.getText().toString().trim());
                         editor.putString("chat_id", chat_id.getText().toString().trim());
