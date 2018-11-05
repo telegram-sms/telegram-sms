@@ -8,6 +8,7 @@ import android.util.Log;
 public class wap_receiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, Intent intent) {
-        Log.d("tg-sms ", "onReceive: " + "mms");
+        public_func.write_log(context,"onReceive: mms");
+        Log.i(public_func.log_tag, "onReceive: mms");
     }
 }
