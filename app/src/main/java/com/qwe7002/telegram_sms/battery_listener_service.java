@@ -80,10 +80,11 @@ public class battery_listener_service extends Service {
 
 class battery_receiver extends BroadcastReceiver {
     @Override
-    public void onReceive(final Context context, Intent intent) {
+    public void onReceive(final Context context, final Intent intent) {
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
+
         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
         if (bot_token.isEmpty() || chat_id.isEmpty()) {
             Log.i(public_func.log_tag, "onReceive: token not found");
@@ -92,7 +93,8 @@ class battery_receiver extends BroadcastReceiver {
         final request_json request_body = new request_json();
         request_body.chat_id = chat_id;
         StringBuilder prebody = new StringBuilder(context.getString(R.string.system_message_head) + "\n");
-        switch (Objects.requireNonNull(intent.getAction())) {
+        final String action = intent.getAction();
+        switch (Objects.requireNonNull(action)) {
             case Intent.ACTION_BATTERY_OKAY:
                 prebody = prebody.append(context.getString(R.string.charging_is_complete));
                 break;
@@ -121,6 +123,17 @@ class battery_receiver extends BroadcastReceiver {
                 String error_message = "Send Battery Error:" + e.getMessage();
                 Toast.makeText(context,error_message , Toast.LENGTH_SHORT).show();
                 Log.i(public_func.log_tag, error_message);
+                if(action.equals(Intent.ACTION_BATTERY_LOW)){
+                    if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+                        if (sharedPreferences.getBoolean("fallback_sms", false)) {
+                            String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
+                            String msg_send_content = request_body.text;
+                            if (msg_send_to != null) {
+                                public_func.send_sms(msg_send_to, msg_send_content, -1);
+                            }
+                        }
+                    }
+                }
                 Looper.loop();
             }
 
