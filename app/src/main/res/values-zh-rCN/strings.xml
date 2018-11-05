@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Telegram SMS</string>
     <string name="receive_sms_head">[收到短信]</string>
     <string name="content">内容：</string>
     <string name="from">来自：</string>
