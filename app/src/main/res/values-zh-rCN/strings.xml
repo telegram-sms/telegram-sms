@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Telegram SMS</string>
     <string name="receive_sms_head">[收到短信]</string>
     <string name="content">内容：</string>
     <string name="from">来自：</string>
@@ -28,4 +27,5 @@
     <string name="logcat">查看日志</string>
     <string name="token_not_configure">请先配置机器人令牌。</string>
     <string name="chatid_or_token_not_config">请先配置机器人令牌和对话ID</string>
+    <string name="no_recent">没有最近的聊天记录</string>
 </resources>
