@@ -73,7 +73,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingStart="3dp"
-                android:text="Webhook" />
+                android:text="@string/webhook" />
             <Button
                 android:id="@+id/get_id"
                 android:layout_width="match_parent"
