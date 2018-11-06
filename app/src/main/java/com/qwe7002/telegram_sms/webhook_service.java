@@ -78,8 +78,7 @@ public class webhook_service extends Service {
                 String[] msg_send_list = message_obj.get("text").getAsString().split("\n");
 
 
-                String command = msg_send_list[0];
-                Log.d(public_func.log_tag, "onRequest:" + command);
+                String command = msg_send_list[0].trim();
                 switch (command) {
                     case "/ping":
                         request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
