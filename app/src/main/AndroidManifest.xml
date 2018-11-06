@@ -35,7 +35,7 @@
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE"
-            android:process=":watchdog">
+            android:process=":battery_watchdog">
             <intent-filter>
                 <action android:name="android.intent.action.RESPOND_VIA_MESSAGE" />
 
