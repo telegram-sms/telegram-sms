@@ -84,7 +84,12 @@ public class webhook_service extends Service {
                         request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
                         break;
                     case "/sendsms":
-                        if (is_numeric(msg_send_list[1]) && msg_send_list.length > 2) {
+                        if (msg_send_list.length <= 2) {
+                            return;
+                        }
+                        if (!is_numeric(msg_send_list[1])) {
+                            return;
+                        }
                             String msg_send_to = msg_send_list[1].trim();
                             StringBuilder msg_send_content = new StringBuilder();
                             for (int i = 2; i < msg_send_list.length; i++) {
@@ -95,7 +100,7 @@ public class webhook_service extends Service {
                             }
                             public_func.send_sms(msg_send_to, msg_send_content.toString(), -1);
                             request_body.text = context.getString(R.string.send_sms_head) + "\n" + context.getString(R.string.to) + msg_send_to + "\n" + context.getString(R.string.content) + msg_send_content.toString();
-                        }
+
                         break;
                     default:
                         return;
