@@ -54,7 +54,7 @@ public class webhook_service extends Service {
         }
 
         AsyncHttpServer server = new AsyncHttpServer();
-        server.post("/", new HttpServerRequestCallback() {
+        server.post("/telegram_webhook", new HttpServerRequestCallback() {
             @Override
             public void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
                 final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
