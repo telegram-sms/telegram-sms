@@ -63,7 +63,7 @@ public class webhook_service extends Service {
                 Log.d(public_func.log_tag, "onRequest: " + request.getBody().get().toString());
                 if (bot_token.isEmpty() || chat_id.isEmpty()) {
                     Log.i(public_func.log_tag, "onReceive: token not found");
-                    response.send("token not found");
+                    response.send("error");
                     return;
                 }
                 final request_json request_body = new request_json();
@@ -74,7 +74,7 @@ public class webhook_service extends Service {
                 String from_id = from_obj.get("id").getAsString();
                 if (!Objects.equals(chat_id, from_id)) {
                     Log.i(public_func.log_tag, "onRequest: chat id error");
-                    response.send("chat id error");
+                    response.send("error");
                     return;
                 }
                 String[] msg_send_list = message_obj.get("text").getAsString().split("\n");
