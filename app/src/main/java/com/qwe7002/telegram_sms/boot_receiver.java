@@ -30,13 +30,21 @@ public class boot_receiver extends BroadcastReceiver {
     public void onReceive(final Context context, Intent intent) {
         if (Objects.equals(intent.getAction(), "android.intent.action.BOOT_COMPLETED")) {
             Log.d(public_func.log_tag, "onReceive: boot_completed");
-            Intent service = new Intent(context, battery_listener_service.class);
+            Intent battery_service = new Intent(context, battery_listener_service.class);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(service);
+                context.startForegroundService(battery_service);
             } else {
-                context.startService(service);
+                context.startService(battery_service);
             }
             final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+            if (sharedPreferences.getBoolean("webhook", false)) {
+                Intent webhook_service = new Intent(context, webhook_service.class);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(webhook_service);
+                } else {
+                    context.startService(webhook_service);
+                }
+            }
             String bot_token = sharedPreferences.getString("bot_token", "");
             String chat_id = sharedPreferences.getString("chat_id", "");
             assert bot_token != null;

@@ -2,6 +2,7 @@ package com.qwe7002.telegram_sms;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -37,30 +38,40 @@ import okhttp3.Response;
 
 
 public class main_activity extends AppCompatActivity {
-    SharedPreferences sharedPreferences;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Intent service = new Intent(getApplicationContext(), battery_listener_service.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            this.startForegroundService(service);
-        } else {
-            this.startService(service);
-        }
+        final Context context = getApplicationContext();
         final EditText chat_id = findViewById(R.id.chat_id);
         final EditText bot_token = findViewById(R.id.bot_token);
         final EditText trusted_phone_number = findViewById(R.id.TPM);
-
+        final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
+        Intent battery_service = new Intent(context, battery_listener_service.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(battery_service);
+        } else {
+            context.startService(battery_service);
+        }
+        if (sharedPreferences.getBoolean("webhook", false)) {
+            Intent webhook_service = new Intent(context, webhook_service.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(webhook_service);
+            } else {
+                context.startService(webhook_service);
+            }
+        }
         Button save_button = findViewById(R.id.save);
         Button get_id = findViewById(R.id.get_id);
         Button logcat = findViewById(R.id.logcat_button);
+        final Switch webhook = findViewById(R.id.webhook);
         final Switch fallback_sms = findViewById(R.id.fallback_sms);
-        sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
+
         bot_token.setText(sharedPreferences.getString("bot_token", ""));
         chat_id.setText(sharedPreferences.getString("chat_id", ""));
         trusted_phone_number.setText(sharedPreferences.getString("trusted_phone_number", ""));
         fallback_sms.setChecked(sharedPreferences.getBoolean("fallback_sms", false));
+        webhook.setChecked(sharedPreferences.getBoolean("webhook", false));
         logcat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -92,7 +103,7 @@ public class main_activity extends AppCompatActivity {
                         mpDialog.cancel();
                         String error_message = "Get ID Network Error："+e.getMessage();
                         Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
-                        public_func.write_log(getApplicationContext(),error_message);
+                        public_func.write_log(context, error_message);
                     }
 
                     @Override
@@ -104,7 +115,7 @@ public class main_activity extends AppCompatActivity {
                             String result = response.body().string();
                             JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
                             String error_message = "Get ID API Error:" + result_obj.get("description");
-                            public_func.write_log(getApplicationContext(),error_message);
+                            public_func.write_log(context, error_message);
                             Snackbar.make(v,error_message , Snackbar.LENGTH_LONG).show();
                             return;
                         }
@@ -186,7 +197,7 @@ public class main_activity extends AppCompatActivity {
                         Looper.prepare();
                         mpDialog.cancel();
                         String error_message = "Send Message Network Error:" + e.getMessage();
-                        public_func.write_log(getApplicationContext(),error_message);
+                        public_func.write_log(context, error_message);
                         Snackbar.make(v,error_message , Snackbar.LENGTH_LONG)
                                 .show();
                         Looper.loop();
@@ -201,7 +212,7 @@ public class main_activity extends AppCompatActivity {
                             String result = response.body().string();
                             JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
                             String error_message = "Send Message API Error:" + result_obj.get("description");
-                            public_func.write_log(getApplicationContext(),error_message);
+                            public_func.write_log(context, error_message);
                             Snackbar.make(v,error_message , Snackbar.LENGTH_LONG).show();
                             return;
                         }
@@ -210,9 +221,18 @@ public class main_activity extends AppCompatActivity {
                         editor.putString("chat_id", chat_id.getText().toString().trim());
                         editor.putString("trusted_phone_number", trusted_phone_number.getText().toString().trim());
                         editor.putBoolean("fallback_sms", fallback_sms.isChecked());
+                        editor.putBoolean("webhook", webhook.isChecked());
                         editor.apply();
                         Snackbar.make(v, "Success", Snackbar.LENGTH_LONG)
                                 .show();
+                        if (webhook.isChecked()) {
+                            Intent webhook_service = new Intent(context, webhook_service.class);
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                context.startForegroundService(webhook_service);
+                            } else {
+                                context.startService(webhook_service);
+                            }
+                        }
                         Looper.loop();
                     }
                 });
