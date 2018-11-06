@@ -28,4 +28,5 @@
     <string name="token_not_configure">请先配置机器人令牌。</string>
     <string name="chatid_or_token_not_config">请先配置机器人令牌和对话ID</string>
     <string name="no_recent">没有最近的聊天记录</string>
+    <string name="webhook">使用webhook支持</string>
 </resources>
