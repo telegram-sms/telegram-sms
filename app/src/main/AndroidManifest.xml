@@ -25,7 +25,8 @@
         <service
             android:name=".webhook_service"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true"
+            android:process=":webhook" />
 
         <activity android:name=".logcat_activity" />
 
