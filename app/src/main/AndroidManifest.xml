@@ -22,6 +22,10 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
+        <service
+            android:name=".webhook_service"
+            android:enabled="true"
+            android:exported="true"></service>
 
         <activity android:name=".logcat_activity" />
 

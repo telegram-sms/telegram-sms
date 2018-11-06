@@ -67,6 +67,13 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="3dp"
                 android:text="@string/network_error_falls_back_to_sms" />
+
+            <Switch
+                android:id="@+id/webhook"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="3dp"
+                android:text="Webhook" />
             <Button
                 android:id="@+id/get_id"
                 android:layout_width="match_parent"
