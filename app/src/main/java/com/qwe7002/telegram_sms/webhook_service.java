@@ -63,7 +63,6 @@ public class webhook_service extends Service {
             public void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
                 final String chat_id = sharedPreferences.getString("chat_id", "");
                 final String bot_token = sharedPreferences.getString("bot_token", "");
-                Log.d(public_func.log_tag, "onRequest: " + request.getBody().get().toString());
                 if (bot_token.isEmpty() || chat_id.isEmpty()) {
                     Log.i(public_func.log_tag, "onReceive: token not found");
                     response.send("error");
@@ -82,25 +81,24 @@ public class webhook_service extends Service {
 
                 String from_id = from_obj.get("id").getAsString();
                 if (!Objects.equals(chat_id, from_id)) {
-                    Log.i(public_func.log_tag, "onRequest: chat id not allow");
-                    public_func.write_log(context, "onRequest: Chat id[" + from_id + "] not allow");
+                    public_func.write_log(context, "Chat ID Error: Chat ID[" + from_id + "] not allow");
                     response.send("error");
                     return;
                 }
 
-                JsonArray entities_arr = result_obj.get("entities").getAsJsonArray();
-                JsonObject entities_obj_command = entities_arr.get(0).getAsJsonObject();
-                if (!entities_obj_command.get("type").getAsString().equals("bot_command")) {
-                    response.send("error");
-                    return;
-                }
-                int command_offset = entities_obj_command.get("offset").getAsInt();
-                int command_endoffset = command_offset + entities_obj_command.get("length").getAsInt();
-
+                String command = "";
                 String request_msg = message_obj.get("text").getAsString();
+                if (result_obj.has("entities")) {
+                    JsonArray entities_arr = result_obj.get("entities").getAsJsonArray();
+                    JsonObject entities_obj_command = entities_arr.get(0).getAsJsonObject();
+                    if (!entities_obj_command.get("type").getAsString().equals("bot_command")) {
+                        int command_offset = entities_obj_command.get("offset").getAsInt();
+                        int command_end_offset = command_offset + entities_obj_command.get("length").getAsInt();
+                        command = request_msg.substring(command_offset, command_end_offset).trim();
+                    }
+                }
 
-                String command = request_msg.substring(command_offset, command_endoffset).trim();
-                Log.d(public_func.log_tag, "onRequest: " + command);
+                Log.d(public_func.log_tag, "request command: " + command);
                 switch (command) {
                     case "/ping":
                         request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
@@ -131,8 +129,8 @@ public class webhook_service extends Service {
                 String request_body_raw = gson.toJson(request_body);
                 RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
                 OkHttpClient okHttpClient = new OkHttpClient();
-                Request sendrequest = new Request.Builder().url(request_uri).method("POST", body).build();
-                Call call = okHttpClient.newCall(sendrequest);
+                Request send_request = new Request.Builder().url(request_uri).method("POST", body).build();
+                Call call = okHttpClient.newCall(send_request);
                 call.enqueue(new Callback() {
                     @Override
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
