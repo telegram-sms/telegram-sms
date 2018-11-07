@@ -44,7 +44,7 @@ public class main_activity extends AppCompatActivity {
         final Context context = getApplicationContext();
         final EditText chat_id = findViewById(R.id.chat_id);
         final EditText bot_token = findViewById(R.id.bot_token);
-        final EditText trusted_phone_number = findViewById(R.id.TPM);
+        final EditText trusted_phone_number = findViewById(R.id.trusted_phone_number);
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         Intent battery_service = new Intent(context, battery_listener_service.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -225,6 +225,7 @@ public class main_activity extends AppCompatActivity {
                         Snackbar.make(v, "Success", Snackbar.LENGTH_LONG)
                                 .show();
                         if (webhook.isChecked()) {
+
                             Intent webhook_service = new Intent(context, webhook_service.class);
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                 context.startForegroundService(webhook_service);
