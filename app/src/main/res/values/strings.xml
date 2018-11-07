@@ -30,4 +30,5 @@
     <string name="chatid_or_token_not_config">Please configure the robot token and chat ID first.</string>
     <string name="no_recent">No recent chat history</string>
     <string name="webhook">Use webhook support</string>
+    <string name="command_format_error">Command format error</string>
 </resources>

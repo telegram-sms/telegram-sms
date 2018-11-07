@@ -36,6 +36,7 @@ import okhttp3.Response;
 import static com.qwe7002.telegram_sms.sms_receiver.is_numeric;
 
 public class webhook_service extends Service {
+    AsyncHttpServer server;
 
     public webhook_service() {
 
@@ -55,11 +56,11 @@ public class webhook_service extends Service {
             startForeground(2, notification);
         }
 
-        AsyncHttpServer server = new AsyncHttpServer();
-        server.post("/telegram_webhook", new HttpServerRequestCallback() {
+        server = new AsyncHttpServer();
+
+        server.post("/webhook_" + sharedPreferences.getString("chat_id", ""), new HttpServerRequestCallback() {
             @Override
             public void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
-
                 final String chat_id = sharedPreferences.getString("chat_id", "");
                 final String bot_token = sharedPreferences.getString("bot_token", "");
                 Log.d(public_func.log_tag, "onRequest: " + request.getBody().get().toString());
@@ -98,7 +99,6 @@ public class webhook_service extends Service {
 
                 String request_msg = message_obj.get("text").getAsString();
 
-                String[] msg_send_list = request_msg.substring(command_endoffset).split("\n");
                 String command = request_msg.substring(command_offset, command_endoffset).trim();
                 Log.d(public_func.log_tag, "onRequest: " + command);
                 switch (command) {
@@ -106,28 +106,23 @@ public class webhook_service extends Service {
                         request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
                         break;
                     case "/sendsms":
-                        if (msg_send_list.length <= 2) {
-                            response.send("error");
-                            return;
-                        }
-                        if (!is_numeric(msg_send_list[1])) {
-                            response.send("error");
-                            return;
-                        }
-                            String msg_send_to = msg_send_list[1].trim();
+                        String[] msg_send_list = request_msg.replace("/sendsms\n", "").split("\n");
+                        request_body.text = context.getString(R.string.send_sms_head) + "\n" + getString(R.string.command_format_error);
+                        if (msg_send_list.length > 1 && is_numeric(msg_send_list[0])) {
+                            String msg_send_to = msg_send_list[0].trim();
                             StringBuilder msg_send_content = new StringBuilder();
-                            for (int i = 2; i < msg_send_list.length; i++) {
-                                if (msg_send_list.length != 3 && i != 2) {
+                            for (int i = 1; i < msg_send_list.length; i++) {
+                                if (msg_send_list.length != 2 && i != 1) {
                                     msg_send_content.append("\n");
                                 }
                                 msg_send_content.append(msg_send_list[i]);
                             }
                             public_func.send_sms(msg_send_to, msg_send_content.toString(), -1);
                             request_body.text = context.getString(R.string.send_sms_head) + "\n" + context.getString(R.string.to) + msg_send_to + "\n" + context.getString(R.string.content) + msg_send_content.toString();
-
+                        }
                         break;
                     default:
-                        response.send("error");
+                        request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.command_format_error);
                         return;
                 }
 
@@ -168,6 +163,12 @@ public class webhook_service extends Service {
             }
         });
         server.listen(5000);
+    }
+
+    @Override
+    public void onDestroy() {
+        server.stop();
+        super.onDestroy();
     }
 
     @Override
