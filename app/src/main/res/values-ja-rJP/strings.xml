@@ -29,4 +29,5 @@
     <string name="chatid_or_token_not_config">ロボットトークンと会話IDを最初に設定してください。</string>
     <string name="no_recent">最近のチャット履歴はありません</string>
     <string name="webhook">webhookサポートを使用してください</string>
+    <string name="command_format_error">コマンドフォーマットエラー</string>
 </resources>
