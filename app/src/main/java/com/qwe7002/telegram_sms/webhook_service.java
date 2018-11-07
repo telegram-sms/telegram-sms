@@ -15,6 +15,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.koushikdutta.async.http.server.AsyncHttpServer;
@@ -43,6 +44,7 @@ public class webhook_service extends Service {
     @Override
     public void onCreate() {
         final Context context = getApplicationContext();
+        final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel("2", public_func.log_tag,
                     NotificationManager.IMPORTANCE_MIN);
@@ -57,7 +59,7 @@ public class webhook_service extends Service {
         server.post("/telegram_webhook", new HttpServerRequestCallback() {
             @Override
             public void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
-                final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+
                 final String chat_id = sharedPreferences.getString("chat_id", "");
                 final String bot_token = sharedPreferences.getString("bot_token", "");
                 Log.d(public_func.log_tag, "onRequest: " + request.getBody().get().toString());
@@ -69,16 +71,36 @@ public class webhook_service extends Service {
                 final request_json request_body = new request_json();
                 request_body.chat_id = chat_id;
                 JsonObject result_obj = new JsonParser().parse(request.getBody().get().toString()).getAsJsonObject();
-                JsonObject message_obj = result_obj.get("message").getAsJsonObject();
-                JsonObject from_obj = message_obj.get("from").getAsJsonObject();
-                String from_id = from_obj.get("id").getAsString();
-                if (!Objects.equals(chat_id, from_id)) {
-                    Log.i(public_func.log_tag, "onRequest: chat id error");
+                if (!result_obj.has("message") || !result_obj.has("entities")) {
                     response.send("error");
                     return;
                 }
-                String[] msg_send_list = message_obj.get("text").getAsString().split("\n");
-                String command = msg_send_list[0].trim();
+
+                JsonObject message_obj = result_obj.get("message").getAsJsonObject();
+                JsonObject from_obj = message_obj.get("from").getAsJsonObject();
+
+                String from_id = from_obj.get("id").getAsString();
+                if (!Objects.equals(chat_id, from_id)) {
+                    Log.i(public_func.log_tag, "onRequest: chat id not allow");
+                    public_func.write_log(context, "onRequest: Chat id[" + from_id + "] not allow");
+                    response.send("error");
+                    return;
+                }
+
+                JsonArray entities_arr = result_obj.get("entities").getAsJsonArray();
+                JsonObject entities_obj_command = entities_arr.get(0).getAsJsonObject();
+                if (!entities_obj_command.get("type").getAsString().equals("bot_command")) {
+                    response.send("error");
+                    return;
+                }
+                int command_offset = entities_obj_command.get("offset").getAsInt();
+                int command_endoffset = command_offset + entities_obj_command.get("length").getAsInt();
+
+                String request_msg = message_obj.get("text").getAsString();
+
+                String[] msg_send_list = request_msg.substring(command_endoffset).split("\n");
+                String command = request_msg.substring(command_offset, command_endoffset).trim();
+                Log.d(public_func.log_tag, "onRequest: " + command);
                 switch (command) {
                     case "/ping":
                         request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
