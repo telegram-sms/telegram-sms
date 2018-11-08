@@ -31,4 +31,5 @@
     <string name="webhook">webhookサポートを使用してください</string>
     <string name="command_format_error">コマンドフォーマットエラー</string>
     <string name="webhook_listening_port">Webhookリスニングポート</string>
+    <string name="unknown_command">不明なコマンド</string>
 </resources>

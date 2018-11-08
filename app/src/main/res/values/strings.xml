@@ -32,4 +32,5 @@
     <string name="webhook">Use webhook support</string>
     <string name="command_format_error">Command format error</string>
     <string name="webhook_listening_port">Webhook listening port</string>
+    <string name="unknown_command">Unknown command</string>
 </resources>
