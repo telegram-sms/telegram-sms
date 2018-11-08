@@ -104,8 +104,9 @@ public class webhook_service extends Service {
                         request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
                         break;
                     case "/sendsms":
-                        String[] msg_send_list = request_msg.replace("/sendsms\n", "").split("\n");
                         request_body.text = context.getString(R.string.send_sms_head) + "\n" + getString(R.string.command_format_error);
+
+                        String[] msg_send_list = request_msg.replace("/sendsms\n", "").split("\n");
                         if (msg_send_list.length > 1 && is_numeric(msg_send_list[0])) {
                             String msg_send_to = msg_send_list[0].trim();
                             StringBuilder msg_send_content = new StringBuilder();
@@ -163,7 +164,7 @@ public class webhook_service extends Service {
                 response.send("Success");
             }
         });
-        server.listen(5000);
+        server.listen(sharedPreferences.getInt("webhook_listening_port", 5000));
     }
 
     @Override

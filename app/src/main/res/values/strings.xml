@@ -31,4 +31,5 @@
     <string name="no_recent">No recent chat history</string>
     <string name="webhook">Use webhook support</string>
     <string name="command_format_error">Command format error</string>
+    <string name="webhook_listening_port">Webhook listening port</string>
 </resources>
