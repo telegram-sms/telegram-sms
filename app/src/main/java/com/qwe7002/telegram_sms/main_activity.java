@@ -49,28 +49,29 @@ public class main_activity extends AppCompatActivity {
         final Switch webhook = findViewById(R.id.webhook);
         final Switch fallback_sms = findViewById(R.id.fallback_sms);
 
-        Intent battery_service = new Intent(context, battery_listener_service.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(battery_service);
-        } else {
-            context.startService(battery_service);
-        }
-
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
-        if (sharedPreferences.getBoolean("webhook", false)) {
-            Intent webhook_service = new Intent(context, webhook_service.class);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(webhook_service);
-            } else {
-                context.startService(webhook_service);
-            }
-        }
         Button save_button = findViewById(R.id.save);
         Button get_id = findViewById(R.id.get_id);
         Button logcat = findViewById(R.id.logcat_button);
 
         bot_token.setText(sharedPreferences.getString("bot_token", ""));
         chat_id.setText(sharedPreferences.getString("chat_id", ""));
+        if (!bot_token.getText().toString().isEmpty() && !chat_id.getText().toString().isEmpty()) {
+            Intent battery_service = new Intent(context, battery_listener_service.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(battery_service);
+            } else {
+                context.startService(battery_service);
+            }
+            if (sharedPreferences.getBoolean("webhook", false)) {
+                Intent webhook_service = new Intent(context, webhook_service.class);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(webhook_service);
+                } else {
+                    context.startService(webhook_service);
+                }
+            }
+        }
         trusted_phone_number.setText(sharedPreferences.getString("trusted_phone_number", ""));
         fallback_sms.setChecked(sharedPreferences.getBoolean("fallback_sms", false));
         webhook_listening_port.setText(String.valueOf(sharedPreferences.getInt("webhook_listening_port", 5000)));
