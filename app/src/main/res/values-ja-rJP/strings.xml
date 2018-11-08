@@ -30,4 +30,5 @@
     <string name="no_recent">最近のチャット履歴はありません</string>
     <string name="webhook">webhookサポートを使用してください</string>
     <string name="command_format_error">コマンドフォーマットエラー</string>
+    <string name="webhook_listening_port">Webhookリスニングポート</string>
 </resources>

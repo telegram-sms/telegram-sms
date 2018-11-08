@@ -30,4 +30,5 @@
     <string name="no_recent">沒有最近的聊天記錄</string>
     <string name="webhook">使用webhook支持</string>
     <string name="command_format_error">命令格式錯誤</string>
+    <string name="webhook_listening_port">Webhook監聽端口</string>
 </resources>
