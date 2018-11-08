@@ -1,5 +1,6 @@
 package com.qwe7002.telegram_sms;
 
+import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -7,10 +8,13 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.telephony.SubscriptionManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -33,10 +37,21 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import static com.qwe7002.telegram_sms.sms_receiver.is_numeric;
-
 public class webhook_service extends Service {
     AsyncHttpServer server;
+
+    public int get_card2_subid(Context context) {
+        int result = -1;
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+
+            return result;
+        }
+        int active_card = SubscriptionManager.from(context).getActiveSubscriptionInfoCount();
+        if (active_card >= 2) {
+            result = SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(1).getSubscriptionId();
+        }
+        return result;
+    }
 
     public webhook_service() {
 
@@ -70,8 +85,10 @@ public class webhook_service extends Service {
                 }
                 final request_json request_body = new request_json();
                 request_body.chat_id = chat_id;
+                Log.d(public_func.log_tag, request.getBody().get().toString());
                 JsonObject result_obj = new JsonParser().parse(request.getBody().get().toString()).getAsJsonObject();
-                if (!result_obj.has("message") || !result_obj.has("entities")) {
+                if (!result_obj.has("message")) {
+                    Log.i(public_func.log_tag, "onReceive: request not message");
                     response.send("error");
                     return;
                 }
@@ -88,13 +105,13 @@ public class webhook_service extends Service {
 
                 String command = "";
                 String request_msg = message_obj.get("text").getAsString();
-                if (result_obj.has("entities")) {
-                    JsonArray entities_arr = result_obj.get("entities").getAsJsonArray();
+                if (message_obj.has("entities")) {
+                    JsonArray entities_arr = message_obj.get("entities").getAsJsonArray();
                     JsonObject entities_obj_command = entities_arr.get(0).getAsJsonObject();
-                    if (!entities_obj_command.get("type").getAsString().equals("bot_command")) {
+                    if (entities_obj_command.get("type").getAsString().equals("bot_command")) {
                         int command_offset = entities_obj_command.get("offset").getAsInt();
                         int command_end_offset = command_offset + entities_obj_command.get("length").getAsInt();
-                        command = request_msg.substring(command_offset, command_end_offset).trim();
+                        command = request_msg.substring(command_offset, command_end_offset).trim().toLowerCase();
                     }
                 }
 
@@ -104,30 +121,40 @@ public class webhook_service extends Service {
                         request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
                         break;
                     case "/sendsms":
+                    case "/sendsms_card2":
                         request_body.text = context.getString(R.string.send_sms_head) + "\n" + getString(R.string.command_format_error);
-
-                        String[] msg_send_list = request_msg.replace("/sendsms\n", "").split("\n");
-                        if (msg_send_list.length > 1 && is_numeric(msg_send_list[0])) {
-                            String msg_send_to = msg_send_list[0].trim();
-                            StringBuilder msg_send_content = new StringBuilder();
-                            for (int i = 1; i < msg_send_list.length; i++) {
-                                if (msg_send_list.length != 2 && i != 1) {
-                                    msg_send_content.append("\n");
+                        String[] msg_send_list = request_msg.split("\n");
+                        if (msg_send_list.length > 2) {
+                            String msg_send_to = msg_send_list[1].trim();
+                            if (public_func.is_numeric(msg_send_to)) {
+                                StringBuilder msg_send_content = new StringBuilder();
+                                for (int i = 2; i < msg_send_list.length; i++) {
+                                    if (msg_send_list.length != 3 && i != 2) {
+                                        msg_send_content.append("\n");
+                                    }
+                                    msg_send_content.append(msg_send_list[i]);
                                 }
-                                msg_send_content.append(msg_send_list[i]);
+                                int subid = -1;
+                                String dual_sim = "";
+                                if (command.equals("/sendsms_card2")) {
+                                    subid = get_card2_subid(context);
+                                    if (subid != -1) {
+                                        dual_sim = "\n" + context.getString(R.string.SIM_card_slot) + "2";
+                                    }
+                                }
+                                public_func.send_sms(msg_send_to, msg_send_content.toString(), subid);
+                                String display_to_address = msg_send_to;
+                                String display_to_name = public_func.get_phone_name(context, display_to_address);
+                                if (display_to_name != null) {
+                                    display_to_address = display_to_name + "(" + msg_send_to + ")";
+                                }
+                                request_body.text = context.getString(R.string.send_sms_head) + dual_sim + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
                             }
-                            public_func.send_sms(msg_send_to, msg_send_content.toString(), -1);
-                            String display_to_address = msg_send_to;
-                            String display_to_name = public_func.get_phone_name(context, display_to_address);
-                            if (display_to_name != null) {
-                                display_to_address = display_to_name + "(" + msg_send_to + ")";
-                            }
-                            request_body.text = context.getString(R.string.send_sms_head) + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
                         }
                         break;
                     default:
                         request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.command_format_error);
-                        return;
+                        break;
                 }
 
                 String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
