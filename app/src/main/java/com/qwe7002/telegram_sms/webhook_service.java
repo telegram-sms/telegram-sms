@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
@@ -118,7 +119,8 @@ public class webhook_service extends Service {
                 Log.d(public_func.log_tag, "request command: " + command);
                 switch (command) {
                     case "/ping":
-                        request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
+                        BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
+                        request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%";
                         break;
                     case "/sendsms":
                     case "/sendsms_card2":
