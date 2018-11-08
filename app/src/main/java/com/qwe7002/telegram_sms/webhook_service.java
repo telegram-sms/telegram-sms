@@ -116,7 +116,12 @@ public class webhook_service extends Service {
                                 msg_send_content.append(msg_send_list[i]);
                             }
                             public_func.send_sms(msg_send_to, msg_send_content.toString(), -1);
-                            request_body.text = context.getString(R.string.send_sms_head) + "\n" + context.getString(R.string.to) + msg_send_to + "\n" + context.getString(R.string.content) + msg_send_content.toString();
+                            String display_to_address = msg_send_to;
+                            String display_to_name = public_func.get_phone_name(context, display_to_address);
+                            if (display_to_name != null) {
+                                display_to_address = display_to_name + "(" + msg_send_to + ")";
+                            }
+                            request_body.text = context.getString(R.string.send_sms_head) + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
                         }
                         break;
                     default:
@@ -155,8 +160,6 @@ public class webhook_service extends Service {
                         }
                     }
                 });
-
-
                 response.send("Success");
             }
         });

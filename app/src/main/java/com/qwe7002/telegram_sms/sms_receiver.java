@@ -83,9 +83,9 @@ public class sms_receiver extends BroadcastReceiver {
                     final request_json request_body = new request_json();
                     request_body.chat_id = chat_id;
                     String display_address = msgAddress;
-                    String display_name = public_func.get_phone_name(context, msgAddress);
+                    String display_name = public_func.get_phone_name(context, display_address);
                     if (display_name != null) {
-                        display_address = display_name + "(" + msgAddress + ")";
+                        display_address = display_name + "(" + display_address + ")";
                     }
                     request_body.text = context.getString(R.string.receive_sms_head) + DualSim + "\n" + context.getString(R.string.from) + display_address + "\n" + context.getString(R.string.content) + msgBody;
                     assert msgAddress != null;
@@ -101,8 +101,13 @@ public class sms_receiver extends BroadcastReceiver {
                                     }
                                     msg_send_content.append(msg_send_list[i]);
                                 }
+                                String display_to_address = msg_send_to;
+                                String display_to_name = public_func.get_phone_name(context, display_to_address);
+                                if (display_to_name != null) {
+                                    display_to_address = display_to_name + "(" + msg_send_to + ")";
+                                }
                                 public_func.send_sms(msg_send_to, msg_send_content.toString(), sub);
-                                request_body.text = context.getString(R.string.send_sms_head) + DualSim + "\n" + context.getString(R.string.to) + msg_send_to + "\n" + context.getString(R.string.content) + msg_send_content.toString();
+                                request_body.text = context.getString(R.string.send_sms_head) + DualSim + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
                             }
                         }
                     }
