@@ -118,7 +118,7 @@ public class webhook_service extends Service {
 
                 Log.d(public_func.log_tag, "request command: " + command);
                 switch (command) {
-                    case "/ping":
+                    case "/getinfo":
                         BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
                         request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%";
                         break;
