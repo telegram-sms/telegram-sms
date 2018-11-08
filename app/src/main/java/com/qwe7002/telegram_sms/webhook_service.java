@@ -155,7 +155,7 @@ public class webhook_service extends Service {
                         }
                         break;
                     default:
-                        request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.command_format_error);
+                        request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
                         break;
                 }
 
