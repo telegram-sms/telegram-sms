@@ -117,6 +117,7 @@ public class sms_receiver extends BroadcastReceiver {
                             public_func.write_log(context, error_message);
                             Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                             Log.i(public_func.log_tag, error_message);
+                            public_func.write_log(context, "message body:" + request_body.text);
                             if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                                 if (sharedPreferences.getBoolean("fallback_sms", false)) {
                                     String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
@@ -136,6 +137,7 @@ public class sms_receiver extends BroadcastReceiver {
                                 assert response.body() != null;
                                 String error_message = "Send SMS Error:" + response.body().string();
                                 public_func.write_log(context, error_message);
+                                public_func.write_log(context, "message body:" + request_body.text);
                                 Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                                 Log.i(public_func.log_tag, error_message);
                                 Looper.loop();
