@@ -134,7 +134,6 @@ public class sms_receiver extends BroadcastReceiver {
                         public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                             if (response.code() != 200) {
                                 Looper.prepare();
-                                assert response.body() != null;
                                 String error_message = "Send SMS Error:" + response.body().string();
                                 public_func.write_log(context, error_message);
                                 public_func.write_log(context, "message body:" + request_body.text);
