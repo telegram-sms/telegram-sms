@@ -131,6 +131,7 @@ public class main_activity extends AppCompatActivity {
                         final ArrayList<String> chat_id_list = new ArrayList<>();
                         if(chat_list.size()==0){
                             Snackbar.make(v, R.string.no_recent, Snackbar.LENGTH_LONG).show();
+                            return;
                         }
                         for (JsonElement item : chat_list) {
                             JsonObject item_obj = item.getAsJsonObject();
@@ -230,6 +231,12 @@ public class main_activity extends AppCompatActivity {
                         editor.apply();
                         Snackbar.make(v, "Success", Snackbar.LENGTH_LONG)
                                 .show();
+                        Intent battery_service = new Intent(context, battery_listener_service.class);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            context.startForegroundService(battery_service);
+                        } else {
+                            context.startService(battery_service);
+                        }
                         if (webhook.isChecked()) {
 
                             Intent webhook_service = new Intent(context, webhook_service.class);
