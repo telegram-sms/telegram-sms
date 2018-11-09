@@ -54,6 +54,7 @@ public class webhook_service extends Service {
         return result;
     }
 
+
     public webhook_service() {
 
     }
@@ -88,12 +89,6 @@ public class webhook_service extends Service {
                 request_body.chat_id = chat_id;
                 Log.d(public_func.log_tag, request.getBody().get().toString());
                 JsonObject result_obj = new JsonParser().parse(request.getBody().get().toString()).getAsJsonObject();
-                if (!result_obj.has("message")) {
-                    Log.i(public_func.log_tag, "onReceive: request not message");
-                    response.send("error");
-                    return;
-                }
-
                 JsonObject message_obj = result_obj.get("message").getAsJsonObject();
                 JsonObject from_obj = message_obj.get("from").getAsJsonObject();
 
@@ -105,7 +100,10 @@ public class webhook_service extends Service {
                 }
 
                 String command = "";
-                String request_msg = message_obj.get("text").getAsString();
+                String request_msg = "";
+                if (message_obj.has("text")) {
+                    request_msg = message_obj.get("text").getAsString();
+                }
                 if (message_obj.has("entities")) {
                     JsonArray entities_arr = message_obj.get("entities").getAsJsonArray();
                     JsonObject entities_obj_command = entities_arr.get(0).getAsJsonObject();
@@ -120,7 +118,7 @@ public class webhook_service extends Service {
                 switch (command) {
                     case "/getinfo":
                         BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
-                        request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%";
+                        request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context);
                         break;
                     case "/sendsms":
                     case "/sendsms_card2":
