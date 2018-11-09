@@ -14,7 +14,6 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -45,32 +44,37 @@ public class main_activity extends AppCompatActivity {
         final Context context = getApplicationContext();
         final EditText chat_id = findViewById(R.id.chat_id);
         final EditText bot_token = findViewById(R.id.bot_token);
-        final EditText trusted_phone_number = findViewById(R.id.TPM);
-        final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
-        Intent battery_service = new Intent(context, battery_listener_service.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(battery_service);
-        } else {
-            context.startService(battery_service);
-        }
-        if (sharedPreferences.getBoolean("webhook", false)) {
-            Intent webhook_service = new Intent(context, webhook_service.class);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(webhook_service);
-            } else {
-                context.startService(webhook_service);
-            }
-        }
-        Button save_button = findViewById(R.id.save);
-        Button get_id = findViewById(R.id.get_id);
-        Button logcat = findViewById(R.id.logcat_button);
+        final EditText trusted_phone_number = findViewById(R.id.trusted_phone_number);
+        final EditText webhook_listening_port = findViewById(R.id.webhook_listening_port);
         final Switch webhook = findViewById(R.id.webhook);
         final Switch fallback_sms = findViewById(R.id.fallback_sms);
 
+        final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
+        Button save_button = findViewById(R.id.save);
+        Button get_id = findViewById(R.id.get_id);
+        Button logcat = findViewById(R.id.logcat_button);
+
         bot_token.setText(sharedPreferences.getString("bot_token", ""));
         chat_id.setText(sharedPreferences.getString("chat_id", ""));
+        if (!bot_token.getText().toString().isEmpty() && !chat_id.getText().toString().isEmpty()) {
+            Intent battery_service = new Intent(context, battery_listener_service.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(battery_service);
+            } else {
+                context.startService(battery_service);
+            }
+            if (sharedPreferences.getBoolean("webhook", false)) {
+                Intent webhook_service = new Intent(context, webhook_service.class);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(webhook_service);
+                } else {
+                    context.startService(webhook_service);
+                }
+            }
+        }
         trusted_phone_number.setText(sharedPreferences.getString("trusted_phone_number", ""));
         fallback_sms.setChecked(sharedPreferences.getBoolean("fallback_sms", false));
+        webhook_listening_port.setText(String.valueOf(sharedPreferences.getInt("webhook_listening_port", 5000)));
         webhook.setChecked(sharedPreferences.getBoolean("webhook", false));
         logcat.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -220,12 +224,14 @@ public class main_activity extends AppCompatActivity {
                         editor.putString("bot_token", bot_token.getText().toString().trim());
                         editor.putString("chat_id", chat_id.getText().toString().trim());
                         editor.putString("trusted_phone_number", trusted_phone_number.getText().toString().trim());
+                        editor.putInt("webhook_listening_port", Integer.parseInt(webhook_listening_port.getText().toString()));
                         editor.putBoolean("fallback_sms", fallback_sms.isChecked());
                         editor.putBoolean("webhook", webhook.isChecked());
                         editor.apply();
                         Snackbar.make(v, "Success", Snackbar.LENGTH_LONG)
                                 .show();
                         if (webhook.isChecked()) {
+
                             Intent webhook_service = new Intent(context, webhook_service.class);
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                 context.startForegroundService(webhook_service);

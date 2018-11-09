@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.qwe7002.telegram_sms">
 
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
@@ -25,7 +26,8 @@
         <service
             android:name=".webhook_service"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true"
+            android:process=":webhook" />
 
         <activity android:name=".logcat_activity" />
 
@@ -34,7 +36,7 @@
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE"
-            android:process=":watchdog">
+            android:process=":battery_watchdog">
             <intent-filter>
                 <action android:name="android.intent.action.RESPOND_VIA_MESSAGE" />
 

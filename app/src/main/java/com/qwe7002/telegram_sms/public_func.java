@@ -20,6 +20,16 @@ import static android.content.Context.MODE_PRIVATE;
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class public_func {
+
+    public static boolean is_numeric(String str) {
+        for (int i = str.length(); --i >= 0; ) {
+            if (!Character.isDigit(str.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static final String log_tag = "tg-sms";
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
