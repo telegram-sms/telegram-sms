@@ -33,4 +33,5 @@
     <string name="command_format_error">Command format error</string>
     <string name="webhook_listening_port">Webhook listening port</string>
     <string name="unknown_command">Unknown command</string>
+    <string name="current_network_connection_status">Current network connection status:</string>
 </resources>

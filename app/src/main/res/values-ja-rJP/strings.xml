@@ -32,4 +32,5 @@
     <string name="command_format_error">コマンドフォーマットエラー</string>
     <string name="webhook_listening_port">Webhookリスニングポート</string>
     <string name="unknown_command">不明なコマンド</string>
+    <string name="current_network_connection_status">現在のネットワーク接続ステータス：</string>
 </resources>
