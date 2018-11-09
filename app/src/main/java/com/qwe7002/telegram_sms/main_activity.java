@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
@@ -189,8 +188,7 @@ public class main_activity extends AppCompatActivity {
                 String request_uri = "https://api.telegram.org/bot" + bot_token.getText().toString().trim() + "/sendMessage";
                 request_json request_body = new request_json();
                 request_body.chat_id = chat_id.getText().toString().trim();
-                BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
-                request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context);
+                request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
                 Gson gson = new Gson();
                 String request_body_raw = gson.toJson(request_body);
                 RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
