@@ -33,5 +33,5 @@
     <string name="webhook_listening_port">Webhook监听端口</string>
     <string name="unknown_command">未知的命令</string>
     <string name="current_network_connection_status">当前网络连接状态：</string>
-    <string name="cant_get_card_2_info">无法获取卡槽2信息，请检查权限。</string>
+    <string name="cant_get_card_2_info">无法获取卡槽2信息。</string>
 </resources>
