@@ -34,5 +34,5 @@
     <string name="webhook_listening_port">Webhook listening port</string>
     <string name="unknown_command">Unknown command</string>
     <string name="current_network_connection_status">Current network connection status:</string>
-    <string name="cant_get_card_2_info">Unable to get card slot 2 information, please check the permissions.</string>
+    <string name="cant_get_card_2_info">Unable to get card slot 2 information.</string>
 </resources>
