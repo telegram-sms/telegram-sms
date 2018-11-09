@@ -188,6 +188,7 @@ public class webhook_service extends Service {
                                     case "/sendsms":
                                         public_func.send_sms(msg_send_to, msg_send_content.toString(), -1);
                                         request_body.text = context.getString(R.string.send_sms_head) + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
+                                        break;
                                     case "/sendsms_card2":
                                         int subid = get_card2_subid(context);
                                         request_body.text = context.getString(R.string.send_sms_head) + "\n" + getString(R.string.cant_get_card_2_info);
