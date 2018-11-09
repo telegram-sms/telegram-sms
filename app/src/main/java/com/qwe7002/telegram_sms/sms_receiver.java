@@ -32,7 +32,6 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 public class sms_receiver extends BroadcastReceiver {
     public void onReceive(final Context context, Intent intent) {
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
@@ -44,7 +43,6 @@ public class sms_receiver extends BroadcastReceiver {
         }
         if ("android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction())) {
             Bundle bundle = intent.getExtras();
-
             if (bundle != null) {
                 String dual_sim = "";
                 SubscriptionManager manager = SubscriptionManager.from(context);
@@ -56,7 +54,6 @@ public class sms_receiver extends BroadcastReceiver {
                         }
                     }
                 }
-
                 final int sub = bundle.getInt("subscription", -1);
                 Object[] pdus = (Object[]) bundle.get("pdus");
                 assert pdus != null;

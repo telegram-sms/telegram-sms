@@ -39,6 +39,13 @@ https://api.telegram.org/bot<your_bot_token>/setwebhook?url=https://<your_domain
 ```
 
 
+The current bot supports the following instructions, which you can configure in BotFather.
+
+```
+getinfo - Get system information
+sendsms - Send SMS
+sendsms_card2 - Send SMS using the second card slot
+```
 
 ## License
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_large)
