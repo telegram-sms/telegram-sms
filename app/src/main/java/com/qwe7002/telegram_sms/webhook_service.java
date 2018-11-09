@@ -53,7 +53,7 @@ public class webhook_service extends Service {
         }
         int nType = networkInfo.getType();
         if (nType == ConnectivityManager.TYPE_WIFI) {
-            netType = "WLAN";
+            netType = "WIFI";
         }
         if (nType == ConnectivityManager.TYPE_MOBILE) {
             int nSubType = networkInfo.getSubtype();
@@ -196,10 +196,7 @@ public class webhook_service extends Service {
                                             request_body.text = context.getString(R.string.send_sms_head) + "\n" + context.getString(R.string.SIM_card_slot) + "2" + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
                                         }
                                         break;
-
                                 }
-
-
                             }
                         }
                         break;
