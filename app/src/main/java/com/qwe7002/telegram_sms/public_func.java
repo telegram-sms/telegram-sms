@@ -23,14 +23,12 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class public_func {
     public static OkHttpClient get_okhttp_obj() {
-        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+        return new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .readTimeout(15, TimeUnit.SECONDS)
                 .writeTimeout(15, TimeUnit.SECONDS)
                 .retryOnConnectionFailure(true)
                 .build();
-        return okHttpClient;
-
     }
     public static boolean is_numeric(String str) {
         for (int i = str.length(); --i >= 0; ) {
