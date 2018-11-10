@@ -27,7 +27,6 @@ public class boot_receiver extends BroadcastReceiver {
                 } else {
                     context.startService(battery_service);
                 }
-
                 if (sharedPreferences.getBoolean("webhook", false)) {
                     Intent webhook_service = new Intent(context, webhook_service.class);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

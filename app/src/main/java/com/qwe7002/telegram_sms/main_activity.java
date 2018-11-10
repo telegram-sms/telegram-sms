@@ -178,7 +178,7 @@ public class main_activity extends AppCompatActivity {
                     Snackbar.make(v, R.string.chatid_or_token_not_config , Snackbar.LENGTH_LONG).show();
                     return;
                 }
-                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG,Manifest.permission.READ_CONTACTS}, 1);
+                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_CONTACTS}, 1);
                 final ProgressDialog mpDialog = new ProgressDialog(main_activity.this);
                 mpDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 mpDialog.setTitle(getString(R.string.connect_wait_title));
