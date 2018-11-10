@@ -193,7 +193,7 @@ public class main_activity extends AppCompatActivity {
                 Gson gson = new Gson();
                 String request_body_raw = gson.toJson(request_body);
                 RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
-                OkHttpClient okHttpClient = new OkHttpClient();
+                OkHttpClient okHttpClient = public_func.get_okhttp_obj();
                 Request request = new Request.Builder().url(request_uri).method("POST", body).build();
                 Call call = okHttpClient.newCall(request);
                 call.enqueue(new Callback() {
@@ -238,7 +238,6 @@ public class main_activity extends AppCompatActivity {
                             context.startService(battery_service);
                         }
                         if (webhook.isChecked()) {
-
                             Intent webhook_service = new Intent(context, webhook_service.class);
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                 context.startForegroundService(webhook_service);
