@@ -13,14 +13,25 @@ import android.util.Log;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
 
 import static android.content.Context.MODE_PRIVATE;
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class public_func {
+    public static OkHttpClient get_okhttp_obj() {
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(15, TimeUnit.SECONDS)
+                .writeTimeout(15, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(true)
+                .build();
+        return okHttpClient;
 
+    }
     public static boolean is_numeric(String str) {
         for (int i = str.length(); --i >= 0; ) {
             if (!Character.isDigit(str.charAt(i))) {
