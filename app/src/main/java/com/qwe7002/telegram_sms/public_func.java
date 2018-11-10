@@ -22,6 +22,8 @@ import static android.content.Context.MODE_PRIVATE;
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class public_func {
+    public static final String log_tag = "tg-sms";
+    public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     public static OkHttpClient get_okhttp_obj() {
         return new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
@@ -39,37 +41,34 @@ public class public_func {
         return true;
     }
 
-    public static final String log_tag = "tg-sms";
-    public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-
-    public static void send_sms(String send_to, String content, int subid) {
-        android.telephony.SmsManager smsManager = android.telephony.SmsManager.getDefault();
-        if (subid != -1) {
-            smsManager = android.telephony.SmsManager.getSmsManagerForSubscriptionId(subid);
+    public static void send_sms(String send_to, String content, int sub_id) {
+        android.telephony.SmsManager sms_manager = android.telephony.SmsManager.getDefault();
+        if (sub_id != -1) {
+            sms_manager = android.telephony.SmsManager.getSmsManagerForSubscriptionId(sub_id);
         }
-        ArrayList<String> divideContents = smsManager.divideMessage(content);
-        smsManager.sendMultipartTextMessage(send_to, null, divideContents, null, null);
-
+        ArrayList<String> divideContents = sms_manager.divideMessage(content);
+        sms_manager.sendMultipartTextMessage(send_to, null, divideContents, null, null);
     }
 
     public static String get_phone_name(Context context, String phoneNum) {
+        String contactName = null;
         if (checkSelfPermission(context, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
             Uri uri=Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI,Uri.encode(phoneNum));
 
             String[] projection = new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME};
-            String contactName=null;
             Cursor cursor=context.getContentResolver().query(uri,projection,null,null,null);
 
             if (cursor != null) {
                 if(cursor.moveToFirst()) {
-                    contactName=cursor.getString(0);
+                    String cursor_name = cursor.getString(0);
+                    if (!cursor_name.isEmpty())
+                        contactName = cursor_name;
                 }
                 cursor.close();
             }
 
-            return contactName;
         }
-        return null;
+        return contactName;
     }
 
     public static void write_log(Context context, String log) {
