@@ -134,7 +134,17 @@ public class webhook_service extends Service {
                 request_body.chat_id = chat_id;
                 Log.d(public_func.log_tag, request.getBody().get().toString());
                 JsonObject result_obj = new JsonParser().parse(request.getBody().get().toString()).getAsJsonObject();
-                JsonObject message_obj = result_obj.get("message").getAsJsonObject();
+                JsonObject message_obj = null;
+                if (result_obj.has("message")) {
+                    message_obj = result_obj.get("message").getAsJsonObject();
+                }
+                if (result_obj.has("channel_post")) {
+                    message_obj = result_obj.get("channel_post").getAsJsonObject();
+                }
+                if (message_obj == null) {
+                    response.send("error");
+                    return;
+                }
                 JsonObject from_obj = message_obj.get("from").getAsJsonObject();
 
                 String from_id = from_obj.get("id").getAsString();
