@@ -127,12 +127,12 @@ public class main_activity extends AppCompatActivity {
                         String result = response.body().string();
                         JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
                         JsonArray chat_list = result_obj.getAsJsonArray("result");
-                        final ArrayList<String> chat_name_list = new ArrayList<>();
-                        final ArrayList<String> chat_id_list = new ArrayList<>();
                         if(chat_list.size()==0){
                             Snackbar.make(v, R.string.no_recent, Snackbar.LENGTH_LONG).show();
                             return;
                         }
+                        final ArrayList<String> chat_name_list = new ArrayList<>();
+                        final ArrayList<String> chat_id_list = new ArrayList<>();
                         for (JsonElement item : chat_list) {
                             JsonObject item_obj = item.getAsJsonObject();
                             if (item_obj.has("message")) {
