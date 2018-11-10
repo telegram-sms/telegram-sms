@@ -151,7 +151,6 @@ public class main_activity extends AppCompatActivity {
                                     chat_id_list.add(chat_obj.get("id").getAsString());
                                 }
                             }
-
                         }
                         main_activity.this.runOnUiThread(new Runnable() {
                             @Override
