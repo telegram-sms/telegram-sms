@@ -118,7 +118,7 @@ public class main_activity extends AppCompatActivity {
                             assert response.body() != null;
                             String result = response.body().string();
                             JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
-                            String error_message = "Get ID API Error:" + result_obj.get("description");
+                            String error_message = "Get ID API Error:" + result_obj.get("description").getAsString();
                             public_func.write_log(context, error_message);
                             Snackbar.make(v,error_message , Snackbar.LENGTH_LONG).show();
                             return;
