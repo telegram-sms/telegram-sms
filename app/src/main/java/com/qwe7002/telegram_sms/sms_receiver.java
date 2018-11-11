@@ -32,15 +32,13 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 public class sms_receiver extends BroadcastReceiver {
     public void onReceive(final Context context, Intent intent) {
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        if (!sharedPreferences.getBoolean("initialized", false)) {
+            public_func.write_log(context, "Receive SMS:Uninitialized");
+            return;
+        }
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
-        assert bot_token != null;
-        assert chat_id != null;
-        if (bot_token.isEmpty() || chat_id.isEmpty()) {
-            Log.i(public_func.log_tag, "onReceive: token not found");
-            return;
-        }
         if ("android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction())) {
             Bundle bundle = intent.getExtras();
             if (bundle != null) {
