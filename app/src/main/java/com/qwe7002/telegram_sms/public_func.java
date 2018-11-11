@@ -3,10 +3,12 @@ package com.qwe7002.telegram_sms;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.ContactsContract;
 import android.util.Log;
 
@@ -50,6 +52,23 @@ public class public_func {
         sms_manager.sendMultipartTextMessage(send_to, null, divideContents, null, null);
     }
 
+    public static void start_service(Context context, SharedPreferences sharedPreferences) {
+        Intent battery_service = new Intent(context, battery_listener_service.class);
+        Intent webhook_service = new Intent(context, webhook_service.class);
+        boolean webhook_switch = sharedPreferences.getBoolean("webhook", false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(battery_service);
+            if (webhook_switch) {
+                context.startForegroundService(webhook_service);
+            }
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            context.startService(battery_service);
+            if (webhook_switch) {
+                context.startService(webhook_service);
+            }
+        }
+    }
     public static String get_phone_name(Context context, String phoneNum) {
         String contactName = null;
         if (checkSelfPermission(context, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {

@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -50,28 +49,25 @@ public class main_activity extends AppCompatActivity {
         final Switch fallback_sms = findViewById(R.id.fallback_sms);
 
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
+        String bot_token_save = sharedPreferences.getString("bot_token", "");
+        String chat_id_save = sharedPreferences.getString("chat_id", "");
+        boolean initialized = sharedPreferences.getBoolean("initialized", false);
+        if (!initialized && !bot_token_save.isEmpty() && !chat_id_save.isEmpty()) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean("initialized", true);
+            editor.apply();
+        }
+        if (initialized) {
+            public_func.start_service(context, sharedPreferences);
+        }
+
         Button save_button = findViewById(R.id.save);
         Button get_id = findViewById(R.id.get_id);
         Button logcat = findViewById(R.id.logcat_button);
 
-        bot_token.setText(sharedPreferences.getString("bot_token", ""));
-        chat_id.setText(sharedPreferences.getString("chat_id", ""));
-        if (!bot_token.getText().toString().isEmpty() && !chat_id.getText().toString().isEmpty()) {
-            Intent battery_service = new Intent(context, battery_listener_service.class);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(battery_service);
-            } else {
-                context.startService(battery_service);
-            }
-            if (sharedPreferences.getBoolean("webhook", false)) {
-                Intent webhook_service = new Intent(context, webhook_service.class);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.startForegroundService(webhook_service);
-                } else {
-                    context.startService(webhook_service);
-                }
-            }
-        }
+        bot_token.setText(bot_token_save);
+        chat_id.setText(chat_id_save);
+
         trusted_phone_number.setText(sharedPreferences.getString("trusted_phone_number", ""));
         fallback_sms.setChecked(sharedPreferences.getBoolean("fallback_sms", false));
         webhook_listening_port.setText(String.valueOf(sharedPreferences.getInt("webhook_listening_port", 5000)));
@@ -79,15 +75,15 @@ public class main_activity extends AppCompatActivity {
         logcat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                 Intent logcat_intent = new Intent(main_activity.this,logcat_activity.class);
-                 startActivity(logcat_intent);
+                Intent logcat_intent = new Intent(main_activity.this, logcat_activity.class);
+                startActivity(logcat_intent);
             }
         });
         get_id.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
                 if (bot_token.getText().toString().isEmpty()) {
-                    Snackbar.make(v, R.string.token_not_configure , Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(v, R.string.token_not_configure, Snackbar.LENGTH_LONG).show();
                     return;
                 }
                 final ProgressDialog mpDialog = new ProgressDialog(main_activity.this);
@@ -105,7 +101,7 @@ public class main_activity extends AppCompatActivity {
                     @Override
                     public void onFailure(Call call, IOException e) {
                         mpDialog.cancel();
-                        String error_message = "Get ID Network Error："+e.getMessage();
+                        String error_message = "Get ID Network Error：" + e.getMessage();
                         Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
                         public_func.write_log(context, error_message);
                     }
@@ -120,14 +116,14 @@ public class main_activity extends AppCompatActivity {
                             JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
                             String error_message = "Get ID API Error:" + result_obj.get("description").getAsString();
                             public_func.write_log(context, error_message);
-                            Snackbar.make(v,error_message , Snackbar.LENGTH_LONG).show();
+                            Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
                             return;
                         }
                         assert response.body() != null;
                         String result = response.body().string();
                         JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
                         JsonArray chat_list = result_obj.getAsJsonArray("result");
-                        if(chat_list.size()==0){
+                        if (chat_list.size() == 0) {
                             Snackbar.make(v, R.string.no_recent, Snackbar.LENGTH_LONG).show();
                             return;
                         }
@@ -139,15 +135,15 @@ public class main_activity extends AppCompatActivity {
                                 JsonObject message_obj = item_obj.get("message").getAsJsonObject();
                                 JsonObject chat_obj = message_obj.get("chat").getAsJsonObject();
                                 if (!chat_id_list.contains(chat_obj.get("id").getAsString())) {
-                                    chat_name_list.add(chat_obj.get("username").getAsString()+"(Chat)");
+                                    chat_name_list.add(chat_obj.get("username").getAsString() + "(Chat)");
                                     chat_id_list.add(chat_obj.get("id").getAsString());
                                 }
                             }
-                            if (item_obj.has("channel_post")){
+                            if (item_obj.has("channel_post")) {
                                 JsonObject message_obj = item_obj.get("channel_post").getAsJsonObject();
                                 JsonObject chat_obj = message_obj.get("chat").getAsJsonObject();
                                 if (!chat_id_list.contains(chat_obj.get("id").getAsString())) {
-                                    chat_name_list.add(chat_obj.get("title").getAsString()+"(Channel)");
+                                    chat_name_list.add(chat_obj.get("title").getAsString() + "(Channel)");
                                     chat_id_list.add(chat_obj.get("id").getAsString());
                                 }
                             }
@@ -174,7 +170,7 @@ public class main_activity extends AppCompatActivity {
             @Override
             public void onClick(final View v) {
                 if (bot_token.getText().toString().isEmpty() || chat_id.getText().toString().isEmpty()) {
-                    Snackbar.make(v, R.string.chatid_or_token_not_config , Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(v, R.string.chatid_or_token_not_config, Snackbar.LENGTH_LONG).show();
                     return;
                 }
                 ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_CONTACTS}, 1);
@@ -202,7 +198,7 @@ public class main_activity extends AppCompatActivity {
                         mpDialog.cancel();
                         String error_message = "Send Message Network Error:" + e.getMessage();
                         public_func.write_log(context, error_message);
-                        Snackbar.make(v,error_message , Snackbar.LENGTH_LONG)
+                        Snackbar.make(v, error_message, Snackbar.LENGTH_LONG)
                                 .show();
                         Looper.loop();
                     }
@@ -217,7 +213,7 @@ public class main_activity extends AppCompatActivity {
                             JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
                             String error_message = "Send Message API Error:" + result_obj.get("description");
                             public_func.write_log(context, error_message);
-                            Snackbar.make(v,error_message , Snackbar.LENGTH_LONG).show();
+                            Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
                             return;
                         }
                         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -227,23 +223,11 @@ public class main_activity extends AppCompatActivity {
                         editor.putInt("webhook_listening_port", Integer.parseInt(webhook_listening_port.getText().toString()));
                         editor.putBoolean("fallback_sms", fallback_sms.isChecked());
                         editor.putBoolean("webhook", webhook.isChecked());
+                        editor.putBoolean("initialized", true);
                         editor.apply();
                         Snackbar.make(v, "Success", Snackbar.LENGTH_LONG)
                                 .show();
-                        Intent battery_service = new Intent(context, battery_listener_service.class);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            context.startForegroundService(battery_service);
-                        } else {
-                            context.startService(battery_service);
-                        }
-                        if (webhook.isChecked()) {
-                            Intent webhook_service = new Intent(context, webhook_service.class);
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                context.startForegroundService(webhook_service);
-                            } else {
-                                context.startService(webhook_service);
-                            }
-                        }
+                        public_func.start_service(context, sharedPreferences);
                         Looper.loop();
                     }
                 });
