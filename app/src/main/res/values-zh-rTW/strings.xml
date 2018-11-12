@@ -27,7 +27,7 @@
     <string name="logcat">查看日誌</string>
     <string name="token_not_configure">請先配置機器人令牌。</string>
     <string name="chatid_or_token_not_config">請先配置機器人令牌和對話ID</string>
-    <string name="no_recent">沒有最近的聊天記錄</string>
+    <string name="no_recent">無法獲取最近的聊天記錄</string>
     <string name="webhook">使用webhook支持</string>
     <string name="command_format_error">命令格式錯誤</string>
     <string name="webhook_listening_port">Webhook監聽端口</string>
