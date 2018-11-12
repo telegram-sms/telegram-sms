@@ -56,6 +56,7 @@ public class main_activity extends AppCompatActivity {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putBoolean("initialized", true);
             editor.apply();
+            initialized = true;
         }
         if (initialized) {
             public_func.start_service(context, sharedPreferences);
