@@ -89,7 +89,6 @@ public class webhook_service extends Service {
     public int get_card2_subid(Context context) {
         int result = -1;
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-
             return result;
         }
         int active_card = SubscriptionManager.from(context).getActiveSubscriptionInfoCount();
@@ -171,6 +170,7 @@ public class webhook_service extends Service {
 
                 Log.d(public_func.log_tag, "request command: " + command);
                 switch (command) {
+                    case "/ping":
                     case "/getinfo":
                         BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
                         request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + get_network_type(context);
