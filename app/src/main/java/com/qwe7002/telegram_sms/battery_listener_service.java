@@ -39,6 +39,10 @@ public class battery_listener_service extends Service {
     battery_receiver receiver = null;
 
     @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_REDELIVER_INTENT;
+    }
+    @Override
     public void onCreate() {
         super.onCreate();
         Log.d(public_func.log_tag, "onCreate: battery_receiver");
