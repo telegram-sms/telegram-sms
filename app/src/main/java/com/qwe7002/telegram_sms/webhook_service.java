@@ -104,6 +104,12 @@ public class webhook_service extends Service {
     }
 
     @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+
+        return START_REDELIVER_INTENT;
+    }
+
+    @Override
     public void onCreate() {
         final Context context = getApplicationContext();
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
