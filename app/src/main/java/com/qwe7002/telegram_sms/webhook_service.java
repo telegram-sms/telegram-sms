@@ -45,45 +45,46 @@ public class webhook_service extends Service {
     AsyncHttpServer server;
 
     public String get_network_type(Context context) {
-        String netType = "Unknown";
-        ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        String net_type = "Unknown";
+        ConnectivityManager connect_manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connect_manager.getActiveNetworkInfo();
         if (networkInfo == null) {
-            return netType;
+            return net_type;
         }
-        int nType = networkInfo.getType();
-        if (nType == ConnectivityManager.TYPE_WIFI) {
-            netType = "WIFI";
-        }
-        if (nType == ConnectivityManager.TYPE_MOBILE) {
-            int nSubType = networkInfo.getSubtype();
-            switch (nSubType) {
-                case TelephonyManager.NETWORK_TYPE_LTE:
-                    netType = "LTE";
-                    break;
-                case TelephonyManager.NETWORK_TYPE_EVDO_0:
-                case TelephonyManager.NETWORK_TYPE_EVDO_A:
-                case TelephonyManager.NETWORK_TYPE_EVDO_B:
-                case TelephonyManager.NETWORK_TYPE_EHRPD:
-                case TelephonyManager.NETWORK_TYPE_HSDPA:
-                case TelephonyManager.NETWORK_TYPE_HSPAP:
-                case TelephonyManager.NETWORK_TYPE_HSUPA:
-                case TelephonyManager.NETWORK_TYPE_HSPA:
-                case TelephonyManager.NETWORK_TYPE_TD_SCDMA:
-                case TelephonyManager.NETWORK_TYPE_UMTS:
-                    netType = "3G";
-                    break;
-                case TelephonyManager.NETWORK_TYPE_GPRS:
-                case TelephonyManager.NETWORK_TYPE_EDGE:
-                case TelephonyManager.NETWORK_TYPE_CDMA:
-                case TelephonyManager.NETWORK_TYPE_1xRTT:
-                case TelephonyManager.NETWORK_TYPE_IDEN:
-                    netType = "2G";
-                    break;
-            }
+        switch (networkInfo.getType()) {
+            case ConnectivityManager.TYPE_WIFI:
+                net_type = "WIFI";
+                break;
+            case ConnectivityManager.TYPE_MOBILE:
+                switch (networkInfo.getSubtype()) {
+                    case TelephonyManager.NETWORK_TYPE_LTE:
+                        net_type = "LTE";
+                        break;
+                    case TelephonyManager.NETWORK_TYPE_EVDO_0:
+                    case TelephonyManager.NETWORK_TYPE_EVDO_A:
+                    case TelephonyManager.NETWORK_TYPE_EVDO_B:
+                    case TelephonyManager.NETWORK_TYPE_EHRPD:
+                    case TelephonyManager.NETWORK_TYPE_HSDPA:
+                    case TelephonyManager.NETWORK_TYPE_HSPAP:
+                    case TelephonyManager.NETWORK_TYPE_HSUPA:
+                    case TelephonyManager.NETWORK_TYPE_HSPA:
+                    case TelephonyManager.NETWORK_TYPE_TD_SCDMA:
+                    case TelephonyManager.NETWORK_TYPE_UMTS:
+                        net_type = "3G";
+                        break;
+                    case TelephonyManager.NETWORK_TYPE_GPRS:
+                    case TelephonyManager.NETWORK_TYPE_EDGE:
+                    case TelephonyManager.NETWORK_TYPE_CDMA:
+                    case TelephonyManager.NETWORK_TYPE_1xRTT:
+                    case TelephonyManager.NETWORK_TYPE_IDEN:
+                        net_type = "2G";
+                        break;
+                }
 
         }
-        return netType;
+
+
+        return net_type;
     }
 
     public int get_card2_subid(Context context) {
