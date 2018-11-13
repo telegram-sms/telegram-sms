@@ -45,7 +45,6 @@ public class battery_listener_service extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(public_func.log_tag, "onCreate: battery_receiver");
         battery_receiver receiver = new battery_receiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_OKAY);
