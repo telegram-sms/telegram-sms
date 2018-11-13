@@ -64,10 +64,36 @@ public class public_func {
         for (int i = 0; i < runningService.size(); i++) {
             if (runningService.get(i).service.getClassName().equals(class_name)) {
                 Log.d(public_func.log_tag, "Service [" + class_name + "] is already running");
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
+    }
+
+    public static void restart_service(Context context, SharedPreferences sharedPreferences) {
+        Intent battery_service = new Intent(context, battery_listener_service.class);
+        Intent webhook_service = new Intent(context, webhook_service.class);
+        boolean webhook_switch = sharedPreferences.getBoolean("webhook", false);
+        Log.d(log_tag, "restart_service: " + webhook_switch);
+        if (check_server_running_status(context, "com.qwe7002.telegram_sms.battery_listener_service")) {
+
+            context.stopService(battery_service);
+        }
+        if (check_server_running_status(context, "com.qwe7002.telegram_sms.webhook_service")) {
+            context.stopService(webhook_service);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(battery_service);
+            if (webhook_switch) {
+                context.startForegroundService(webhook_service);
+            }
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            context.startService(battery_service);
+            if (webhook_switch) {
+                context.startService(webhook_service);
+            }
+        }
     }
 
     public static void start_service(Context context, SharedPreferences sharedPreferences) {
@@ -75,18 +101,18 @@ public class public_func {
         Intent webhook_service = new Intent(context, webhook_service.class);
         boolean webhook_switch = sharedPreferences.getBoolean("webhook", false);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (check_server_running_status(context, "com.qwe7002.telegram_sms.battery_listener_service")) {
+            if (!check_server_running_status(context, "com.qwe7002.telegram_sms.battery_listener_service")) {
                 context.startForegroundService(battery_service);
             }
-            if (webhook_switch && check_server_running_status(context, "com.qwe7002.telegram_sms.webhook_service")) {
+            if (webhook_switch && !check_server_running_status(context, "com.qwe7002.telegram_sms.webhook_service")) {
                 context.startForegroundService(webhook_service);
             }
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            if (check_server_running_status(context, "com.qwe7002.telegram_sms.battery_listener_service")) {
+            if (!check_server_running_status(context, "com.qwe7002.telegram_sms.battery_listener_service")) {
                 context.startService(battery_service);
             }
-            if (webhook_switch && check_server_running_status(context, "com.qwe7002.telegram_sms.webhook_service")) {
+            if (webhook_switch && !check_server_running_status(context, "com.qwe7002.telegram_sms.webhook_service")) {
                 context.startService(webhook_service);
             }
         }

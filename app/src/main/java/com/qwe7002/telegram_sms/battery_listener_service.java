@@ -45,7 +45,7 @@ public class battery_listener_service extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        battery_receiver receiver = new battery_receiver();
+        receiver = new battery_receiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_OKAY);
         filter.addAction(Intent.ACTION_BATTERY_LOW);
@@ -67,8 +67,12 @@ public class battery_listener_service extends Service {
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            stopForeground(true);
+        }
         unregisterReceiver(receiver);
+        super.onDestroy();
+
 
     }
 
