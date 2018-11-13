@@ -2,6 +2,7 @@ package com.qwe7002.telegram_sms;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -26,6 +27,7 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 public class public_func {
     public static final String log_tag = "tg-sms";
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+
     public static OkHttpClient get_okhttp_obj() {
         return new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
@@ -34,6 +36,7 @@ public class public_func {
                 .retryOnConnectionFailure(true)
                 .build();
     }
+
     public static boolean is_numeric(String str) {
         for (int i = str.length(); --i >= 0; ) {
             if (!Character.isDigit(str.charAt(i))) {
@@ -52,42 +55,62 @@ public class public_func {
         sms_manager.sendMultipartTextMessage(send_to, null, divideContents, null, null);
     }
 
+    private static boolean server_is_start(Context context, String class_name) {
+        ActivityManager myManager = (ActivityManager) context
+                .getApplicationContext().getSystemService(
+                        Context.ACTIVITY_SERVICE);
+        ArrayList<ActivityManager.RunningServiceInfo> runningService = (ArrayList<ActivityManager.RunningServiceInfo>) myManager
+                .getRunningServices(30);
+        for (int i = 0; i < runningService.size(); i++) {
+            if (runningService.get(i).service.getClassName().equals(class_name)) {
+                Log.d(public_func.log_tag, "Service [" + class_name + "] is already running");
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static void start_service(Context context, SharedPreferences sharedPreferences) {
         Intent battery_service = new Intent(context, battery_listener_service.class);
         Intent webhook_service = new Intent(context, webhook_service.class);
         boolean webhook_switch = sharedPreferences.getBoolean("webhook", false);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(battery_service);
-            if (webhook_switch) {
+            if (!server_is_start(context, "com.qwe7002.telegram_sms.battery_listener_service")) {
+                context.startForegroundService(battery_service);
+            }
+            if (webhook_switch && !server_is_start(context, "com.qwe7002.telegram_sms.webhook_service")) {
                 context.startForegroundService(webhook_service);
             }
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            context.startService(battery_service);
-            if (webhook_switch) {
+            if (!server_is_start(context, "com.qwe7002.telegram_sms.battery_listener_service")) {
+                context.startService(battery_service);
+            }
+            if (webhook_switch && !server_is_start(context, "com.qwe7002.telegram_sms.webhook_service")) {
                 context.startService(webhook_service);
             }
         }
     }
-    public static String get_phone_name(Context context, String phoneNum) {
-        String contactName = null;
+
+    public static String get_phone_name(Context context, String phone_number) {
+        String contact_name = null;
         if (checkSelfPermission(context, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
-            Uri uri=Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI,Uri.encode(phoneNum));
+            Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phone_number));
 
             String[] projection = new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME};
-            Cursor cursor=context.getContentResolver().query(uri,projection,null,null,null);
+            Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null);
 
             if (cursor != null) {
-                if(cursor.moveToFirst()) {
+                if (cursor.moveToFirst()) {
                     String cursor_name = cursor.getString(0);
                     if (!cursor_name.isEmpty())
-                        contactName = cursor_name;
+                        contact_name = cursor_name;
                 }
                 cursor.close();
             }
 
         }
-        return contactName;
+        return contact_name;
     }
 
     public static void write_log(Context context, String log) {
