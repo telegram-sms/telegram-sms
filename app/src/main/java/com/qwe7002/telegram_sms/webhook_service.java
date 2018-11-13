@@ -47,16 +47,16 @@ public class webhook_service extends Service {
     public String get_network_type(Context context) {
         String net_type = "Unknown";
         ConnectivityManager connect_manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connect_manager.getActiveNetworkInfo();
-        if (networkInfo == null) {
+        NetworkInfo network_info = connect_manager.getActiveNetworkInfo();
+        if (network_info == null) {
             return net_type;
         }
-        switch (networkInfo.getType()) {
+        switch (network_info.getType()) {
             case ConnectivityManager.TYPE_WIFI:
                 net_type = "WIFI";
                 break;
             case ConnectivityManager.TYPE_MOBILE:
-                switch (networkInfo.getSubtype()) {
+                switch (network_info.getSubtype()) {
                     case TelephonyManager.NETWORK_TYPE_LTE:
                         net_type = "LTE";
                         break;
@@ -263,6 +263,9 @@ public class webhook_service extends Service {
     @Override
     public void onDestroy() {
         server.stop();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            stopForeground(true);
+        }
         super.onDestroy();
     }
 

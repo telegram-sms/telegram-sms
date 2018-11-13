@@ -228,7 +228,7 @@ public class main_activity extends AppCompatActivity {
                         editor.apply();
                         Snackbar.make(v, "Success", Snackbar.LENGTH_LONG)
                                 .show();
-                        public_func.start_service(context, sharedPreferences);
+                        public_func.restart_service(context, sharedPreferences);
                         Looper.loop();
                     }
                 });
