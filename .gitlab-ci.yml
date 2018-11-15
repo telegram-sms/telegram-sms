@@ -1,6 +1,6 @@
 stages:
-- build
 - push
+- build
 - deploy
 
 cache:
