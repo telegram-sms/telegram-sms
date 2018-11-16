@@ -44,7 +44,6 @@ public class call_receiver extends BroadcastReceiver {
                 break;
             case "android.intent.action.SUBSCRIPTION_PHONE_STATE":
                 slot = intent.getIntExtra("slot", -1);
-                Log.d(public_func.log_tag, "onReceive: " + slot);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.qwe7002.telegram_sms;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -17,6 +18,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NotificationCompat;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -50,9 +52,22 @@ public class webhook_service extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("2", public_func.log_tag,
+                    NotificationManager.IMPORTANCE_MIN);
+            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            manager.createNotificationChannel(channel);
 
+            Notification notification = new Notification.Builder(getApplicationContext(), "2").build();
+            startForeground(2, notification);
+        } else {
+            @SuppressLint("WrongConstant") Notification notification = new Notification.Builder(getApplication()).setAutoCancel(false).setSmallIcon(R.mipmap.ic_launcher).setTicker("Telegram SMS").setContentTitle("Telegram SMS").setContentText("Webhook service is running...").setPriority(NotificationCompat.PRIORITY_MIN).build();
+            startForeground(2, notification);
+        }
         return START_STICKY;
     }
+
+
     public String get_network_type(Context context) {
         String net_type = "Unknown";
         ConnectivityManager connect_manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -112,15 +127,6 @@ public class webhook_service extends Service {
     public void onCreate() {
         final Context context = getApplicationContext();
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel("2", public_func.log_tag,
-                    NotificationManager.IMPORTANCE_MIN);
-            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            manager.createNotificationChannel(channel);
-
-            Notification notification = new Notification.Builder(getApplicationContext(), "2").build();
-            startForeground(2, notification);
-        }
 
         server = new AsyncHttpServer();
 

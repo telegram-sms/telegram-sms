@@ -1,6 +1,7 @@
 package com.qwe7002.telegram_sms;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -16,6 +17,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -40,6 +42,18 @@ public class battery_listener_service extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("1", public_func.log_tag,
+                    NotificationManager.IMPORTANCE_MIN);
+            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            manager.createNotificationChannel(channel);
+
+            Notification notification = new Notification.Builder(getApplicationContext(), "1").build();
+            startForeground(1, notification);
+        } else {
+            @SuppressLint("WrongConstant") Notification notification = new Notification.Builder(getApplication()).setAutoCancel(false).setSmallIcon(R.mipmap.ic_launcher).setTicker("Telegram SMS").setContentTitle("Telegram SMS").setContentText("Battery monitoring service is running...").setPriority(NotificationCompat.PRIORITY_MIN).build();
+            startForeground(1, notification);
+        }
         return START_STICKY;
     }
     @Override
@@ -52,16 +66,6 @@ public class battery_listener_service extends Service {
         filter.addAction(Intent.ACTION_POWER_CONNECTED);
         filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
         registerReceiver(receiver, filter);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel("1", public_func.log_tag,
-                    NotificationManager.IMPORTANCE_MIN);
-            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            manager.createNotificationChannel(channel);
-
-            Notification notification = new Notification.Builder(getApplicationContext(), "1").build();
-            startForeground(1, notification);
-        }
 
     }
 
