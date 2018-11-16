@@ -89,14 +89,19 @@ public class public_func {
         Intent battery_service = new Intent(context, battery_monitoring_service.class);
         Intent webhook_service = new Intent(context, webhook_service.class);
         boolean webhook_switch = sharedPreferences.getBoolean("webhook", false);
+        boolean battery_switch = sharedPreferences.getBoolean("battery_monitoring_switch", false);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(battery_service);
+            if (battery_switch) {
+                context.startForegroundService(battery_service);
+            }
             if (webhook_switch) {
                 context.startForegroundService(webhook_service);
             }
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            context.startService(battery_service);
+            if (battery_switch) {
+                context.startService(battery_service);
+            }
             if (webhook_switch) {
                 context.startService(webhook_service);
             }

@@ -92,10 +92,8 @@ class battery_receiver extends BroadcastReceiver {
                 if (intent.getIntExtra("status", BatteryManager.BATTERY_STATUS_UNKNOWN) != BatteryManager.BATTERY_STATUS_FULL) {
                     return;
                 }
-
                 prebody = prebody.append(context.getString(R.string.charging_completed));
                 break;
-
             case Intent.ACTION_BATTERY_OKAY:
                 prebody = prebody.append(context.getString(R.string.low_battery_status_end));
                 break;
