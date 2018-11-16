@@ -107,7 +107,7 @@ public class webhook_service extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        return START_REDELIVER_INTENT;
+        return START_STICKY;
     }
 
     @Override
