@@ -86,7 +86,7 @@ public class public_func {
     }
 
     public static void start_service(Context context, SharedPreferences sharedPreferences) {
-        Intent battery_service = new Intent(context, battery_listener_service.class);
+        Intent battery_service = new Intent(context, battery_monitoring_service.class);
         Intent webhook_service = new Intent(context, webhook_service.class);
         boolean webhook_switch = sharedPreferences.getBoolean("webhook", false);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
