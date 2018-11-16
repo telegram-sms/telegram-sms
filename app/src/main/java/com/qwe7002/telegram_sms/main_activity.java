@@ -36,11 +36,22 @@ import okhttp3.Response;
 
 
 public class main_activity extends AppCompatActivity {
+    Context context = null;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
+        boolean initialized = sharedPreferences.getBoolean("initialized", false);
+        if (initialized) {
+            public_func.start_service(context, sharedPreferences);
+        }
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        final Context context = getApplicationContext();
+        context = getApplicationContext();
         final EditText chat_id = findViewById(R.id.chat_id);
         final EditText bot_token = findViewById(R.id.bot_token);
         final EditText trusted_phone_number = findViewById(R.id.trusted_phone_number);
@@ -51,17 +62,12 @@ public class main_activity extends AppCompatActivity {
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
-        boolean initialized = sharedPreferences.getBoolean("initialized", false);
-        if (!initialized && !bot_token_save.isEmpty() && !chat_id_save.isEmpty()) {
+
+        if (!sharedPreferences.getBoolean("initialized", false) && !bot_token_save.isEmpty() && !chat_id_save.isEmpty()) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putBoolean("initialized", true);
             editor.apply();
-            initialized = true;
         }
-        if (initialized) {
-            public_func.start_service(context, sharedPreferences);
-        }
-
         Button save_button = findViewById(R.id.save);
         Button get_id = findViewById(R.id.get_id);
         Button logcat = findViewById(R.id.logcat_button);
