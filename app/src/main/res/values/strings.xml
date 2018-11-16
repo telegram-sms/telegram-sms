@@ -36,4 +36,5 @@
     <string name="current_network_connection_status">Current network connection status:</string>
     <string name="cant_get_card_2_info">Unable to get card slot 2 information.</string>
     <string name="charging_completed">Charging completed.</string>
+    <string name="battery_monitoring">Monitor battery status changes</string>
 </resources>
