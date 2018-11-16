@@ -44,6 +44,15 @@ import okhttp3.Response;
 public class webhook_service extends Service {
     AsyncHttpServer server;
 
+    public webhook_service() {
+
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+
+        return START_STICKY;
+    }
     public String get_network_type(Context context) {
         String net_type = "Unknown";
         ConnectivityManager connect_manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -58,7 +67,7 @@ public class webhook_service extends Service {
             case ConnectivityManager.TYPE_MOBILE:
                 switch (network_info.getSubtype()) {
                     case TelephonyManager.NETWORK_TYPE_LTE:
-                        net_type = "LTE";
+                        net_type = "4G";
                         break;
                     case TelephonyManager.NETWORK_TYPE_EVDO_0:
                     case TelephonyManager.NETWORK_TYPE_EVDO_A:
@@ -97,17 +106,6 @@ public class webhook_service extends Service {
             result = SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(1).getSubscriptionId();
         }
         return result;
-    }
-
-
-    public webhook_service() {
-
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-
-        return START_STICKY;
     }
 
     @Override
