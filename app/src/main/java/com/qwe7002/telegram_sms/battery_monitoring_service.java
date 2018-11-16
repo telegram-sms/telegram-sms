@@ -32,7 +32,7 @@ import static android.content.Context.BATTERY_SERVICE;
 import static android.content.Context.MODE_PRIVATE;
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
-public class battery_listener_service extends Service {
+public class battery_monitoring_service extends Service {
     battery_receiver receiver = null;
 
     @Override

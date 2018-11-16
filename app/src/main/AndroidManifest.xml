@@ -32,7 +32,7 @@
         <activity android:name=".logcat_activity" />
 
         <service
-            android:name=".battery_listener_service"
+            android:name=".battery_monitoring_service"
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE"
