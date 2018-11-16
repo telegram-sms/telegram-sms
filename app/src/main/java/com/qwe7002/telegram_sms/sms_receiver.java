@@ -64,22 +64,22 @@ public class sms_receiver extends BroadcastReceiver {
                     for (SmsMessage item : messages) {
                         msgBody.append(item.getMessageBody());
                     }
-                    String msgAddress = messages[0].getOriginatingAddress();
+                    String msg_address = messages[0].getOriginatingAddress();
 
                     final request_json request_body = new request_json();
                     request_body.chat_id = chat_id;
-                    String display_address = msgAddress;
+                    String display_address = msg_address;
                     String display_name = public_func.get_phone_name(context, display_address);
                     if (display_name != null) {
                         display_address = display_name + "(" + display_address + ")";
                     }
                     request_body.text = context.getString(R.string.receive_sms_head) + dual_sim + "\n" + context.getString(R.string.from) + display_address + "\n" + context.getString(R.string.content) + msgBody;
-                    assert msgAddress != null;
+                    assert msg_address != null;
                     if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-                        if (msgAddress.equals(sharedPreferences.getString("trusted_phone_number", null))) {
+                        if (msg_address.equals(sharedPreferences.getString("trusted_phone_number", null))) {
                             String[] msg_send_list = msgBody.toString().split("\n");
-                            if (public_func.is_numeric(msg_send_list[0]) && msg_send_list.length != 1) {
-                                String msg_send_to = msg_send_list[0].trim();
+                            String msg_send_to = msg_send_list[0].trim().replaceAll(" ", "");
+                            if (public_func.is_numeric(msg_send_to) && msg_send_list.length != 1) {
                                 StringBuilder msg_send_content = new StringBuilder();
                                 for (int i = 1; i < msg_send_list.length; i++) {
                                     if (msg_send_list.length != 2 && i != 1) {
