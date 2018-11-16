@@ -2,6 +2,9 @@ package com.qwe7002.telegram_sms;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,6 +13,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.ContactsContract;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import java.text.SimpleDateFormat;
@@ -58,6 +62,28 @@ public class public_func {
         sms_manager.sendMultipartTextMessage(send_to, null, divideContents, null, null);
     }
 
+    @SuppressLint("WrongConstant")
+    public static Notification get_notification_obj(Context context, String notification_name) {
+        Notification notification = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(notification_name, public_func.log_tag,
+                    NotificationManager.IMPORTANCE_MIN);
+            NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            manager.createNotificationChannel(channel);
+
+            notification = new Notification.Builder(context, notification_name).build();
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            notification = new Notification.Builder(context)
+                    .setAutoCancel(false)
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setTicker(context.getString(R.string.app_name))
+                    .setContentTitle(context.getString(R.string.app_name))
+                    .setContentText(notification_name + " service is running...")
+                    .setPriority(NotificationCompat.PRIORITY_MIN).build();
+        }
+        return notification;
+    }
 
     public static void start_service(Context context, SharedPreferences sharedPreferences) {
         Intent battery_service = new Intent(context, battery_listener_service.class);
