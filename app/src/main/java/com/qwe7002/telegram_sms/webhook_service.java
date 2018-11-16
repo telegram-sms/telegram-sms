@@ -3,8 +3,6 @@ package com.qwe7002.telegram_sms;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -13,12 +11,10 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.BatteryManager;
-import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NotificationCompat;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -50,20 +46,11 @@ public class webhook_service extends Service {
 
     }
 
+    @SuppressLint("WrongConstant")
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel("2", public_func.log_tag,
-                    NotificationManager.IMPORTANCE_MIN);
-            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            manager.createNotificationChannel(channel);
-
-            Notification notification = new Notification.Builder(getApplicationContext(), "2").build();
-            startForeground(2, notification);
-        } else {
-            @SuppressLint("WrongConstant") Notification notification = new Notification.Builder(getApplication()).setAutoCancel(false).setSmallIcon(R.mipmap.ic_launcher).setTicker("Telegram SMS").setContentTitle("Telegram SMS").setContentText("Webhook service is running...").setPriority(NotificationCompat.PRIORITY_MIN).build();
-            startForeground(2, notification);
-        }
+        Notification notification = public_func.get_notification_obj(getApplicationContext(), "Webhook");
+        startForeground(2, notification);
         return START_STICKY;
     }
 
@@ -267,9 +254,7 @@ public class webhook_service extends Service {
     @Override
     public void onDestroy() {
         server.stop();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            stopForeground(true);
-        }
+        stopForeground(true);
         super.onDestroy();
     }
 
