@@ -47,6 +47,7 @@ public class main_activity extends AppCompatActivity {
             public_func.start_service(context, sharedPreferences);
         }
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -222,6 +223,11 @@ public class main_activity extends AppCompatActivity {
                             public_func.write_log(context, error_message);
                             Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
                             return;
+                        }
+
+                        if (sharedPreferences.getBoolean("initialized", false) && webhook.isChecked() != sharedPreferences.getBoolean("webhook", false)) {
+                            Intent webhook_service = new Intent(context, webhook_service.class);
+                            context.stopService(webhook_service);
                         }
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString("bot_token", bot_token.getText().toString().trim());
