@@ -187,7 +187,7 @@ public class webhook_service extends Service {
                         request_body.text = context.getString(R.string.send_sms_head) + "\n" + getString(R.string.command_format_error);
                         String[] msg_send_list = request_msg.split("\n");
                         if (msg_send_list.length > 2) {
-                            String msg_send_to = msg_send_list[1].trim();
+                            String msg_send_to = msg_send_list[1].trim().replaceAll(" ", "");
                             if (public_func.is_numeric(msg_send_to)) {
                                 StringBuilder msg_send_content = new StringBuilder();
                                 for (int i = 2; i < msg_send_list.length; i++) {

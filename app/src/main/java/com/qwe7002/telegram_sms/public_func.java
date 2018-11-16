@@ -38,7 +38,11 @@ public class public_func {
 
     public static boolean is_numeric(String str) {
         for (int i = str.length(); --i >= 0; ) {
-            if (!Character.isDigit(str.charAt(i))) {
+            char c = str.charAt(i);
+            if (!Character.isDigit(c)) {
+                if (c == '+') {
+                    continue;
+                }
                 return false;
             }
         }
