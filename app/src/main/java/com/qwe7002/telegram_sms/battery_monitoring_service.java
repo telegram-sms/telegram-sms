@@ -41,11 +41,13 @@ public class battery_monitoring_service extends Service {
         startForeground(1, notification);
         return START_STICKY;
     }
+
     @Override
     public void onCreate() {
         super.onCreate();
         receiver = new battery_receiver();
         IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_BATTERY_CHANGED);
         filter.addAction(Intent.ACTION_BATTERY_OKAY);
         filter.addAction(Intent.ACTION_BATTERY_LOW);
         filter.addAction(Intent.ACTION_POWER_CONNECTED);
@@ -86,8 +88,16 @@ class battery_receiver extends BroadcastReceiver {
         StringBuilder prebody = new StringBuilder(context.getString(R.string.system_message_head) + "\n");
         final String action = intent.getAction();
         switch (Objects.requireNonNull(action)) {
+            case Intent.ACTION_BATTERY_CHANGED:
+                if (intent.getIntExtra("status", BatteryManager.BATTERY_STATUS_UNKNOWN) != BatteryManager.BATTERY_STATUS_FULL) {
+                    return;
+                }
+
+                prebody = prebody.append(context.getString(R.string.charging_completed));
+                break;
+
             case Intent.ACTION_BATTERY_OKAY:
-                prebody = prebody.append(context.getString(R.string.charging_is_complete));
+                prebody = prebody.append(context.getString(R.string.low_battery_status_end));
                 break;
             case Intent.ACTION_BATTERY_LOW:
                 prebody = prebody.append(context.getString(R.string.battery_low));
@@ -112,9 +122,9 @@ class battery_receiver extends BroadcastReceiver {
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Looper.prepare();
                 String error_message = "Send Battery Error:" + e.getMessage();
-                Toast.makeText(context,error_message , Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                 Log.i(public_func.log_tag, error_message);
-                if(action.equals(Intent.ACTION_BATTERY_LOW)){
+                if (action.equals(Intent.ACTION_BATTERY_LOW)) {
                     if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                         if (sharedPreferences.getBoolean("fallback_sms", false)) {
                             String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
@@ -134,7 +144,7 @@ class battery_receiver extends BroadcastReceiver {
                     Looper.prepare();
                     assert response.body() != null;
                     String error_message = "Send Battery Error:" + response.body().string();
-                    Toast.makeText(context,error_message , Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                     Log.i(public_func.log_tag, error_message);
                     Looper.loop();
                 }

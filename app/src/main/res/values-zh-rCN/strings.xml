@@ -23,7 +23,7 @@
     <string name="network_error_falls_back_to_sms">网络错误回退到SMS</string>
     <string name="SIM_card_slot">SIM卡插槽：</string>
     <string name="current_battery_level">当前电池电量：</string>
-    <string name="charging_is_complete">电池电量不足状态已结束。</string>
+    <string name="low_battery_status_end">电池电量不足状态已结束。</string>
     <string name="logcat">查看日志</string>
     <string name="token_not_configure">请先配置机器人令牌。</string>
     <string name="chatid_or_token_not_config">请先配置机器人令牌和对话ID</string>
@@ -34,4 +34,5 @@
     <string name="unknown_command">未知的命令</string>
     <string name="current_network_connection_status">当前网络连接状态：</string>
     <string name="cant_get_card_2_info">无法获取卡槽2信息。</string>
+    <string name="charging_completed">充电完成。</string>
 </resources>
