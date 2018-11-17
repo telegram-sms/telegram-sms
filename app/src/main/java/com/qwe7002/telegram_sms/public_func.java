@@ -13,7 +13,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.ContactsContract;
-import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import java.text.SimpleDateFormat;
@@ -62,7 +61,7 @@ public class public_func {
         sms_manager.sendMultipartTextMessage(send_to, null, divideContents, null, null);
     }
 
-    @SuppressLint("WrongConstant")
+
     public static Notification get_notification_obj(Context context, String notification_name) {
         Notification notification = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -77,10 +76,12 @@ public class public_func {
             notification = new Notification.Builder(context)
                     .setAutoCancel(false)
                     .setSmallIcon(R.mipmap.ic_launcher)
+                    .setOngoing(true)
                     .setTicker(context.getString(R.string.app_name))
+                    .setWhen(System.currentTimeMillis())
                     .setContentTitle(context.getString(R.string.app_name))
                     .setContentText(notification_name + " service is running...")
-                    .setPriority(NotificationCompat.PRIORITY_MIN).build();
+                    .setPriority(Notification.PRIORITY_MIN).build();
         }
         return notification;
     }
