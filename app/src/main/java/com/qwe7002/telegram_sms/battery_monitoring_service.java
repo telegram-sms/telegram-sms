@@ -47,7 +47,6 @@ public class battery_monitoring_service extends Service {
         super.onCreate();
         receiver = new battery_receiver();
         IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_BATTERY_CHANGED);
         filter.addAction(Intent.ACTION_BATTERY_OKAY);
         filter.addAction(Intent.ACTION_BATTERY_LOW);
         filter.addAction(Intent.ACTION_POWER_CONNECTED);
@@ -73,7 +72,6 @@ public class battery_monitoring_service extends Service {
 }
 
 class battery_receiver extends BroadcastReceiver {
-    int last_battery_percent = -1;
 
     @Override
     public void onReceive(final Context context, final Intent intent) {
@@ -91,22 +89,6 @@ class battery_receiver extends BroadcastReceiver {
         final String action = intent.getAction();
         BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
         switch (Objects.requireNonNull(action)) {
-            case Intent.ACTION_BATTERY_CHANGED:
-                int battery_percent = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
-                if (last_battery_percent == -1) {
-                    last_battery_percent = 0;
-                    return;
-                }
-                if (intent.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN) != BatteryManager.BATTERY_STATUS_FULL) {
-                    return;
-                }
-                if (battery_percent == last_battery_percent || battery_percent != 100) {
-                    Log.d(public_func.log_tag, "onReceive: " + battery_percent);
-                    return;
-                }
-
-                prebody = prebody.append(context.getString(R.string.charging_completed));
-                break;
             case Intent.ACTION_BATTERY_OKAY:
                 prebody = prebody.append(context.getString(R.string.low_battery_status_end));
                 break;

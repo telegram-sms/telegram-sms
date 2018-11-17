@@ -34,6 +34,5 @@
     <string name="unknown_command">不明なコマンド</string>
     <string name="current_network_connection_status">現在のネットワーク接続ステータス：</string>
     <string name="cant_get_card_2_info">カードスロット2の情報を取得できないため。</string>
-    <string name="charging_completed">充電が完了しました。</string>
     <string name="battery_monitoring">バッテリー状態の変化を監視する</string>
 </resources>
