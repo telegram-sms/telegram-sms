@@ -140,6 +140,7 @@ public class webhook_service extends Service {
                 }
                 if (message_obj == null) {
                     response.send("error");
+                    public_func.write_log(context, "Request type is not allowed by security policy");
                     return;
                 }
                 JsonObject from_obj = null;
@@ -151,6 +152,7 @@ public class webhook_service extends Service {
                 }
                 if (from_obj == null) {
                     response.send("error");
+                    public_func.write_log(context, "Request type is not allowed by security policy");
                     return;
                 }
                 String from_id = from_obj.get("id").getAsString();
