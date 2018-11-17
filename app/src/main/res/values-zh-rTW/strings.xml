@@ -23,15 +23,16 @@
     <string name="network_error_falls_back_to_sms">網路錯誤回退到SMS</string>
     <string name="SIM_card_slot">SIM卡插槽：</string>
     <string name="current_battery_level">當前電池電量：</string>
-    <string name="charging_is_complete">電池電量不足狀態已結束。</string>
+    <string name="low_battery_status_end">電池電量不足狀態已結束。</string>
     <string name="logcat">查看日誌</string>
     <string name="token_not_configure">請先配置機器人令牌。</string>
     <string name="chatid_or_token_not_config">請先配置機器人令牌和對話ID</string>
-    <string name="no_recent">沒有最近的聊天記錄</string>
+    <string name="no_recent">無法獲取最近的聊天記錄</string>
     <string name="webhook">使用webhook支持</string>
     <string name="command_format_error">命令格式錯誤</string>
     <string name="webhook_listening_port">Webhook監聽端口</string>
     <string name="unknown_command">未知的命令</string>
     <string name="current_network_connection_status">當前網路連接狀態：</string>
     <string name="cant_get_card_2_info">無法獲取卡槽2信息。</string>
+    <string name="battery_monitoring">監控電池狀態變動</string>
 </resources>

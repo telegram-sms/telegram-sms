@@ -44,7 +44,6 @@ public class call_receiver extends BroadcastReceiver {
                 break;
             case "android.intent.action.SUBSCRIPTION_PHONE_STATE":
                 slot = intent.getIntExtra("slot", -1);
-                Log.d(public_func.log_tag, "onReceive: " + slot);
         }
     }
 }
@@ -80,6 +79,10 @@ class call_listener extends PhoneStateListener {
         }
 
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        if (!sharedPreferences.getBoolean("initialized", false)) {
+            public_func.write_log(context, "Receive Phone:Uninitialized");
+            return;
+        }
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";

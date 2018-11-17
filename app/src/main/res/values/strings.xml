@@ -24,15 +24,16 @@
     <string name="network_error_falls_back_to_sms">Network error falls back to SMS</string>
     <string name="SIM_card_slot">SIM Card Slot:</string>
     <string name="current_battery_level">Current battery level:</string>
-    <string name="charging_is_complete">The low battery status has ended.</string>
+    <string name="low_battery_status_end">The low battery status has ended.</string>
     <string name="logcat">View log</string>
     <string name="token_not_configure">Please configure the robot token first.</string>
     <string name="chatid_or_token_not_config">Please configure the robot token and chat ID first.</string>
-    <string name="no_recent">No recent chat history</string>
+    <string name="no_recent">Unable to get recent chat history</string>
     <string name="webhook">Use webhook support</string>
     <string name="command_format_error">Command format error</string>
     <string name="webhook_listening_port">Webhook listening port</string>
     <string name="unknown_command">Unknown command</string>
     <string name="current_network_connection_status">Current network connection status:</string>
     <string name="cant_get_card_2_info">Unable to get card slot 2 information.</string>
+    <string name="battery_monitoring">Monitor battery status changes</string>
 </resources>

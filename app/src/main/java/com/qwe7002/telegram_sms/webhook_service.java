@@ -1,9 +1,8 @@
 package com.qwe7002.telegram_sms;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -12,7 +11,6 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.BatteryManager;
-import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -44,52 +42,65 @@ import okhttp3.Response;
 public class webhook_service extends Service {
     AsyncHttpServer server;
 
+    public webhook_service() {
+
+    }
+
+    @SuppressLint("WrongConstant")
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Notification notification = public_func.get_notification_obj(getApplicationContext(), "Webhook");
+        startForeground(2, notification);
+        return START_STICKY;
+    }
+
+
     public String get_network_type(Context context) {
-        String netType = "Unknown";
-        ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        if (networkInfo == null) {
-            return netType;
+        String net_type = "Unknown";
+        ConnectivityManager connect_manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo network_info = connect_manager.getActiveNetworkInfo();
+        if (network_info == null) {
+            return net_type;
         }
-        int nType = networkInfo.getType();
-        if (nType == ConnectivityManager.TYPE_WIFI) {
-            netType = "WIFI";
-        }
-        if (nType == ConnectivityManager.TYPE_MOBILE) {
-            int nSubType = networkInfo.getSubtype();
-            switch (nSubType) {
-                case TelephonyManager.NETWORK_TYPE_LTE:
-                    netType = "LTE";
-                    break;
-                case TelephonyManager.NETWORK_TYPE_EVDO_0:
-                case TelephonyManager.NETWORK_TYPE_EVDO_A:
-                case TelephonyManager.NETWORK_TYPE_EVDO_B:
-                case TelephonyManager.NETWORK_TYPE_EHRPD:
-                case TelephonyManager.NETWORK_TYPE_HSDPA:
-                case TelephonyManager.NETWORK_TYPE_HSPAP:
-                case TelephonyManager.NETWORK_TYPE_HSUPA:
-                case TelephonyManager.NETWORK_TYPE_HSPA:
-                case TelephonyManager.NETWORK_TYPE_TD_SCDMA:
-                case TelephonyManager.NETWORK_TYPE_UMTS:
-                    netType = "3G";
-                    break;
-                case TelephonyManager.NETWORK_TYPE_GPRS:
-                case TelephonyManager.NETWORK_TYPE_EDGE:
-                case TelephonyManager.NETWORK_TYPE_CDMA:
-                case TelephonyManager.NETWORK_TYPE_1xRTT:
-                case TelephonyManager.NETWORK_TYPE_IDEN:
-                    netType = "2G";
-                    break;
-            }
+        switch (network_info.getType()) {
+            case ConnectivityManager.TYPE_WIFI:
+                net_type = "WIFI";
+                break;
+            case ConnectivityManager.TYPE_MOBILE:
+                switch (network_info.getSubtype()) {
+                    case TelephonyManager.NETWORK_TYPE_LTE:
+                        net_type = "4G";
+                        break;
+                    case TelephonyManager.NETWORK_TYPE_EVDO_0:
+                    case TelephonyManager.NETWORK_TYPE_EVDO_A:
+                    case TelephonyManager.NETWORK_TYPE_EVDO_B:
+                    case TelephonyManager.NETWORK_TYPE_EHRPD:
+                    case TelephonyManager.NETWORK_TYPE_HSDPA:
+                    case TelephonyManager.NETWORK_TYPE_HSPAP:
+                    case TelephonyManager.NETWORK_TYPE_HSUPA:
+                    case TelephonyManager.NETWORK_TYPE_HSPA:
+                    case TelephonyManager.NETWORK_TYPE_TD_SCDMA:
+                    case TelephonyManager.NETWORK_TYPE_UMTS:
+                        net_type = "3G";
+                        break;
+                    case TelephonyManager.NETWORK_TYPE_GPRS:
+                    case TelephonyManager.NETWORK_TYPE_EDGE:
+                    case TelephonyManager.NETWORK_TYPE_CDMA:
+                    case TelephonyManager.NETWORK_TYPE_1xRTT:
+                    case TelephonyManager.NETWORK_TYPE_IDEN:
+                        net_type = "2G";
+                        break;
+                }
 
         }
-        return netType;
+
+
+        return net_type;
     }
 
     public int get_card2_subid(Context context) {
         int result = -1;
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-
             return result;
         }
         int active_card = SubscriptionManager.from(context).getActiveSubscriptionInfoCount();
@@ -99,24 +110,10 @@ public class webhook_service extends Service {
         return result;
     }
 
-
-    public webhook_service() {
-
-    }
-
     @Override
     public void onCreate() {
         final Context context = getApplicationContext();
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel("2", public_func.log_tag,
-                    NotificationManager.IMPORTANCE_MIN);
-            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            manager.createNotificationChannel(channel);
-
-            Notification notification = new Notification.Builder(getApplicationContext(), "2").build();
-            startForeground(2, notification);
-        }
 
         server = new AsyncHttpServer();
 
@@ -134,9 +131,30 @@ public class webhook_service extends Service {
                 request_body.chat_id = chat_id;
                 Log.d(public_func.log_tag, request.getBody().get().toString());
                 JsonObject result_obj = new JsonParser().parse(request.getBody().get().toString()).getAsJsonObject();
-                JsonObject message_obj = result_obj.get("message").getAsJsonObject();
-                JsonObject from_obj = message_obj.get("from").getAsJsonObject();
-
+                JsonObject message_obj = null;
+                if (result_obj.has("message")) {
+                    message_obj = result_obj.get("message").getAsJsonObject();
+                }
+                if (result_obj.has("channel_post")) {
+                    message_obj = result_obj.get("channel_post").getAsJsonObject();
+                }
+                if (message_obj == null) {
+                    response.send("error");
+                    public_func.write_log(context, "Request type is not allowed by security policy");
+                    return;
+                }
+                JsonObject from_obj = null;
+                if (message_obj.has("from")) {
+                    from_obj = message_obj.get("from").getAsJsonObject();
+                }
+                if (message_obj.has("chat")) {
+                    from_obj = message_obj.get("chat").getAsJsonObject();
+                }
+                if (from_obj == null) {
+                    response.send("error");
+                    public_func.write_log(context, "Request type is not allowed by security policy");
+                    return;
+                }
                 String from_id = from_obj.get("id").getAsString();
                 if (!Objects.equals(chat_id, from_id)) {
                     public_func.write_log(context, "Chat ID Error: Chat ID[" + from_id + "] not allow");
@@ -161,6 +179,7 @@ public class webhook_service extends Service {
 
                 Log.d(public_func.log_tag, "request command: " + command);
                 switch (command) {
+                    case "/ping":
                     case "/getinfo":
                         BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
                         request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + get_network_type(context);
@@ -170,7 +189,7 @@ public class webhook_service extends Service {
                         request_body.text = context.getString(R.string.send_sms_head) + "\n" + getString(R.string.command_format_error);
                         String[] msg_send_list = request_msg.split("\n");
                         if (msg_send_list.length > 2) {
-                            String msg_send_to = msg_send_list[1].trim();
+                            String msg_send_to = msg_send_list[1].trim().replaceAll(" ", "");
                             if (public_func.is_numeric(msg_send_to)) {
                                 StringBuilder msg_send_content = new StringBuilder();
                                 for (int i = 2; i < msg_send_list.length; i++) {
@@ -246,6 +265,7 @@ public class webhook_service extends Service {
     @Override
     public void onDestroy() {
         server.stop();
+        stopForeground(true);
         super.onDestroy();
     }
 
