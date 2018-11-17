@@ -12,7 +12,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.SmsMessage;
 import android.telephony.SubscriptionManager;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -113,7 +112,6 @@ public class sms_receiver extends BroadcastReceiver {
                             String error_message = "Send SMS Error:" + e.getMessage();
                             public_func.write_log(context, error_message);
                             Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
-                            Log.i(public_func.log_tag, error_message);
                             public_func.write_log(context, "message body:" + request_body.text);
                             if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                                 if (sharedPreferences.getBoolean("fallback_sms", false)) {
@@ -135,7 +133,6 @@ public class sms_receiver extends BroadcastReceiver {
                                 public_func.write_log(context, error_message);
                                 public_func.write_log(context, "message body:" + request_body.text);
                                 Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
-                                Log.i(public_func.log_tag, error_message);
                                 Looper.loop();
                             }
                         }
