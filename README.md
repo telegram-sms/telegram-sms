@@ -5,15 +5,28 @@ a tool for forwarding SMS to telegram
 
 
 Features
-===
+========
+
 * Forward SMS to Telegram
 * Monitor missed calls
 * Monitor device battery power changes
 
 Warning! Setting this program as the default SMS app will not receive mms
 
+Permission
+==========
+
+This app requires the following permissions:
+
+- SMS : Read and send a text message.
+- Phone : Get whether it is a dual card phone, card 2 status, and card 2 identifier ID.
+- Contect : Get the contact information and automatically identify the incoming caller's number.
+
+*Warning! Setting this app as the default SMS app is a very dangerous behavior! This option can only be enabled if SMS notifications are not available in the default SMS application.*
+
 Send SMS
-===
+========
+
 You can specify a trusted phone number for automatic forwarding.Once the bot received a message from that number, in the following format:
 
 ```
@@ -47,5 +60,12 @@ sendsms - Send SMS
 sendsms_card2 - Send SMS using the second card slot
 ```
 
+The format of sending SMS is:
+
+```
+/sendsms
+<Phone_Number>
+<SMS_Content>
+```
 ## License
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_large)
