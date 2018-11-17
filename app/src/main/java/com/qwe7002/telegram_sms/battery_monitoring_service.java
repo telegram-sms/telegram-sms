@@ -73,6 +73,7 @@ public class battery_monitoring_service extends Service {
 }
 
 class battery_receiver extends BroadcastReceiver {
+    float last_battery_percent = -1;
     @Override
     public void onReceive(final Context context, final Intent intent) {
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
@@ -89,7 +90,18 @@ class battery_receiver extends BroadcastReceiver {
         final String action = intent.getAction();
         switch (Objects.requireNonNull(action)) {
             case Intent.ACTION_BATTERY_CHANGED:
-                if (intent.getIntExtra("status", BatteryManager.BATTERY_STATUS_UNKNOWN) != BatteryManager.BATTERY_STATUS_FULL) {
+                int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+                int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+
+                float battery_percent = level / (float) scale;
+                if (last_battery_percent == -1) {
+                    last_battery_percent = battery_percent;
+                    return;
+                }
+                if (intent.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN) != BatteryManager.BATTERY_STATUS_FULL) {
+                    return;
+                }
+                if (battery_percent == last_battery_percent) {
                     return;
                 }
                 prebody = prebody.append(context.getString(R.string.charging_completed));
