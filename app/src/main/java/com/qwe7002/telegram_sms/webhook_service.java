@@ -142,8 +142,17 @@ public class webhook_service extends Service {
                     response.send("error");
                     return;
                 }
-                JsonObject from_obj = message_obj.get("from").getAsJsonObject();
-
+                JsonObject from_obj = null;
+                if (message_obj.has("from")) {
+                    from_obj = message_obj.get("from").getAsJsonObject();
+                }
+                if (message_obj.has("chat")) {
+                    from_obj = message_obj.get("chat").getAsJsonObject();
+                }
+                if (from_obj == null) {
+                    response.send("error");
+                    return;
+                }
                 String from_id = from_obj.get("id").getAsString();
                 if (!Objects.equals(chat_id, from_id)) {
                     public_func.write_log(context, "Chat ID Error: Chat ID[" + from_id + "] not allow");
