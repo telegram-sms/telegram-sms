@@ -34,6 +34,5 @@
     <string name="unknown_command">未知的命令</string>
     <string name="current_network_connection_status">當前網路連接狀態：</string>
     <string name="cant_get_card_2_info">無法獲取卡槽2信息。</string>
-    <string name="charging_completed">充電完成。</string>
     <string name="battery_monitoring">監控電池狀態變動</string>
 </resources>
