@@ -73,7 +73,8 @@ public class battery_monitoring_service extends Service {
 }
 
 class battery_receiver extends BroadcastReceiver {
-    float last_battery_percent = -1;
+    int last_battery_percent = -1;
+
     @Override
     public void onReceive(final Context context, final Intent intent) {
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
@@ -88,22 +89,22 @@ class battery_receiver extends BroadcastReceiver {
         request_body.chat_id = chat_id;
         StringBuilder prebody = new StringBuilder(context.getString(R.string.system_message_head) + "\n");
         final String action = intent.getAction();
+        BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
         switch (Objects.requireNonNull(action)) {
             case Intent.ACTION_BATTERY_CHANGED:
-                int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-                int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-
-                float battery_percent = level / (float) scale;
+                int battery_percent = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
                 if (last_battery_percent == -1) {
-                    last_battery_percent = battery_percent;
+                    last_battery_percent = 0;
                     return;
                 }
                 if (intent.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN) != BatteryManager.BATTERY_STATUS_FULL) {
                     return;
                 }
-                if (battery_percent == last_battery_percent) {
+                if (battery_percent == last_battery_percent || battery_percent != 100) {
+                    Log.d(public_func.log_tag, "onReceive: " + battery_percent);
                     return;
                 }
+
                 prebody = prebody.append(context.getString(R.string.charging_completed));
                 break;
             case Intent.ACTION_BATTERY_OKAY:
@@ -119,7 +120,6 @@ class battery_receiver extends BroadcastReceiver {
                 prebody = prebody.append(context.getString(R.string.ac_disconnect));
                 break;
         }
-        BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
         request_body.text = prebody.append("\n").append(context.getString(R.string.current_battery_level)).append(batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)).append("%").toString();
         Gson gson = new Gson();
         String request_body_raw = gson.toJson(request_body);
