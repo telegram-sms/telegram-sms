@@ -38,8 +38,8 @@ public class call_receiver extends BroadcastReceiver {
             case "android.intent.action.PHONE_STATE":
                 TelephonyManager telephony = (TelephonyManager) context
                         .getSystemService(Context.TELEPHONY_SERVICE);
-                call_listener customPhoneListener = new call_listener(context, slot);
-                telephony.listen(customPhoneListener,
+                call_state_listener custom_phone_listener = new call_state_listener(context, slot);
+                telephony.listen(custom_phone_listener,
                         PhoneStateListener.LISTEN_CALL_STATE);
                 break;
             case "android.intent.action.SUBSCRIPTION_PHONE_STATE":
@@ -48,12 +48,12 @@ public class call_receiver extends BroadcastReceiver {
     }
 }
 
-class call_listener extends PhoneStateListener {
+class call_state_listener extends PhoneStateListener {
     private static int lastState = TelephonyManager.CALL_STATE_IDLE;
     private Context context;
     private int slot;
 
-    call_listener(Context context, int slot) {
+    call_state_listener(Context context, int slot) {
         super();
         this.context = context;
         this.slot = slot;
