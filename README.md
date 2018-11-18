@@ -43,7 +43,7 @@ It will send a text message with content "cxll" to the number "10086".
 
 Use Webhook
 ===========
-We provide a simple http server for webhook on your device's 5000 port, you need to map it to your server using Ngrok or frp, and avoid this http server being accessed directly.
+We provide a simple http server for webhook on your device, you need to map it to your server using Ngrok or frp, and avoid this http server being accessed directly.
 
 You can register this webhook by visiting the URL.
 
