@@ -91,10 +91,7 @@ public class webhook_service extends Service {
                         net_type = "2G";
                         break;
                 }
-
         }
-
-
         return net_type;
     }
 
