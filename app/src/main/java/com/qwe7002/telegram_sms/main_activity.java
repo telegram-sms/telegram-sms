@@ -101,13 +101,13 @@ public class main_activity extends AppCompatActivity {
                     Snackbar.make(v, R.string.token_not_configure, Snackbar.LENGTH_LONG).show();
                     return;
                 }
-                final ProgressDialog mpDialog = new ProgressDialog(main_activity.this);
-                mpDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                mpDialog.setTitle(getString(R.string.connect_wait_title));
-                mpDialog.setMessage(getString(R.string.connect_wait_message));
-                mpDialog.setIndeterminate(false);
-                mpDialog.setCancelable(false);
-                mpDialog.show();
+                final ProgressDialog progress_dialog = new ProgressDialog(main_activity.this);
+                progress_dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                progress_dialog.setTitle(getString(R.string.connect_wait_title));
+                progress_dialog.setMessage(getString(R.string.connect_wait_message));
+                progress_dialog.setIndeterminate(false);
+                progress_dialog.setCancelable(false);
+                progress_dialog.show();
                 String request_uri = "https://api.telegram.org/bot" + bot_token.getText().toString().trim() + "/getUpdates";
                 OkHttpClient okhttp_client = new OkHttpClient();
                 Request request = new Request.Builder().url(request_uri).build();
@@ -115,7 +115,7 @@ public class main_activity extends AppCompatActivity {
                 call.enqueue(new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
-                        mpDialog.cancel();
+                        progress_dialog.cancel();
                         String error_message = "Get ID Network Error：" + e.getMessage();
                         Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
                         public_func.write_log(context, error_message);
@@ -124,7 +124,7 @@ public class main_activity extends AppCompatActivity {
                     @Override
                     public void onResponse(Call call, Response response) throws IOException {
                         Looper.prepare();
-                        mpDialog.cancel();
+                        progress_dialog.cancel();
                         if (response.code() != 200) {
                             assert response.body() != null;
                             String result = response.body().string();
@@ -204,13 +204,13 @@ public class main_activity extends AppCompatActivity {
                     }
                 }
 
-                final ProgressDialog mpDialog = new ProgressDialog(main_activity.this);
-                mpDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                mpDialog.setTitle(getString(R.string.connect_wait_title));
-                mpDialog.setMessage(getString(R.string.connect_wait_message));
-                mpDialog.setIndeterminate(false);
-                mpDialog.setCancelable(false);
-                mpDialog.show();
+                final ProgressDialog progress_dialog = new ProgressDialog(main_activity.this);
+                progress_dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                progress_dialog.setTitle(getString(R.string.connect_wait_title));
+                progress_dialog.setMessage(getString(R.string.connect_wait_message));
+                progress_dialog.setIndeterminate(false);
+                progress_dialog.setCancelable(false);
+                progress_dialog.show();
                 String request_uri = "https://api.telegram.org/bot" + bot_token.getText().toString().trim() + "/sendMessage";
                 request_json request_body = new request_json();
                 request_body.chat_id = chat_id.getText().toString().trim();
@@ -225,7 +225,7 @@ public class main_activity extends AppCompatActivity {
                     @Override
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
                         Looper.prepare();
-                        mpDialog.cancel();
+                        progress_dialog.cancel();
                         String error_message = "Send Message Network Error:" + e.getMessage();
                         public_func.write_log(context, error_message);
                         Snackbar.make(v, error_message, Snackbar.LENGTH_LONG)
@@ -236,7 +236,7 @@ public class main_activity extends AppCompatActivity {
                     @Override
                     public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                         Looper.prepare();
-                        mpDialog.cancel();
+                        progress_dialog.cancel();
                         if (response.code() != 200) {
                             assert response.body() != null;
                             String result = response.body().string();
