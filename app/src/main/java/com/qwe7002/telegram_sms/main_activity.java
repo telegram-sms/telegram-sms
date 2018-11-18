@@ -1,13 +1,18 @@
 package com.qwe7002.telegram_sms;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -177,6 +182,7 @@ public class main_activity extends AppCompatActivity {
         });
 
         save_button.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("BatteryLife")
             @Override
             public void onClick(final View v) {
                 if (bot_token.getText().toString().isEmpty() || chat_id.getText().toString().isEmpty()) {
@@ -184,6 +190,20 @@ public class main_activity extends AppCompatActivity {
                     return;
                 }
                 ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_CONTACTS}, 1);
+
+                PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                    boolean has_ignored = powerManager.isIgnoringBatteryOptimizations(getPackageName());
+                    if (!has_ignored) {
+                        Intent intent = null;
+                        intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                        intent.setData(Uri.parse("package:" + getPackageName()));
+                        if (intent.resolveActivityInfo(getPackageManager(), PackageManager.MATCH_DEFAULT_ONLY) != null) {
+                            startActivity(intent);
+                        }
+                    }
+                }
+
                 final ProgressDialog mpDialog = new ProgressDialog(main_activity.this);
                 mpDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 mpDialog.setTitle(getString(R.string.connect_wait_title));
