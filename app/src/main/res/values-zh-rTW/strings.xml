@@ -35,4 +35,5 @@
     <string name="current_network_connection_status">當前網路連接狀態：</string>
     <string name="cant_get_card_2_info">無法獲取卡槽2信息。</string>
     <string name="battery_monitoring">監控電池狀態變動</string>
+    <string name="trusted_phone_number_empty">可信電話號碼不能為空。</string>
 </resources>
