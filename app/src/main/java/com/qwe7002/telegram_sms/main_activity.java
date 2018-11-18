@@ -104,9 +104,9 @@ public class main_activity extends AppCompatActivity {
                 mpDialog.setCancelable(false);
                 mpDialog.show();
                 String request_uri = "https://api.telegram.org/bot" + bot_token.getText().toString().trim() + "/getUpdates";
-                OkHttpClient okHttpClient = new OkHttpClient();
+                OkHttpClient okhttp_client = new OkHttpClient();
                 Request request = new Request.Builder().url(request_uri).build();
-                Call call = okHttpClient.newCall(request);
+                Call call = okhttp_client.newCall(request);
                 call.enqueue(new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
@@ -198,9 +198,9 @@ public class main_activity extends AppCompatActivity {
                 Gson gson = new Gson();
                 String request_body_raw = gson.toJson(request_body);
                 RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
-                OkHttpClient okHttpClient = public_func.get_okhttp_obj();
+                OkHttpClient okhttp_client = public_func.get_okhttp_obj();
                 Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-                Call call = okHttpClient.newCall(request);
+                Call call = okhttp_client.newCall(request);
                 call.enqueue(new Callback() {
                     @Override
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {

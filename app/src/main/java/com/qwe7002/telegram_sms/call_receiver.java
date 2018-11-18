@@ -39,8 +39,7 @@ public class call_receiver extends BroadcastReceiver {
                 TelephonyManager telephony = (TelephonyManager) context
                         .getSystemService(Context.TELEPHONY_SERVICE);
                 call_state_listener custom_phone_listener = new call_state_listener(context, slot);
-                telephony.listen(custom_phone_listener,
-                        PhoneStateListener.LISTEN_CALL_STATE);
+                telephony.listen(custom_phone_listener, PhoneStateListener.LISTEN_CALL_STATE);
                 break;
             case "android.intent.action.SUBSCRIPTION_PHONE_STATE":
                 slot = intent.getIntExtra("slot", -1);
@@ -97,9 +96,9 @@ class call_state_listener extends PhoneStateListener {
         Gson gson = new Gson();
         String request_body_raw = gson.toJson(request_body);
         RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
-        OkHttpClient okHttpClient = public_func.get_okhttp_obj();
+        OkHttpClient okhttp_client = public_func.get_okhttp_obj();
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-        Call call = okHttpClient.newCall(request);
+        Call call = okhttp_client.newCall(request);
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
