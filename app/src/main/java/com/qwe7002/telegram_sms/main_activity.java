@@ -1,13 +1,18 @@
 package com.qwe7002.telegram_sms;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -96,21 +101,21 @@ public class main_activity extends AppCompatActivity {
                     Snackbar.make(v, R.string.token_not_configure, Snackbar.LENGTH_LONG).show();
                     return;
                 }
-                final ProgressDialog mpDialog = new ProgressDialog(main_activity.this);
-                mpDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                mpDialog.setTitle(getString(R.string.connect_wait_title));
-                mpDialog.setMessage(getString(R.string.connect_wait_message));
-                mpDialog.setIndeterminate(false);
-                mpDialog.setCancelable(false);
-                mpDialog.show();
+                final ProgressDialog progress_dialog = new ProgressDialog(main_activity.this);
+                progress_dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                progress_dialog.setTitle(getString(R.string.connect_wait_title));
+                progress_dialog.setMessage(getString(R.string.connect_wait_message));
+                progress_dialog.setIndeterminate(false);
+                progress_dialog.setCancelable(false);
+                progress_dialog.show();
                 String request_uri = "https://api.telegram.org/bot" + bot_token.getText().toString().trim() + "/getUpdates";
-                OkHttpClient okHttpClient = new OkHttpClient();
+                OkHttpClient okhttp_client = new OkHttpClient();
                 Request request = new Request.Builder().url(request_uri).build();
-                Call call = okHttpClient.newCall(request);
+                Call call = okhttp_client.newCall(request);
                 call.enqueue(new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
-                        mpDialog.cancel();
+                        progress_dialog.cancel();
                         String error_message = "Get ID Network Error：" + e.getMessage();
                         Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
                         public_func.write_log(context, error_message);
@@ -119,7 +124,7 @@ public class main_activity extends AppCompatActivity {
                     @Override
                     public void onResponse(Call call, Response response) throws IOException {
                         Looper.prepare();
-                        mpDialog.cancel();
+                        progress_dialog.cancel();
                         if (response.code() != 200) {
                             assert response.body() != null;
                             String result = response.body().string();
@@ -177,20 +182,38 @@ public class main_activity extends AppCompatActivity {
         });
 
         save_button.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("BatteryLife")
             @Override
             public void onClick(final View v) {
                 if (bot_token.getText().toString().isEmpty() || chat_id.getText().toString().isEmpty()) {
                     Snackbar.make(v, R.string.chatid_or_token_not_config, Snackbar.LENGTH_LONG).show();
                     return;
                 }
+                if (fallback_sms.isChecked() && trusted_phone_number.getText().toString().isEmpty()) {
+                    Snackbar.make(v, R.string.trusted_phone_number_empty, Snackbar.LENGTH_LONG).show();
+                    return;
+                }
                 ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_CONTACTS}, 1);
-                final ProgressDialog mpDialog = new ProgressDialog(main_activity.this);
-                mpDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                mpDialog.setTitle(getString(R.string.connect_wait_title));
-                mpDialog.setMessage(getString(R.string.connect_wait_message));
-                mpDialog.setIndeterminate(false);
-                mpDialog.setCancelable(false);
-                mpDialog.show();
+
+                PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                    boolean has_ignored = powerManager.isIgnoringBatteryOptimizations(getPackageName());
+                    if (!has_ignored) {
+                        Intent intent = null;
+                        intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                        intent.setData(Uri.parse("package:" + getPackageName()));
+                        if (intent.resolveActivityInfo(getPackageManager(), PackageManager.MATCH_DEFAULT_ONLY) != null) {
+                            startActivity(intent);
+                        }
+                    }
+                }
+                final ProgressDialog progress_dialog = new ProgressDialog(main_activity.this);
+                progress_dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                progress_dialog.setTitle(getString(R.string.connect_wait_title));
+                progress_dialog.setMessage(getString(R.string.connect_wait_message));
+                progress_dialog.setIndeterminate(false);
+                progress_dialog.setCancelable(false);
+                progress_dialog.show();
                 String request_uri = "https://api.telegram.org/bot" + bot_token.getText().toString().trim() + "/sendMessage";
                 request_json request_body = new request_json();
                 request_body.chat_id = chat_id.getText().toString().trim();
@@ -198,14 +221,14 @@ public class main_activity extends AppCompatActivity {
                 Gson gson = new Gson();
                 String request_body_raw = gson.toJson(request_body);
                 RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
-                OkHttpClient okHttpClient = public_func.get_okhttp_obj();
+                OkHttpClient okhttp_client = public_func.get_okhttp_obj();
                 Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-                Call call = okHttpClient.newCall(request);
+                Call call = okhttp_client.newCall(request);
                 call.enqueue(new Callback() {
                     @Override
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
                         Looper.prepare();
-                        mpDialog.cancel();
+                        progress_dialog.cancel();
                         String error_message = "Send Message Network Error:" + e.getMessage();
                         public_func.write_log(context, error_message);
                         Snackbar.make(v, error_message, Snackbar.LENGTH_LONG)
@@ -216,7 +239,7 @@ public class main_activity extends AppCompatActivity {
                     @Override
                     public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                         Looper.prepare();
-                        mpDialog.cancel();
+                        progress_dialog.cancel();
                         if (response.code() != 200) {
                             assert response.body() != null;
                             String result = response.body().string();
