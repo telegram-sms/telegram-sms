@@ -100,11 +100,11 @@ public class sms_receiver extends BroadcastReceiver {
                     Gson gson = new Gson();
                     String request_body_raw = gson.toJson(request_body);
                     RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
-                    OkHttpClient okHttpClient = public_func.get_okhttp_obj();
-                    okHttpClient.retryOnConnectionFailure();
-                    okHttpClient.connectTimeoutMillis();
+                    OkHttpClient okhttp_client = public_func.get_okhttp_obj();
+                    okhttp_client.retryOnConnectionFailure();
+                    okhttp_client.connectTimeoutMillis();
                     Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-                    Call call = okHttpClient.newCall(request);
+                    Call call = okhttp_client.newCall(request);
                     call.enqueue(new Callback() {
                         @Override
                         public void onFailure(@NonNull Call call, @NonNull IOException e) {

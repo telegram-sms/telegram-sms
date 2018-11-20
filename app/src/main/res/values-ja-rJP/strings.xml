@@ -35,4 +35,5 @@
     <string name="current_network_connection_status">現在のネットワーク接続ステータス：</string>
     <string name="cant_get_card_2_info">カードスロット2の情報を取得できないため。</string>
     <string name="battery_monitoring">バッテリー状態の変化を監視する</string>
+    <string name="trusted_phone_number_empty">信頼できる電話番号は空にできません。</string>
 </resources>
