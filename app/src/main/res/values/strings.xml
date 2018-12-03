@@ -12,7 +12,7 @@
     <string name="connect_wait_message">Please wait…</string>
     <string name="select_chat">Select Chat</string>
     <string name="missed_call_head">[Missed Call]</string>
-    <string name="incoming_numbler">Incoming numbler: </string>
+    <string name="Incoming_number">Incoming number: </string>
     <string name="battery_low">Device battery is low.</string>
     <string name="ac_connect">AC Charger Connected.</string>
     <string name="ac_disconnect">AC Charger Disconnected.</string>
@@ -27,7 +27,7 @@
     <string name="low_battery_status_end">The low battery status has ended.</string>
     <string name="logcat">View log</string>
     <string name="token_not_configure">Please configure the robot token first.</string>
-    <string name="chatid_or_token_not_config">Please configure the robot token and chat ID first.</string>
+    <string name="chat_id_or_token_not_config">Please configure the robot token and chat ID first.</string>
     <string name="no_recent">Unable to get recent chat history</string>
     <string name="webhook">Use webhook support</string>
     <string name="command_format_error">Command format error</string>
