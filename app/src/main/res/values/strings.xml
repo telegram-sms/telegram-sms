@@ -12,7 +12,7 @@
     <string name="connect_wait_message">Please wait…</string>
     <string name="select_chat">Select Chat</string>
     <string name="missed_call_head">[Missed Call]</string>
-    <string name="incoming_numbler">Incoming numbler: </string>
+    <string name="Incoming_number">Incoming number: </string>
     <string name="battery_low">Device battery is low.</string>
     <string name="ac_connect">AC Charger Connected.</string>
     <string name="ac_disconnect">AC Charger Disconnected.</string>

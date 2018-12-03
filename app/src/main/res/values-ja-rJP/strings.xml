@@ -11,7 +11,7 @@
     <string name="connect_wait_message">しばらくお待ちください… </string>
     <string name="select_chat">トーク</string>
     <string name="missed_call_head">[不在着信]</string>
-    <string name="incoming_numbler">発信者番号：</string>
+    <string name="Incoming_number">発信者番号：</string>
     <string name="battery_low">低電力。</string>
     <string name="ac_connect">"AC充電器が接続されています。"</string>
     <string name="ac_disconnect">"AC充電器が接続されていません。"</string>
