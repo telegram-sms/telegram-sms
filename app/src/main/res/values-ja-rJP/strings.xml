@@ -26,7 +26,7 @@
     <string name="low_battery_status_end">バッテリー残量が少なくなった。</string>
     <string name="logcat">ログを見る</string>
     <string name="token_not_configure">まず、ロボットトークンを設定してください。</string>
-    <string name="chatid_or_token_not_config">ロボットトークンとトークIDを最初に設定してください。</string>
+    <string name="chat_id_or_token_not_config">ロボットトークンとトークIDを最初に設定してください。</string>
     <string name="no_recent">最近のトーク履歴はありません</string>
     <string name="webhook">webhookサポートを使用してください</string>
     <string name="command_format_error">コマンドフォーマットエラー</string>

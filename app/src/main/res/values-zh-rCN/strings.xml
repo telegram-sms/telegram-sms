@@ -26,7 +26,7 @@
     <string name="low_battery_status_end">电池电量不足状态已结束。</string>
     <string name="logcat">查看日志</string>
     <string name="token_not_configure">请先配置机器人令牌。</string>
-    <string name="chatid_or_token_not_config">请先配置机器人令牌和对话ID</string>
+    <string name="chat_id_or_token_not_config">请先配置机器人令牌和对话ID</string>
     <string name="no_recent">无法获取最近的聊天记录</string>
     <string name="webhook">使用webhook支持</string>
     <string name="command_format_error">命令格式错误</string>

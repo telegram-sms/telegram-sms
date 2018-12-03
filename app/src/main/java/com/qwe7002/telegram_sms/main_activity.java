@@ -186,7 +186,7 @@ public class main_activity extends AppCompatActivity {
             @Override
             public void onClick(final View v) {
                 if (bot_token.getText().toString().isEmpty() || chat_id.getText().toString().isEmpty()) {
-                    Snackbar.make(v, R.string.chatid_or_token_not_config, Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(v, R.string.chat_id_or_token_not_config, Snackbar.LENGTH_LONG).show();
                     return;
                 }
                 if (fallback_sms.isChecked() && trusted_phone_number.getText().toString().isEmpty()) {
