@@ -11,7 +11,7 @@
     <string name="connect_wait_message">请耐心等待…</string>
     <string name="select_chat">选择对话</string>
     <string name="missed_call_head">[未接来电]</string>
-    <string name="incoming_numbler">来电号码：</string>
+    <string name="Incoming_number">来电号码：</string>
     <string name="battery_low">设备电池电量低。</string>
     <string name="ac_connect">交流充电器已连接。</string>
     <string name="ac_disconnect">交流充电器已断开。</string>
