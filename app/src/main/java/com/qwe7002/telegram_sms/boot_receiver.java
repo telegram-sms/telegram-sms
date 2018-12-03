@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.util.Log;
 
 import java.util.Objects;
 
@@ -15,7 +14,6 @@ public class boot_receiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, Intent intent) {
         if (Objects.equals(intent.getAction(), "android.intent.action.BOOT_COMPLETED")) {
-            Log.d(public_func.log_tag, "onReceive: boot_completed");
             final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
             if (sharedPreferences.getBoolean("initialized", false)) {
                 public_func.start_service(context, sharedPreferences);
