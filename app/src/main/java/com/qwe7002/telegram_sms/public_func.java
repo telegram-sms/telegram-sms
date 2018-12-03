@@ -42,10 +42,10 @@ public class public_func {
     public static boolean is_numeric(String str) {
         for (int i = str.length(); --i >= 0; ) {
             char c = str.charAt(i);
+            if (c == '+') {
+                continue; //Allowed characters +
+            }
             if (!Character.isDigit(c)) {
-                if (c == '+') {
-                    continue;
-                }
                 return false;
             }
         }
@@ -70,7 +70,8 @@ public class public_func {
             NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             manager.createNotificationChannel(channel);
 
-            notification = new Notification.Builder(context, notification_name).setAutoCancel(false)
+            notification = new Notification.Builder(context, notification_name)
+                    .setAutoCancel(false)
                     .setSmallIcon(R.mipmap.ic_launcher)
                     .setOngoing(true)
                     .setTicker(context.getString(R.string.app_name))
@@ -131,7 +132,6 @@ public class public_func {
                 }
                 cursor.close();
             }
-
         }
         return contact_name;
     }
@@ -145,6 +145,5 @@ public class public_func {
         String error_log = sharedPreferences.getString("error_log", "") + "\n" + simpleDateFormat.format(date) + " " + log;
         editor.putString("error_log", error_log);
         editor.apply();
-
     }
 }
