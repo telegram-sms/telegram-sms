@@ -11,7 +11,7 @@
     <string name="connect_wait_message">請耐心等待…</string>
     <string name="select_chat">選擇對話</string>
     <string name="missed_call_head">[未接來電]</string>
-    <string name="incoming_numbler">來電號碼：</string>
+    <string name="Incoming_number">來電號碼：</string>
     <string name="battery_low">設備電池電量低。</string>
     <string name="ac_connect">交流充電器已連接。</string>
     <string name="ac_disconnect">交流充電器斷開連接。</string>
@@ -26,7 +26,7 @@
     <string name="low_battery_status_end">電池電量不足狀態已結束。</string>
     <string name="logcat">查看日誌</string>
     <string name="token_not_configure">請先配置機器人令牌。</string>
-    <string name="chatid_or_token_not_config">請先配置機器人令牌和對話ID</string>
+    <string name="chat_id_or_token_not_config">請先配置機器人令牌和對話ID</string>
     <string name="no_recent">無法獲取最近的聊天記錄</string>
     <string name="webhook">使用webhook支持</string>
     <string name="command_format_error">命令格式錯誤</string>

@@ -92,7 +92,7 @@ class call_state_listener extends PhoneStateListener {
         if(display_name!=null){
             display_address=display_name+"("+incomingNumber+")";
         }
-        request_body.text = context.getString(R.string.missed_call_head) + DualSim + "\n" + context.getString(R.string.incoming_numbler) + display_address;
+        request_body.text = context.getString(R.string.missed_call_head) + DualSim + "\n" + context.getString(R.string.Incoming_number) + display_address;
         Gson gson = new Gson();
         String request_body_raw = gson.toJson(request_body);
         RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
