@@ -66,11 +66,18 @@ public class public_func {
         Notification notification = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(notification_name, public_func.log_tag,
-                    NotificationManager.IMPORTANCE_MIN);
+                    NotificationManager.IMPORTANCE_LOW);
             NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             manager.createNotificationChannel(channel);
 
-            notification = new Notification.Builder(context, notification_name).build();
+            notification = new Notification.Builder(context, notification_name).setAutoCancel(false)
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setOngoing(true)
+                    .setTicker(context.getString(R.string.app_name))
+                    .setWhen(System.currentTimeMillis())
+                    .setContentTitle(context.getString(R.string.app_name))
+                    .setContentText(notification_name + " service is running...")
+                    .build();
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             notification = new Notification.Builder(context)
@@ -81,7 +88,8 @@ public class public_func {
                     .setWhen(System.currentTimeMillis())
                     .setContentTitle(context.getString(R.string.app_name))
                     .setContentText(notification_name + " service is running...")
-                    .setPriority(Notification.PRIORITY_MIN).build();
+                    .setPriority(Notification.PRIORITY_MIN)
+                    .build();
         }
         return notification;
     }
