@@ -206,10 +206,10 @@ public class webhook_service extends Service {
                                         request_body.text = context.getString(R.string.send_sms_head) + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
                                         break;
                                     case "/sendsms_card2":
-                                        int subid = get_card2_subid(context);
+                                        int sub_id = get_card2_subid(context);
                                         request_body.text = context.getString(R.string.send_sms_head) + "\n" + getString(R.string.cant_get_card_2_info);
-                                        if (subid != -1) {
-                                            public_func.send_sms(msg_send_to, msg_send_content.toString(), subid);
+                                        if (sub_id != -1) {
+                                            public_func.send_sms(msg_send_to, msg_send_content.toString(), sub_id);
                                             request_body.text = context.getString(R.string.send_sms_head) + "\n" + context.getString(R.string.SIM_card_slot) + "2" + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
                                         }
                                         break;
@@ -236,7 +236,6 @@ public class webhook_service extends Service {
                         String error_message = "Webhook Send SMS Error:" + e.getMessage();
                         public_func.write_log(context, error_message);
                         Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
-                        Log.i(public_func.log_tag, error_message);
                         Looper.loop();
                     }
 
@@ -248,7 +247,6 @@ public class webhook_service extends Service {
                             String error_message = "Webhook Send SMS Error:" + response.body().string();
                             public_func.write_log(context, error_message);
                             Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
-                            Log.i(public_func.log_tag, error_message);
                             Looper.loop();
                         }
                     }

@@ -13,7 +13,6 @@ import android.os.BatteryManager;
 import android.os.IBinder;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -113,9 +112,9 @@ class battery_receiver extends BroadcastReceiver {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Looper.prepare();
-                String error_message = "Send Battery Error:" + e.getMessage();
+                String error_message = "Send Battery info Error:" + e.getMessage();
+                public_func.write_log(context, error_message);
                 Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
-                Log.i(public_func.log_tag, error_message);
                 if (action.equals(Intent.ACTION_BATTERY_LOW)) {
                     if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                         if (sharedPreferences.getBoolean("fallback_sms", false)) {
@@ -135,9 +134,9 @@ class battery_receiver extends BroadcastReceiver {
                 if (response.code() != 200) {
                     Looper.prepare();
                     assert response.body() != null;
-                    String error_message = "Send Battery Error:" + response.body().string();
+                    String error_message = "Send Battery info Error:" + response.body().string();
+                    public_func.write_log(context, error_message);
                     Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
-                    Log.i(public_func.log_tag, error_message);
                     Looper.loop();
                 }
             }
