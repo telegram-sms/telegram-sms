@@ -11,8 +11,6 @@ Features
 * Monitor missed calls
 * Monitor device battery power changes
 
-Warning! Setting this program as the default SMS app will not receive mms
-
 Permission
 ==========
 
