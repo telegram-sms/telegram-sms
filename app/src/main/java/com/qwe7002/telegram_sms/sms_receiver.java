@@ -38,107 +38,109 @@ public class sms_receiver extends BroadcastReceiver {
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
-        if ("android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction())) {
-            Bundle bundle = intent.getExtras();
-            if (bundle != null) {
-                String dual_sim = "";
-                SubscriptionManager manager = SubscriptionManager.from(context);
-                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                    if (manager.getActiveSubscriptionInfoCount() == 2) {
-                        int slot = bundle.getInt("slot", -1);
-                        if (slot != -1) {
-                            dual_sim = "\n" + context.getString(R.string.SIM_card_slot) + (slot + 1);
+        if (!"android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction())) {
+            return;
+        }
+        Bundle bundle = intent.getExtras();
+        if (bundle != null) {
+            String dual_sim = "";
+            SubscriptionManager manager = SubscriptionManager.from(context);
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+                if (manager.getActiveSubscriptionInfoCount() == 2) {
+                    int slot = bundle.getInt("slot", -1);
+                    if (slot != -1) {
+                        dual_sim = "\n" + context.getString(R.string.SIM_card_slot) + (slot + 1);
+                    }
+                }
+            }
+            final int sub = bundle.getInt("subscription", -1);
+            Object[] pdus = (Object[]) bundle.get("pdus");
+            assert pdus != null;
+            final SmsMessage[] messages = new SmsMessage[pdus.length];
+            for (int i = 0; i < pdus.length; i++) {
+                messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+            }
+            if (messages.length > 0) {
+                StringBuilder msgBody = new StringBuilder();
+                for (SmsMessage item : messages) {
+                    msgBody.append(item.getMessageBody());
+                }
+                String msg_address = messages[0].getOriginatingAddress();
+
+                final request_json request_body = new request_json();
+                request_body.chat_id = chat_id;
+                String display_address = msg_address;
+                String display_name = public_func.get_phone_name(context, display_address);
+                if (display_name != null) {
+                    display_address = display_name + "(" + display_address + ")";
+                }
+                request_body.text = context.getString(R.string.receive_sms_head) + dual_sim + "\n" + context.getString(R.string.from) + display_address + "\n" + context.getString(R.string.content) + msgBody;
+                assert msg_address != null;
+                if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+                    if (msg_address.equals(sharedPreferences.getString("trusted_phone_number", null))) {
+                        String[] msg_send_list = msgBody.toString().split("\n");
+                        String msg_send_to = msg_send_list[0].trim().replaceAll(" ", "");
+                        if (public_func.is_numeric(msg_send_to) && msg_send_list.length != 1) {
+                            StringBuilder msg_send_content = new StringBuilder();
+                            for (int i = 1; i < msg_send_list.length; i++) {
+                                if (msg_send_list.length != 2 && i != 1) {
+                                    msg_send_content.append("\n");
+                                }
+                                msg_send_content.append(msg_send_list[i]);
+                            }
+                            String display_to_address = msg_send_to;
+                            String display_to_name = public_func.get_phone_name(context, display_to_address);
+                            if (display_to_name != null) {
+                                display_to_address = display_to_name + "(" + msg_send_to + ")";
+                            }
+                            public_func.send_sms(msg_send_to, msg_send_content.toString(), sub);
+                            request_body.text = context.getString(R.string.send_sms_head) + dual_sim + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
                         }
                     }
                 }
-                final int sub = bundle.getInt("subscription", -1);
-                Object[] pdus = (Object[]) bundle.get("pdus");
-                assert pdus != null;
-                final SmsMessage[] messages = new SmsMessage[pdus.length];
-                for (int i = 0; i < pdus.length; i++) {
-                    messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
-                }
-                if (messages.length > 0) {
-                    StringBuilder msgBody = new StringBuilder();
-                    for (SmsMessage item : messages) {
-                        msgBody.append(item.getMessageBody());
-                    }
-                    String msg_address = messages[0].getOriginatingAddress();
 
-                    final request_json request_body = new request_json();
-                    request_body.chat_id = chat_id;
-                    String display_address = msg_address;
-                    String display_name = public_func.get_phone_name(context, display_address);
-                    if (display_name != null) {
-                        display_address = display_name + "(" + display_address + ")";
-                    }
-                    request_body.text = context.getString(R.string.receive_sms_head) + dual_sim + "\n" + context.getString(R.string.from) + display_address + "\n" + context.getString(R.string.content) + msgBody;
-                    assert msg_address != null;
-                    if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-                        if (msg_address.equals(sharedPreferences.getString("trusted_phone_number", null))) {
-                            String[] msg_send_list = msgBody.toString().split("\n");
-                            String msg_send_to = msg_send_list[0].trim().replaceAll(" ", "");
-                            if (public_func.is_numeric(msg_send_to) && msg_send_list.length != 1) {
-                                StringBuilder msg_send_content = new StringBuilder();
-                                for (int i = 1; i < msg_send_list.length; i++) {
-                                    if (msg_send_list.length != 2 && i != 1) {
-                                        msg_send_content.append("\n");
-                                    }
-                                    msg_send_content.append(msg_send_list[i]);
+                Gson gson = new Gson();
+                String request_body_raw = gson.toJson(request_body);
+                RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
+                OkHttpClient okhttp_client = public_func.get_okhttp_obj();
+                okhttp_client.retryOnConnectionFailure();
+                okhttp_client.connectTimeoutMillis();
+                Request request = new Request.Builder().url(request_uri).method("POST", body).build();
+                Call call = okhttp_client.newCall(request);
+                call.enqueue(new Callback() {
+                    @Override
+                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                        Looper.prepare();
+                        String error_message = "Send SMS Error:" + e.getMessage();
+                        public_func.write_log(context, error_message);
+                        Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
+                        public_func.write_log(context, "message body:" + request_body.text);
+                        if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+                            if (sharedPreferences.getBoolean("fallback_sms", false)) {
+                                String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
+                                String msg_send_content = request_body.text;
+                                if (msg_send_to != null) {
+                                    public_func.send_sms(msg_send_to, msg_send_content, sub);
                                 }
-                                String display_to_address = msg_send_to;
-                                String display_to_name = public_func.get_phone_name(context, display_to_address);
-                                if (display_to_name != null) {
-                                    display_to_address = display_to_name + "(" + msg_send_to + ")";
-                                }
-                                public_func.send_sms(msg_send_to, msg_send_content.toString(), sub);
-                                request_body.text = context.getString(R.string.send_sms_head) + dual_sim + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
                             }
                         }
+                        Looper.loop();
                     }
 
-                    Gson gson = new Gson();
-                    String request_body_raw = gson.toJson(request_body);
-                    RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
-                    OkHttpClient okhttp_client = public_func.get_okhttp_obj();
-                    okhttp_client.retryOnConnectionFailure();
-                    okhttp_client.connectTimeoutMillis();
-                    Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-                    Call call = okhttp_client.newCall(request);
-                    call.enqueue(new Callback() {
-                        @Override
-                        public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    @Override
+                    public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                        if (response.code() != 200) {
                             Looper.prepare();
-                            String error_message = "Send SMS Error:" + e.getMessage();
+                            String error_message = "Send SMS Error:" + response.body().string();
                             public_func.write_log(context, error_message);
-                            Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                             public_func.write_log(context, "message body:" + request_body.text);
-                            if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-                                if (sharedPreferences.getBoolean("fallback_sms", false)) {
-                                    String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
-                                    String msg_send_content = request_body.text;
-                                    if (msg_send_to != null) {
-                                        public_func.send_sms(msg_send_to, msg_send_content, sub);
-                                    }
-                                }
-                            }
+                            Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                             Looper.loop();
                         }
-
-                        @Override
-                        public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                            if (response.code() != 200) {
-                                Looper.prepare();
-                                String error_message = "Send SMS Error:" + response.body().string();
-                                public_func.write_log(context, error_message);
-                                public_func.write_log(context, "message body:" + request_body.text);
-                                Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
-                                Looper.loop();
-                            }
-                        }
-                    });
-                }
+                    }
+                });
             }
         }
     }
 }
+
