@@ -26,7 +26,7 @@ import okhttp3.OkHttpClient;
 import static android.content.Context.MODE_PRIVATE;
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
-public class public_func {
+class public_func {
     static final String log_tag = "tg-sms";
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
@@ -53,9 +53,13 @@ public class public_func {
     }
 
     static void send_sms(String send_to, String content, int sub_id) {
-        android.telephony.SmsManager sms_manager = android.telephony.SmsManager.getDefault();
-        if (sub_id != -1) {
-            sms_manager = android.telephony.SmsManager.getSmsManagerForSubscriptionId(sub_id);
+        android.telephony.SmsManager sms_manager;
+        switch(sub_id){
+            case -1:
+                sms_manager = android.telephony.SmsManager.getDefault();
+                break;
+            default:
+                sms_manager = android.telephony.SmsManager.getSmsManagerForSubscriptionId(sub_id);
         }
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
         sms_manager.sendMultipartTextMessage(send_to, null, divideContents, null, null);
