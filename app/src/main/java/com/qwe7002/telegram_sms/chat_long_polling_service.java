@@ -280,7 +280,7 @@ public class chat_long_polling_service extends Service {
                 break;
             case "/sendsms":
             case "/sendsms_card2":
-                request_body.text = context.getString(R.string.send_sms_head) + "\n" + getString(R.string.command_format_error);
+                request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.command_format_error);
                 String[] msg_send_list = request_msg.split("\n");
                 if (msg_send_list.length > 2) {
                     String msg_send_to = msg_send_list[1].trim().replaceAll(" ", "");
@@ -300,14 +300,16 @@ public class chat_long_polling_service extends Service {
                         switch (command) {
                             case "/sendsms":
                                 public_func.send_sms(msg_send_to, msg_send_content.toString(), -1);
-                                request_body.text = context.getString(R.string.send_sms_head) + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
+                                request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
                                 break;
                             case "/sendsms_card2":
                                 int sub_id = get_card2_subid(context);
-                                request_body.text = context.getString(R.string.send_sms_head) + "\n" + getString(R.string.cant_get_card_2_info);
+                                request_body.text = "["+context.getString(R.string.send_sms_head)+"]" + "\n" + getString(R.string.cant_get_card_2_info);
                                 if (sub_id != -1) {
                                     public_func.send_sms(msg_send_to, msg_send_content.toString(), sub_id);
-                                    request_body.text = context.getString(R.string.send_sms_head) + "\n" + context.getString(R.string.SIM_card_slot) + "2" + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
+                                    request_body.text = "[SIM2 "+context.getString(R.string.send_sms_head) +"]"+ "\n"  + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
+
+
                                 }
                                 break;
                         }
