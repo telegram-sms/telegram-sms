@@ -36,9 +36,7 @@ dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.android.support:design:28+'
     //noinspection GradleDynamicVersion
-    implementation 'com.squareup.okhttp3:okhttp:3+'
+    implementation 'com.squareup.okhttp3:okhttp:+'
     //noinspection GradleDynamicVersion
-    implementation 'com.google.code.gson:gson:2+'
-    //noinspection GradleDynamicVersion
-    implementation 'com.koushikdutta.async:androidasync:2.+'
+    implementation 'com.google.code.gson:gson:+'
 }
