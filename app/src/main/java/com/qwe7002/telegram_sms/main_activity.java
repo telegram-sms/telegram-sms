@@ -61,8 +61,7 @@ public class main_activity extends AppCompatActivity {
         final EditText chat_id = findViewById(R.id.chat_id);
         final EditText bot_token = findViewById(R.id.bot_token);
         final EditText trusted_phone_number = findViewById(R.id.trusted_phone_number);
-        final EditText webhook_listening_port = findViewById(R.id.webhook_listening_port);
-        final Switch webhook = findViewById(R.id.webhook);
+        final Switch chat_command = findViewById(R.id.chat_command);
         final Switch fallback_sms = findViewById(R.id.fallback_sms);
         final Switch battery_monitoring_switch = findViewById(R.id.battery_monitoring);
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
@@ -85,8 +84,7 @@ public class main_activity extends AppCompatActivity {
         trusted_phone_number.setText(sharedPreferences.getString("trusted_phone_number", ""));
         battery_monitoring_switch.setChecked(sharedPreferences.getBoolean("battery_monitoring_switch", false));
         fallback_sms.setChecked(sharedPreferences.getBoolean("fallback_sms", false));
-        webhook_listening_port.setText(String.valueOf(sharedPreferences.getInt("webhook_listening_port", 5000)));
-        webhook.setChecked(sharedPreferences.getBoolean("webhook", false));
+        chat_command.setChecked(sharedPreferences.getBoolean("chat_command", false));
         logcat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -252,22 +250,21 @@ public class main_activity extends AppCompatActivity {
                         if (sharedPreferences.getBoolean("initialized", false)) {
                             Intent battery_service = new Intent(context, battery_monitoring_service.class);
                             context.stopService(battery_service);
-                            if (sharedPreferences.getBoolean("webhook", false)) {
-                                Intent webhook_service = new Intent(context, webhook_service.class);
-                                context.stopService(webhook_service);
+                            if (sharedPreferences.getBoolean("chat_command", false)) {
+                                Intent chat_long_polling_service = new Intent(context, chat_long_polling_service.class);
+                                context.stopService(chat_long_polling_service);
                             }
                         }
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString("bot_token", bot_token.getText().toString().trim());
                         editor.putString("chat_id", chat_id.getText().toString().trim());
                         editor.putString("trusted_phone_number", trusted_phone_number.getText().toString().trim());
-                        editor.putInt("webhook_listening_port", Integer.parseInt(webhook_listening_port.getText().toString()));
                         editor.putBoolean("fallback_sms", fallback_sms.isChecked());
-                        editor.putBoolean("webhook", webhook.isChecked());
+                        editor.putBoolean("chat_command", chat_command.isChecked());
                         editor.putBoolean("battery_monitoring_switch", battery_monitoring_switch.isChecked());
                         editor.putBoolean("initialized", true);
                         editor.apply();
-                        Snackbar.make(v, "Success", Snackbar.LENGTH_LONG)
+                        Snackbar.make(v, R.string.success, Snackbar.LENGTH_LONG)
                                 .show();
                         public_func.start_service(context, sharedPreferences);
                         Looper.loop();
