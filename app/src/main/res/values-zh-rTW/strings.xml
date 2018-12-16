@@ -28,12 +28,15 @@
     <string name="token_not_configure">請先配置機器人令牌。</string>
     <string name="chat_id_or_token_not_config">請先配置機器人令牌和對話ID</string>
     <string name="no_recent">無法獲取最近的聊天記錄</string>
-    <string name="webhook">使用webhook支持</string>
+    <string name="chat_command">獲取聊天命令</string>
     <string name="command_format_error">命令格式錯誤</string>
-    <string name="webhook_listening_port">Webhook監聽端口</string>
     <string name="unknown_command">未知的命令</string>
     <string name="current_network_connection_status">當前網路連接狀態：</string>
     <string name="cant_get_card_2_info">無法獲取卡槽2信息。</string>
     <string name="battery_monitoring">監控電池狀態變動</string>
     <string name="trusted_phone_number_empty">可信電話號碼不能為空。</string>
+    <string name="service_is_running">服務正在運行......</string>
+    <string name="Battery_monitoring">電池監控</string>
+    <string name="chat_command_service_name">聊天命令</string>
+    <string name="success">成功</string>
 </resources>

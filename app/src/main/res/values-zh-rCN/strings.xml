@@ -28,12 +28,15 @@
     <string name="token_not_configure">请先配置机器人令牌。</string>
     <string name="chat_id_or_token_not_config">请先配置机器人令牌和对话ID</string>
     <string name="no_recent">无法获取最近的聊天记录</string>
-    <string name="webhook">使用webhook支持</string>
+    <string name="chat_command">获取聊天命令</string>
     <string name="command_format_error">命令格式错误</string>
-    <string name="webhook_listening_port">Webhook监听端口</string>
     <string name="unknown_command">未知的命令</string>
     <string name="current_network_connection_status">当前网络连接状态：</string>
     <string name="cant_get_card_2_info">无法获取卡槽2信息。</string>
     <string name="battery_monitoring">监控电池状态变动</string>
     <string name="trusted_phone_number_empty">可信电话号码不能为空。</string>
+    <string name="service_is_running">服务正在运行......</string>
+    <string name="Battery_monitoring">电池监控</string>
+    <string name="chat_command_service_name">聊天命令</string>
+    <string name="success">成功</string>
 </resources>
