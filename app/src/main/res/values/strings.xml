@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Telegram SMS</string>
-    <string name="receive_sms_head">Receive SMS</string>
     <string name="content">Content: </string>
     <string name="from">From: </string>
     <string name="to">To: </string>
@@ -39,5 +38,5 @@
     <string name="Battery_monitoring">"Battery monitoring "</string>
     <string name="chat_command_service_name">"chat command "</string>
     <string name="success">Success</string>
-    <string name="receive_sms_head">[Receive SMS]</string>
+    <string name="receive_sms_head">Receive SMS</string>
 </resources>
