@@ -331,7 +331,7 @@ public class chat_long_polling_service extends Service {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Looper.prepare();
-                String error_message = "Webhook Send SMS Error:" + e.getMessage();
+                String error_message = "Send SMS Error:" + e.getMessage();
                 public_func.write_log(context, error_message);
                 Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                 Looper.loop();
@@ -342,7 +342,7 @@ public class chat_long_polling_service extends Service {
                 if (response.code() != 200) {
                     Looper.prepare();
                     assert response.body() != null;
-                    String error_message = "Webhook Send SMS Error:" + response.body().string();
+                    String error_message = "Send SMS Error:" + response.body().string();
                     public_func.write_log(context, error_message);
                     Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                     Looper.loop();
