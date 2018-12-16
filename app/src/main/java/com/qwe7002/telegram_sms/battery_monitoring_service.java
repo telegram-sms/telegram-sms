@@ -36,7 +36,7 @@ public class battery_monitoring_service extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Notification notification = public_func.get_notification_obj(getApplicationContext(), "Battery monitoring");
+        Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.Battery_monitoring));
         startForeground(1, notification);
         return START_STICKY;
     }
@@ -59,8 +59,6 @@ public class battery_monitoring_service extends Service {
         stopForeground(true);
         unregisterReceiver(receiver);
         super.onDestroy();
-
-
     }
 
     @Override

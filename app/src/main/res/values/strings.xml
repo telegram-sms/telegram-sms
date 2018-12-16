@@ -29,12 +29,15 @@
     <string name="token_not_configure">Please configure the robot token first.</string>
     <string name="chat_id_or_token_not_config">Please configure the robot token and chat ID first.</string>
     <string name="no_recent">Unable to get recent chat history</string>
-    <string name="webhook">Use webhook support</string>
+    <string name="chat_command">Get chat command</string>
     <string name="command_format_error">Command format error</string>
-    <string name="webhook_listening_port">Webhook listening port</string>
     <string name="unknown_command">Unknown command</string>
     <string name="current_network_connection_status">Current network connection status:</string>
     <string name="cant_get_card_2_info">Unable to get card slot 2 information.</string>
     <string name="battery_monitoring">Monitor battery status changes</string>
     <string name="trusted_phone_number_empty">The trusted phone number cannot be empty.</string>
+    <string name="service_is_running">service is running…</string>
+    <string name="Battery_monitoring">"Battery monitoring "</string>
+    <string name="chat_command_service_name">"chat command "</string>
+    <string name="success">Success</string>
 </resources>

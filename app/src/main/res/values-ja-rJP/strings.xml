@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="receive_sms_head">[新着メール]</string>
+    <string name="receive_sms_head">{新着メール]</string>
     <string name="content">本文：</string>
     <string name="from">送信元：</string>
     <string name="to">宛先：</string>
@@ -28,12 +28,15 @@
     <string name="token_not_configure">まず、ロボットトークンを設定してください。</string>
     <string name="chat_id_or_token_not_config">ロボットトークンとトークIDを最初に設定してください。</string>
     <string name="no_recent">最近のトーク履歴はありません</string>
-    <string name="webhook">webhookサポートを使用してください</string>
+    <string name="chat_command">チャットコマンドを取得する</string>
     <string name="command_format_error">コマンドフォーマットエラー</string>
-    <string name="webhook_listening_port">Webhookリスニングポート</string>
     <string name="unknown_command">不明なコマンド</string>
     <string name="current_network_connection_status">現在のネットワーク接続ステータス：</string>
     <string name="cant_get_card_2_info">カードスロット2の情報を取得できないため。</string>
     <string name="battery_monitoring">バッテリー状態の変化を監視する</string>
     <string name="trusted_phone_number_empty">信頼できる電話番号は空にできません。</string>
+    <string name="service_is_running">サービスが実行されています…</string>
+    <string name="Battery_monitoring">バッテリ監視</string>
+    <string name="chat_command_service_name">チャットコマンド</string>
+    <string name="success">成功</string>
 </resources>
