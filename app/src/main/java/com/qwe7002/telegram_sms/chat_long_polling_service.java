@@ -272,7 +272,8 @@ public class chat_long_polling_service extends Service {
         public_func.write_log(context, "request command: " + command);
         switch (command) {
             case "/start":
-                //request_body.text =
+                request_body.text =getString(R.string.system_message_head) + "\n" +getString(R.string.available_command);
+                break;
             case "/ping":
             case "/getinfo":
                 BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);

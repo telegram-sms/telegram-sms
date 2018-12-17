@@ -38,4 +38,5 @@
     <string name="chat_command_service_name">聊天命令</string>
     <string name="success">成功</string>
     <string name="receive_sms_head">收到短信</string>
+    <string name ="available_command">可用命令：\n/getinfo - 获取系统信息\n/sendsms - 发送短信\n/sendsms_card2 - 使用第二个卡槽发送短信</string>
 </resources>
