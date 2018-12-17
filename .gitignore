@@ -66,3 +66,7 @@ proguard/
 
 *.log
 version.gradle
+.project
+app/.classpath
+app/.project
+app/.settings/
