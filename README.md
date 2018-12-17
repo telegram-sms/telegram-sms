@@ -41,16 +41,8 @@ cxll
 
 It will send a text message with content "cxll" to the number "10086".
 
-Use Webhook
-===========
-We provide a simple http server for webhook on your device, you need to map it to your server using Ngrok or frp, and avoid this http server being accessed directly.
-
-You can register this webhook by visiting the URL.
-
-```
-https://api.telegram.org/bot<your_bot_token>/setwebhook?url=https://<your_domain>/webhook_<chat_id>
-```
-
+Use Chat Command
+================
 
 The current bot supports the following instructions, which you can configure in BotFather.
 
