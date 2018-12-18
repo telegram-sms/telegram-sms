@@ -17,7 +17,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -192,7 +191,6 @@ public class chat_long_polling_service extends Service {
         bot_token = sharedPreferences.getString("bot_token", "");
         assert bot_token != null;
         if (bot_token.isEmpty() || chat_id.isEmpty()) {
-            Log.i(public_func.log_tag, "onReceive: token not found");
             stopForeground(true);
         }
         new Thread(new Runnable() {
@@ -257,7 +255,7 @@ public class chat_long_polling_service extends Service {
         assert from_obj != null;
         String from_id = from_obj.get("id").getAsString();
         if (!Objects.equals(chat_id, from_id)) {
-            public_func.write_log(context, "Chat ID Error: Chat ID[" + from_id + "] not allow");
+            public_func.write_log(context, "Chat ID[" + from_id + "] not allow");
             return;
         }
 

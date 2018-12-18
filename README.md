@@ -50,7 +50,7 @@ The current bot supports the following instructions, which you can configure in 
 ```
 getinfo - Get system information
 sendsms - Send SMS
-sendsms_card2 - Send SMS using the second card slot
+sendsms2 - Send SMS using the second card slot
 ```
 
 The format of sending SMS is:
