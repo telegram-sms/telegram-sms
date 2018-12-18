@@ -99,16 +99,22 @@ public class chat_long_polling_service extends Service {
         return net_type;
     }
 
-    public int get_card2_subid(Context context) {
-        int result = -1;
+    public int get_active_card(Context context) {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            return result;
+            return -1;
         }
-        int active_card = SubscriptionManager.from(context).getActiveSubscriptionInfoCount();
+        return SubscriptionManager.from(context).getActiveSubscriptionInfoCount();
+    }
+
+    public int get_card2_subid(Context context) {
+        int active_card = get_active_card(context);
         if (active_card >= 2) {
-            result = SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(1).getSubscriptionId();
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                return -1;
+            }
+            return SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(1).getSubscriptionId();
         }
-        return result;
+        return -1;
     }
 
     void start_long_polling(int offset_update_id) throws IOException {
@@ -195,7 +201,6 @@ public class chat_long_polling_service extends Service {
                         Thread.sleep(100);
                     } catch (IOException e) {
                         if (magnification > 1) {
-
                             magnification--;
                         }
                         e.printStackTrace();
@@ -234,6 +239,7 @@ public class chat_long_polling_service extends Service {
             message_obj = result_obj.get("channel_post").getAsJsonObject();
         }
         if (message_obj == null) {
+            //Reject group request
             public_func.write_log(context, "Request type is not allowed by security policy");
             return;
         }
@@ -244,10 +250,8 @@ public class chat_long_polling_service extends Service {
         if (message_obj.has("chat")) {
             from_obj = message_obj.get("chat").getAsJsonObject();
         }
-        if (from_obj == null) {
-            public_func.write_log(context, "Request type is not allowed by security policy");
-            return;
-        }
+
+        assert from_obj != null;
         String from_id = from_obj.get("id").getAsString();
         if (!Objects.equals(chat_id, from_id)) {
             public_func.write_log(context, "Chat ID Error: Chat ID[" + from_id + "] not allow");
@@ -272,7 +276,7 @@ public class chat_long_polling_service extends Service {
         public_func.write_log(context, "request command: " + command);
         switch (command) {
             case "/start":
-                request_body.text =getString(R.string.system_message_head) + "\n" +getString(R.string.available_command);
+                request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.available_command);
                 break;
             case "/ping":
             case "/getinfo":
@@ -280,7 +284,7 @@ public class chat_long_polling_service extends Service {
                 request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + get_network_type(context);
                 break;
             case "/sendsms":
-            case "/sendsms_card2":
+            case "/sendsms2":
                 request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.command_format_error);
                 String[] msg_send_list = request_msg.split("\n");
                 if (msg_send_list.length > 2) {
@@ -300,15 +304,19 @@ public class chat_long_polling_service extends Service {
                         }
                         switch (command) {
                             case "/sendsms":
+                                String dual_card = "";
+                                if (get_active_card(context) >= 2) {
+                                    dual_card = "SIM1 ";
+                                }
                                 public_func.send_sms(msg_send_to, msg_send_content.toString(), -1);
-                                request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
+                                request_body.text = "[" + dual_card + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
                                 break;
-                            case "/sendsms_card2":
+                            case "/sendsms2":
                                 int sub_id = get_card2_subid(context);
-                                request_body.text = "["+context.getString(R.string.send_sms_head)+"]" + "\n" + getString(R.string.cant_get_card_2_info);
+                                request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.cant_get_card_2_info);
                                 if (sub_id != -1) {
                                     public_func.send_sms(msg_send_to, msg_send_content.toString(), sub_id);
-                                    request_body.text = "[SIM2 "+context.getString(R.string.send_sms_head) +"]"+ "\n"  + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
+                                    request_body.text = "[SIM2 " + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
 
 
                                 }
