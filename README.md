@@ -22,7 +22,7 @@ This app requires the following permissions:
 
 - SMS : Read and send a text message.
 - Phone : Get whether it is a dual card phone, card 2 status, and card 2 identifier ID.
-- Contect : Get the contact information and automatically identify the incoming caller's number.
+- Contact : Get the contact information and automatically identify the incoming caller's number.
 
 *Warning! Setting this app as the default SMS app is a very dangerous behavior! This option can only be enabled if SMS notifications are not available in the default SMS application.*
 
