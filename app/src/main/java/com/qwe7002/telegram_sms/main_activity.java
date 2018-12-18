@@ -68,6 +68,8 @@ public class main_activity extends AppCompatActivity {
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
 
+        assert bot_token_save != null;
+        assert chat_id_save != null;
         if (!sharedPreferences.getBoolean("initialized", false) && !bot_token_save.isEmpty() && !chat_id_save.isEmpty()) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putBoolean("initialized", true);
@@ -197,7 +199,7 @@ public class main_activity extends AppCompatActivity {
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                     boolean has_ignored = powerManager.isIgnoringBatteryOptimizations(getPackageName());
                     if (!has_ignored) {
-                        Intent intent = null;
+                        Intent intent;
                         intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
                         intent.setData(Uri.parse("package:" + getPackageName()));
                         if (intent.resolveActivityInfo(getPackageManager(), PackageManager.MATCH_DEFAULT_ONLY) != null) {
