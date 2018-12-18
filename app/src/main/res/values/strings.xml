@@ -39,5 +39,5 @@
     <string name="chat_command_service_name">"Chat command "</string>
     <string name="success">Success</string>
     <string name="receive_sms_head">Receive SMS</string>
-    <string name="available_command">Available Commands:\n/getinfo - Get system information\n/sendsms - Send SMS\n/sendsms_card2 - Send SMS using the second card slot</string>
+    <string name="available_command">Available Commands:\n/getinfo - Get system information\n/sendsms - Send SMS\n/sendsms2 - Send SMS using the second card slot</string>
 </resources>
