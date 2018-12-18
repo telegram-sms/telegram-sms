@@ -10,6 +10,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.ContactsContract;
@@ -29,6 +31,18 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 class public_func {
     static final String log_tag = "tg-sms";
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+
+    static boolean check_network(Context context) {
+
+        ConnectivityManager manager = (ConnectivityManager) context
+                .getApplicationContext().getSystemService(
+                        Context.CONNECTIVITY_SERVICE);
+        if (manager == null) {
+            return false;
+        }
+        NetworkInfo networkinfo = manager.getActiveNetworkInfo();
+        return networkinfo != null && networkinfo.isAvailable();
+    }
 
     static OkHttpClient get_okhttp_obj() {
         return new OkHttpClient.Builder()

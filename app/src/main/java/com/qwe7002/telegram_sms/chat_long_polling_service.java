@@ -128,12 +128,15 @@ public class chat_long_polling_service extends Service {
         Call call_test = okhttp_test_client.newCall(request_test);
 
         try {
+            if (!public_func.check_network(context)) {
+                throw new IOException("Network");
+            }
             call_test.execute();
             error_magnification = 1;
         } catch (IOException e) {
             int sleep_time = 60 * error_magnification;
 
-            public_func.write_log(context, "Network Error,Sleep " + sleep_time + "s");
+            public_func.write_log(context, "No network service,try again after " + sleep_time + " seconds");
 
             magnification = 1;
             if (error_magnification <= 4) {
