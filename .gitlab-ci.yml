@@ -1,4 +1,5 @@
 stages:
+- push
 - build
 - deploy
 
@@ -6,6 +7,13 @@ cache:
   key: ${CI_PROJECT_ID}
   paths:
   - .gradle/
+
+push_github:
+  stage: push
+  only:
+  - develop
+  script:
+  - git push -f --set-upstream https://${github_key}@github.com/qwe7002/telegram-sms.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
 
 release_github:
   dependencies:
@@ -21,8 +29,6 @@ release_github:
 build:
   image: preventis/docker-android-alpine:latest
   stage: build
-  only:
-  - master
   script:
   - echo -e "ext {\n appVersionCode = ${CI_PIPELINE_ID}\n appVersionName = \"${CI_COMMIT_REF_NAME}\"}" > ./app/version.gradle
   - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true" >> gradle.properties
