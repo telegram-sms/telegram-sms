@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Looper;
+import android.provider.Telephony;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.SmsMessage;
@@ -38,8 +39,10 @@ public class sms_receiver extends BroadcastReceiver {
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
-        if (!"android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction())) {
-            return;
+        if ("android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction())) {
+            if (Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName())) {
+                return;
+            }
         }
         Bundle bundle = intent.getExtras();
         if (bundle != null) {
