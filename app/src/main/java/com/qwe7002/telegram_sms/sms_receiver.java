@@ -69,6 +69,7 @@ public class sms_receiver extends BroadcastReceiver {
                     values.put(Telephony.Sms.ADDRESS, messages[i].getOriginatingAddress());
                     values.put(Telephony.Sms.BODY, messages[i].getMessageBody());
                     values.put(Telephony.Sms.SUBSCRIPTION_ID, String.valueOf(sub));
+                    values.put(Telephony.Sms.READ, "1");
                     context.getContentResolver().insert(Telephony.Sms.CONTENT_URI, values);
                 }
 
