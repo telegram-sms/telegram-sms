@@ -2,6 +2,7 @@ package com.qwe7002.telegram_sms;
 
 import android.Manifest;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -31,6 +32,7 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class sms_receiver extends BroadcastReceiver {
     public void onReceive(final Context context, Intent intent) {
+        final boolean is_default = Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName());
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
             public_func.write_log(context, "Receive SMS:Uninitialized");
@@ -40,7 +42,7 @@ public class sms_receiver extends BroadcastReceiver {
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
         if ("android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction())) {
-            if (Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName())) {
+            if (is_default) {
                 return;
             }
         }
@@ -62,6 +64,13 @@ public class sms_receiver extends BroadcastReceiver {
             final SmsMessage[] messages = new SmsMessage[pdus.length];
             for (int i = 0; i < pdus.length; i++) {
                 messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+                if (is_default) {
+                    ContentValues values = new ContentValues();
+                    values.put(Telephony.Sms.ADDRESS, messages[i].getOriginatingAddress());
+                    values.put(Telephony.Sms.BODY, messages[i].getMessageBody());
+                    context.getContentResolver().insert(Telephony.Sms.CONTENT_URI, values);
+                }
+
             }
             if (messages.length > 0) {
                 StringBuilder msgBody = new StringBuilder();
