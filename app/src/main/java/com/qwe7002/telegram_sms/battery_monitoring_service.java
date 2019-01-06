@@ -79,7 +79,7 @@ class battery_receiver extends BroadcastReceiver {
         }
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
-        String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
+        String request_uri = public_func.get_url(bot_token, "sendMessage");
         final request_json request_body = new request_json();
         request_body.chat_id = chat_id;
         StringBuilder prebody = new StringBuilder(context.getString(R.string.system_message_head) + "\n");

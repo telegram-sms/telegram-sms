@@ -108,7 +108,7 @@ public class main_activity extends AppCompatActivity {
                 progress_dialog.setIndeterminate(false);
                 progress_dialog.setCancelable(false);
                 progress_dialog.show();
-                String request_uri = "https://api.telegram.org/bot" + bot_token.getText().toString().trim() + "/getUpdates";
+                String request_uri = public_func.get_url(bot_token.getText().toString().trim(), "getUpdates");
                 OkHttpClient okhttp_client = new OkHttpClient();
                 Request request = new Request.Builder().url(request_uri).build();
                 Call call = okhttp_client.newCall(request);
@@ -214,7 +214,7 @@ public class main_activity extends AppCompatActivity {
                 progress_dialog.setIndeterminate(false);
                 progress_dialog.setCancelable(false);
                 progress_dialog.show();
-                String request_uri = "https://api.telegram.org/bot" + bot_token.getText().toString().trim() + "/sendMessage";
+                String request_uri = public_func.get_url(bot_token.getText().toString().trim(), "sendMessage");
                 request_json request_body = new request_json();
                 request_body.chat_id = chat_id.getText().toString().trim();
                 request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);

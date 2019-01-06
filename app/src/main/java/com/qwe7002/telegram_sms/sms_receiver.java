@@ -40,12 +40,13 @@ public class sms_receiver extends BroadcastReceiver {
         }
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
-        String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
+        String request_uri = public_func.get_url(bot_token, "sendMessage");
         if ("android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction())) {
             if (is_default) {
                 return;
             }
         }
+        public_func.start_service(context, sharedPreferences);
         Bundle bundle = intent.getExtras();
         if (bundle != null) {
             String dual_sim = "";
