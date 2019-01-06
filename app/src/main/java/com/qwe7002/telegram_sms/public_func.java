@@ -44,6 +44,10 @@ class public_func {
         return networkinfo != null && networkinfo.isAvailable();
     }
 
+    static String get_url(String token, String func) {
+        return "https://api.telegram.org/bot" + token + "/" + func;
+    }
+
     static OkHttpClient get_okhttp_obj() {
         return new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
@@ -68,7 +72,7 @@ class public_func {
 
     static void send_sms(String send_to, String content, int sub_id) {
         android.telephony.SmsManager sms_manager;
-        switch(sub_id){
+        switch (sub_id) {
             case -1:
                 sms_manager = android.telephony.SmsManager.getDefault();
                 break;
