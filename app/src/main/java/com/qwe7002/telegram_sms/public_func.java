@@ -17,6 +17,9 @@ import android.os.Build;
 import android.provider.ContactsContract;
 import android.util.Log;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -29,7 +32,7 @@ import static android.content.Context.MODE_PRIVATE;
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 class public_func {
-    static final String log_tag = "tg-sms";
+    private static final String log_tag = "tg-sms";
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     static boolean check_network(Context context) {
@@ -42,6 +45,10 @@ class public_func {
         }
         NetworkInfo networkinfo = manager.getActiveNetworkInfo();
         return networkinfo != null && networkinfo.isAvailable();
+    }
+
+    static String get_url(String token, String func) {
+        return "https://api.telegram.org/bot" + token + "/" + func;
     }
 
     static OkHttpClient get_okhttp_obj() {
@@ -68,7 +75,7 @@ class public_func {
 
     static void send_sms(String send_to, String content, int sub_id) {
         android.telephony.SmsManager sms_manager;
-        switch(sub_id){
+        switch (sub_id) {
             case -1:
                 sms_manager = android.telephony.SmsManager.getDefault();
                 break;
@@ -158,10 +165,35 @@ class public_func {
         Log.i(public_func.log_tag, log);
         @SuppressLint("SimpleDateFormat") SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date(System.currentTimeMillis());
-        SharedPreferences sharedPreferences = context.getSharedPreferences("log-data", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        String error_log = sharedPreferences.getString("error_log", "") + "\n" + simpleDateFormat.format(date) + " " + log;
-        editor.putString("error_log", error_log);
-        editor.apply();
+        String error_log = read_log_file(context) + "\n" + simpleDateFormat.format(date) + " " + log;
+        write_log_file(context, error_log);
+    }
+
+    static void write_log_file(Context context, String write_string) {
+        try {
+
+            FileOutputStream fout = context.openFileOutput("error.log", MODE_PRIVATE);
+            byte[] bytes = write_string.getBytes();
+            fout.write(bytes);
+            fout.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    static String read_log_file(Context context) {
+        String res = "";
+        try {
+            FileInputStream fin = context.openFileInput("error.log");
+            int length = fin.available();
+            byte[] buffer = new byte[length];
+            fin.read(buffer);
+            res = new String(buffer, StandardCharsets.UTF_8);
+            fin.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return res;
+
     }
 }

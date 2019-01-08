@@ -117,13 +117,8 @@ public class chat_long_polling_service extends Service {
     }
 
     void start_long_polling(int offset_update_id) throws IOException {
-        OkHttpClient okhttp_test_client = new OkHttpClient.Builder()
-                .connectTimeout(15, TimeUnit.SECONDS)
-                .readTimeout(15, TimeUnit.SECONDS)
-                .writeTimeout(15, TimeUnit.SECONDS)
-                .followRedirects(false)
-                .build();
-        Request request_test = new Request.Builder().url("https://api.telegram.org").build();
+        OkHttpClient okhttp_test_client = public_func.get_okhttp_obj();
+        Request request_test = new Request.Builder().url("https://www.google.com/generate_204").build();
         Call call_test = okhttp_test_client.newCall(request_test);
 
         try {
@@ -160,7 +155,7 @@ public class chat_long_polling_service extends Service {
                 .writeTimeout(15, TimeUnit.SECONDS)
                 .retryOnConnectionFailure(true)
                 .build();
-        String request_uri = "https://api.telegram.org/bot" + bot_token + "/getUpdates";
+        String request_uri = public_func.get_url(bot_token, "getUpdates");
         polling_json request_body = new polling_json();
         request_body.offset = offset_update_id;
         request_body.timeout = read_timeout;
@@ -331,7 +326,8 @@ public class chat_long_polling_service extends Service {
                 break;
         }
 
-        String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
+        String request_uri = public_func.get_url(bot_token, "sendMessage");
+        ;
         Gson gson = new Gson();
         RequestBody body = RequestBody.create(public_func.JSON, gson.toJson(request_body));
         OkHttpClient okhttp_client = public_func.get_okhttp_obj();
