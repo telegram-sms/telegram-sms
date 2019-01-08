@@ -78,13 +78,16 @@ class call_state_listener extends PhoneStateListener {
         }
 
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+
+
         if (!sharedPreferences.getBoolean("initialized", false)) {
             public_func.write_log(context, "Receive Phone:Uninitialized");
             return;
         }
+        public_func.start_service(context, sharedPreferences);
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
-        String request_uri = "https://api.telegram.org/bot" + bot_token + "/sendMessage";
+        String request_uri = public_func.get_url(bot_token, "sendMessage");
         final request_json request_body = new request_json();
         request_body.chat_id = chat_id;
         String display_address = incomingNumber;
