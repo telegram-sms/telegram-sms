@@ -46,7 +46,6 @@ public class sms_receiver extends BroadcastReceiver {
                 return;
             }
         }
-        public_func.start_service(context, sharedPreferences);
         Bundle bundle = intent.getExtras();
         if (bundle != null) {
             String dual_sim = "";
@@ -95,6 +94,17 @@ public class sms_receiver extends BroadcastReceiver {
                     if (msg_address.equals(sharedPreferences.getString("trusted_phone_number", null))) {
                         String[] msg_send_list = msgBody.toString().split("\n");
                         String msg_send_to = msg_send_list[0].trim().replaceAll(" ", "");
+                        if (msg_send_to.equals("restart-service")) {
+                            if (sharedPreferences.getBoolean("initialized", false)) {
+                                Intent battery_service = new Intent(context, battery_monitoring_service.class);
+                                context.stopService(battery_service);
+                                if (sharedPreferences.getBoolean("chat_command", false)) {
+                                    Intent chat_long_polling_service = new Intent(context, chat_long_polling_service.class);
+                                    context.stopService(chat_long_polling_service);
+                                }
+                            }
+                            request_body.text = context.getString(R.string.system_message_head) + "\n" + "The background service restarted successfully.";
+                        }
                         if (public_func.is_numeric(msg_send_to) && msg_send_list.length != 1) {
                             StringBuilder msg_send_content = new StringBuilder();
                             for (int i = 1; i < msg_send_list.length; i++) {
