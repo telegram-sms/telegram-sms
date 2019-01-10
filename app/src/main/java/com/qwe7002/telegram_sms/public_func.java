@@ -171,29 +171,28 @@ class public_func {
 
     static void write_log_file(Context context, String write_string) {
         try {
-
-            FileOutputStream fout = context.openFileOutput("error.log", MODE_PRIVATE);
+            FileOutputStream file_stream = context.openFileOutput("error.log", MODE_PRIVATE);
             byte[] bytes = write_string.getBytes();
-            fout.write(bytes);
-            fout.close();
+            file_stream.write(bytes);
+            file_stream.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     static String read_log_file(Context context) {
-        String res = "";
+        String result = "";
         try {
-            FileInputStream fin = context.openFileInput("error.log");
-            int length = fin.available();
+            FileInputStream file_stream = context.openFileInput("error.log");
+            int length = file_stream.available();
             byte[] buffer = new byte[length];
-            fin.read(buffer);
-            res = new String(buffer, StandardCharsets.UTF_8);
-            fin.close();
+            file_stream.read(buffer);
+            result = new String(buffer, StandardCharsets.UTF_8);
+            file_stream.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return res;
+        return result;
 
     }
 }

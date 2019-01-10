@@ -84,7 +84,6 @@ class call_state_listener extends PhoneStateListener {
             public_func.write_log(context, "Receive Phone:Uninitialized");
             return;
         }
-        public_func.start_service(context, sharedPreferences);
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = public_func.get_url(bot_token, "sendMessage");
