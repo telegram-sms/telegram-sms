@@ -43,5 +43,5 @@
     <string name="status">状態：</string>
     <string name="send_failed">送信に失敗しました</string>
     <string name="airplan_mode">現在のデバイスは機内モードです</string>
-    <string name="no_network">現在のネットワークサービスは利用できません。</string>
+    <string name="no_network">サービスなし</string>
 </resources>
