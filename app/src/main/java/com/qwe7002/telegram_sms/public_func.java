@@ -76,11 +76,6 @@ class public_func {
         return true;
     }
 
-    static boolean is_miui() {
-        String manufacturer = Build.MANUFACTURER;
-        return "xiaomi".equalsIgnoreCase(manufacturer);
-    }
-
     static void send_sms(Context context, String send_to, String content, int sub_id) {
         android.telephony.SmsManager sms_manager;
         String sim_card = "1";
