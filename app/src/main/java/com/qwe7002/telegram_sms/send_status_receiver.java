@@ -30,7 +30,7 @@ import static android.content.Context.MODE_PRIVATE;
 public class send_status_receiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, Intent intent) {
-        context.unregisterReceiver(this);
+        context.getApplicationContext().unregisterReceiver(this);
         intent.getCategories();
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
