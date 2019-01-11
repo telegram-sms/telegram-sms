@@ -93,7 +93,7 @@ class public_func {
         ArrayList<PendingIntent> send_receiver_list = new ArrayList<>();
         IntentFilter filter = new IntentFilter("send_sms");
         BroadcastReceiver receiver = new send_status_receiver();
-        context.registerReceiver(receiver, filter);
+        context.getApplicationContext().registerReceiver(receiver, filter);
         Intent sent_intent = new Intent("send_sms");
         sent_intent.putExtra("sim_card", sim_card);
         sent_intent.putExtra("send_to", send_to);
