@@ -39,4 +39,5 @@
     <string name="chat_command_service_name">聊天命令</string>
     <string name="success">成功</string>
     <string name="available_command">可用命令：\n/getinfo - 獲取系統訊息\n/sendsms - 發送簡訊\n/sendsms2 - 使用第二个卡槽發送簡訊</string>
+    <string name="restart_service">後台服務已成功重新啟動。</string>
 </resources>
