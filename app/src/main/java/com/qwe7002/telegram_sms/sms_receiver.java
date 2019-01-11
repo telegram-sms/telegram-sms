@@ -51,7 +51,7 @@ public class sms_receiver extends BroadcastReceiver {
             String dual_sim = "";
             SubscriptionManager manager = SubscriptionManager.from(context);
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                if (manager.getActiveSubscriptionInfoCount() == 2) {
+                if (manager.getActiveSubscriptionInfoCount() >= 2) {
                     int slot = bundle.getInt("slot", -1);
                     if (slot != -1) {
                         dual_sim = "SIM" + (slot + 1) + " ";
@@ -116,13 +116,8 @@ public class sms_receiver extends BroadcastReceiver {
                                 }
                                 msg_send_content.append(msg_send_list[i]);
                             }
-                            String display_to_address = msg_send_to;
-                            String display_to_name = public_func.get_phone_name(context, display_to_address);
-                            if (display_to_name != null) {
-                                display_to_address = display_to_name + "(" + msg_send_to + ")";
-                            }
-                            public_func.send_sms(msg_send_to, msg_send_content.toString(), sub);
-                            request_body.text = "[" + dual_sim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
+                            public_func.send_sms(context, msg_send_to, msg_send_content.toString(), sub);
+                            return;
                         }
                     }
                 }
@@ -139,7 +134,7 @@ public class sms_receiver extends BroadcastReceiver {
                     @Override
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
                         Looper.prepare();
-                        String error_message = "Send SMS Error:" + e.getMessage();
+                        String error_message = "SMS forwarding failed:" + e.getMessage();
                         public_func.write_log(context, error_message);
                         Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                         public_func.write_log(context, "message body:" + request_body.text);
@@ -148,7 +143,7 @@ public class sms_receiver extends BroadcastReceiver {
                                 String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
                                 String msg_send_content = request_body.text;
                                 if (msg_send_to != null) {
-                                    public_func.send_sms(msg_send_to, msg_send_content, sub);
+                                    public_func.send_sms(context, msg_send_to, msg_send_content, sub);
                                 }
                             }
                         }
@@ -160,7 +155,7 @@ public class sms_receiver extends BroadcastReceiver {
                         if (response.code() != 200) {
                             Looper.prepare();
                             assert response.body() != null;
-                            String error_message = "Send SMS Error:" + response.body().string();
+                            String error_message = "SMS forwarding failed:" + response.body().string();
                             public_func.write_log(context, error_message);
                             public_func.write_log(context, "message body:" + request_body.text);
                             Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();

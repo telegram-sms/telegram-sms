@@ -41,4 +41,8 @@
     <string name="receive_sms_head">Receive SMS</string>
     <string name="available_command">Available Commands:\n/getinfo - Get system information\n/sendsms - Send SMS\n/sendsms2 - Send SMS using the second card slot</string>
     <string name="restart_service">The background service restarted successfully.</string>
+    <string name="status">Status:</string>
+    <string name="send_failed">Failed to send</string>
+    <string name="airplan_mode">The current device is in Airplane mode</string>
+    <string name="no_network">The current network service is not available</string>
 </resources>

@@ -48,7 +48,6 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </service>
-
         <receiver android:name=".boot_receiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
