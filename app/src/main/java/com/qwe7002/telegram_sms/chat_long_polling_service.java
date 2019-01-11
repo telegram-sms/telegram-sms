@@ -293,28 +293,16 @@ public class chat_long_polling_service extends Service {
                             }
                             msg_send_content.append(msg_send_list[i]);
                         }
-                        String display_to_address = msg_send_to;
-                        String display_to_name = public_func.get_phone_name(context, display_to_address);
-                        if (display_to_name != null) {
-                            display_to_address = display_to_name + "(" + msg_send_to + ")";
-                        }
                         switch (command) {
                             case "/sendsms":
-                                String dual_card = "";
-                                if (get_active_card(context) >= 2) {
-                                    dual_card = "SIM1 ";
-                                }
-                                public_func.send_sms(msg_send_to, msg_send_content.toString(), -1);
-                                request_body.text = "[" + dual_card + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
-                                break;
+                                public_func.send_sms(context, msg_send_to, msg_send_content.toString(), -1);
+                                return;
                             case "/sendsms2":
                                 int sub_id = get_card2_subid(context);
                                 request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.cant_get_card_2_info);
                                 if (sub_id != -1) {
-                                    public_func.send_sms(msg_send_to, msg_send_content.toString(), sub_id);
-                                    request_body.text = "[SIM2 " + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + msg_send_content.toString();
-
-
+                                    public_func.send_sms(context, msg_send_to, msg_send_content.toString(), sub_id);
+                                    return;
                                 }
                                 break;
                         }
@@ -327,7 +315,6 @@ public class chat_long_polling_service extends Service {
         }
 
         String request_uri = public_func.get_url(bot_token, "sendMessage");
-        ;
         Gson gson = new Gson();
         RequestBody body = RequestBody.create(public_func.JSON, gson.toJson(request_body));
         OkHttpClient okhttp_client = public_func.get_okhttp_obj();
@@ -337,7 +324,7 @@ public class chat_long_polling_service extends Service {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Looper.prepare();
-                String error_message = "Send SMS Error:" + e.getMessage();
+                String error_message = "Send reply failed:" + e.getMessage();
                 public_func.write_log(context, error_message);
                 Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                 Looper.loop();
@@ -348,7 +335,7 @@ public class chat_long_polling_service extends Service {
                 if (response.code() != 200) {
                     Looper.prepare();
                     assert response.body() != null;
-                    String error_message = "Send SMS Error:" + response.body().string();
+                    String error_message = "Send reply failed:" + response.body().string();
                     public_func.write_log(context, error_message);
                     Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                     Looper.loop();
