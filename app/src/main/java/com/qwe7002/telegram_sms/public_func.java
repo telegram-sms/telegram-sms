@@ -5,8 +5,11 @@ import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -73,17 +76,31 @@ class public_func {
         return true;
     }
 
-    static void send_sms(String send_to, String content, int sub_id) {
+
+    static void send_sms(Context context, String send_to, String content, int sub_id) {
         android.telephony.SmsManager sms_manager;
+        String sim_card = "1";
         switch (sub_id) {
             case -1:
                 sms_manager = android.telephony.SmsManager.getDefault();
+
                 break;
             default:
                 sms_manager = android.telephony.SmsManager.getSmsManagerForSubscriptionId(sub_id);
+                sim_card = "1";
         }
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
-        sms_manager.sendMultipartTextMessage(send_to, null, divideContents, null, null);
+        ArrayList<PendingIntent> send_receiver_list = new ArrayList<>();
+        IntentFilter filter = new IntentFilter("send_sms");
+        BroadcastReceiver receiver = new send_status_receiver();
+        context.registerReceiver(receiver, filter);
+        Intent sent_intent = new Intent("send_sms");
+        sent_intent.putExtra("sim_card", sim_card);
+        sent_intent.putExtra("send_to", send_to);
+        sent_intent.putExtra("content", content);
+        PendingIntent sentIntent = PendingIntent.getBroadcast(context, 0, sent_intent, PendingIntent.FLAG_CANCEL_CURRENT);
+        send_receiver_list.add(sentIntent);
+        sms_manager.sendMultipartTextMessage(send_to, null, divideContents, send_receiver_list, null);
     }
 
 

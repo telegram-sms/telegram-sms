@@ -105,7 +105,7 @@ class call_state_listener extends PhoneStateListener {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Looper.prepare();
-                String error_message = "Send Missed Call Error:" + e.getMessage();
+                String error_message = "Send missed call error:" + e.getMessage();
                 public_func.write_log(context, error_message);
                 Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                 if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
@@ -113,7 +113,7 @@ class call_state_listener extends PhoneStateListener {
                         String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
                         String msg_send_content = request_body.text;
                         if (msg_send_to != null) {
-                            public_func.send_sms(msg_send_to, msg_send_content, -1);
+                            public_func.send_sms(context, msg_send_to, msg_send_content, -1);
                         }
                     }
                 }
@@ -125,7 +125,7 @@ class call_state_listener extends PhoneStateListener {
                 if (response.code() != 200) {
                     Looper.prepare();
                     assert response.body() != null;
-                    String error_message = "Send Missed Call Error:" + response.body().string();
+                    String error_message = "Send missed call error:" + response.body().string();
                     public_func.write_log(context, error_message);
                     Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                     Looper.loop();
