@@ -42,7 +42,7 @@ public class sms_receiver extends BroadcastReceiver {
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = public_func.get_url(bot_token, "sendMessage");
         if ("android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction())) {
-            if (is_default && !public_func.is_miui()) {
+            if (is_default) {
                 return;
             }
         }
