@@ -39,4 +39,5 @@
     <string name="success">成功</string>
     <string name="receive_sms_head">收到短信</string>
     <string name="available_command">可用命令：\n/getinfo - 获取系统信息\n/sendsms - 发送短信\n/sendsms2 - 使用第二个卡槽发送短信</string>
+    <string name="restart_service">后台服务已成功重新启动。</string>
 </resources>
