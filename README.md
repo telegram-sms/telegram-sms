@@ -24,7 +24,7 @@ This app requires the following permissions:
 - Phone : Get whether it is a dual card phone, card 2 status, and card 2 identifier ID.
 - Contact : Get the contact information and automatically identify the incoming caller's number.
 
-*Warning! Setting this app as the default SMS app is a very dangerous behavior! This option can only be enabled if SMS notifications are not available in the default SMS application.*
+You can set this app as the default SMS app, which will block all SMS notifications and automatically set the SMS to read.
 
 Send SMS
 ========
@@ -42,6 +42,8 @@ cxll
 ```
 
 It will send a text message with content "cxll" to the number "10086".
+
+You can restart all background processes by sending the command `restart-service`
 
 Use Chat Command
 ================
