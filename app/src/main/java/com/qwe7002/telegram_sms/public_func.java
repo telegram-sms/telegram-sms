@@ -82,7 +82,6 @@ class public_func {
         switch (sub_id) {
             case -1:
                 sms_manager = android.telephony.SmsManager.getDefault();
-
                 break;
             default:
                 sms_manager = android.telephony.SmsManager.getSmsManagerForSubscriptionId(sub_id);

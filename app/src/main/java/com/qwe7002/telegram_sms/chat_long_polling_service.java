@@ -43,7 +43,7 @@ public class chat_long_polling_service extends Service {
     String chat_id;
     String bot_token;
     Context context;
-
+    SharedPreferences sharedPreferences;
     public chat_long_polling_service() {
 
     }
@@ -116,7 +116,7 @@ public class chat_long_polling_service extends Service {
         return -1;
     }
 
-    void start_long_polling(int offset_update_id) throws IOException {
+    void start_long_polling() throws IOException {
         OkHttpClient okhttp_test_client = public_func.get_okhttp_obj();
         Request request_test = new Request.Builder().url("https://www.google.com/generate_204").build();
         Call call_test = okhttp_test_client.newCall(request_test);
@@ -157,7 +157,7 @@ public class chat_long_polling_service extends Service {
                 .build();
         String request_uri = public_func.get_url(bot_token, "getUpdates");
         polling_json request_body = new polling_json();
-        request_body.offset = offset_update_id;
+        request_body.offset = offset;
         request_body.timeout = read_timeout;
         Gson gson = new Gson();
         RequestBody body = RequestBody.create(public_func.JSON, gson.toJson(request_body));
@@ -180,10 +180,11 @@ public class chat_long_polling_service extends Service {
     public void onCreate() {
         super.onCreate();
         context = getApplicationContext();
-        final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
 
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
+        offset = sharedPreferences.getInt("offset", 0);
         assert bot_token != null;
         if (bot_token.isEmpty() || chat_id.isEmpty()) {
             stopForeground(true);
@@ -193,7 +194,7 @@ public class chat_long_polling_service extends Service {
             public void run() {
                 while (true) {
                     try {
-                        start_long_polling(offset);
+                        start_long_polling();
                         Thread.sleep(100);
                     } catch (IOException e) {
                         if (magnification > 1) {
@@ -222,9 +223,8 @@ public class chat_long_polling_service extends Service {
 
     void handle(JsonObject result_obj) {
         int update_id = result_obj.get("update_id").getAsInt();
-        if (update_id >= offset) {
-            offset = update_id + 1;
-        }
+        offset = update_id + 1;
+        sharedPreferences.edit().putInt("offset", offset).apply();
         final request_json request_body = new request_json();
         request_body.chat_id = chat_id;
         JsonObject message_obj = null;
