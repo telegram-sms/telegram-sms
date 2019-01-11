@@ -86,7 +86,7 @@ class public_func {
                 break;
             default:
                 sms_manager = android.telephony.SmsManager.getSmsManagerForSubscriptionId(sub_id);
-                sim_card = "1";
+                sim_card = "2";
         }
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
         ArrayList<PendingIntent> send_receiver_list = new ArrayList<>();
