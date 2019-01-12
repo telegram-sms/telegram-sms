@@ -48,6 +48,46 @@ public class chat_long_polling_service extends Service {
 
     }
 
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        context = getApplicationContext();
+        sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+
+        chat_id = sharedPreferences.getString("chat_id", "");
+        bot_token = sharedPreferences.getString("bot_token", "");
+        assert bot_token != null;
+        if (!sharedPreferences.getBoolean("initialized", false)) {
+            public_func.write_log(context, "Bot Command:Uninitialized");
+            stopSelf();
+        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        start_long_polling();
+                        Thread.sleep(100);
+                    } catch (IOException e) {
+                        if (magnification > 1) {
+                            magnification--;
+                        }
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        break;
+                    }
+                }
+            }
+        }).start();
+    }
+
+    @Override
+    public void onDestroy() {
+        stopForeground(true);
+        super.onDestroy();
+    }
+
     @SuppressLint("WrongConstant")
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -176,44 +216,6 @@ public class chat_long_polling_service extends Service {
         }
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        context = getApplicationContext();
-        sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-
-        chat_id = sharedPreferences.getString("chat_id", "");
-        bot_token = sharedPreferences.getString("bot_token", "");
-        assert bot_token != null;
-        if (bot_token.isEmpty() || chat_id.isEmpty()) {
-            stopForeground(true);
-        }
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    try {
-                        start_long_polling();
-                        Thread.sleep(100);
-                    } catch (IOException e) {
-                        if (magnification > 1) {
-                            magnification--;
-                        }
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        break;
-                    }
-                }
-            }
-        }).start();
-    }
-
-    @Override
-    public void onDestroy() {
-        stopForeground(true);
-        super.onDestroy();
-    }
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -296,12 +298,14 @@ public class chat_long_polling_service extends Service {
                         switch (command) {
                             case "/sendsms":
                                 public_func.send_sms(context, msg_send_to, msg_send_content.toString(), -1);
+                                //reject
                                 return;
                             case "/sendsms2":
                                 int sub_id = get_card2_subid(context);
                                 request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.cant_get_card_2_info);
                                 if (sub_id != -1) {
                                     public_func.send_sms(context, msg_send_to, msg_send_content.toString(), sub_id);
+                                    //reject
                                     return;
                                 }
                                 break;
