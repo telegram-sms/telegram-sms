@@ -44,6 +44,18 @@ public class chat_long_polling_service extends Service {
     String bot_token;
     Context context;
     SharedPreferences sharedPreferences;
+    OkHttpClient okhttp_client;
+    OkHttpClient okhttp_test_client;
+
+    @SuppressLint("WrongConstant")
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
+        startForeground(2, notification);
+        return START_STICKY;
+
+    }
+
     public chat_long_polling_service() {
 
     }
@@ -61,6 +73,9 @@ public class chat_long_polling_service extends Service {
             public_func.write_log(context, "Bot Command:Uninitialized");
             stopSelf();
         }
+        okhttp_test_client = public_func.get_okhttp_obj();
+        okhttp_client = new OkHttpClient.Builder().build();
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -80,21 +95,13 @@ public class chat_long_polling_service extends Service {
                 }
             }
         }).start();
+
     }
 
     @Override
     public void onDestroy() {
         stopForeground(true);
         super.onDestroy();
-    }
-
-    @SuppressLint("WrongConstant")
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
-        startForeground(2, notification);
-        return START_STICKY;
-
     }
 
 
@@ -157,7 +164,6 @@ public class chat_long_polling_service extends Service {
     }
 
     void start_long_polling() throws IOException {
-        OkHttpClient okhttp_test_client = public_func.get_okhttp_obj();
         Request request_test = new Request.Builder().url("https://www.google.com/generate_204").build();
         Call call_test = okhttp_test_client.newCall(request_test);
 
@@ -168,12 +174,12 @@ public class chat_long_polling_service extends Service {
             call_test.execute();
             error_magnification = 1;
         } catch (IOException e) {
-            int sleep_time = 60 * error_magnification;
+            int sleep_time = 30 * error_magnification;
 
             public_func.write_log(context, "No network service,try again after " + sleep_time + " seconds");
 
             magnification = 1;
-            if (error_magnification <= 4) {
+            if (error_magnification <= 9) {
                 error_magnification++;
             }
             try {
@@ -189,7 +195,7 @@ public class chat_long_polling_service extends Service {
         }
 
         int read_timeout = 30 * magnification;
-        OkHttpClient okhttp_client = new OkHttpClient.Builder()
+        OkHttpClient okhttp_client_new = okhttp_client.newBuilder()
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .readTimeout((read_timeout + 5), TimeUnit.SECONDS)
                 .writeTimeout(15, TimeUnit.SECONDS)
@@ -202,7 +208,7 @@ public class chat_long_polling_service extends Service {
         Gson gson = new Gson();
         RequestBody body = RequestBody.create(public_func.JSON, gson.toJson(request_body));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-        Call call = okhttp_client.newCall(request);
+        Call call = okhttp_client_new.newCall(request);
         Response response = call.execute();
         if (response != null && response.code() == 200) {
             assert response.body() != null;
