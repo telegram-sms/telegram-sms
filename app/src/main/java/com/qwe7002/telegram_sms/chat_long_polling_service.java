@@ -74,7 +74,11 @@ public class chat_long_polling_service extends Service {
             stopSelf();
         }
         okhttp_test_client = public_func.get_okhttp_obj();
-        okhttp_client = new OkHttpClient.Builder().build();
+        okhttp_client = new OkHttpClient.Builder()
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .writeTimeout(15, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(true)
+                .build();
 
         new Thread(new Runnable() {
             @Override
@@ -196,10 +200,7 @@ public class chat_long_polling_service extends Service {
 
         int read_timeout = 30 * magnification;
         OkHttpClient okhttp_client_new = okhttp_client.newBuilder()
-                .connectTimeout(15, TimeUnit.SECONDS)
                 .readTimeout((read_timeout + 5), TimeUnit.SECONDS)
-                .writeTimeout(15, TimeUnit.SECONDS)
-                .retryOnConnectionFailure(true)
                 .build();
         String request_uri = public_func.get_url(bot_token, "getUpdates");
         polling_json request_body = new polling_json();
