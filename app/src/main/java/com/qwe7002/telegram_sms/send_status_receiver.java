@@ -7,11 +7,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.os.Looper;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.SmsManager;
 import android.telephony.SubscriptionManager;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 
@@ -80,24 +78,18 @@ public class send_status_receiver extends BroadcastReceiver {
         call.enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                Looper.prepare();
                 String error_message = "failed to send SMS:" + e.getMessage();
                 public_func.write_log(context, error_message);
-                Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                 public_func.write_log(context, "message body:" + request_body.text);
-                Looper.loop();
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.code() != 200) {
-                    Looper.prepare();
                     assert response.body() != null;
                     String error_message = "failed to send SMS:" + response.body().string();
                     public_func.write_log(context, error_message);
                     public_func.write_log(context, "message body:" + request_body.text);
-                    Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
-                    Looper.loop();
                 }
             }
         });
