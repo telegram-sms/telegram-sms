@@ -11,9 +11,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.BatteryManager;
 import android.os.IBinder;
-import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 
@@ -69,7 +67,7 @@ public class battery_monitoring_service extends Service {
 }
 
 class battery_receiver extends BroadcastReceiver {
-
+    OkHttpClient okhttp_client = public_func.get_okhttp_obj();
     @Override
     public void onReceive(final Context context, final Intent intent) {
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
@@ -103,16 +101,13 @@ class battery_receiver extends BroadcastReceiver {
         Gson gson = new Gson();
         String request_body_raw = gson.toJson(request_body);
         RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
-        OkHttpClient okhttp_client = public_func.get_okhttp_obj();
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                Looper.prepare();
                 String error_message = "Send battery info error:" + e.getMessage();
                 public_func.write_log(context, error_message);
-                Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                 if (action.equals(Intent.ACTION_BATTERY_LOW)) {
                     if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                         if (sharedPreferences.getBoolean("fallback_sms", false)) {
@@ -124,18 +119,14 @@ class battery_receiver extends BroadcastReceiver {
                         }
                     }
                 }
-                Looper.loop();
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
-                    Looper.prepare();
                     assert response.body() != null;
                     String error_message = "Send battery info error:" + response.body().string();
                     public_func.write_log(context, error_message);
-                    Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
-                    Looper.loop();
                 }
             }
         });

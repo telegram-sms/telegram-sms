@@ -12,12 +12,10 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.BatteryManager;
 import android.os.IBinder;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -44,9 +42,8 @@ public class chat_long_polling_service extends Service {
     String bot_token;
     Context context;
     SharedPreferences sharedPreferences;
-    public chat_long_polling_service() {
-
-    }
+    OkHttpClient okhttp_client;
+    OkHttpClient okhttp_test_client;
 
     @SuppressLint("WrongConstant")
     @Override
@@ -55,6 +52,57 @@ public class chat_long_polling_service extends Service {
         startForeground(2, notification);
         return START_STICKY;
 
+    }
+
+    public chat_long_polling_service() {
+
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        context = getApplicationContext();
+        sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+
+        if (!sharedPreferences.getBoolean("initialized", false)) {
+            public_func.write_log(context, "Bot Command:Uninitialized");
+            stopSelf();
+        }
+        chat_id = sharedPreferences.getString("chat_id", "");
+        bot_token = sharedPreferences.getString("bot_token", "");
+        okhttp_test_client = public_func.get_okhttp_obj();
+        okhttp_client = new OkHttpClient.Builder()
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .writeTimeout(15, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(true)
+                .build();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        start_long_polling();
+                        Thread.sleep(100);
+                    } catch (IOException e) {
+                        if (magnification > 1) {
+                            magnification--;
+                        }
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        break;
+                    }
+                }
+            }
+        }).start();
+
+    }
+
+    @Override
+    public void onDestroy() {
+        stopForeground(true);
+        super.onDestroy();
     }
 
 
@@ -117,7 +165,6 @@ public class chat_long_polling_service extends Service {
     }
 
     void start_long_polling() throws IOException {
-        OkHttpClient okhttp_test_client = public_func.get_okhttp_obj();
         Request request_test = new Request.Builder().url("https://www.google.com/generate_204").build();
         Call call_test = okhttp_test_client.newCall(request_test);
 
@@ -128,12 +175,12 @@ public class chat_long_polling_service extends Service {
             call_test.execute();
             error_magnification = 1;
         } catch (IOException e) {
-            int sleep_time = 60 * error_magnification;
+            int sleep_time = 30 * error_magnification;
 
             public_func.write_log(context, "No network service,try again after " + sleep_time + " seconds");
 
             magnification = 1;
-            if (error_magnification <= 4) {
+            if (error_magnification <= 9) {
                 error_magnification++;
             }
             try {
@@ -149,11 +196,8 @@ public class chat_long_polling_service extends Service {
         }
 
         int read_timeout = 30 * magnification;
-        OkHttpClient okhttp_client = new OkHttpClient.Builder()
-                .connectTimeout(15, TimeUnit.SECONDS)
+        OkHttpClient okhttp_client_new = okhttp_client.newBuilder()
                 .readTimeout((read_timeout + 5), TimeUnit.SECONDS)
-                .writeTimeout(15, TimeUnit.SECONDS)
-                .retryOnConnectionFailure(true)
                 .build();
         String request_uri = public_func.get_url(bot_token, "getUpdates");
         polling_json request_body = new polling_json();
@@ -162,7 +206,7 @@ public class chat_long_polling_service extends Service {
         Gson gson = new Gson();
         RequestBody body = RequestBody.create(public_func.JSON, gson.toJson(request_body));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-        Call call = okhttp_client.newCall(request);
+        Call call = okhttp_client_new.newCall(request);
         Response response = call.execute();
         if (response != null && response.code() == 200) {
             assert response.body() != null;
@@ -176,44 +220,6 @@ public class chat_long_polling_service extends Service {
         }
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        context = getApplicationContext();
-        sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-
-        chat_id = sharedPreferences.getString("chat_id", "");
-        bot_token = sharedPreferences.getString("bot_token", "");
-        assert bot_token != null;
-        if (bot_token.isEmpty() || chat_id.isEmpty()) {
-            stopForeground(true);
-        }
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    try {
-                        start_long_polling();
-                        Thread.sleep(100);
-                    } catch (IOException e) {
-                        if (magnification > 1) {
-                            magnification--;
-                        }
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        break;
-                    }
-                }
-            }
-        }).start();
-    }
-
-    @Override
-    public void onDestroy() {
-        stopForeground(true);
-        super.onDestroy();
-    }
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -296,12 +302,14 @@ public class chat_long_polling_service extends Service {
                         switch (command) {
                             case "/sendsms":
                                 public_func.send_sms(context, msg_send_to, msg_send_content.toString(), -1);
+                                //reject
                                 return;
                             case "/sendsms2":
                                 int sub_id = get_card2_subid(context);
                                 request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.cant_get_card_2_info);
                                 if (sub_id != -1) {
                                     public_func.send_sms(context, msg_send_to, msg_send_content.toString(), sub_id);
+                                    //reject
                                     return;
                                 }
                                 break;
@@ -317,28 +325,21 @@ public class chat_long_polling_service extends Service {
         String request_uri = public_func.get_url(bot_token, "sendMessage");
         Gson gson = new Gson();
         RequestBody body = RequestBody.create(public_func.JSON, gson.toJson(request_body));
-        OkHttpClient okhttp_client = public_func.get_okhttp_obj();
         Request send_request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(send_request);
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                Looper.prepare();
                 String error_message = "Send reply failed:" + e.getMessage();
                 public_func.write_log(context, error_message);
-                Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
-                Looper.loop();
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
-                    Looper.prepare();
                     assert response.body() != null;
                     String error_message = "Send reply failed:" + response.body().string();
                     public_func.write_log(context, error_message);
-                    Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
-                    Looper.loop();
                 }
             }
         });
