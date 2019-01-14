@@ -12,12 +12,10 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.BatteryManager;
 import android.os.IBinder;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -66,13 +64,12 @@ public class chat_long_polling_service extends Service {
         context = getApplicationContext();
         sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
 
-        chat_id = sharedPreferences.getString("chat_id", "");
-        bot_token = sharedPreferences.getString("bot_token", "");
-        assert bot_token != null;
         if (!sharedPreferences.getBoolean("initialized", false)) {
             public_func.write_log(context, "Bot Command:Uninitialized");
             stopSelf();
         }
+        chat_id = sharedPreferences.getString("chat_id", "");
+        bot_token = sharedPreferences.getString("bot_token", "");
         okhttp_test_client = public_func.get_okhttp_obj();
         okhttp_client = new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
@@ -328,28 +325,21 @@ public class chat_long_polling_service extends Service {
         String request_uri = public_func.get_url(bot_token, "sendMessage");
         Gson gson = new Gson();
         RequestBody body = RequestBody.create(public_func.JSON, gson.toJson(request_body));
-        OkHttpClient okhttp_client = public_func.get_okhttp_obj();
         Request send_request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(send_request);
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                Looper.prepare();
                 String error_message = "Send reply failed:" + e.getMessage();
                 public_func.write_log(context, error_message);
-                Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
-                Looper.loop();
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
-                    Looper.prepare();
                     assert response.body() != null;
                     String error_message = "Send reply failed:" + response.body().string();
                     public_func.write_log(context, error_message);
-                    Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
-                    Looper.loop();
                 }
             }
         });

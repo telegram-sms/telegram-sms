@@ -7,12 +7,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.telephony.PhoneStateListener;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 
@@ -104,10 +102,8 @@ class call_state_listener extends PhoneStateListener {
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                Looper.prepare();
                 String error_message = "Send missed call error:" + e.getMessage();
                 public_func.write_log(context, error_message);
-                Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                 if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                     if (sharedPreferences.getBoolean("fallback_sms", false)) {
                         String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
@@ -117,18 +113,14 @@ class call_state_listener extends PhoneStateListener {
                         }
                     }
                 }
-                Looper.loop();
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
-                    Looper.prepare();
                     assert response.body() != null;
                     String error_message = "Send missed call error:" + response.body().string();
                     public_func.write_log(context, error_message);
-                    Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
-                    Looper.loop();
                 }
             }
         });
