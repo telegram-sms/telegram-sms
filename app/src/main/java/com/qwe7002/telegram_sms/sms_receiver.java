@@ -8,13 +8,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Looper;
 import android.provider.Telephony;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.SmsMessage;
 import android.telephony.SubscriptionManager;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 
@@ -123,10 +121,8 @@ public class sms_receiver extends BroadcastReceiver {
                 call.enqueue(new Callback() {
                     @Override
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                        Looper.prepare();
                         String error_message = "SMS forwarding failed:" + e.getMessage();
                         public_func.write_log(context, error_message);
-                        Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
                         public_func.write_log(context, "message body:" + request_body.text);
                         if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                             if (sharedPreferences.getBoolean("fallback_sms", false)) {
@@ -137,19 +133,15 @@ public class sms_receiver extends BroadcastReceiver {
                                 }
                             }
                         }
-                        Looper.loop();
                     }
 
                     @Override
                     public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                         if (response.code() != 200) {
-                            Looper.prepare();
                             assert response.body() != null;
                             String error_message = "SMS forwarding failed:" + response.body().string();
                             public_func.write_log(context, error_message);
                             public_func.write_log(context, "message body:" + request_body.text);
-                            Toast.makeText(context, error_message, Toast.LENGTH_SHORT).show();
-                            Looper.loop();
                         }
                     }
                 });
