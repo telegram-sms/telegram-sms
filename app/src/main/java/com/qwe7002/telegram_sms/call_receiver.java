@@ -9,7 +9,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.telephony.PhoneStateListener;
-import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 
 import com.google.gson.Gson;
@@ -28,19 +27,21 @@ import static android.content.Context.MODE_PRIVATE;
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class call_receiver extends BroadcastReceiver {
-    private int slot;
-
+    private static int slot;
+    private static String incoming_number;
     @Override
     public void onReceive(Context context, Intent intent) {
         switch (Objects.requireNonNull(intent.getAction())) {
             case "android.intent.action.PHONE_STATE":
+                incoming_number = intent.getStringExtra("incoming_number");
                 TelephonyManager telephony = (TelephonyManager) context
                         .getSystemService(Context.TELEPHONY_SERVICE);
-                call_state_listener custom_phone_listener = new call_state_listener(context, slot);
+                call_state_listener custom_phone_listener = new call_state_listener(context, slot, incoming_number);
                 telephony.listen(custom_phone_listener, PhoneStateListener.LISTEN_CALL_STATE);
                 break;
             case "android.intent.action.SUBSCRIPTION_PHONE_STATE":
                 slot = intent.getIntExtra("slot", -1);
+
         }
     }
 }
@@ -49,35 +50,34 @@ class call_state_listener extends PhoneStateListener {
     private static int lastState = TelephonyManager.CALL_STATE_IDLE;
     private Context context;
     private int slot;
+    private String incoming_number;
 
-    call_state_listener(Context context, int slot) {
+    call_state_listener(Context context, int slot, String incoming_number) {
         super();
         this.context = context;
         this.slot = slot;
+        this.incoming_number = incoming_number;
     }
 
     public void onCallStateChanged(int state, String incomingNumber) {
         if (lastState == TelephonyManager.CALL_STATE_RINGING
                 && state == TelephonyManager.CALL_STATE_IDLE) {
-            sendSmgWhenMissedCall(incomingNumber);
+            sendSmgWhenMissedCall();
         }
 
         lastState = state;
     }
 
     @SuppressLint("MissingPermission")
-    private void sendSmgWhenMissedCall(String incomingNumber) {
-        SubscriptionManager manager = SubscriptionManager.from(context);
-        String DualSim = "";
-        if (manager.getActiveSubscriptionInfoCount() == 2) {
+    private void sendSmgWhenMissedCall() {
+        String dual_sim = "";
+        if (public_func.get_active_card(context) == 2) {
             if (slot != -1) {
-                DualSim = "SIM" + (slot + 1)+" ";
+                dual_sim = "SIM" + (slot + 1) + " ";
             }
         }
 
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-
-
         if (!sharedPreferences.getBoolean("initialized", false)) {
             public_func.write_log(context, "Receive Phone:Uninitialized");
             return;
@@ -87,12 +87,12 @@ class call_state_listener extends PhoneStateListener {
         String request_uri = public_func.get_url(bot_token, "sendMessage");
         final request_json request_body = new request_json();
         request_body.chat_id = chat_id;
-        String display_address = incomingNumber;
-        String display_name = public_func.get_phone_name(context, incomingNumber);
+        String display_address = incoming_number;
+        String display_name = public_func.get_phone_name(context, incoming_number);
         if (display_name != null) {
-            display_address = display_name + "(" + incomingNumber + ")";
+            display_address = display_name + "(" + incoming_number + ")";
         }
-        request_body.text = "[" + DualSim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + display_address;
+        request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + display_address;
         Gson gson = new Gson();
         String request_body_raw = gson.toJson(request_body);
         RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
