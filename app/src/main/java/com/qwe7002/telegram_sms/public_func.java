@@ -92,7 +92,7 @@ class public_func {
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
         ArrayList<PendingIntent> send_receiver_list = new ArrayList<>();
         IntentFilter filter = new IntentFilter("send_sms");
-        BroadcastReceiver receiver = new send_status_receiver();
+        BroadcastReceiver receiver = new sms_send_receiver();
         context.getApplicationContext().registerReceiver(receiver, filter);
         Intent sent_intent = new Intent("send_sms");
         sent_intent.putExtra("sim_card", sim_card);
