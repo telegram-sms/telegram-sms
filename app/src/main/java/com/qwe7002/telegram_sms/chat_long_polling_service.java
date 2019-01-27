@@ -54,10 +54,6 @@ public class chat_long_polling_service extends Service {
 
     }
 
-    public chat_long_polling_service() {
-
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -146,15 +142,8 @@ public class chat_long_polling_service extends Service {
         return net_type;
     }
 
-    public int get_active_card(Context context) {
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            return -1;
-        }
-        return SubscriptionManager.from(context).getActiveSubscriptionInfoCount();
-    }
-
     public int get_card2_subid(Context context) {
-        int active_card = get_active_card(context);
+        int active_card = public_func.get_active_card(context);
         if (active_card >= 2) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
                 return -1;
