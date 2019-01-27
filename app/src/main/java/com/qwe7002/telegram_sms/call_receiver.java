@@ -28,12 +28,12 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class call_receiver extends BroadcastReceiver {
     private static int slot;
-    private static String incoming_number;
+
     @Override
     public void onReceive(Context context, Intent intent) {
         switch (Objects.requireNonNull(intent.getAction())) {
             case "android.intent.action.PHONE_STATE":
-                incoming_number = intent.getStringExtra("incoming_number");
+                String incoming_number = intent.getStringExtra("incoming_number");
                 TelephonyManager telephony = (TelephonyManager) context
                         .getSystemService(Context.TELEPHONY_SERVICE);
                 call_state_listener custom_phone_listener = new call_state_listener(context, slot, incoming_number);
