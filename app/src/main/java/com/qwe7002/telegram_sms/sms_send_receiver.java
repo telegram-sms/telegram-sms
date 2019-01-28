@@ -25,7 +25,7 @@ import okhttp3.Response;
 
 import static android.content.Context.MODE_PRIVATE;
 
-public class send_status_receiver extends BroadcastReceiver {
+public class sms_send_receiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, Intent intent) {
         context.getApplicationContext().unregisterReceiver(this);
@@ -80,7 +80,7 @@ public class send_status_receiver extends BroadcastReceiver {
             public void onFailure(Call call, IOException e) {
                 String error_message = "failed to send SMS:" + e.getMessage();
                 public_func.write_log(context, error_message);
-                public_func.write_log(context, "message body:" + request_body.text);
+                public_func.write_log(context, "message body:\n" + request_body.text);
             }
 
             @Override
@@ -89,7 +89,7 @@ public class send_status_receiver extends BroadcastReceiver {
                     assert response.body() != null;
                     String error_message = "failed to send SMS:" + response.body().string();
                     public_func.write_log(context, error_message);
-                    public_func.write_log(context, "message body:" + request_body.text);
+                    public_func.write_log(context, "message body:\n" + request_body.text);
                 }
             }
         });

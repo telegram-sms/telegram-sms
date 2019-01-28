@@ -29,7 +29,7 @@
             android:enabled="true"
             android:exported="false"
             android:permission="android.permission.INTERNET"
-            android:process=":chat" />
+            android:process=":command" />
 
         <activity android:name=".logcat_activity" />
 
@@ -38,7 +38,7 @@
             android:enabled="true"
             android:exported="false"
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE"
-            android:process=":battery_watchdog">
+            android:process=":battery">
             <intent-filter>
                 <action android:name="android.intent.action.RESPOND_VIA_MESSAGE" />
                 <category android:name="android.intent.category.DEFAULT" />
