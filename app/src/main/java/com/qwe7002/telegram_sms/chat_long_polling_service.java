@@ -267,7 +267,11 @@ public class chat_long_polling_service extends Service {
         public_func.write_log(context, "request command: " + command);
         switch (command) {
             case "/start":
-                request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.available_command);
+                String use_card2 = "";
+                if (public_func.get_active_card(context) == 2) {
+                    use_card2 = "\n" + getString(R.string.sendsms2);
+                }
+                request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.available_command) + use_card2;
                 break;
             case "/ping":
             case "/getinfo":
@@ -291,14 +295,12 @@ public class chat_long_polling_service extends Service {
                         switch (command) {
                             case "/sendsms":
                                 public_func.send_sms(context, msg_send_to, msg_send_content.toString(), -1);
-                                //reject
                                 return;
                             case "/sendsms2":
                                 int sub_id = get_card2_subid(context);
                                 request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.cant_get_card_2_info);
                                 if (sub_id != -1) {
                                     public_func.send_sms(context, msg_send_to, msg_send_content.toString(), sub_id);
-                                    //reject
                                     return;
                                 }
                                 break;
