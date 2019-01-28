@@ -298,7 +298,7 @@ public class chat_long_polling_service extends Service {
                                 return;
                             case "/sendsms2":
                                 int sub_id = get_card2_subid(context);
-                                request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.cant_get_card_2_info);
+                                request_body.text = "[SIM2" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.cant_get_card_2_info);
                                 if (sub_id != -1) {
                                     public_func.send_sms(context, msg_send_to, msg_send_content.toString(), sub_id);
                                     return;
