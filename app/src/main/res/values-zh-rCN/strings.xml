@@ -20,7 +20,7 @@
     <string name="get_recent_chat_id">获取最近的对话ID</string>
     <string name="test_and_save">测试并保存</string>
     <string name="network_error_falls_back_to_sms">网络错误回退到SMS</string>
-    <string name="current_battery_level">当前电池电量：</string>
+    <string name="current_battery_level">电池电量：</string>
     <string name="low_battery_status_end">电池电量不足状态已结束。</string>
     <string name="logcat">查看日志</string>
     <string name="token_not_configure">请先配置机器人令牌。</string>
@@ -29,7 +29,7 @@
     <string name="chat_command">获取聊天命令</string>
     <string name="command_format_error">命令格式错误</string>
     <string name="unknown_command">未知的命令</string>
-    <string name="current_network_connection_status">当前网络连接状态：</string>
+    <string name="current_network_connection_status">网络状态：</string>
     <string name="cant_get_card_2_info">无法获取卡槽2信息。</string>
     <string name="battery_monitoring">监控电池状态变动</string>
     <string name="trusted_phone_number_empty">可信电话号码不能为空。</string>
