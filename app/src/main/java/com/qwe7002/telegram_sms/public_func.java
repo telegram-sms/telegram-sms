@@ -92,7 +92,7 @@ class public_func {
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
         ArrayList<PendingIntent> send_receiver_list = new ArrayList<>();
         IntentFilter filter = new IntentFilter("send_sms");
-        BroadcastReceiver receiver = new send_status_receiver();
+        BroadcastReceiver receiver = new sms_send_receiver();
         context.getApplicationContext().registerReceiver(receiver, filter);
         Intent sent_intent = new Intent("send_sms");
         sent_intent.putExtra("sim_card", sim_card);
@@ -170,16 +170,20 @@ class public_func {
         String contact_name = null;
         if (checkSelfPermission(context, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
             if (!phone_number.isEmpty()) {
-                Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phone_number));
-                String[] projection = new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME};
-                Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null);
-                if (cursor != null) {
-                    if (cursor.moveToFirst()) {
-                        String cursor_name = cursor.getString(0);
-                        if (!cursor_name.isEmpty())
-                            contact_name = cursor_name;
+                try {
+                    Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phone_number));
+                    String[] projection = new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME};
+                    Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null);
+                    if (cursor != null) {
+                        if (cursor.moveToFirst()) {
+                            String cursor_name = cursor.getString(0);
+                            if (!cursor_name.isEmpty())
+                                contact_name = cursor_name;
+                        }
+                        cursor.close();
                     }
-                    cursor.close();
+                } catch (Exception ignored) {
+                    return null;
                 }
             }
         }

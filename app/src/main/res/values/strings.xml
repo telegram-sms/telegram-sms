@@ -21,7 +21,7 @@
     <string name="get_recent_chat_id">Get recent chat ID</string>
     <string name="test_and_save">Test and save</string>
     <string name="network_error_falls_back_to_sms">Network error falls back to SMS</string>
-    <string name="current_battery_level">Current battery level:</string>
+    <string name="current_battery_level">Battery level:</string>
     <string name="low_battery_status_end">The low battery status has ended.</string>
     <string name="logcat">View log</string>
     <string name="token_not_configure">Please configure the robot token first.</string>
@@ -30,7 +30,7 @@
     <string name="chat_command">Get chat command</string>
     <string name="command_format_error">Command format error</string>
     <string name="unknown_command">Unknown command</string>
-    <string name="current_network_connection_status">Current network connection status:</string>
+    <string name="current_network_connection_status">Network status:</string>
     <string name="cant_get_card_2_info">Unable to get card slot 2 information.</string>
     <string name="battery_monitoring">Monitor battery status changes</string>
     <string name="trusted_phone_number_empty">The trusted phone number cannot be empty.</string>
@@ -39,10 +39,11 @@
     <string name="chat_command_service_name">"Chat command "</string>
     <string name="success">Success</string>
     <string name="receive_sms_head">Receive SMS</string>
-    <string name="available_command">Available Commands:\n/getinfo - Get system information\n/sendsms - Send SMS\n/sendsms2 - Send SMS using the second card slot</string>
+    <string name="available_command">Available Commands:\n/getinfo - Get system information\n/sendsms - Send SMS</string>
     <string name="restart_service">The background service restarted successfully.</string>
     <string name="status">Status:</string>
     <string name="send_failed">Failed to send</string>
     <string name="airplan_mode">The current device is in Airplane mode</string>
     <string name="no_network">No service</string>
+    <string name="sendsms2">/sendsms2 - Send SMS using the second card slot</string>
 </resources>

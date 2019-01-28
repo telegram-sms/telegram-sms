@@ -20,7 +20,7 @@
     <string name="get_recent_chat_id">获取最近的对话ID</string>
     <string name="test_and_save">测试并保存</string>
     <string name="network_error_falls_back_to_sms">网络错误回退到SMS</string>
-    <string name="current_battery_level">当前电池电量：</string>
+    <string name="current_battery_level">电池电量：</string>
     <string name="low_battery_status_end">电池电量不足状态已结束。</string>
     <string name="logcat">查看日志</string>
     <string name="token_not_configure">请先配置机器人令牌。</string>
@@ -29,7 +29,7 @@
     <string name="chat_command">获取聊天命令</string>
     <string name="command_format_error">命令格式错误</string>
     <string name="unknown_command">未知的命令</string>
-    <string name="current_network_connection_status">当前网络连接状态：</string>
+    <string name="current_network_connection_status">网络状态：</string>
     <string name="cant_get_card_2_info">无法获取卡槽2信息。</string>
     <string name="battery_monitoring">监控电池状态变动</string>
     <string name="trusted_phone_number_empty">可信电话号码不能为空。</string>
@@ -38,10 +38,11 @@
     <string name="chat_command_service_name">聊天命令</string>
     <string name="success">成功</string>
     <string name="receive_sms_head">收到短信</string>
-    <string name="available_command">可用命令：\n/getinfo - 获取系统信息\n/sendsms - 发送短信\n/sendsms2 - 使用第二个卡槽发送短信</string>
+    <string name="available_command">可用命令：\n/getinfo - 获取系统信息\n/sendsms - 发送短信</string>
     <string name="restart_service">后台服务已成功重新启动。</string>
     <string name="status">状态：</string>
     <string name="send_failed">发送失败</string>
     <string name="airplan_mode">当前设备处于飞行模式</string>
     <string name="no_network">无服务</string>
+    <string name="sendsms2">/sendsms2 - 使用第二个卡槽发送短信</string>
 </resources>
