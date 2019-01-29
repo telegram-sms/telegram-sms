@@ -19,6 +19,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
+import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.util.Log;
 
@@ -166,6 +167,15 @@ class public_func {
         }
         return SubscriptionManager.from(context).getActiveSubscriptionInfoCount();
     }
+
+    static String get_sim_name(Context context, int slot) {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            return null;
+        }
+        SubscriptionInfo info = SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(slot);
+        return info.getDisplayName().toString();
+    }
+
     static String get_phone_name(Context context, String phone_number) {
         String contact_name = null;
         if (checkSelfPermission(context, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
@@ -182,7 +192,8 @@ class public_func {
                         }
                         cursor.close();
                     }
-                } catch (Exception ignored) {
+                } catch (Exception e) {
+                    e.printStackTrace();
                     return null;
                 }
             }
@@ -193,8 +204,8 @@ class public_func {
     static void write_log(Context context, String log) {
         Log.i(public_func.log_tag, log);
         @SuppressLint("SimpleDateFormat") SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date date = new Date(System.currentTimeMillis());
-        String error_log = read_log_file(context) + "\n" + simpleDateFormat.format(date) + " " + log;
+        Date ts = new Date(System.currentTimeMillis());
+        String error_log = read_log_file(context) + "\n" + simpleDateFormat.format(ts) + " " + log;
         write_log_file(context, error_log);
     }
 
