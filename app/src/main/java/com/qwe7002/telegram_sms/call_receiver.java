@@ -72,8 +72,13 @@ class call_state_listener extends PhoneStateListener {
     private void sendSmgWhenMissedCall() {
         String dual_sim = "";
         if (public_func.get_active_card(context) == 2) {
+            String display_name = public_func.get_sim_name(context, slot);
+            String display = "";
+            if (display_name != null) {
+                display = "(" + display_name + ")";
+            }
             if (slot != -1) {
-                dual_sim = "SIM" + (slot + 1) + " ";
+                dual_sim = "SIM" + (slot + 1) + display + " ";
             }
         }
 
