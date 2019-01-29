@@ -44,7 +44,23 @@ public class sms_send_receiver extends BroadcastReceiver {
         String dual_sim = "";
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
             if (manager.getActiveSubscriptionInfoCount() >= 2) {
-                dual_sim = "SIM" + Objects.requireNonNull(intent.getExtras()).getString("sim_card") + " ";
+                String sim_card = Objects.requireNonNull(intent.getExtras()).getString("sim_card");
+                int slot = -1;
+                assert sim_card != null;
+                switch (sim_card) {
+                    case "1":
+                        slot = 0;
+                        break;
+                    case "2":
+                        slot = 1;
+                        break;
+                }
+                String display_name = public_func.get_sim_name(context, slot);
+                String display = "";
+                if (display_name != null) {
+                    display = "(" + display_name + ")";
+                }
+                dual_sim = "SIM" + sim_card + display + " ";
             }
         }
         String send_to = Objects.requireNonNull(intent.getExtras()).getString("send_to");
