@@ -43,15 +43,6 @@ import okhttp3.Response;
 public class main_activity extends AppCompatActivity {
     Context context = null;
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
-        boolean initialized = sharedPreferences.getBoolean("initialized", false);
-        if (initialized) {
-            public_func.start_service(context, sharedPreferences);
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,10 +55,10 @@ public class main_activity extends AppCompatActivity {
         final Switch chat_command = findViewById(R.id.chat_command);
         final Switch fallback_sms = findViewById(R.id.fallback_sms);
         final Switch battery_monitoring_switch = findViewById(R.id.battery_monitoring);
+        final Switch display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
-
         assert bot_token_save != null;
         assert chat_id_save != null;
         if (!sharedPreferences.getBoolean("initialized", false) && !bot_token_save.isEmpty() && !chat_id_save.isEmpty()) {
@@ -75,6 +66,9 @@ public class main_activity extends AppCompatActivity {
             editor.putBoolean("initialized", true);
             editor.putBoolean("battery_monitoring_switch", true);
             editor.apply();
+        }
+        if (sharedPreferences.getBoolean("initialized", false)) {
+            public_func.start_service(context, sharedPreferences);
         }
         Button save_button = findViewById(R.id.save);
         Button get_id = findViewById(R.id.get_id);
@@ -249,14 +243,6 @@ public class main_activity extends AppCompatActivity {
                             Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
                             return;
                         }
-                        if (sharedPreferences.getBoolean("initialized", false)) {
-                            Intent battery_service = new Intent(context, battery_monitoring_service.class);
-                            context.stopService(battery_service);
-                            if (sharedPreferences.getBoolean("chat_command", false)) {
-                                Intent chat_long_polling_service = new Intent(context, chat_long_polling_service.class);
-                                context.stopService(chat_long_polling_service);
-                            }
-                        }
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString("bot_token", bot_token.getText().toString().trim());
                         editor.putString("chat_id", chat_id.getText().toString().trim());
@@ -264,6 +250,7 @@ public class main_activity extends AppCompatActivity {
                         editor.putBoolean("fallback_sms", fallback_sms.isChecked());
                         editor.putBoolean("chat_command", chat_command.isChecked());
                         editor.putBoolean("battery_monitoring_switch", battery_monitoring_switch.isChecked());
+                        editor.putBoolean("display_dual_sim_display_name", display_dual_sim_display_name.isChecked());
                         editor.putBoolean("initialized", true);
                         editor.apply();
                         Snackbar.make(v, R.string.success, Snackbar.LENGTH_LONG)
