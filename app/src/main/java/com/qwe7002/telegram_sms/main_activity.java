@@ -250,14 +250,6 @@ public class main_activity extends AppCompatActivity {
                             Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
                             return;
                         }
-                        if (sharedPreferences.getBoolean("initialized", false)) {
-                            Intent battery_service = new Intent(context, battery_monitoring_service.class);
-                            context.stopService(battery_service);
-                            if (sharedPreferences.getBoolean("chat_command", false)) {
-                                Intent chat_long_polling_service = new Intent(context, chat_long_polling_service.class);
-                                context.stopService(chat_long_polling_service);
-                            }
-                        }
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString("bot_token", bot_token.getText().toString().trim());
                         editor.putString("chat_id", chat_id.getText().toString().trim());
