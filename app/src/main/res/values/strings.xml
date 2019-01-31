@@ -46,4 +46,5 @@
     <string name="airplan_mode">The current device is in Airplane mode</string>
     <string name="no_network">No service</string>
     <string name="sendsms2">/sendsms2 - Send SMS using the second card slot</string>
+    <string name="display_sim_card_alias_in_dual_card_mode">Display SIM card alias in dual card mode</string>
 </resources>

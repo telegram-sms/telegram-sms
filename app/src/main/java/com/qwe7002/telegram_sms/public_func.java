@@ -172,6 +172,10 @@ class public_func {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             return null;
         }
+        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        if (!sharedPreferences.getBoolean("display_dual_sim_display_name", false)) {
+            return null;
+        }
         SubscriptionInfo info = SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(slot);
         return info.getDisplayName().toString();
     }

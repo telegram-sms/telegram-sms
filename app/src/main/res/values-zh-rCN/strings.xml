@@ -45,4 +45,5 @@
     <string name="airplan_mode">当前设备处于飞行模式</string>
     <string name="no_network">无服务</string>
     <string name="sendsms2">/sendsms2 - 使用第二个卡槽发送短信</string>
+    <string name="display_sim_card_alias_in_dual_card_mode">在双卡模式下显示SIM卡别名</string>
 </resources>
