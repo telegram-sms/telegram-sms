@@ -64,6 +64,7 @@ public class main_activity extends AppCompatActivity {
         final Switch chat_command = findViewById(R.id.chat_command);
         final Switch fallback_sms = findViewById(R.id.fallback_sms);
         final Switch battery_monitoring_switch = findViewById(R.id.battery_monitoring);
+        final Switch display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
@@ -264,6 +265,7 @@ public class main_activity extends AppCompatActivity {
                         editor.putBoolean("fallback_sms", fallback_sms.isChecked());
                         editor.putBoolean("chat_command", chat_command.isChecked());
                         editor.putBoolean("battery_monitoring_switch", battery_monitoring_switch.isChecked());
+                        editor.putBoolean("display_dual_sim_display_name", display_dual_sim_display_name.isChecked());
                         editor.putBoolean("initialized", true);
                         editor.apply();
                         Snackbar.make(v, R.string.success, Snackbar.LENGTH_LONG)
