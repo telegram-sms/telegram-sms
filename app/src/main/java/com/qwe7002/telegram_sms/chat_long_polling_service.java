@@ -35,9 +35,9 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class chat_long_polling_service extends Service {
-    int offset = 0;
-    int magnification = 1;
-    int error_magnification = 1;
+    static int offset = 0;
+    static int magnification = 1;
+    static int error_magnification = 1;
     String chat_id;
     String bot_token;
     Context context;
@@ -50,6 +50,12 @@ public class chat_long_polling_service extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
         startForeground(2, notification);
+        if (!sharedPreferences.getBoolean("initialized", false)) {
+            public_func.write_log(context, "Bot Command:Uninitialized");
+            stopSelf();
+        }
+        chat_id = sharedPreferences.getString("chat_id", "");
+        bot_token = sharedPreferences.getString("bot_token", "");
         return START_STICKY;
 
     }
@@ -59,13 +65,6 @@ public class chat_long_polling_service extends Service {
         super.onCreate();
         context = getApplicationContext();
         sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-
-        if (!sharedPreferences.getBoolean("initialized", false)) {
-            public_func.write_log(context, "Bot Command:Uninitialized");
-            stopSelf();
-        }
-        chat_id = sharedPreferences.getString("chat_id", "");
-        bot_token = sharedPreferences.getString("bot_token", "");
         okhttp_test_client = public_func.get_okhttp_obj();
         okhttp_client = new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)

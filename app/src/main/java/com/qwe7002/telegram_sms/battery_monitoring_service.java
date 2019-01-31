@@ -26,22 +26,37 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 import static android.content.Context.BATTERY_SERVICE;
-import static android.content.Context.MODE_PRIVATE;
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class battery_monitoring_service extends Service {
     battery_receiver receiver = null;
+    static String bot_token;
+    static String chat_id;
+    static Boolean fallback;
+    static String trusted_phone_number;
+    Context context;
+    SharedPreferences sharedPreferences;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.Battery_monitoring));
+        Notification notification = public_func.get_notification_obj(context, getString(R.string.Battery_monitoring));
         startForeground(1, notification);
+        if (!sharedPreferences.getBoolean("initialized", false)) {
+            public_func.write_log(context, "Battery Monitoring:Uninitialized");
+            stopSelf();
+        }
+        chat_id = sharedPreferences.getString("chat_id", "");
+        bot_token = sharedPreferences.getString("bot_token", "");
+        fallback = sharedPreferences.getBoolean("fallback_sms", false);
+        trusted_phone_number = sharedPreferences.getString("trusted_phone_number", null);
         return START_STICKY;
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
+        context = getApplicationContext();
+        sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         receiver = new battery_receiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_OKAY);
@@ -68,18 +83,12 @@ public class battery_monitoring_service extends Service {
 
 class battery_receiver extends BroadcastReceiver {
     OkHttpClient okhttp_client = public_func.get_okhttp_obj();
+
     @Override
     public void onReceive(final Context context, final Intent intent) {
-        final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-        if (!sharedPreferences.getBoolean("initialized", false)) {
-            public_func.write_log(context, "Receive SMS:Uninitialized");
-            return;
-        }
-        String bot_token = sharedPreferences.getString("bot_token", "");
-        String chat_id = sharedPreferences.getString("chat_id", "");
-        String request_uri = public_func.get_url(bot_token, "sendMessage");
+        String request_uri = public_func.get_url(battery_monitoring_service.bot_token, "sendMessage");
         final request_json request_body = new request_json();
-        request_body.chat_id = chat_id;
+        request_body.chat_id = battery_monitoring_service.chat_id;
         StringBuilder prebody = new StringBuilder(context.getString(R.string.system_message_head) + "\n");
         final String action = intent.getAction();
         BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
@@ -110,8 +119,8 @@ class battery_receiver extends BroadcastReceiver {
                 public_func.write_log(context, error_message);
                 if (action.equals(Intent.ACTION_BATTERY_LOW)) {
                     if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-                        if (sharedPreferences.getBoolean("fallback_sms", false)) {
-                            String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
+                        if (battery_monitoring_service.fallback) {
+                            String msg_send_to = battery_monitoring_service.trusted_phone_number;
                             String msg_send_content = request_body.text;
                             if (msg_send_to != null) {
                                 public_func.send_sms(context, msg_send_to, msg_send_content, -1);
