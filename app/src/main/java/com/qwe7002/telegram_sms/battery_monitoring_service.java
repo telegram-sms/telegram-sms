@@ -42,10 +42,9 @@ public class battery_monitoring_service extends Service {
         Notification notification = public_func.get_notification_obj(context, getString(R.string.Battery_monitoring));
         startForeground(1, notification);
         if (!sharedPreferences.getBoolean("initialized", false)) {
-            public_func.write_log(context, "Receive SMS:Uninitialized");
+            public_func.write_log(context, "Battery Monitoring:Uninitialized");
             stopSelf();
         }
-
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
         fallback = sharedPreferences.getBoolean("fallback_sms", false);
