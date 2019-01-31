@@ -43,15 +43,6 @@ import okhttp3.Response;
 public class main_activity extends AppCompatActivity {
     Context context = null;
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
-        boolean initialized = sharedPreferences.getBoolean("initialized", false);
-        if (initialized) {
-            public_func.start_service(context, sharedPreferences);
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +59,6 @@ public class main_activity extends AppCompatActivity {
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
-
         assert bot_token_save != null;
         assert chat_id_save != null;
         if (!sharedPreferences.getBoolean("initialized", false) && !bot_token_save.isEmpty() && !chat_id_save.isEmpty()) {
@@ -76,6 +66,9 @@ public class main_activity extends AppCompatActivity {
             editor.putBoolean("initialized", true);
             editor.putBoolean("battery_monitoring_switch", true);
             editor.apply();
+        }
+        if (sharedPreferences.getBoolean("initialized", false)) {
+            public_func.start_service(context, sharedPreferences);
         }
         Button save_button = findViewById(R.id.save);
         Button get_id = findViewById(R.id.get_id);
