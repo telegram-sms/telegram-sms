@@ -64,5 +64,12 @@ The format of sending SMS is:
 <SMS_Content>
 ```
 
-## License
+License
+=======
+
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_large)
+
+Give a cup of coffee and let me better maintain this project?
+=============================================================
+
+[Support me in Patreon](https://www.patreon.com/user?u=16899295)
