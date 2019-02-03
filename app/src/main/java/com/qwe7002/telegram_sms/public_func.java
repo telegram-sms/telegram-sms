@@ -41,6 +41,12 @@ class public_func {
     private static final String log_tag = "tg-sms";
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
+    static String get_send_phone_number(String phone_number) {
+        return phone_number.trim()
+                .replaceAll(" ", "")
+                .replaceAll("-", "")
+                .replaceAll("\\\\(|\\\\)", "");
+    }
     static boolean check_network(Context context) {
 
         ConnectivityManager manager = (ConnectivityManager) context

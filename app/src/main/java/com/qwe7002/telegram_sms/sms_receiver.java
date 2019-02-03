@@ -96,7 +96,7 @@ public class sms_receiver extends BroadcastReceiver {
                 if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                     if (msg_address.equals(sharedPreferences.getString("trusted_phone_number", null))) {
                         String[] msg_send_list = msgBody.toString().split("\n");
-                        String msg_send_to = msg_send_list[0].trim().replaceAll(" ", "");
+                        String msg_send_to = public_func.get_send_phone_number(msg_send_list[0]);
                         if (msg_send_to.equals("restart-service")) {
                             public_func.start_service(context.getApplicationContext(), sharedPreferences);
                             request_body.text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
