@@ -174,18 +174,21 @@ class public_func {
         return SubscriptionManager.from(context).getActiveSubscriptionInfoCount();
     }
 
-    static String get_sim_name(Context context, int slot) {
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            return null;
-        }
+    static String get_sim_name_title(Context context, int slot) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("display_dual_sim_display_name", false)) {
+            return null;
+        }
+        return get_sim_display_name(context, slot);
+    }
+
+    static String get_sim_display_name(Context context, int slot) {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             return null;
         }
         SubscriptionInfo info = SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(slot);
         return info.getDisplayName().toString();
     }
-
     static String get_phone_name(Context context, String phone_number) {
         String contact_name = null;
         if (checkSelfPermission(context, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {

@@ -52,7 +52,7 @@ public class sms_receiver extends BroadcastReceiver {
                 if (manager.getActiveSubscriptionInfoCount() >= 2) {
                     int slot = bundle.getInt("slot", -1);
                     if (slot != -1) {
-                        String display_name = public_func.get_sim_name(context, slot);
+                        String display_name = public_func.get_sim_name_title(context, slot);
                         String display = "";
                         if (display_name != null) {
                             display = "(" + display_name + ")";

@@ -271,7 +271,12 @@ public class chat_long_polling_service extends Service {
             case "/ping":
             case "/getinfo":
                 BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
-                request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + get_network_type(context);
+                String card_info = "";
+                if (public_func.get_active_card(context) == 2) {
+                    card_info = "\nSIM1:" + public_func.get_sim_display_name(context, 0) + "\nSIM2:" + public_func.get_sim_display_name(context, 1);
+                }
+                request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + get_network_type(context) + card_info;
+
                 break;
             case "/sendsms":
             case "/sendsms2":
