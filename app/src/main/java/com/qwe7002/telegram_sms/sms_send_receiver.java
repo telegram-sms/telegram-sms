@@ -55,7 +55,7 @@ public class sms_send_receiver extends BroadcastReceiver {
                         slot = 1;
                         break;
                 }
-                String display_name = public_func.get_sim_name(context, slot);
+                String display_name = public_func.get_sim_name_title(context, slot);
                 String display = "";
                 if (display_name != null) {
                     display = "(" + display_name + ")";
