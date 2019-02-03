@@ -37,24 +37,18 @@ You can specify a trusted phone number for automatic forwarding.Once the bot rec
 ```
 example:
 ```
-10086
-cxll
+729725
+balance
 ```
 
-It will send a text message with content "cxll" to the number "10086".
+It will send a text message with content `balance` to the number `729725`.
 
 You can restart all background processes by sending the command `restart-service`
 
 Use Chat Command
 ================
 
-The current bot supports the following instructions, which you can configure in BotFather.
-
-```
-getinfo - Get system information
-sendsms - Send SMS
-sendsms2 - Send SMS using the second card slot
-```
+You can get a list of currently available meters by sending the `/start` command.
 
 The format of sending SMS is:
 
@@ -73,3 +67,5 @@ Give a cup of coffee and let me better maintain this project?
 =============================================================
 
 [Support me in Patreon](https://www.patreon.com/user?u=16899295)
+
+Your donation will make me work better for this project.
