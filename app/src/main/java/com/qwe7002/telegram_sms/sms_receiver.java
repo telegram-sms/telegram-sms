@@ -87,9 +87,11 @@ public class sms_receiver extends BroadcastReceiver {
                 final request_json request_body = new request_json();
                 request_body.chat_id = chat_id;
                 String display_address = msg_address;
-                String display_name = public_func.get_phone_name(context, display_address);
-                if (display_name != null) {
-                    display_address = display_name + "(" + display_address + ")";
+                if (display_address != null) {
+                    String display_name = public_func.get_contact_name(context, display_address);
+                    if (display_name != null) {
+                        display_address = display_name + "(" + display_address + ")";
+                    }
                 }
                 request_body.text = "[" + dual_sim + context.getString(R.string.receive_sms_head) + "]" + "\n" + context.getString(R.string.from) + display_address + "\n" + context.getString(R.string.content) + msgBody;
                 assert msg_address != null;
