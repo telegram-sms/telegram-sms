@@ -72,7 +72,7 @@ class call_state_listener extends PhoneStateListener {
     private void sendSmgWhenMissedCall() {
         String dual_sim = "";
         if (public_func.get_active_card(context) == 2) {
-            String display_name = public_func.get_sim_name(context, slot);
+            String display_name = public_func.get_sim_name_title(context, slot);
             String display = "";
             if (display_name != null) {
                 display = "(" + display_name + ")";
@@ -93,9 +93,11 @@ class call_state_listener extends PhoneStateListener {
         final request_json request_body = new request_json();
         request_body.chat_id = chat_id;
         String display_address = incoming_number;
-        String display_name = public_func.get_phone_name(context, incoming_number);
-        if (display_name != null) {
-            display_address = display_name + "(" + incoming_number + ")";
+        if (display_address != null) {
+            String display_name = public_func.get_contact_name(context, incoming_number);
+            if (display_name != null) {
+                display_address = display_name + "(" + incoming_number + ")";
+            }
         }
         request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + display_address;
         Gson gson = new Gson();

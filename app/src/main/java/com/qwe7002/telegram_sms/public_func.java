@@ -41,6 +41,13 @@ class public_func {
     private static final String log_tag = "tg-sms";
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
+    static String get_send_phone_number(String phone_number) {
+        return phone_number.trim()
+                .replaceAll(" ", "")
+                .replaceAll("-", "")
+                .replaceAll("\\\\(|\\\\)", "");
+    }
+
     static boolean check_network(Context context) {
 
         ConnectivityManager manager = (ConnectivityManager) context
@@ -168,38 +175,40 @@ class public_func {
         return SubscriptionManager.from(context).getActiveSubscriptionInfoCount();
     }
 
-    static String get_sim_name(Context context, int slot) {
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            return null;
-        }
+    static String get_sim_name_title(Context context, int slot) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("display_dual_sim_display_name", false)) {
+            return null;
+        }
+        return get_sim_display_name(context, slot);
+    }
+
+    static String get_sim_display_name(Context context, int slot) {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             return null;
         }
         SubscriptionInfo info = SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(slot);
         return info.getDisplayName().toString();
     }
 
-    static String get_phone_name(Context context, String phone_number) {
+    static String get_contact_name(Context context, String phone_number) {
         String contact_name = null;
         if (checkSelfPermission(context, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
-            if (!phone_number.isEmpty()) {
-                try {
-                    Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phone_number));
-                    String[] projection = new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME};
-                    Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null);
-                    if (cursor != null) {
-                        if (cursor.moveToFirst()) {
-                            String cursor_name = cursor.getString(0);
-                            if (!cursor_name.isEmpty())
-                                contact_name = cursor_name;
-                        }
-                        cursor.close();
+            try {
+                Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phone_number));
+                String[] projection = new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME};
+                Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null);
+                if (cursor != null) {
+                    if (cursor.moveToFirst()) {
+                        String cursor_name = cursor.getString(0);
+                        if (!cursor_name.isEmpty())
+                            contact_name = cursor_name;
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return null;
+                    cursor.close();
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
             }
         }
         return contact_name;
