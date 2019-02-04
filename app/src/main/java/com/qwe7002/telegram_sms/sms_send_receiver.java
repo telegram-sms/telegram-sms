@@ -65,7 +65,7 @@ public class sms_send_receiver extends BroadcastReceiver {
         }
         String send_to = Objects.requireNonNull(intent.getExtras()).getString("send_to");
         String display_to_address = send_to;
-        String display_to_name = public_func.get_phone_name(context, display_to_address);
+        String display_to_name = public_func.get_contact_name(context, display_to_address);
         if (display_to_name != null) {
             display_to_address = display_to_name + "(" + send_to + ")";
         }
