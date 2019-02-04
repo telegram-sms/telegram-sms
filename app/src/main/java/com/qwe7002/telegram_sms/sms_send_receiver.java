@@ -55,7 +55,7 @@ public class sms_send_receiver extends BroadcastReceiver {
                         slot = 1;
                         break;
                 }
-                String display_name = public_func.get_sim_name(context, slot);
+                String display_name = public_func.get_sim_name_title(context, slot);
                 String display = "";
                 if (display_name != null) {
                     display = "(" + display_name + ")";
@@ -65,7 +65,7 @@ public class sms_send_receiver extends BroadcastReceiver {
         }
         String send_to = Objects.requireNonNull(intent.getExtras()).getString("send_to");
         String display_to_address = send_to;
-        String display_to_name = public_func.get_phone_name(context, display_to_address);
+        String display_to_name = public_func.get_contact_name(context, display_to_address);
         if (display_to_name != null) {
             display_to_address = display_to_name + "(" + send_to + ")";
         }

@@ -52,7 +52,7 @@ public class sms_receiver extends BroadcastReceiver {
                 if (manager.getActiveSubscriptionInfoCount() >= 2) {
                     int slot = bundle.getInt("slot", -1);
                     if (slot != -1) {
-                        String display_name = public_func.get_sim_name(context, slot);
+                        String display_name = public_func.get_sim_name_title(context, slot);
                         String display = "";
                         if (display_name != null) {
                             display = "(" + display_name + ")";
@@ -87,16 +87,18 @@ public class sms_receiver extends BroadcastReceiver {
                 final request_json request_body = new request_json();
                 request_body.chat_id = chat_id;
                 String display_address = msg_address;
-                String display_name = public_func.get_phone_name(context, display_address);
-                if (display_name != null) {
-                    display_address = display_name + "(" + display_address + ")";
+                if (display_address != null) {
+                    String display_name = public_func.get_contact_name(context, display_address);
+                    if (display_name != null) {
+                        display_address = display_name + "(" + display_address + ")";
+                    }
                 }
                 request_body.text = "[" + dual_sim + context.getString(R.string.receive_sms_head) + "]" + "\n" + context.getString(R.string.from) + display_address + "\n" + context.getString(R.string.content) + msgBody;
                 assert msg_address != null;
                 if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                     if (msg_address.equals(sharedPreferences.getString("trusted_phone_number", null))) {
                         String[] msg_send_list = msgBody.toString().split("\n");
-                        String msg_send_to = msg_send_list[0].trim().replaceAll(" ", "");
+                        String msg_send_to = public_func.get_send_phone_number(msg_send_list[0]);
                         if (msg_send_to.equals("restart-service")) {
                             public_func.start_service(context.getApplicationContext(), sharedPreferences);
                             request_body.text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
