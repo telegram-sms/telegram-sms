@@ -3,6 +3,7 @@ apply from: 'version.gradle'
 
 android {
     compileSdkVersion 28
+
     defaultConfig {
         applicationId "com.qwe7002.telegram_sms"
         minSdkVersion 22
@@ -11,6 +12,10 @@ android {
         versionName appVersionName
     }
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 
     signingConfigs {
         releaseConfig {
@@ -22,6 +27,7 @@ android {
             v2SigningEnabled true
         }
     }
+
     buildTypes {
         release {
             minifyEnabled false
