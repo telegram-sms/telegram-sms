@@ -1,7 +1,6 @@
 package com.qwe7002.telegram_sms;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -28,12 +27,14 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class call_receiver extends BroadcastReceiver {
     private static int slot;
-
+    private static String incoming_number;
     @Override
     public void onReceive(Context context, Intent intent) {
         switch (Objects.requireNonNull(intent.getAction())) {
             case "android.intent.action.PHONE_STATE":
-                String incoming_number = intent.getStringExtra("incoming_number");
+                if (intent.getStringExtra("incoming_number") != null) {
+                    incoming_number = intent.getStringExtra("incoming_number");
+                }
                 TelephonyManager telephony = (TelephonyManager) context
                         .getSystemService(Context.TELEPHONY_SERVICE);
                 call_state_listener custom_phone_listener = new call_state_listener(context, slot, incoming_number);
@@ -50,26 +51,25 @@ class call_state_listener extends PhoneStateListener {
     private static int lastState = TelephonyManager.CALL_STATE_IDLE;
     private Context context;
     private int slot;
-    private String incoming_number;
+    private static String incoming_number;
 
     call_state_listener(Context context, int slot, String incoming_number) {
         super();
         this.context = context;
         this.slot = slot;
-        this.incoming_number = incoming_number;
+        call_state_listener.incoming_number = incoming_number;
     }
 
     public void onCallStateChanged(int state, String incomingNumber) {
         if (lastState == TelephonyManager.CALL_STATE_RINGING
                 && state == TelephonyManager.CALL_STATE_IDLE) {
-            sendSmgWhenMissedCall();
+            when_miss_call();
         }
 
         lastState = state;
     }
 
-    @SuppressLint("MissingPermission")
-    private void sendSmgWhenMissedCall() {
+    private void when_miss_call() {
         String dual_sim = "";
         if (public_func.get_active_card(context) == 2) {
             String display_name = public_func.get_sim_name_title(context, slot);
