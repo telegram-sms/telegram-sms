@@ -68,22 +68,19 @@ public class chat_long_polling_service extends Service {
         okhttp_test_client = public_func.get_okhttp_obj();
         okhttp_client = okhttp_test_client;
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    try {
-                        start_long_polling();
-                        Thread.sleep(100);
-                    } catch (IOException e) {
-                        if (magnification > 1) {
-                            magnification--;
-                        }
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        break;
+        new Thread(() -> {
+            while (true) {
+                try {
+                    start_long_polling();
+                    Thread.sleep(100);
+                } catch (IOException e) {
+                    if (magnification > 1) {
+                        magnification--;
                     }
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    break;
                 }
             }
         }).start();
@@ -271,7 +268,7 @@ public class chat_long_polling_service extends Service {
             case "/ping":
             case "/getinfo":
                 BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
-                String card_info = "";
+                String card_info = "\nSIM:" + public_func.get_sim_display_name(context, 0);
                 if (public_func.get_active_card(context) == 2) {
                     card_info = "\nSIM1:" + public_func.get_sim_display_name(context, 0) + "\nSIM2:" + public_func.get_sim_display_name(context, 1);
                 }
