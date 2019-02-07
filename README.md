@@ -5,15 +5,16 @@
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/qwe7002/telegram-sms/blob/master/LICENSE)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_shield)
 
-a tool for forwarding SMS to telegram
+A robot running on your Android device.
 
 
 Features
 ========
 
-* Forward SMS to Telegram
-* Monitor missed calls
-* Monitor device battery power changes
+- Forward SMS to Telegram
+- Monitor missed calls
+- Monitor device battery power changes
+- Remote control via chat command \ SMS.
 
 Permission
 ==========
@@ -21,7 +22,7 @@ Permission
 This app requires the following permissions:
 
 - SMS : Read and send a text message.
-- Phone : Get whether it is a dual card phone, card 2 status, and card 2 identifier ID.
+- Phone : Get whether it is a dual card phone, card 2 status and identifier ID.
 - Contact : Get the contact information and automatically identify the incoming caller's number.
 
 You can set this app as the default SMS app, which will block all SMS notifications and automatically set the SMS to read.
