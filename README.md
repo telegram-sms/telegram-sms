@@ -45,6 +45,8 @@ It will send a text message with content `balance` to the number `729725`.
 
 You can restart all background processes by sending the command `restart-service`
 
+**please add your country/region calling code (eg. +44 for UK phone number) if your are not in default region.**
+
 Use Chat Command
 ================
 
