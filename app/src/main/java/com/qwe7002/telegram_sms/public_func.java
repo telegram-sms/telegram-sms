@@ -43,9 +43,10 @@ class public_func {
 
     static String get_send_phone_number(String phone_number) {
         return phone_number.trim()
-                .replaceAll(" ", "")
-                .replaceAll("-", "")
-                .replaceAll("\\\\(|\\\\)", "");
+                .replace(" ", "")
+                .replace("-", "")
+                .replace("(", "")
+                .replace(")", "");
     }
 
     static boolean check_network(Context context) {
