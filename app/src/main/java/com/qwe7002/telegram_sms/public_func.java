@@ -168,6 +168,17 @@ class public_func {
         }
     }
 
+    static int get_subid(Context context, int slot) {
+        int active_card = public_func.get_active_card(context);
+        if (active_card >= 2) {
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                return -1;
+            }
+            return SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(slot).getSubscriptionId();
+        }
+        return -1;
+    }
+
     static int get_active_card(Context context) {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             return -1;
