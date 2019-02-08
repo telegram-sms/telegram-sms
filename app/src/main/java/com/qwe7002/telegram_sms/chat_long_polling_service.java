@@ -1,20 +1,16 @@
 package com.qwe7002.telegram_sms;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.BatteryManager;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 
 import com.google.gson.Gson;
@@ -134,16 +130,6 @@ public class chat_long_polling_service extends Service {
         return net_type;
     }
 
-    public int get_card2_subid(Context context) {
-        int active_card = public_func.get_active_card(context);
-        if (active_card >= 2) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-                return -1;
-            }
-            return SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(1).getSubscriptionId();
-        }
-        return -1;
-    }
 
     void start_long_polling() throws IOException {
         Request request_test = new Request.Builder().url("https://www.google.com/generate_204").build();
@@ -207,7 +193,7 @@ public class chat_long_polling_service extends Service {
         return null;
     }
 
-    void handle(JsonObject result_obj) {
+    private void handle(JsonObject result_obj) {
         int update_id = result_obj.get("update_id").getAsInt();
         if (update_id >= offset) {
             offset = update_id + 1;
@@ -294,7 +280,7 @@ public class chat_long_polling_service extends Service {
                                 public_func.send_sms(context, msg_send_to, msg_send_content.toString(), -1);
                                 return;
                             case "/sendsms2":
-                                int sub_id = get_card2_subid(context);
+                                int sub_id = public_func.get_subid(context, 1);
                                 request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.cant_get_card_2_info);
                                 if (sub_id != -1) {
                                     public_func.send_sms(context, msg_send_to, msg_send_content.toString(), sub_id);
