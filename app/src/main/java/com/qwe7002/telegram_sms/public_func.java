@@ -43,9 +43,10 @@ class public_func {
 
     static String get_send_phone_number(String phone_number) {
         return phone_number.trim()
-                .replaceAll(" ", "")
-                .replaceAll("-", "")
-                .replaceAll("\\\\(|\\\\)", "");
+                .replace(" ", "")
+                .replace("-", "")
+                .replace("(", "")
+                .replace(")", "");
     }
 
     static boolean check_network(Context context) {
@@ -166,6 +167,17 @@ class public_func {
                 context.startService(chat_long_polling_service);
             }
         }
+    }
+
+    static int get_subid(Context context, int slot) {
+        int active_card = public_func.get_active_card(context);
+        if (active_card >= 2) {
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                return -1;
+            }
+            return SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(slot).getSubscriptionId();
+        }
+        return -1;
     }
 
     static int get_active_card(Context context) {

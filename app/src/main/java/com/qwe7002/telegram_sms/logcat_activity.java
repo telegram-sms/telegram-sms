@@ -48,19 +48,19 @@ public class logcat_activity extends AppCompatActivity {
     }
 
     class file_observer extends FileObserver {
-        private Context mContext;
-        private TextView mLogcat;
+        private Context context;
+        private TextView logcat;
 
         file_observer(Context context, TextView logcat) {
             super(context.getFilesDir().getAbsolutePath());
-            mContext = context;
-            mLogcat = logcat;
+            this.context = context;
+            this.logcat = logcat;
         }
 
         @Override
         public void onEvent(int event, String path) {
             if (event == FileObserver.MODIFY) {
-                runOnUiThread(() -> mLogcat.setText(public_func.read_log_file(mContext)));
+                runOnUiThread(() -> logcat.setText(public_func.read_log_file(context)));
             }
 
         }
