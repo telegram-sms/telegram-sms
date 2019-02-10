@@ -104,7 +104,7 @@ public class chat_long_polling_service extends Service {
             case ConnectivityManager.TYPE_MOBILE:
                 switch (network_info.getSubtype()) {
                     case TelephonyManager.NETWORK_TYPE_LTE:
-                        net_type = "4G";
+                        net_type = "LTE/4G";
                         break;
                     case TelephonyManager.NETWORK_TYPE_EVDO_0:
                     case TelephonyManager.NETWORK_TYPE_EVDO_A:
