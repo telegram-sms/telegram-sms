@@ -70,5 +70,6 @@ Give a cup of coffee and let me better maintain this project?
 =============================================================
 
 [Support me in Patreon](https://www.patreon.com/user?u=16899295)
+[Support me in Paypal](https://paypal.me/qwe7002)
 
 Your donation will make me work better for this project.
