@@ -50,6 +50,9 @@ public class chat_long_polling_service extends Service {
             public_func.write_log(context, "Bot Command:Uninitialized");
             stopSelf();
         }
+        if (!sharedPreferences.getBoolean("chat_command", false)) {
+            stopSelf();
+        }
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
         return START_STICKY;
