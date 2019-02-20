@@ -249,11 +249,11 @@ public class chat_long_polling_service extends Service {
             public_func.write_log(context, "request command: " + command);
             switch (command) {
                 case "/start":
-                    String use_card2 = "";
+                    String dual_card = "\n" + getString(R.string.sendsms);
                     if (public_func.get_active_card(context) == 2) {
-                        use_card2 = "\n" + getString(R.string.sendsms2);
+                        dual_card = "\n" + getString(R.string.sendsms_dual);
                     }
-                    request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.available_command) + use_card2;
+                    request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.available_command) + dual_card;
                     break;
                 case "/ping":
                 case "/getinfo":
@@ -266,6 +266,7 @@ public class chat_long_polling_service extends Service {
 
                     break;
                 case "/sendsms":
+                case "/sendsms1":
                 case "/sendsms2":
                     request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.command_format_error);
                     String[] msg_send_list = request_msg.split("\n");
@@ -279,18 +280,24 @@ public class chat_long_polling_service extends Service {
                                 }
                                 msg_send_content.append(msg_send_list[i]);
                             }
+                            if (public_func.get_active_card(context) == 1) {
+                                public_func.send_sms(context, msg_send_to, msg_send_content.toString(), -1);
+                                return;
+                            }
+                            int sub_id = -1;
                             switch (command) {
                                 case "/sendsms":
-                                    public_func.send_sms(context, msg_send_to, msg_send_content.toString(), -1);
-                                    return;
-                                case "/sendsms2":
-                                    int sub_id = public_func.get_subid(context, 1);
-                                    request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.cant_get_card_2_info);
-                                    if (sub_id != -1) {
-                                        public_func.send_sms(context, msg_send_to, msg_send_content.toString(), sub_id);
-                                        return;
-                                    }
+                                case "/sendsms1":
+                                    sub_id = public_func.get_subid(context, 0);
                                     break;
+                                case "/sendsms2":
+                                    sub_id = public_func.get_subid(context, 1);
+                                    break;
+                            }
+                            request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.unable_to_get_information);
+                            if (sub_id != -1) {
+                                public_func.send_sms(context, msg_send_to, msg_send_content.toString(), sub_id);
+                                return;
                             }
                         }
                     }
