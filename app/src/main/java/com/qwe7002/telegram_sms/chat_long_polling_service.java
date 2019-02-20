@@ -245,58 +245,80 @@ public class chat_long_polling_service extends Service {
             }
         }
 
-        public_func.write_log(context, "request command: " + command);
-        switch (command) {
-            case "/start":
-                String use_card2 = "";
-                if (public_func.get_active_card(context) == 2) {
-                    use_card2 = "\n" + getString(R.string.sendsms2);
-                }
-                request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.available_command) + use_card2;
-                break;
-            case "/ping":
-            case "/getinfo":
-                BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
-                String card_info = "\nSIM:" + public_func.get_sim_display_name(context, 0);
-                if (public_func.get_active_card(context) == 2) {
-                    card_info = "\nSIM1:" + public_func.get_sim_display_name(context, 0) + "\nSIM2:" + public_func.get_sim_display_name(context, 1);
-                }
-                request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + get_network_type(context) + card_info;
+        if (!message_obj.has("reply_to_message")) {
+            public_func.write_log(context, "request command: " + command);
+            switch (command) {
+                case "/start":
+                    String use_card2 = "";
+                    if (public_func.get_active_card(context) == 2) {
+                        use_card2 = "\n" + getString(R.string.sendsms2);
+                    }
+                    request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.available_command) + use_card2;
+                    break;
+                case "/ping":
+                case "/getinfo":
+                    BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
+                    String card_info = "\nSIM:" + public_func.get_sim_display_name(context, 0);
+                    if (public_func.get_active_card(context) == 2) {
+                        card_info = "\nSIM1:" + public_func.get_sim_display_name(context, 0) + "\nSIM2:" + public_func.get_sim_display_name(context, 1);
+                    }
+                    request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + get_network_type(context) + card_info;
 
-                break;
-            case "/sendsms":
-            case "/sendsms2":
-                request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.command_format_error);
-                String[] msg_send_list = request_msg.split("\n");
-                if (msg_send_list.length > 2) {
-                    String msg_send_to = public_func.get_send_phone_number(msg_send_list[1]);
-                    if (public_func.is_numeric(msg_send_to)) {
-                        StringBuilder msg_send_content = new StringBuilder();
-                        for (int i = 2; i < msg_send_list.length; i++) {
-                            if (msg_send_list.length != 3 && i != 2) {
-                                msg_send_content.append("\n");
-                            }
-                            msg_send_content.append(msg_send_list[i]);
-                        }
-                        switch (command) {
-                            case "/sendsms":
-                                public_func.send_sms(context, msg_send_to, msg_send_content.toString(), -1);
-                                return;
-                            case "/sendsms2":
-                                int sub_id = public_func.get_subid(context, 1);
-                                request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.cant_get_card_2_info);
-                                if (sub_id != -1) {
-                                    public_func.send_sms(context, msg_send_to, msg_send_content.toString(), sub_id);
-                                    return;
+                    break;
+                case "/sendsms":
+                case "/sendsms2":
+                    request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.command_format_error);
+                    String[] msg_send_list = request_msg.split("\n");
+                    if (msg_send_list.length > 2) {
+                        String msg_send_to = public_func.get_send_phone_number(msg_send_list[1]);
+                        if (public_func.is_numeric(msg_send_to)) {
+                            StringBuilder msg_send_content = new StringBuilder();
+                            for (int i = 2; i < msg_send_list.length; i++) {
+                                if (msg_send_list.length != 3 && i != 2) {
+                                    msg_send_content.append("\n");
                                 }
-                                break;
+                                msg_send_content.append(msg_send_list[i]);
+                            }
+                            switch (command) {
+                                case "/sendsms":
+                                    public_func.send_sms(context, msg_send_to, msg_send_content.toString(), -1);
+                                    return;
+                                case "/sendsms2":
+                                    int sub_id = public_func.get_subid(context, 1);
+                                    request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.cant_get_card_2_info);
+                                    if (sub_id != -1) {
+                                        public_func.send_sms(context, msg_send_to, msg_send_content.toString(), sub_id);
+                                        return;
+                                    }
+                                    break;
+                            }
                         }
                     }
+                    break;
+                default:
+                    request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
+                    break;
+            }
+        }
+
+        if (message_obj.has("reply_to_message")) {
+            JsonObject reply_obj = message_obj.get("reply_to_message").getAsJsonObject();
+            String reply_id = reply_obj.get("message_id").getAsString();
+            String message_list_raw = public_func.read_file(context, "message.json");
+            JsonObject message_list = new JsonParser().parse(message_list_raw).getAsJsonObject();
+            request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.unable_to_get_information);
+            if (message_list.has(reply_id)) {
+                JsonObject message_item_obj = message_list.get(reply_id).getAsJsonObject();
+                String phone_number = message_item_obj.get("phone").getAsString();
+                int card_slot = message_item_obj.get("card").getAsInt();
+                int sub_id = -1;
+                if (card_slot != -1) {
+                    sub_id = public_func.get_subid(context, card_slot);
                 }
-                break;
-            default:
-                request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
-                break;
+                public_func.send_sms(context, phone_number, request_msg, sub_id);
+                return;
+            }
+
         }
 
         String request_uri = public_func.get_url(bot_token, "sendMessage");

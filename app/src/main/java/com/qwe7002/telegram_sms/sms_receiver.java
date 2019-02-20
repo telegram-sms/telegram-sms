@@ -15,6 +15,8 @@ import android.telephony.SmsMessage;
 import android.telephony.SubscriptionManager;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.io.IOException;
 
@@ -149,6 +151,19 @@ public class sms_receiver extends BroadcastReceiver {
                             String error_message = "SMS forwarding failed:" + response.body().string();
                             public_func.write_log(context, error_message);
                             public_func.write_log(context, "message body:" + request_body.text);
+                        }
+                        if (response.code() == 200) {
+                            assert response.body() != null;
+                            String result = response.body().string();
+                            JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject().get("result").getAsJsonObject();
+                            String message_id = result_obj.get("message_id").getAsString();
+                            String message_list_raw = public_func.read_file(context, "message.json");
+                            if (message_list_raw.length() == 0) {
+                                message_list_raw = "{}";
+                            }
+                            JsonObject message_list_obj = new JsonParser().parse(message_list_raw).getAsJsonObject();
+                            message_list_obj.add(message_id, new JsonParser().parse("{\"phone\":\"" + msg_address + "\",\"card\":" + bundle.getInt("slot", -1) + "}"));
+                            public_func.write_file(context, "message.json", new Gson().toJson(message_list_obj));
                         }
                     }
                 });

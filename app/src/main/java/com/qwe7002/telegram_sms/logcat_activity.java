@@ -20,7 +20,7 @@ public class logcat_activity extends AppCompatActivity {
         TextView logcat = findViewById(R.id.logcat_view);
         this.setTitle(R.string.logcat);
         context = getApplicationContext();
-        logcat.setText(public_func.read_log_file(context));
+        logcat.setText(public_func.read_log(context));
         observer = new file_observer(context, logcat);
 
     }
@@ -43,7 +43,7 @@ public class logcat_activity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        public_func.write_log_file(context, "");
+        public_func.write_file(context, "error.log", "");
         return true;
     }
 
@@ -60,7 +60,7 @@ public class logcat_activity extends AppCompatActivity {
         @Override
         public void onEvent(int event, String path) {
             if (event == FileObserver.MODIFY) {
-                runOnUiThread(() -> logcat.setText(public_func.read_log_file(context)));
+                runOnUiThread(() -> logcat.setText(public_func.read_log(context)));
             }
 
         }
