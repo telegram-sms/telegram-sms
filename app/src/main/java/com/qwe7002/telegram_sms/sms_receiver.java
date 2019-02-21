@@ -157,16 +157,7 @@ public class sms_receiver extends BroadcastReceiver {
                             String result = response.body().string();
                             JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject().get("result").getAsJsonObject();
                             String message_id = result_obj.get("message_id").getAsString();
-                            String message_list_raw = public_func.read_file(context, "message.json");
-                            if (message_list_raw.length() == 0) {
-                                message_list_raw = "{}";
-                            }
-                            JsonObject message_list_obj = new JsonParser().parse(message_list_raw).getAsJsonObject();
-                            JsonObject object = new JsonObject();
-                            object.addProperty("phone", msg_address);
-                            object.addProperty("card", bundle.getInt("slot", -1));
-                            message_list_obj.add(message_id, object);
-                            public_func.write_file(context, "message.json", new Gson().toJson(message_list_obj));
+                            public_func.add_message_list(context, message_id, msg_address, bundle.getInt("slot", -1));
                         }
                     }
                 });
