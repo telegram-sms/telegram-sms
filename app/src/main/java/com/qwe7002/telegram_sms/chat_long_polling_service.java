@@ -262,7 +262,7 @@ public class chat_long_polling_service extends Service {
                 case "/getinfo":
                     BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
                     String card_info = "";
-                    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                         card_info = "\nSIM:" + public_func.get_sim_display_name(context, 0);
                         if (public_func.get_active_card(context) == 2) {
                             card_info = "\nSIM1:" + public_func.get_sim_display_name(context, 0) + "\nSIM2:" + public_func.get_sim_display_name(context, 1);
