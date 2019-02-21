@@ -92,9 +92,9 @@ The birth of this software is inseparable from their help:
 
 ## Give a cup of coffee and let me better maintain this project?
 
-- Support me in Payoneer : qwe7002@hotmail.com
-
 - [Support me in Paypal](https://paypal.me/qwe7002)
+
+- Support me in Payoneer (qwe7002@hotmail.com)
 
 - [Support me in Cloud QuickPass](https://i.loli.net/2019/02/21/5c6d812840bac.png)(The receipt code is hosted in [sm.ms](https://sm.ms), thanks to the services they provide.)
 
