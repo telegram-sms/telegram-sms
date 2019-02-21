@@ -197,10 +197,20 @@ class public_func {
 
     static String get_sim_display_name(Context context, int slot) {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            return null;
+            return "Unknown";
         }
         SubscriptionInfo info = SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(slot);
-        return info.getDisplayName().toString();
+        if (info == null) {
+            if (get_active_card(context) == 1 && slot == 0) {
+                info = SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(1);
+            }
+        }
+        assert info != null;
+        String result = info.getDisplayName().toString();
+        if (info.getDisplayName().toString().contains("CARD") || info.getDisplayName().toString().contains("SUB")) {
+            result = info.getCarrierName().toString();
+        }
+        return result;
     }
 
     static String get_contact_name(Context context, String phone_number) {
@@ -230,13 +240,17 @@ class public_func {
         Log.i(public_func.log_tag, log);
         @SuppressLint("SimpleDateFormat") SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date ts = new Date(System.currentTimeMillis());
-        String error_log = read_log_file(context) + "\n" + simpleDateFormat.format(ts) + " " + log;
-        write_log_file(context, error_log);
+        String error_log = read_file(context, "error.log") + "\n" + simpleDateFormat.format(ts) + " " + log;
+        write_file(context, "error.log", error_log);
     }
 
-    static void write_log_file(Context context, String write_string) {
+    static String read_log(Context context) {
+        return read_file(context, "error.log");
+    }
+
+    static void write_file(Context context, String file_name, String write_string) {
         try {
-            FileOutputStream file_stream = context.openFileOutput("error.log", MODE_PRIVATE);
+            FileOutputStream file_stream = context.openFileOutput(file_name, MODE_PRIVATE);
             byte[] bytes = write_string.getBytes();
             file_stream.write(bytes);
             file_stream.close();
@@ -245,10 +259,10 @@ class public_func {
         }
     }
 
-    static String read_log_file(Context context) {
+    static String read_file(Context context, String file_name) {
         String result = "";
         try {
-            FileInputStream file_stream = context.openFileInput("error.log");
+            FileInputStream file_stream = context.openFileInput(file_name);
             int length = file_stream.available();
             byte[] buffer = new byte[length];
             file_stream.read(buffer);

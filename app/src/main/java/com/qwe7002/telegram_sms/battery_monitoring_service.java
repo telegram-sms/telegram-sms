@@ -45,6 +45,9 @@ public class battery_monitoring_service extends Service {
             public_func.write_log(context, "Battery Monitoring:Uninitialized");
             stopSelf();
         }
+        if (!sharedPreferences.getBoolean("battery_monitoring_switch", false)) {
+            stopSelf();
+        }
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
         fallback = sharedPreferences.getBoolean("fallback_sms", false);

@@ -38,12 +38,14 @@
     <string name="chat_command_service_name">聊天命令</string>
     <string name="success">成功</string>
     <string name="receive_sms_head">收到短信</string>
-    <string name="available_command">可用命令：\n/getinfo - 获取系统信息\n/sendsms - 发送短信</string>
+    <string name="available_command">可用命令：\n/getinfo - 获取系统信息</string>
     <string name="restart_service">后台服务已成功重新启动。</string>
     <string name="status">状态：</string>
     <string name="send_failed">发送失败</string>
     <string name="airplan_mode">当前设备处于飞行模式</string>
     <string name="no_network">无服务</string>
-    <string name="sendsms2">/sendsms2 - 使用第二个卡槽发送短信</string>
+    <string name="sendsms_dual">/sendsms1 - 发送短信\n/sendsms2 - 使用第二个卡槽发送短信</string>
     <string name="display_sim_card_alias_in_dual_card_mode">在双卡模式下显示SIM卡别名</string>
+    <string name="unable_to_get_information">无法获取信息。</string>
+    <string name="sendsms">/sendsms - 发送短信</string>
 </resources>
