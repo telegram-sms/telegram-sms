@@ -7,17 +7,14 @@
 
 A robot running on your Android device.
 
-
-Features
-========
+## Features
 
 - Forward SMS to Telegram
 - Monitor missed calls
 - Monitor device battery power changes
 - Remote control via chat command \ SMS.
 
-Permission
-==========
+## Permission
 
 This app requires the following permissions:
 
@@ -28,8 +25,7 @@ This app requires the following permissions:
 
 You can set this app as the default SMS app, which will block all SMS notifications and automatically set the SMS to read.
 
-Send SMS
-========
+## Send SMS
 
 You can specify a trusted phone number for automatic forwarding.Once the bot received a message from that number, in the following format:
 
@@ -49,8 +45,7 @@ You can restart all background processes by sending the command `restart-service
 
 **please add your country/region calling code (eg. +44 for UK phone number) if your are not in default region.**
 
-Use Chat Command
-================
+## Use Chat Command
 
 You can get a list of currently available meters by sending the `/start` command.
 
@@ -73,13 +68,12 @@ Use `/sendsms` to send a text message via the default SIM card. Use `/sendsms2` 
 
 When the Phone permission is not available, you can only use the default SMS SIM card to send SMS.
 
-License
-=======
+## License
 
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_large)
 
-Acknowledgements
-================
+## Acknowledgements
+
 This software uses these open source libraries:
 
 - [okhttp](https://github.com/square/okhttp)
@@ -88,13 +82,15 @@ This software uses these open source libraries:
 
 The birth of this software is inseparable from their help:
 
-- [SumiMakito](https://github.com/SumiMakito)
+- [@SumiMakito](https://github.com/SumiMakito)
 
-- [zsxsoft](https://github.com/zsxsoft)
+- [@zsxsoft](https://github.com/zsxsoft)
 
+## Third party user manual
 
-Give a cup of coffee and let me better maintain this project?
-=============================================================
+[Android SMS 转发到 Telegram - flinty.moe](https://www.flinty.moe/android-sms-to-telegram/)
+
+## Give a cup of coffee and let me better maintain this project?
 
 - [Support me in Patreon](https://www.patreon.com/user?u=16899295)
 
