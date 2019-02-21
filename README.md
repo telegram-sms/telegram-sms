@@ -69,7 +69,9 @@ balance
 ```
 It will send a text message with content `balance` to the number `729725`.
 
-Use `/sendsms` to send a text message via the default SIM card. Use `/sendsms2 to send a text message via the secondary SIM card (if available).
+Use `/sendsms` to send a text message via the default SIM card. Use `/sendsms2` to send a text message via the secondary SIM card (if available).
+
+When the Phone permission is not available, you can only use the default SMS SIM card to send SMS.
 
 License
 =======
