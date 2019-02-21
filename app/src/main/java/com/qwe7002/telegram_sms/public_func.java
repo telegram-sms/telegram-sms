@@ -191,12 +191,12 @@ class public_func {
         return SubscriptionManager.from(context).getActiveSubscriptionInfoCount();
     }
 
-    static String get_sim_name_title(Context context, int slot) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-        if (!sharedPreferences.getBoolean("display_dual_sim_display_name", false)) {
-            return null;
+    static String get_sim_name_title(Context context, SharedPreferences sharedPreferences, int slot) {
+        String result = "";
+        if (sharedPreferences.getBoolean("display_dual_sim_display_name", false)) {
+            result = "(" + get_sim_display_name(context, slot) + ")";
         }
-        return get_sim_display_name(context, slot);
+        return result;
     }
 
     static String get_sim_display_name(Context context, int slot) {
