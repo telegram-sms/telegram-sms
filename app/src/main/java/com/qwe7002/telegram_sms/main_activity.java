@@ -81,6 +81,13 @@ public class main_activity extends AppCompatActivity {
         battery_monitoring_switch.setChecked(sharedPreferences.getBoolean("battery_monitoring_switch", false));
         fallback_sms.setChecked(sharedPreferences.getBoolean("fallback_sms", false));
         chat_command.setChecked(sharedPreferences.getBoolean("chat_command", false));
+
+        if (public_func.get_active_card(context) < 2) {
+            display_dual_sim_display_name.setEnabled(false);
+        }
+        if (display_dual_sim_display_name.isEnabled()) {
+            display_dual_sim_display_name.setChecked(sharedPreferences.getBoolean("display_dual_sim_display_name", false));
+        }
         logcat.setOnClickListener(v -> {
             Intent logcat_intent = new Intent(main_activity.this, logcat_activity.class);
             startActivity(logcat_intent);
