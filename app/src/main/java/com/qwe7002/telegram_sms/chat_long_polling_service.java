@@ -318,7 +318,7 @@ public class chat_long_polling_service extends Service {
             String reply_id = reply_obj.get("message_id").getAsString();
             String message_list_raw = public_func.read_file(context, "message.json");
             JsonObject message_list = new JsonParser().parse(message_list_raw).getAsJsonObject();
-            request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.unable_to_get_information);
+            request_body.text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.unable_to_get_information);
             if (message_list.has(reply_id)) {
                 JsonObject message_item_obj = message_list.get(reply_id).getAsJsonObject();
                 String phone_number = message_item_obj.get("phone").getAsString();
@@ -330,7 +330,6 @@ public class chat_long_polling_service extends Service {
                 public_func.send_sms(context, phone_number, request_msg, sub_id);
                 return;
             }
-
         }
 
         String request_uri = public_func.get_url(bot_token, "sendMessage");
