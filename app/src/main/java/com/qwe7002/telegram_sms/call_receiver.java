@@ -11,6 +11,8 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -70,17 +72,6 @@ class call_state_listener extends PhoneStateListener {
     }
 
     private void when_miss_call() {
-        String dual_sim = "";
-        if (public_func.get_active_card(context) == 2) {
-            String display_name = public_func.get_sim_name_title(context, slot);
-            String display = "";
-            if (display_name != null) {
-                display = "(" + display_name + ")";
-            }
-            if (slot != -1) {
-                dual_sim = "SIM" + (slot + 1) + display + " ";
-            }
-        }
 
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
@@ -99,6 +90,15 @@ class call_state_listener extends PhoneStateListener {
                 display_address = display_name + "(" + incoming_number + ")";
             }
         }
+
+        String dual_sim = "";
+        if (public_func.get_active_card(context) == 2) {
+            String display_name = public_func.get_sim_name_title(context, sharedPreferences, slot);
+            if (slot != -1) {
+                dual_sim = "SIM" + (slot + 1) + display_name + " ";
+            }
+        }
+
         request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + display_address;
         Gson gson = new Gson();
         String request_body_raw = gson.toJson(request_body);
@@ -128,6 +128,13 @@ class call_state_listener extends PhoneStateListener {
                     assert response.body() != null;
                     String error_message = "Send missed call error:" + response.body().string();
                     public_func.write_log(context, error_message);
+                }
+                if (response.code() == 200) {
+                    assert response.body() != null;
+                    String result = response.body().string();
+                    JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject().get("result").getAsJsonObject();
+                    String message_id = result_obj.get("message_id").getAsString();
+                    public_func.add_message_list(context, message_id, incoming_number, slot);
                 }
             }
         });

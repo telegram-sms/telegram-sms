@@ -146,7 +146,14 @@ public class main_activity extends AppCompatActivity {
                             JsonObject message_obj = item_obj.get("message").getAsJsonObject();
                             JsonObject chat_obj = message_obj.get("chat").getAsJsonObject();
                             if (!chat_id_list.contains(chat_obj.get("id").getAsString())) {
-                                chat_name_list.add(chat_obj.get("username").getAsString() + "(Chat)");
+                                String username = "";
+                                if (!chat_obj.has("username")) {
+                                    username = chat_obj.get("first_name").getAsString() + " " + chat_obj.get("last_name").getAsString();
+                                }
+                                if (chat_obj.has("username")) {
+                                    username = chat_obj.get("username").getAsString();
+                                }
+                                chat_name_list.add(username + "(Chat)");
                                 chat_id_list.add(chat_obj.get("id").getAsString());
                             }
                         }
