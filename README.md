@@ -7,6 +7,8 @@
 
 A robot running on your Android device.
 
+[Download](https://github.com/qwe7002/telegram-sms/releases)
+
 ## Features
 
 - Forward SMS to Telegram
