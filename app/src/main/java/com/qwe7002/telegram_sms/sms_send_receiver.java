@@ -55,12 +55,8 @@ public class sms_send_receiver extends BroadcastReceiver {
                         slot = 1;
                         break;
                 }
-                String display_name = public_func.get_sim_name_title(context, slot);
-                String display = "";
-                if (display_name != null) {
-                    display = "(" + display_name + ")";
-                }
-                dual_sim = "SIM" + sim_card + display + " ";
+                String display_name = public_func.get_sim_name_title(context, sharedPreferences, slot);
+                dual_sim = "SIM" + sim_card + display_name + " ";
             }
         }
         String send_to = Objects.requireNonNull(intent.getExtras()).getString("send_to");

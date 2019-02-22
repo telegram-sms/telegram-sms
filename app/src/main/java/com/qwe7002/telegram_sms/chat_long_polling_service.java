@@ -1,16 +1,19 @@
 package com.qwe7002.telegram_sms;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.BatteryManager;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.telephony.TelephonyManager;
 
 import com.google.gson.Gson;
@@ -258,12 +261,14 @@ public class chat_long_polling_service extends Service {
                 case "/ping":
                 case "/getinfo":
                     BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
-                    String card_info = "\nSIM:" + public_func.get_sim_display_name(context, 0);
-                    if (public_func.get_active_card(context) == 2) {
-                        card_info = "\nSIM1:" + public_func.get_sim_display_name(context, 0) + "\nSIM2:" + public_func.get_sim_display_name(context, 1);
+                    String card_info = "";
+                    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+                        card_info = "\nSIM:" + public_func.get_sim_display_name(context, 0);
+                        if (public_func.get_active_card(context) == 2) {
+                            card_info = "\nSIM1:" + public_func.get_sim_display_name(context, 0) + "\nSIM2:" + public_func.get_sim_display_name(context, 1);
+                        }
                     }
                     request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + get_network_type(context) + card_info;
-
                     break;
                 case "/sendsms":
                 case "/sendsms1":

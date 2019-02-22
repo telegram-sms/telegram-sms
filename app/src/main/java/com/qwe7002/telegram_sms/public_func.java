@@ -23,6 +23,10 @@ import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -187,12 +191,12 @@ class public_func {
         return SubscriptionManager.from(context).getActiveSubscriptionInfoCount();
     }
 
-    static String get_sim_name_title(Context context, int slot) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-        if (!sharedPreferences.getBoolean("display_dual_sim_display_name", false)) {
-            return null;
+    static String get_sim_name_title(Context context, SharedPreferences sharedPreferences, int slot) {
+        String result = "";
+        if (sharedPreferences.getBoolean("display_dual_sim_display_name", false)) {
+            result = "(" + get_sim_display_name(context, slot) + ")";
         }
-        return get_sim_display_name(context, slot);
+        return result;
     }
 
     static String get_sim_display_name(Context context, int slot) {
@@ -248,6 +252,18 @@ class public_func {
         return read_file(context, "error.log");
     }
 
+    static void add_message_list(Context context, String message_id, String phone, int slot) {
+        String message_list_raw = public_func.read_file(context, "message.json");
+        if (message_list_raw.length() == 0) {
+            message_list_raw = "{}";
+        }
+        JsonObject message_list_obj = new JsonParser().parse(message_list_raw).getAsJsonObject();
+        JsonObject object = new JsonObject();
+        object.addProperty("phone", phone);
+        object.addProperty("card", slot);
+        message_list_obj.add(message_id, object);
+        public_func.write_file(context, "message.json", new Gson().toJson(message_list_obj));
+    }
     static void write_file(Context context, String file_name, String write_string) {
         try {
             FileOutputStream file_stream = context.openFileOutput(file_name, MODE_PRIVATE);
