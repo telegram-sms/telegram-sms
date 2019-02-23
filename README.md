@@ -70,6 +70,8 @@ It will send a text message with content `balance` to the number `729725`.
 
 Use `/sendsms` to send a text message via the default SIM card. Use `/sendsms2` to send a text message via the secondary SIM card (if available).
 
+You can use the reply function of Telegram to quickly reply to received text messages and missed calls.(When you clear the log, the message before the log is cleared will not be able to respond quickly.)
+
 When the Phone permission is not available, you can only use the default SMS SIM card to send SMS.
 
 ## License
@@ -90,6 +92,10 @@ The birth of this software is inseparable from their help:
 
 - [@zsxsoft](https://github.com/zsxsoft)
 
+The following organizations for providing image storage for this page:
+
+- [sm.ms](https://sm.ms)
+
 ## Third party user manual
 
 [Android SMS 转发到 Telegram - flinty.moe](https://www.flinty.moe/android-sms-to-telegram/)
@@ -100,6 +106,6 @@ The birth of this software is inseparable from their help:
 
 - Support me in Payoneer (qwe7002@hotmail.com)
 
-- [Support me in Cloud QuickPass](https://i.loli.net/2019/02/21/5c6d812840bac.png)(The receipt code is hosted in [sm.ms](https://sm.ms), thanks to the services they provide.)
+- [Support me in Cloud QuickPass](https://i.loli.net/2019/02/21/5c6d812840bac.png)
 
 Your donation will make me work better for this project.
