@@ -69,6 +69,9 @@ public class main_activity extends AppCompatActivity {
         }
         if (sharedPreferences.getBoolean("initialized", false)) {
             public_func.start_service(context, sharedPreferences);
+            if (public_func.get_active_card(context) < 2) {
+                display_dual_sim_display_name.setEnabled(false);
+            }
         }
         Button save_button = findViewById(R.id.save);
         Button get_id = findViewById(R.id.get_id);
@@ -82,9 +85,6 @@ public class main_activity extends AppCompatActivity {
         fallback_sms.setChecked(sharedPreferences.getBoolean("fallback_sms", false));
         chat_command.setChecked(sharedPreferences.getBoolean("chat_command", false));
 
-        if (public_func.get_active_card(context) < 2) {
-            display_dual_sim_display_name.setEnabled(false);
-        }
         if (display_dual_sim_display_name.isEnabled()) {
             display_dual_sim_display_name.setChecked(sharedPreferences.getBoolean("display_dual_sim_display_name", false));
         }
