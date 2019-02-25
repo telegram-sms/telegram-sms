@@ -29,50 +29,9 @@ This app requires the following permissions:
 
 You can set this app as the default SMS app, which will block all SMS notifications and automatically set the SMS to read.
 
-## Send SMS
+## Wiki
 
-You can specify a trusted phone number for automatic forwarding.Once the bot received a message from that number, in the following format:
 
-```
-<Phone_Number>
-<SMS_Content>
-```
-example:
-```
-729725
-balance
-```
-
-It will send a text message with content `balance` to the number `729725`.
-
-You can restart all background processes by sending the command `restart-service`
-
-**please add your country/region calling code (eg. +44 for UK phone number) if your are not in default region.**
-
-## Use Chat Command
-
-You can get a list of currently available meters by sending the `/start` command.
-
-The format of sending SMS is:
-
-```
-/sendsms
-<Phone_Number>
-<SMS_Content>
-```
-example:
-```
-/sendsms
-729725
-balance
-```
-It will send a text message with content `balance` to the number `729725`.
-
-Use `/sendsms` to send a text message via the default SIM card. Use `/sendsms2` to send a text message via the secondary SIM card (if available).
-
-You can use the reply function of Telegram to quickly reply to received text messages and missed calls.(When you clear the log, the message before the log is cleared will not be able to respond quickly.)
-
-When the Phone permission is not available, you can only use the default SMS SIM card to send SMS.
 
 ## License
 
