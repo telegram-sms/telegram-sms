@@ -343,7 +343,6 @@ public class chat_long_polling_service extends Service {
                 String error_message = "Send reply failed:" + e.getMessage();
                 public_func.write_log(context, error_message);
             }
-
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
