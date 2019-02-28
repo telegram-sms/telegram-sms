@@ -226,6 +226,7 @@ public class main_activity extends AppCompatActivity {
 
                 @Override
                 public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    Looper.prepare();
                     progress_dialog.cancel();
                     if (response.code() != 200) {
                         assert response.body() != null;
@@ -249,7 +250,6 @@ public class main_activity extends AppCompatActivity {
                     editor.putBoolean("display_dual_sim_display_name", display_dual_sim_display_name.isChecked());
                     editor.putBoolean("initialized", true);
                     editor.apply();
-                    Looper.prepare();
                     Snackbar.make(v, R.string.success, Snackbar.LENGTH_LONG)
                             .show();
                     Looper.loop();
