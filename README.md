@@ -42,10 +42,6 @@ You can set this app as the default SMS app, which will block all SMS notificati
 - [繁體中文](https://github.com/qwe7002/telegram-sms/wiki/用戶手冊)
 - 日本語(WIP)
 
-## Privacy
-
-- [Privacy]()
-
 ## License
 
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_large)
