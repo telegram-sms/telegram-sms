@@ -14,8 +14,11 @@ A robot running on your Android device.
 ## Features
 
 - Forward SMS to Telegram
+
 - Monitor missed calls
+
 - Monitor device battery power changes
+
 - Remote control via chat command \ SMS.
 
 ## Permission
@@ -23,15 +26,25 @@ A robot running on your Android device.
 This app requires the following permissions:
 
 - SMS : Read and send a text message.
-- Phone : Get whether it is a dual card phone, card 2 status and identifier ID.
+
+- Phone : Get whether it is a dual card phone, card status and identifier ID.
+
 - Call log : Get the incoming number.
+
 - Contact : Get the contact information and automatically identify the incoming caller's number.
 
 You can set this app as the default SMS app, which will block all SMS notifications and automatically set the SMS to read.
 
-## Wiki
+## User manual
 
+- [English](https://github.com/qwe7002/telegram-sms/wiki/User_manual)
+- [简体中文](https://github.com/qwe7002/telegram-sms/wiki/用户手册)
+- [繁體中文](https://github.com/qwe7002/telegram-sms/wiki/用戶手冊)
+- 日本語(WIP)
 
+## Privacy
+
+- [Privacy]()
 
 ## License
 
@@ -55,16 +68,14 @@ The following organizations for providing image storage for this page:
 
 - [sm.ms](https://sm.ms)
 
-## Third party user manual
-
-[Android SMS 转发到 Telegram - flinty.moe](https://www.flinty.moe/android-sms-to-telegram/)
-
 ## Give a cup of coffee and let me better maintain this project?
 
 - [Support me in Paypal](https://paypal.me/qwe7002)
 
 - Support me in Payoneer (qwe7002@hotmail.com)
 
-- [Support me in Cloud QuickPass](https://i.loli.net/2019/02/21/5c6d812840bac.png)
+- Support me in Bitcoin (**17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae**)
+
+- [Support me in Cloud QuickPass](https://static.reallct.com/2019/02/21/5c6d812840bac.png)
 
 Your donation will make me work better for this project.
