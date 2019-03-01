@@ -69,6 +69,12 @@ public class main_activity extends AppCompatActivity {
         }
         if (sharedPreferences.getBoolean("initialized", false)) {
             public_func.start_service(context, sharedPreferences);
+            boolean display_dual_sim_display_name_config = sharedPreferences.getBoolean("display_dual_sim_display_name", false);
+            if (public_func.get_active_card(context) < 2) {
+                display_dual_sim_display_name.setEnabled(false);
+                display_dual_sim_display_name_config = false;
+            }
+            display_dual_sim_display_name.setChecked(display_dual_sim_display_name_config);
         }
         Button save_button = findViewById(R.id.save);
         Button get_id = findViewById(R.id.get_id);
@@ -82,12 +88,6 @@ public class main_activity extends AppCompatActivity {
         fallback_sms.setChecked(sharedPreferences.getBoolean("fallback_sms", false));
         chat_command.setChecked(sharedPreferences.getBoolean("chat_command", false));
 
-        if (public_func.get_active_card(context) < 2) {
-            display_dual_sim_display_name.setEnabled(false);
-        }
-        if (display_dual_sim_display_name.isEnabled()) {
-            display_dual_sim_display_name.setChecked(sharedPreferences.getBoolean("display_dual_sim_display_name", false));
-        }
         logcat.setOnClickListener(v -> {
             Intent logcat_intent = new Intent(main_activity.this, logcat_activity.class);
             startActivity(logcat_intent);
@@ -237,6 +237,9 @@ public class main_activity extends AppCompatActivity {
                         Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
                         return;
                     }
+                    if (!bot_token.getText().toString().trim().equals(bot_token_save)) {
+                        public_func.write_file(context, "message.json", "{}");
+                    }
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putString("bot_token", bot_token.getText().toString().trim());
                     editor.putString("chat_id", chat_id.getText().toString().trim());
@@ -249,8 +252,9 @@ public class main_activity extends AppCompatActivity {
                     editor.apply();
                     Snackbar.make(v, R.string.success, Snackbar.LENGTH_LONG)
                             .show();
-                    public_func.start_service(context, sharedPreferences);
                     Looper.loop();
+                    public_func.start_service(context, sharedPreferences);
+
                 }
             });
         });

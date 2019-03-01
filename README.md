@@ -9,11 +9,16 @@ A robot running on your Android device.
 
 [Download](https://github.com/qwe7002/telegram-sms/releases)
 
+**There may be unknown bugs in the pre-release version,Please use at your own risk.**
+
 ## Features
 
 - Forward SMS to Telegram
+
 - Monitor missed calls
+
 - Monitor device battery power changes
+
 - Remote control via chat command \ SMS.
 
 ## Permission
@@ -21,54 +26,21 @@ A robot running on your Android device.
 This app requires the following permissions:
 
 - SMS : Read and send a text message.
-- Phone : Get whether it is a dual card phone, card 2 status and identifier ID.
+
+- Phone : Get whether it is a dual card phone, card status and identifier ID.
+
 - Call log : Get the incoming number.
+
 - Contact : Get the contact information and automatically identify the incoming caller's number.
 
 You can set this app as the default SMS app, which will block all SMS notifications and automatically set the SMS to read.
 
-## Send SMS
+## User manual
 
-You can specify a trusted phone number for automatic forwarding.Once the bot received a message from that number, in the following format:
-
-```
-<Phone_Number>
-<SMS_Content>
-```
-example:
-```
-729725
-balance
-```
-
-It will send a text message with content `balance` to the number `729725`.
-
-You can restart all background processes by sending the command `restart-service`
-
-**please add your country/region calling code (eg. +44 for UK phone number) if your are not in default region.**
-
-## Use Chat Command
-
-You can get a list of currently available meters by sending the `/start` command.
-
-The format of sending SMS is:
-
-```
-/sendsms
-<Phone_Number>
-<SMS_Content>
-```
-example:
-```
-/sendsms
-729725
-balance
-```
-It will send a text message with content `balance` to the number `729725`.
-
-Use `/sendsms` to send a text message via the default SIM card. Use `/sendsms2` to send a text message via the secondary SIM card (if available).
-
-When the Phone permission is not available, you can only use the default SMS SIM card to send SMS.
+- [English](https://github.com/qwe7002/telegram-sms/wiki/User_manual)
+- [简体中文](https://github.com/qwe7002/telegram-sms/wiki/用户手册)
+- [繁體中文](https://github.com/qwe7002/telegram-sms/wiki/用戶手冊)
+- 日本語(WIP)
 
 ## License
 
@@ -88,9 +60,9 @@ The birth of this software is inseparable from their help:
 
 - [@zsxsoft](https://github.com/zsxsoft)
 
-## Third party user manual
+The following organizations for providing image storage for this page:
 
-[Android SMS 转发到 Telegram - flinty.moe](https://www.flinty.moe/android-sms-to-telegram/)
+- [sm.ms](https://sm.ms)
 
 ## Give a cup of coffee and let me better maintain this project?
 
@@ -98,6 +70,8 @@ The birth of this software is inseparable from their help:
 
 - Support me in Payoneer (qwe7002@hotmail.com)
 
-- [Support me in Cloud QuickPass](https://i.loli.net/2019/02/21/5c6d812840bac.png)(The receipt code is hosted in [sm.ms](https://sm.ms), thanks to the services they provide.)
+- Support me in Bitcoin (**17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae**)
+
+- [Support me in Cloud QuickPass](https://static.reallct.com/2019/02/21/5c6d812840bac.png)
 
 Your donation will make me work better for this project.
