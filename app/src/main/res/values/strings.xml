@@ -5,8 +5,8 @@
     <string name="from">From: </string>
     <string name="to">To: </string>
     <string name="send_sms_head">Send SMS</string>
-    <string name="system_message_head">[System Message]</string>
-    <string name="success_connect">You have successfully connected to the Telegram bot Server.</string>
+    <string name="system_message_head">[System information]</string>
+    <string name="success_connect">You\'ve connected to the Telegram bot server successfully.</string>
     <string name="connect_wait_title">Connecting to server…</string>
     <string name="connect_wait_message">Please wait…</string>
     <string name="select_chat">Select Chat</string>
