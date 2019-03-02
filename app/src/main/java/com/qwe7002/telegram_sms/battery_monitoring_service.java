@@ -55,9 +55,10 @@ public class battery_monitoring_service extends Service {
         bot_token = sharedPreferences.getString("bot_token", "");
         fallback = sharedPreferences.getBoolean("fallback_sms", false);
         trusted_phone_number = sharedPreferences.getString("trusted_phone_number", null);
+
         IntentFilter intentFilter = new IntentFilter(public_func.boardcast_stop_service);
         stop_broadcast_receiver = new stop_broadcast_receiver();
-        registerReceiver(stop_broadcast_receiver, intentFilter);
+
         battery_receiver = new battery_receiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_OKAY);
@@ -65,6 +66,7 @@ public class battery_monitoring_service extends Service {
         filter.addAction(Intent.ACTION_POWER_CONNECTED);
         filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
         registerReceiver(battery_receiver, filter);
+        registerReceiver(stop_broadcast_receiver, intentFilter);
 
     }
 
