@@ -61,14 +61,8 @@ public class main_activity extends AppCompatActivity {
         String chat_id_save = sharedPreferences.getString("chat_id", "");
         assert bot_token_save != null;
         assert chat_id_save != null;
-        if (!sharedPreferences.getBoolean("initialized", false) && !bot_token_save.isEmpty() && !chat_id_save.isEmpty()) {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putBoolean("initialized", true);
-            editor.putBoolean("battery_monitoring_switch", true);
-            editor.apply();
-        }
         if (sharedPreferences.getBoolean("initialized", false)) {
-            public_func.start_service(context, sharedPreferences);
+            public_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
             boolean display_dual_sim_display_name_config = sharedPreferences.getBoolean("display_dual_sim_display_name", false);
             if (public_func.get_active_card(context) < 2) {
                 display_dual_sim_display_name.setEnabled(false);
@@ -250,11 +244,11 @@ public class main_activity extends AppCompatActivity {
                     editor.putBoolean("display_dual_sim_display_name", display_dual_sim_display_name.isChecked());
                     editor.putBoolean("initialized", true);
                     editor.apply();
+                    public_func.stop_all_service(context);
+                    public_func.start_service(context, battery_monitoring_switch.isChecked(), chat_command.isChecked());
                     Snackbar.make(v, R.string.success, Snackbar.LENGTH_LONG)
                             .show();
                     Looper.loop();
-                    public_func.start_service(context, sharedPreferences);
-
                 }
             });
         });

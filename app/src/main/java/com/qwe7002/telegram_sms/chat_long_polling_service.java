@@ -4,8 +4,10 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
@@ -43,21 +45,13 @@ public class chat_long_polling_service extends Service {
     SharedPreferences sharedPreferences;
     OkHttpClient okhttp_client;
     OkHttpClient okhttp_test_client;
+    private stop_broadcast_receiver stop_broadcast_receiver = null;
 
     @SuppressLint("WrongConstant")
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
         startForeground(2, notification);
-        if (!sharedPreferences.getBoolean("initialized", false)) {
-            public_func.write_log(context, "Bot Command:Uninitialized");
-            stopSelf();
-        }
-        if (!sharedPreferences.getBoolean("chat_command", false)) {
-            stopSelf();
-        }
-        chat_id = sharedPreferences.getString("chat_id", "");
-        bot_token = sharedPreferences.getString("bot_token", "");
         return START_STICKY;
 
     }
@@ -66,7 +60,12 @@ public class chat_long_polling_service extends Service {
     public void onCreate() {
         super.onCreate();
         context = getApplicationContext();
+        IntentFilter intentFilter = new IntentFilter(public_func.boardcast_stop_service);
+        stop_broadcast_receiver = new stop_broadcast_receiver();
+        registerReceiver(stop_broadcast_receiver, intentFilter);
         sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        chat_id = sharedPreferences.getString("chat_id", "");
+        bot_token = sharedPreferences.getString("bot_token", "");
         okhttp_test_client = public_func.get_okhttp_obj();
         okhttp_client = okhttp_test_client;
 
@@ -91,6 +90,7 @@ public class chat_long_polling_service extends Service {
 
     @Override
     public void onDestroy() {
+        unregisterReceiver(stop_broadcast_receiver);
         stopForeground(true);
         super.onDestroy();
     }
@@ -352,6 +352,14 @@ public class chat_long_polling_service extends Service {
                 }
             }
         });
+    }
+
+    class stop_broadcast_receiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            stopSelf();
+            android.os.Process.killProcess(android.os.Process.myPid());
+        }
     }
 }
 
