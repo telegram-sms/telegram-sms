@@ -68,7 +68,7 @@ public class main_activity extends AppCompatActivity {
             editor.apply();
         }
         if (sharedPreferences.getBoolean("initialized", false)) {
-            public_func.start_service(context, sharedPreferences);
+            public_func.start_service(context);
             boolean display_dual_sim_display_name_config = sharedPreferences.getBoolean("display_dual_sim_display_name", false);
             if (public_func.get_active_card(context) < 2) {
                 display_dual_sim_display_name.setEnabled(false);
@@ -252,9 +252,8 @@ public class main_activity extends AppCompatActivity {
                     editor.apply();
                     Snackbar.make(v, R.string.success, Snackbar.LENGTH_LONG)
                             .show();
+                    public_func.start_service(context);
                     Looper.loop();
-                    public_func.start_service(context, sharedPreferences);
-
                 }
             });
         });

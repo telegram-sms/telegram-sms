@@ -150,7 +150,12 @@ class public_func {
         return notification;
     }
 
-    static void start_service(Context context, SharedPreferences sharedPreferences) {
+    static void start_service(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        if (!sharedPreferences.getBoolean("initialized", false)) {
+            public_func.write_log(context, "Uninitialized");
+            return;
+        }
         Intent battery_service = new Intent(context, battery_monitoring_service.class);
         Intent chat_long_polling_service = new Intent(context, chat_long_polling_service.class);
         boolean chat_command_switch = sharedPreferences.getBoolean("chat_command", false);

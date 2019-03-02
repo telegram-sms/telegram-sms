@@ -49,10 +49,6 @@ public class chat_long_polling_service extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
         startForeground(2, notification);
-        if (!sharedPreferences.getBoolean("initialized", false)) {
-            public_func.write_log(context, "Bot Command:Uninitialized");
-            stopSelf();
-        }
         if (!sharedPreferences.getBoolean("chat_command", false)) {
             stopSelf();
         }

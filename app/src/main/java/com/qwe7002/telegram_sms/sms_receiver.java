@@ -98,7 +98,7 @@ public class sms_receiver extends BroadcastReceiver {
                         String[] msg_send_list = msgBody.toString().split("\n");
                         String msg_send_to = public_func.get_send_phone_number(msg_send_list[0]);
                         if (msg_send_to.equals("restart-service")) {
-                            public_func.start_service(context.getApplicationContext(), sharedPreferences);
+                            public_func.start_service(context.getApplicationContext());
                             request_body.text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
                         }
                         if (public_func.is_numeric(msg_send_to) && msg_send_list.length != 1) {
