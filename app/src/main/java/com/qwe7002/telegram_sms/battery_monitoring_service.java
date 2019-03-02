@@ -29,7 +29,8 @@ import static android.content.Context.BATTERY_SERVICE;
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class battery_monitoring_service extends Service {
-    battery_receiver receiver = null;
+    private battery_receiver battery_receiver = null;
+    private stop_broadcast_receiver stop_broadcast_receiver = null;
     static String bot_token;
     static String chat_id;
     static Boolean fallback;
@@ -37,21 +38,11 @@ public class battery_monitoring_service extends Service {
     Context context;
     SharedPreferences sharedPreferences;
 
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = public_func.get_notification_obj(context, getString(R.string.Battery_monitoring));
         startForeground(1, notification);
-        if (!sharedPreferences.getBoolean("initialized", false)) {
-            public_func.write_log(context, "Battery Monitoring:Uninitialized");
-            stopSelf();
-        }
-        if (!sharedPreferences.getBoolean("battery_monitoring_switch", false)) {
-            stopSelf();
-        }
-        chat_id = sharedPreferences.getString("chat_id", "");
-        bot_token = sharedPreferences.getString("bot_token", "");
-        fallback = sharedPreferences.getBoolean("fallback_sms", false);
-        trusted_phone_number = sharedPreferences.getString("trusted_phone_number", null);
         return START_STICKY;
     }
 
@@ -60,26 +51,42 @@ public class battery_monitoring_service extends Service {
         super.onCreate();
         context = getApplicationContext();
         sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-        receiver = new battery_receiver();
+        chat_id = sharedPreferences.getString("chat_id", "");
+        bot_token = sharedPreferences.getString("bot_token", "");
+        fallback = sharedPreferences.getBoolean("fallback_sms", false);
+        trusted_phone_number = sharedPreferences.getString("trusted_phone_number", null);
+        IntentFilter intentFilter = new IntentFilter(public_func.boardcast_stop_service);
+        stop_broadcast_receiver = new stop_broadcast_receiver();
+        registerReceiver(stop_broadcast_receiver, intentFilter);
+        battery_receiver = new battery_receiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_OKAY);
         filter.addAction(Intent.ACTION_BATTERY_LOW);
         filter.addAction(Intent.ACTION_POWER_CONNECTED);
         filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
-        registerReceiver(receiver, filter);
+        registerReceiver(battery_receiver, filter);
 
     }
 
     @Override
     public void onDestroy() {
+        unregisterReceiver(stop_broadcast_receiver);
+        unregisterReceiver(battery_receiver);
         stopForeground(true);
-        unregisterReceiver(receiver);
         super.onDestroy();
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    class stop_broadcast_receiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            stopSelf();
+            android.os.Process.killProcess(android.os.Process.myPid());
+        }
     }
 
 }

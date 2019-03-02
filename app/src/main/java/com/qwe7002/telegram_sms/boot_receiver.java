@@ -16,7 +16,7 @@ public class boot_receiver extends BroadcastReceiver {
         if (Objects.equals(intent.getAction(), "android.intent.action.BOOT_COMPLETED")) {
             final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
             if (sharedPreferences.getBoolean("initialized", false)) {
-                public_func.start_service(context, sharedPreferences);
+                public_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
             }
         }
     }
