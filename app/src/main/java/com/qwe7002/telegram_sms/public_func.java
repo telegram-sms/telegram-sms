@@ -155,7 +155,7 @@ class public_func {
         Intent intent = new Intent(boardcast_stop_service);
         context.sendBroadcast(intent);
         try {
-            Thread.sleep(100);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
