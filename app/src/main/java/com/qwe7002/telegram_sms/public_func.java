@@ -42,7 +42,7 @@ import static android.content.Context.MODE_PRIVATE;
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 class public_func {
-    private static final String log_tag = "telegram-sms";
+    static final String log_tag = "telegram-sms";
     static final String boardcast_stop_service = "com.qwe7002.telegram_sms.stop_all";
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
