@@ -13,6 +13,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.SmsMessage;
 import android.telephony.SubscriptionManager;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -35,7 +36,7 @@ public class sms_receiver extends BroadcastReceiver {
         final boolean is_default = Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName());
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
-            public_func.write_log(context, "Receive SMS:Uninitialized");
+            Log.i(public_func.log_tag, "Uninitialized, SMS receiver is deactivated");
             return;
         }
         String bot_token = sharedPreferences.getString("bot_token", "");
