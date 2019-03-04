@@ -216,7 +216,7 @@ public class main_activity extends AppCompatActivity {
             progress_dialog.setCancelable(false);
             progress_dialog.show();
             String request_uri = public_func.get_url(bot_token.getText().toString().trim(), "sendMessage");
-            request_json request_body = new request_json();
+            message_json request_body = new message_json();
             request_body.chat_id = chat_id.getText().toString().trim();
             request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
             Gson gson = new Gson();
