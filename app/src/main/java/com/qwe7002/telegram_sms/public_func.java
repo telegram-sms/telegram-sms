@@ -29,20 +29,26 @@ import com.google.gson.JsonParser;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 import static android.content.Context.MODE_PRIVATE;
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 class public_func {
-    private static final String log_tag = "telegram-sms";
+    static final String log_tag = "telegram-sms";
     static final String boardcast_stop_service = "com.qwe7002.telegram_sms.stop_all";
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
@@ -93,8 +99,15 @@ class public_func {
     }
 
     static void send_sms(Context context, String send_to, String content, int sub_id) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        String bot_token = sharedPreferences.getString("bot_token", "");
+        String chat_id = sharedPreferences.getString("chat_id", "");
+        String request_uri = public_func.get_url(bot_token, "sendMessage");
+        message_json request_body = new message_json();
+        request_body.chat_id = chat_id;
         android.telephony.SmsManager sms_manager;
         String sim_card = "1";
+        int slot = 0;
         switch (sub_id) {
             case -1:
                 sms_manager = android.telephony.SmsManager.getDefault();
@@ -102,21 +115,72 @@ class public_func {
             default:
                 sms_manager = android.telephony.SmsManager.getSmsManagerForSubscriptionId(sub_id);
                 sim_card = "2";
+                slot = 1;
         }
+        SubscriptionManager manager = SubscriptionManager.from(context);
+        String dual_sim = "";
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+            if (manager.getActiveSubscriptionInfoCount() >= 2) {
+                String display_name = public_func.get_sim_name_title(context, sharedPreferences, slot);
+                dual_sim = "SIM" + sim_card + display_name + " ";
+            }
+        }
+        String display_to_address = send_to;
+        String display_to_name = public_func.get_contact_name(context, display_to_address);
+        if (display_to_name != null) {
+            display_to_address = display_to_name + "(" + send_to + ")";
+        }
+        String send_content = "[" + dual_sim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + content;
+        request_body.text = send_content + "\n" + context.getString(R.string.status) + context.getString(R.string.sending);
+        Gson gson = new Gson();
+        String request_body_raw = gson.toJson(request_body);
+        RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
+        OkHttpClient okhttp_client = public_func.get_okhttp_obj();
+        Request request = new Request.Builder().url(request_uri).method("POST", body).build();
+        Call call = okhttp_client.newCall(request);
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                String error_message = "failed to send message:" + e.getMessage();
+                public_func.write_log(context, error_message);
+                send_sms_handle(context, "-1", send_content, send_to, content, sms_manager);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.code() != 200) {
+                    assert response.body() != null;
+                    String error_message = "failed to send message:" + response.body().string();
+                    public_func.write_log(context, error_message);
+                    send_sms_handle(context, "-1", send_content, send_to, content, sms_manager);
+                }
+                if (response.code() == 200) {
+                    assert response.body() != null;
+                    send_sms_handle(context, get_message_id(response.body().string()), send_content, send_to, content, sms_manager);
+                }
+
+            }
+        });
+    }
+
+    private static void send_sms_handle(Context context, String message_id, String message_text, String send_to, String content, android.telephony.SmsManager sms_manager) {
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
         ArrayList<PendingIntent> send_receiver_list = new ArrayList<>();
         IntentFilter filter = new IntentFilter("send_sms");
         BroadcastReceiver receiver = new sms_send_receiver();
         context.getApplicationContext().registerReceiver(receiver, filter);
         Intent sent_intent = new Intent("send_sms");
-        sent_intent.putExtra("sim_card", sim_card);
-        sent_intent.putExtra("send_to", send_to);
-        sent_intent.putExtra("content", content);
+        sent_intent.putExtra("message_id", message_id);
+        sent_intent.putExtra("message_text", message_text);
         PendingIntent sentIntent = PendingIntent.getBroadcast(context, 0, sent_intent, PendingIntent.FLAG_CANCEL_CURRENT);
         send_receiver_list.add(sentIntent);
         sms_manager.sendMultipartTextMessage(send_to, null, divideContents, send_receiver_list, null);
     }
 
+    static String get_message_id(String result) {
+        JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject().get("result").getAsJsonObject();
+        return result_obj.get("message_id").getAsString();
+    }
 
     static Notification get_notification_obj(Context context, String notification_name) {
         Notification notification = null;
@@ -155,7 +219,7 @@ class public_func {
         Intent intent = new Intent(boardcast_stop_service);
         context.sendBroadcast(intent);
         try {
-            Thread.sleep(100);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

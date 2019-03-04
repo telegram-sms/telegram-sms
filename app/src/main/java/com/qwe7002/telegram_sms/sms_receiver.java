@@ -13,10 +13,9 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.SmsMessage;
 import android.telephony.SubscriptionManager;
+import android.util.Log;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import java.io.IOException;
 
@@ -35,7 +34,7 @@ public class sms_receiver extends BroadcastReceiver {
         final boolean is_default = Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName());
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
-            public_func.write_log(context, "Receive SMS:Uninitialized");
+            Log.i(public_func.log_tag, "Uninitialized, SMS receiver is deactivated");
             return;
         }
         String bot_token = sharedPreferences.getString("bot_token", "");
@@ -82,7 +81,7 @@ public class sms_receiver extends BroadcastReceiver {
                 }
                 String msg_address = messages[0].getOriginatingAddress();
 
-                final request_json request_body = new request_json();
+                final message_json request_body = new message_json();
                 request_body.chat_id = chat_id;
                 String display_address = msg_address;
                 if (display_address != null) {
@@ -151,10 +150,7 @@ public class sms_receiver extends BroadcastReceiver {
                         }
                         if (response.code() == 200) {
                             assert response.body() != null;
-                            String result = response.body().string();
-                            JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject().get("result").getAsJsonObject();
-                            String message_id = result_obj.get("message_id").getAsString();
-                            public_func.add_message_list(context, message_id, msg_address, bundle.getInt("slot", -1));
+                            public_func.add_message_list(context, public_func.get_message_id(response.body().string()), msg_address, bundle.getInt("slot", -1));
                         }
                     }
                 });
