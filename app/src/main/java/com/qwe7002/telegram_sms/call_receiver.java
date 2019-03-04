@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -75,13 +76,13 @@ class call_state_listener extends PhoneStateListener {
 
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
-            public_func.write_log(context, "Receive Phone:Uninitialized");
+            Log.i(public_func.log_tag, "Uninitialized, Phone receiver is deactivated");
             return;
         }
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = public_func.get_url(bot_token, "sendMessage");
-        final request_json request_body = new request_json();
+        final message_json request_body = new message_json();
         request_body.chat_id = chat_id;
         String display_address = incoming_number;
         if (display_address != null) {

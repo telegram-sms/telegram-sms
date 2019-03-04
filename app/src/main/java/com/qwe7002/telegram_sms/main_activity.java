@@ -14,6 +14,7 @@ import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
@@ -63,7 +64,9 @@ public class main_activity extends AppCompatActivity {
         assert chat_id_save != null;
         if (sharedPreferences.getBoolean("initialized", false)) {
             public_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
-            boolean display_dual_sim_display_name_config = sharedPreferences.getBoolean("display_dual_sim_display_name", false);
+        }
+        boolean display_dual_sim_display_name_config = sharedPreferences.getBoolean("display_dual_sim_display_name", false);
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
             if (public_func.get_active_card(context) < 2) {
                 display_dual_sim_display_name.setEnabled(false);
                 display_dual_sim_display_name_config = false;
@@ -82,10 +85,25 @@ public class main_activity extends AppCompatActivity {
         fallback_sms.setChecked(sharedPreferences.getBoolean("fallback_sms", false));
         chat_command.setChecked(sharedPreferences.getBoolean("chat_command", false));
 
+        display_dual_sim_display_name.setOnClickListener(v -> {
+            int checkPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE);
+            if (checkPermission != PackageManager.PERMISSION_GRANTED) {
+                display_dual_sim_display_name.setChecked(false);
+                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
+            }
+            if (checkPermission == PackageManager.PERMISSION_GRANTED) {
+                if (public_func.get_active_card(context) < 2) {
+                    display_dual_sim_display_name.setEnabled(false);
+                    display_dual_sim_display_name.setChecked(false);
+                }
+            }
+        });
+
         logcat.setOnClickListener(v -> {
             Intent logcat_intent = new Intent(main_activity.this, logcat_activity.class);
             startActivity(logcat_intent);
         });
+
         get_id.setOnClickListener(v -> {
             if (bot_token.getText().toString().isEmpty()) {
                 Snackbar.make(v, R.string.token_not_configure, Snackbar.LENGTH_LONG).show();
@@ -176,6 +194,7 @@ public class main_activity extends AppCompatActivity {
                 Snackbar.make(v, R.string.trusted_phone_number_empty, Snackbar.LENGTH_LONG).show();
                 return;
             }
+
             ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_CONTACTS}, 1);
 
             PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
@@ -197,7 +216,7 @@ public class main_activity extends AppCompatActivity {
             progress_dialog.setCancelable(false);
             progress_dialog.show();
             String request_uri = public_func.get_url(bot_token.getText().toString().trim(), "sendMessage");
-            request_json request_body = new request_json();
+            message_json request_body = new message_json();
             request_body.chat_id = chat_id.getText().toString().trim();
             request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
             Gson gson = new Gson();

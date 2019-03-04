@@ -48,4 +48,5 @@
     <string name="display_sim_card_alias_in_dual_card_mode">デュアルカードモードでSIMカードのエイリアスを表示する</string>
     <string name="unable_to_get_information">情報を取得できません。</string>
     <string name="sendsms">/sendsms - SMSの送信</string>
+    <string name="sending">送信中</string>
 </resources>

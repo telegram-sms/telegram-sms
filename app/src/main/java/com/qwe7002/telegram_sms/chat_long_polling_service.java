@@ -63,6 +63,7 @@ public class chat_long_polling_service extends Service {
         IntentFilter intentFilter = new IntentFilter(public_func.boardcast_stop_service);
         stop_broadcast_receiver = new stop_broadcast_receiver();
         registerReceiver(stop_broadcast_receiver, intentFilter);
+
         sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
@@ -204,7 +205,7 @@ public class chat_long_polling_service extends Service {
         if (update_id >= offset) {
             offset = update_id + 1;
         }
-        final request_json request_body = new request_json();
+        final message_json request_body = new message_json();
         request_body.chat_id = chat_id;
         JsonObject message_obj = null;
         if (result_obj.has("message")) {
