@@ -96,7 +96,7 @@ public class sms_receiver extends BroadcastReceiver {
                     if (msg_address.equals(sharedPreferences.getString("trusted_phone_number", null))) {
                         String[] msg_send_list = msgBody.toString().split("\n");
                         String msg_send_to = public_func.get_send_phone_number(msg_send_list[0]);
-                        if (msg_send_to.equals("restart-service")) {
+                        if (msgBody.toString().equals("restart-service")) {
                             public_func.stop_all_service(context.getApplicationContext());
                             public_func.start_service(context.getApplicationContext(), sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
                             request_body.text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
