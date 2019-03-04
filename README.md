@@ -100,9 +100,9 @@ The following organizations for providing image storage for this page:
 
 - [Support me in Paypal](https://paypal.me/qwe7002)
 
-- Support me in Payoneer (qwe7002@hotmail.com)
-
 - Support me in Bitcoin (**17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae**)
+
+- [Support me in Alipay](https://i.loli.net/2019/03/05/5c7d4ebc3e1f0.jpg)
 
 - [Support me in Cloud QuickPass](https://static.reallct.com/2019/02/21/5c6d812840bac.png)
 
