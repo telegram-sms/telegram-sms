@@ -48,4 +48,5 @@
     <string name="display_sim_card_alias_in_dual_card_mode">在雙卡模式下顯示SIM卡別名</string>
     <string name="unable_to_get_information">無法獲取信息。</string>
     <string name="sendsms">/sendsms - 發送簡訊</string>
+    <string name="sending">正在發送</string>
 </resources>

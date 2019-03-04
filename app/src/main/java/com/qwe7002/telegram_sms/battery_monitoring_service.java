@@ -99,7 +99,7 @@ class battery_receiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, final Intent intent) {
         String request_uri = public_func.get_url(battery_monitoring_service.bot_token, "sendMessage");
-        final request_json request_body = new request_json();
+        final message_json request_body = new message_json();
         request_body.chat_id = battery_monitoring_service.chat_id;
         StringBuilder prebody = new StringBuilder(context.getString(R.string.system_message_head) + "\n");
         final String action = intent.getAction();

@@ -82,7 +82,7 @@ class call_state_listener extends PhoneStateListener {
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = public_func.get_url(bot_token, "sendMessage");
-        final request_json request_body = new request_json();
+        final message_json request_body = new message_json();
         request_body.chat_id = chat_id;
         String display_address = incoming_number;
         if (display_address != null) {
