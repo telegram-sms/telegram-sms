@@ -37,7 +37,7 @@
     <string name="service_is_running">サービスが実行されています…</string>
     <string name="Battery_monitoring">バッテリ監視</string>
     <string name="chat_command_service_name">チャットコマンド</string>
-    <string name="success">成功</string>
+    <string name="success">完了</string>
     <string name="available_command">利用可能なコマンド：\n/getinfo – システム情報の取得</string>
     <string name="restart_service">バックグラウンドサービスは正常に再起動しました。</string>
     <string name="status">状態：</string>
