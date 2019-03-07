@@ -130,6 +130,7 @@ class public_func {
             display_to_address = display_to_name + "(" + send_to + ")";
         }
         String send_content = "[" + dual_sim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + display_to_address + "\n" + context.getString(R.string.content) + content;
+        String message_id = "-1";
         request_body.text = send_content + "\n" + context.getString(R.string.status) + context.getString(R.string.sending);
         Gson gson = new Gson();
         String request_body_raw = gson.toJson(request_body);
@@ -137,7 +138,6 @@ class public_func {
         OkHttpClient okhttp_client = public_func.get_okhttp_obj();
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
-        String message_id = "-1";
         try {
             Response response = call.execute();
             if (response.code() != 200 || response.body() == null) {
@@ -147,11 +147,6 @@ class public_func {
         } catch (IOException e) {
             public_func.write_log(context, "failed to send message:" + e.getMessage());
         }
-        send_sms_handle(context, message_id, send_content, send_to, content, sms_manager);
-
-    }
-
-    private static void send_sms_handle(Context context, String message_id, String message_text, String send_to, String content, android.telephony.SmsManager sms_manager) {
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
         ArrayList<PendingIntent> send_receiver_list = new ArrayList<>();
         IntentFilter filter = new IntentFilter("send_sms");
@@ -159,10 +154,24 @@ class public_func {
         context.getApplicationContext().registerReceiver(receiver, filter);
         Intent sent_intent = new Intent("send_sms");
         sent_intent.putExtra("message_id", message_id);
-        sent_intent.putExtra("message_text", message_text);
+        sent_intent.putExtra("message_text", send_content);
+        sent_intent.putExtra("sub_id", sms_manager.getSubscriptionId());
         PendingIntent sentIntent = PendingIntent.getBroadcast(context, 0, sent_intent, PendingIntent.FLAG_CANCEL_CURRENT);
         send_receiver_list.add(sentIntent);
         sms_manager.sendMultipartTextMessage(send_to, null, divideContents, send_receiver_list, null);
+    }
+
+    static void send_fallback_sms(String send_to, String content, int sub_id) {
+        android.telephony.SmsManager sms_manager;
+        switch (sub_id) {
+            case -1:
+                sms_manager = android.telephony.SmsManager.getDefault();
+                break;
+            default:
+                sms_manager = android.telephony.SmsManager.getSmsManagerForSubscriptionId(sub_id);
+        }
+        ArrayList<String> divideContents = sms_manager.divideMessage(content);
+        sms_manager.sendMultipartTextMessage(send_to, null, divideContents, null, null);
     }
 
     static String get_message_id(String result) {
