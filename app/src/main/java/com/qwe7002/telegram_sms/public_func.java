@@ -37,7 +37,6 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
-import okhttp3.Callback;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -138,29 +137,18 @@ class public_func {
         OkHttpClient okhttp_client = public_func.get_okhttp_obj();
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
-        call.enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                String error_message = "failed to send message:" + e.getMessage();
-                public_func.write_log(context, error_message);
-                send_sms_handle(context, "-1", send_content, send_to, content, sms_manager);
+        String message_id = "-1";
+        try {
+            Response response = call.execute();
+            if (response.code() != 200 || response.body() == null) {
+                throw new IOException(String.valueOf(response.code()));
             }
+            message_id = get_message_id(response.body().string());
+        } catch (IOException e) {
+            public_func.write_log(context, "failed to send message:" + e.getMessage());
+        }
+        send_sms_handle(context, message_id, send_content, send_to, content, sms_manager);
 
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (response.code() != 200) {
-                    assert response.body() != null;
-                    String error_message = "failed to send message:" + response.body().string();
-                    public_func.write_log(context, error_message);
-                    send_sms_handle(context, "-1", send_content, send_to, content, sms_manager);
-                }
-                if (response.code() == 200) {
-                    assert response.body() != null;
-                    send_sms_handle(context, get_message_id(response.body().string()), send_content, send_to, content, sms_manager);
-                }
-
-            }
-        });
     }
 
     private static void send_sms_handle(Context context, String message_id, String message_text, String send_to, String content, android.telephony.SmsManager sms_manager) {
@@ -337,6 +325,7 @@ class public_func {
         message_list_obj.add(message_id, object);
         public_func.write_file(context, "message.json", new Gson().toJson(message_list_obj));
     }
+
     static void write_file(Context context, String file_name, String write_string) {
         try {
             FileOutputStream file_stream = context.openFileOutput(file_name, MODE_PRIVATE);
