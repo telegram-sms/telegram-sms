@@ -56,7 +56,7 @@ public class battery_monitoring_service extends Service {
         fallback = sharedPreferences.getBoolean("fallback_sms", false);
         trusted_phone_number = sharedPreferences.getString("trusted_phone_number", null);
 
-        IntentFilter intentFilter = new IntentFilter(public_func.boardcast_stop_service);
+        IntentFilter intentFilter = new IntentFilter(public_func.broadcast_stop_service);
         stop_broadcast_receiver = new stop_broadcast_receiver();
 
         battery_receiver = new battery_receiver();

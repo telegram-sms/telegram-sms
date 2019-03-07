@@ -60,7 +60,7 @@ public class chat_long_polling_service extends Service {
     public void onCreate() {
         super.onCreate();
         context = getApplicationContext();
-        IntentFilter intentFilter = new IntentFilter(public_func.boardcast_stop_service);
+        IntentFilter intentFilter = new IntentFilter(public_func.broadcast_stop_service);
         stop_broadcast_receiver = new stop_broadcast_receiver();
         registerReceiver(stop_broadcast_receiver, intentFilter);
 
@@ -294,10 +294,10 @@ public class chat_long_polling_service extends Service {
                             switch (command) {
                                 case "/sendsms":
                                 case "/sendsms1":
-                                    sub_id = public_func.get_subid(context, 0);
+                                    sub_id = public_func.get_sub_id(context, 0);
                                     break;
                                 case "/sendsms2":
-                                    sub_id = public_func.get_subid(context, 1);
+                                    sub_id = public_func.get_sub_id(context, 1);
                                     break;
                             }
                             request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.unable_to_get_information);
@@ -326,7 +326,7 @@ public class chat_long_polling_service extends Service {
                 int card_slot = message_item_obj.get("card").getAsInt();
                 int sub_id = -1;
                 if (card_slot != -1) {
-                    sub_id = public_func.get_subid(context, card_slot);
+                    sub_id = public_func.get_sub_id(context, card_slot);
                 }
                 public_func.send_sms(context, phone_number, request_msg, sub_id);
                 return;

@@ -48,7 +48,7 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 class public_func {
     static final String log_tag = "telegram-sms";
-    static final String boardcast_stop_service = "com.qwe7002.telegram_sms.stop_all";
+    static final String broadcast_stop_service = "com.qwe7002.telegram_sms.stop_all";
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     static String get_send_phone_number(String phone_number) {
@@ -213,7 +213,7 @@ class public_func {
     }
 
     static void stop_all_service(Context context) {
-        Intent intent = new Intent(boardcast_stop_service);
+        Intent intent = new Intent(broadcast_stop_service);
         context.sendBroadcast(intent);
         try {
             Thread.sleep(1000);
@@ -225,7 +225,9 @@ class public_func {
     static void start_service(Context context, Boolean battery_switch, Boolean chat_command_switch) {
         Intent battery_service = new Intent(context, battery_monitoring_service.class);
         Intent chat_long_polling_service = new Intent(context, chat_long_polling_service.class);
+        boolean foreground = false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            foreground = true;
             if (battery_switch) {
                 context.startForegroundService(battery_service);
             }
@@ -233,7 +235,7 @@ class public_func {
                 context.startForegroundService(chat_long_polling_service);
             }
         }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        if (!foreground) {
             if (battery_switch) {
                 context.startService(battery_service);
             }
@@ -243,7 +245,7 @@ class public_func {
         }
     }
 
-    static int get_subid(Context context, int slot) {
+    static int get_sub_id(Context context, int slot) {
         int active_card = public_func.get_active_card(context);
         if (active_card >= 2) {
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
