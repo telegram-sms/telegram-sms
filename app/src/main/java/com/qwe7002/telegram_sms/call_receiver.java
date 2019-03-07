@@ -33,6 +33,7 @@ public class call_receiver extends BroadcastReceiver {
     private static String incoming_number;
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
         switch (Objects.requireNonNull(intent.getAction())) {
             case "android.intent.action.PHONE_STATE":
                 if (intent.getStringExtra("incoming_number") != null) {

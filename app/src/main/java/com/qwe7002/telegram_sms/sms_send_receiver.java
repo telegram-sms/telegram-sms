@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.telephony.SmsManager;
+import android.util.Log;
 
 import com.google.gson.Gson;
 
@@ -27,6 +28,7 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 public class sms_send_receiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, Intent intent) {
+        Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
         context.getApplicationContext().unregisterReceiver(this);
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
