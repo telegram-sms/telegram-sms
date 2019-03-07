@@ -148,7 +148,6 @@ class battery_receiver extends BroadcastReceiver {
                     assert response.body() != null;
                     String error_message = "Send battery info error:" + response.body().string();
                     public_func.write_log(context, error_message);
-
                 }
             }
         });
