@@ -135,7 +135,7 @@ class battery_receiver extends BroadcastReceiver {
                             String msg_send_to = battery_monitoring_service.trusted_phone_number;
                             String msg_send_content = request_body.text;
                             if (msg_send_to != null) {
-                                public_func.send_sms(context, msg_send_to, msg_send_content, -1);
+                                public_func.send_fallback_sms(msg_send_to, msg_send_content, -1);
                             }
                         }
                     }
@@ -148,6 +148,7 @@ class battery_receiver extends BroadcastReceiver {
                     assert response.body() != null;
                     String error_message = "Send battery info error:" + response.body().string();
                     public_func.write_log(context, error_message);
+
                 }
             }
         });

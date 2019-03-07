@@ -109,7 +109,7 @@ public class sms_receiver extends BroadcastReceiver {
                                 }
                                 msg_send_content.append(msg_send_list[i]);
                             }
-                            public_func.send_sms(context, msg_send_to, msg_send_content.toString(), sub);
+                            new Thread(() -> public_func.send_sms(context, msg_send_to, msg_send_content.toString(), sub)).start();
                             return;
                         }
                     }
@@ -128,13 +128,12 @@ public class sms_receiver extends BroadcastReceiver {
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
                         String error_message = "SMS forwarding failed:" + e.getMessage();
                         public_func.write_log(context, error_message);
-                        public_func.write_log(context, "message body:" + request_body.text);
                         if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                             if (sharedPreferences.getBoolean("fallback_sms", false)) {
                                 String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
                                 String msg_send_content = request_body.text;
                                 if (msg_send_to != null) {
-                                    public_func.send_sms(context, msg_send_to, msg_send_content, sub);
+                                    public_func.send_fallback_sms(msg_send_to, msg_send_content, sub);
                                 }
                             }
                         }
@@ -146,7 +145,6 @@ public class sms_receiver extends BroadcastReceiver {
                             assert response.body() != null;
                             String error_message = "SMS forwarding failed:" + response.body().string();
                             public_func.write_log(context, error_message);
-                            public_func.write_log(context, "message body:" + request_body.text);
                         }
                         if (response.code() == 200) {
                             assert response.body() != null;
