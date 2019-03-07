@@ -19,6 +19,5 @@ public class boot_receiver extends BroadcastReceiver {
         if (sharedPreferences.getBoolean("initialized", false)) {
             public_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
         }
-
     }
 }
