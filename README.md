@@ -19,7 +19,7 @@ A robot running on your Android device.
 
 - Monitor device battery power changes
 
-- Remote control via chat command \ SMS.
+- Remote control via chat command or SMS.
 
 ## Permission
 
@@ -40,7 +40,7 @@ You can set this app as the default SMS app, which will block all SMS notificati
 - [English](https://github.com/qwe7002/telegram-sms/wiki/User_manual)
 - [简体中文](https://github.com/qwe7002/telegram-sms/wiki/用户手册)
 - [繁體中文](https://github.com/qwe7002/telegram-sms/wiki/用戶手冊)
-- 日本語(WIP)
+- [日本語](https://github.com/qwe7002/telegram-sms/wiki/マニュアル)
 
 ## License
 
@@ -91,6 +91,12 @@ The birth of this software is inseparable from their help:
 - [@SumiMakito](https://github.com/SumiMakito)
 
 - [@zsxsoft](https://github.com/zsxsoft)
+
+Thanks for their translation and support of this project document:
+
+- en_US:[@tangbao](https://github.com/tangbao)
+
+- ja-JP:[@Lollycc](https://github.com/lollycc) []()
 
 The following organizations for providing image storage for this page:
 

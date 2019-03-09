@@ -28,7 +28,8 @@
     <string name="chat_id_or_token_not_config">請先配置機器人令牌和對話ID</string>
     <string name="no_recent">無法獲取最近的聊天記錄</string>
     <string name="chat_command">獲取聊天命令</string>
-    <string name="command_format_error">命令格式錯誤</string>
+    <string name="command_format_error">命令格式錯誤。</string>
+    <string name="command_error_tip">發送簡訊的格式是：\n/sendsms\n{接收方電話號碼}\n{簡訊內容}</string>
     <string name="unknown_command">未知的命令</string>
     <string name="current_network_connection_status">網路狀態：</string>
     <string name="cant_get_card_2_info">無法獲取卡槽2信息。</string>

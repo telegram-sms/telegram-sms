@@ -63,7 +63,6 @@ public class logcat_activity extends AppCompatActivity {
             if (event == FileObserver.MODIFY) {
                 runOnUiThread(() -> logcat.setText(public_func.read_log(context)));
             }
-
         }
     }
 

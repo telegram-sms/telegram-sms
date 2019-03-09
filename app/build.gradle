@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
+apply plugin: "com.github.triplet.play"
 apply from: 'version.gradle'
-
 android {
     compileSdkVersion 28
 
@@ -34,6 +34,10 @@ android {
             signingConfig signingConfigs.releaseConfig
         }
     }
+}
+
+play {
+    serviceAccountCredentials = file("play-service-key.json")
 }
 
 dependencies {

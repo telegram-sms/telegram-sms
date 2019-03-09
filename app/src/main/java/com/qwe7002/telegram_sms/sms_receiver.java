@@ -10,9 +10,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.telephony.SmsMessage;
-import android.telephony.SubscriptionManager;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -48,17 +46,9 @@ public class sms_receiver extends BroadcastReceiver {
         }
         Bundle bundle = intent.getExtras();
         if (bundle != null) {
-            String dual_sim = "";
-            SubscriptionManager manager = SubscriptionManager.from(context);
-            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                if (manager.getActiveSubscriptionInfoCount() >= 2) {
-                    int slot = bundle.getInt("slot", -1);
-                    if (slot != -1) {
-                        String display_name = public_func.get_sim_name_title(context, sharedPreferences, slot);
-                        dual_sim = "SIM" + (slot + 1) + display_name + " ";
-                    }
-                }
-            }
+            int slot = bundle.getInt("slot", -1);
+            String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences);
+
             final int sub = bundle.getInt("subscription", -1);
             Object[] pdus = (Object[]) bundle.get("pdus");
             assert pdus != null;
@@ -110,7 +100,7 @@ public class sms_receiver extends BroadcastReceiver {
                                 }
                                 msg_send_content.append(msg_send_list[i]);
                             }
-                            new Thread(() -> public_func.send_sms(context, msg_send_to, msg_send_content.toString(), sub)).start();
+                            new Thread(() -> public_func.send_sms(context, msg_send_to, msg_send_content.toString(), slot, sub)).start();
                             return;
                         }
                     }

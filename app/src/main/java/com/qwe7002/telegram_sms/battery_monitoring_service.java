@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.os.BatteryManager;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.google.gson.Gson;
 
@@ -98,6 +99,7 @@ class battery_receiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(final Context context, final Intent intent) {
+        Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
         String request_uri = public_func.get_url(battery_monitoring_service.bot_token, "sendMessage");
         final message_json request_body = new message_json();
         request_body.chat_id = battery_monitoring_service.chat_id;
