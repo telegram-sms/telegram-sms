@@ -274,7 +274,7 @@ public class chat_long_polling_service extends Service {
                 case "/sendsms":
                 case "/sendsms1":
                 case "/sendsms2":
-                    request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.command_format_error);
+                    request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.command_format_error) + "\n\n" + getString(R.string.command_error_tip);
                     String[] msg_send_list = request_msg.split("\n");
                     if (msg_send_list.length > 2) {
                         String msg_send_to = public_func.get_send_phone_number(msg_send_list[1]);
@@ -287,26 +287,28 @@ public class chat_long_polling_service extends Service {
                                 msg_send_content.append(msg_send_list[i]);
                             }
                             if (public_func.get_active_card(context) == 1) {
-                                public_func.send_sms(context, msg_send_to, msg_send_content.toString(), -1);
+                                public_func.send_sms(context, msg_send_to, msg_send_content.toString(), -1, -1);
                                 return;
                             }
-                            int sub_id = -1;
+                            int slot = -1;
                             switch (command) {
                                 case "/sendsms":
                                 case "/sendsms1":
-                                    sub_id = public_func.get_sub_id(context, 0);
+                                    slot = 0;
                                     break;
                                 case "/sendsms2":
-                                    sub_id = public_func.get_sub_id(context, 1);
+                                    slot = 1;
                                     break;
                             }
                             request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.unable_to_get_information);
+                            int sub_id = public_func.get_sub_id(context, slot);
                             if (sub_id != -1) {
-                                public_func.send_sms(context, msg_send_to, msg_send_content.toString(), sub_id);
+                                public_func.send_sms(context, msg_send_to, msg_send_content.toString(), slot, sub_id);
                                 return;
                             }
                         }
                     }
+
                     break;
                 default:
                     request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
@@ -328,8 +330,11 @@ public class chat_long_polling_service extends Service {
                 if (card_slot != -1) {
                     sub_id = public_func.get_sub_id(context, card_slot);
                 }
-                public_func.send_sms(context, phone_number, request_msg, sub_id);
-                return;
+                if (sub_id != -1) {
+                    public_func.send_sms(context, phone_number, request_msg, card_slot, sub_id);
+                    return;
+                }
+                request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.unable_to_get_information);
             }
         }
 

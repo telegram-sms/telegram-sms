@@ -59,6 +59,17 @@ class public_func {
                 .replace(")", "");
     }
 
+    static String get_dual_sim_card_display(Context context, int slot, SharedPreferences sharedPreferences) {
+        String dual_sim = "";
+        if (slot == -1) {
+            return dual_sim;
+        }
+        if (public_func.get_active_card(context) >= 2) {
+            String display_name = public_func.get_sim_name_title(context, sharedPreferences, slot);
+            dual_sim = "SIM" + (slot + 1) + display_name + " ";
+        }
+        return dual_sim;
+    }
     static boolean check_network(Context context) {
 
         ConnectivityManager manager = (ConnectivityManager) context
@@ -97,7 +108,7 @@ class public_func {
         return true;
     }
 
-    static void send_sms(Context context, String send_to, String content, int sub_id) {
+    static void send_sms(Context context, String send_to, String content, int slot, int sub_id) {
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
@@ -105,25 +116,14 @@ class public_func {
         message_json request_body = new message_json();
         request_body.chat_id = chat_id;
         android.telephony.SmsManager sms_manager;
-        String sim_card = "1";
-        int slot = 0;
         switch (sub_id) {
             case -1:
                 sms_manager = android.telephony.SmsManager.getDefault();
                 break;
             default:
                 sms_manager = android.telephony.SmsManager.getSmsManagerForSubscriptionId(sub_id);
-                sim_card = "2";
-                slot = 1;
         }
-        SubscriptionManager manager = SubscriptionManager.from(context);
-        String dual_sim = "";
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-            if (manager.getActiveSubscriptionInfoCount() >= 2) {
-                String display_name = public_func.get_sim_name_title(context, sharedPreferences, slot);
-                dual_sim = "SIM" + sim_card + display_name + " ";
-            }
-        }
+        String dual_sim = get_dual_sim_card_display(context, slot, sharedPreferences);
         String display_to_address = send_to;
         String display_to_name = public_func.get_contact_name(context, display_to_address);
         if (display_to_name != null) {
@@ -263,7 +263,7 @@ class public_func {
         return SubscriptionManager.from(context).getActiveSubscriptionInfoCount();
     }
 
-    static String get_sim_name_title(Context context, SharedPreferences sharedPreferences, int slot) {
+    private static String get_sim_name_title(Context context, SharedPreferences sharedPreferences, int slot) {
         String result = "";
         if (sharedPreferences.getBoolean("display_dual_sim_display_name", false)) {
             result = "(" + get_sim_display_name(context, slot) + ")";
