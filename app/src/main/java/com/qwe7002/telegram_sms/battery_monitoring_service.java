@@ -132,13 +132,11 @@ class battery_receiver extends BroadcastReceiver {
                 String error_message = "Send battery info error:" + e.getMessage();
                 public_func.write_log(context, error_message);
                 if (action.equals(Intent.ACTION_BATTERY_LOW)) {
-                    if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-                        if (battery_monitoring_service.fallback) {
-                            String msg_send_to = battery_monitoring_service.trusted_phone_number;
-                            String msg_send_content = request_body.text;
-                            if (msg_send_to != null) {
-                                public_func.send_fallback_sms(msg_send_to, msg_send_content, -1);
-                            }
+                    if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && battery_monitoring_service.fallback) {
+                        String msg_send_to = battery_monitoring_service.trusted_phone_number;
+                        String msg_send_content = request_body.text;
+                        if (msg_send_to != null) {
+                            public_func.send_fallback_sms(msg_send_to, msg_send_content, -1);
                         }
                     }
                 }
