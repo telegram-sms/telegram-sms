@@ -1,7 +1,6 @@
 package com.qwe7002.telegram_sms;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -10,13 +9,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.BatteryManager;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.telephony.TelephonyManager;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -47,7 +43,6 @@ public class chat_long_polling_service extends Service {
     OkHttpClient okhttp_test_client;
     private stop_broadcast_receiver stop_broadcast_receiver = null;
 
-    @SuppressLint("WrongConstant")
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
@@ -97,47 +92,6 @@ public class chat_long_polling_service extends Service {
     }
 
 
-    public String get_network_type(Context context) {
-        String net_type = "Unknown";
-        ConnectivityManager connect_manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo network_info = connect_manager.getActiveNetworkInfo();
-        if (network_info == null) {
-            return net_type;
-        }
-        switch (network_info.getType()) {
-            case ConnectivityManager.TYPE_WIFI:
-                net_type = "WIFI";
-                break;
-            case ConnectivityManager.TYPE_MOBILE:
-                switch (network_info.getSubtype()) {
-                    case TelephonyManager.NETWORK_TYPE_LTE:
-                        net_type = "LTE/4G";
-                        break;
-                    case TelephonyManager.NETWORK_TYPE_EVDO_0:
-                    case TelephonyManager.NETWORK_TYPE_EVDO_A:
-                    case TelephonyManager.NETWORK_TYPE_EVDO_B:
-                    case TelephonyManager.NETWORK_TYPE_EHRPD:
-                    case TelephonyManager.NETWORK_TYPE_HSDPA:
-                    case TelephonyManager.NETWORK_TYPE_HSPAP:
-                    case TelephonyManager.NETWORK_TYPE_HSUPA:
-                    case TelephonyManager.NETWORK_TYPE_HSPA:
-                    case TelephonyManager.NETWORK_TYPE_TD_SCDMA:
-                    case TelephonyManager.NETWORK_TYPE_UMTS:
-                        net_type = "3G";
-                        break;
-                    case TelephonyManager.NETWORK_TYPE_GPRS:
-                    case TelephonyManager.NETWORK_TYPE_EDGE:
-                    case TelephonyManager.NETWORK_TYPE_CDMA:
-                    case TelephonyManager.NETWORK_TYPE_1xRTT:
-                    case TelephonyManager.NETWORK_TYPE_IDEN:
-                        net_type = "2G";
-                        break;
-                }
-        }
-        return net_type;
-    }
-
-
     void start_long_polling() throws IOException {
         Request request_test = new Request.Builder().url("https://www.google.com/generate_204").build();
         Call call_test = okhttp_test_client.newCall(request_test);
@@ -177,8 +131,7 @@ public class chat_long_polling_service extends Service {
         polling_json request_body = new polling_json();
         request_body.offset = offset;
         request_body.timeout = read_timeout;
-        Gson gson = new Gson();
-        RequestBody body = RequestBody.create(public_func.JSON, gson.toJson(request_body));
+        RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client_new.newCall(request);
         Response response = call.execute();
@@ -188,7 +141,7 @@ public class chat_long_polling_service extends Service {
             if (result_obj.get("ok").getAsBoolean()) {
                 JsonArray result_array = result_obj.get("result").getAsJsonArray();
                 for (JsonElement item : result_array) {
-                    handle(item.getAsJsonObject());
+                    receive_handle(item.getAsJsonObject());
                 }
             }
         }
@@ -200,7 +153,7 @@ public class chat_long_polling_service extends Service {
         return null;
     }
 
-    private void handle(JsonObject result_obj) {
+    private void receive_handle(JsonObject result_obj) {
         int update_id = result_obj.get("update_id").getAsInt();
         if (update_id >= offset) {
             offset = update_id + 1;
@@ -269,7 +222,7 @@ public class chat_long_polling_service extends Service {
                             card_info = "\nSIM1:" + public_func.get_sim_display_name(context, 0) + "\nSIM2:" + public_func.get_sim_display_name(context, 1);
                         }
                     }
-                    request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + get_network_type(context) + card_info;
+                    request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
                     break;
                 case "/sendsms":
                 case "/sendsms1":

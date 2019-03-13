@@ -21,6 +21,7 @@ import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -106,6 +107,46 @@ class public_func {
             }
         }
         return true;
+    }
+
+    static String get_network_type(Context context) {
+        String net_type = "Unknown";
+        ConnectivityManager connect_manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo network_info = connect_manager.getActiveNetworkInfo();
+        if (network_info == null) {
+            return net_type;
+        }
+        switch (network_info.getType()) {
+            case ConnectivityManager.TYPE_WIFI:
+                net_type = "WIFI";
+                break;
+            case ConnectivityManager.TYPE_MOBILE:
+                switch (network_info.getSubtype()) {
+                    case TelephonyManager.NETWORK_TYPE_LTE:
+                        net_type = "LTE/4G";
+                        break;
+                    case TelephonyManager.NETWORK_TYPE_EVDO_0:
+                    case TelephonyManager.NETWORK_TYPE_EVDO_A:
+                    case TelephonyManager.NETWORK_TYPE_EVDO_B:
+                    case TelephonyManager.NETWORK_TYPE_EHRPD:
+                    case TelephonyManager.NETWORK_TYPE_HSDPA:
+                    case TelephonyManager.NETWORK_TYPE_HSPAP:
+                    case TelephonyManager.NETWORK_TYPE_HSUPA:
+                    case TelephonyManager.NETWORK_TYPE_HSPA:
+                    case TelephonyManager.NETWORK_TYPE_TD_SCDMA:
+                    case TelephonyManager.NETWORK_TYPE_UMTS:
+                        net_type = "3G";
+                        break;
+                    case TelephonyManager.NETWORK_TYPE_GPRS:
+                    case TelephonyManager.NETWORK_TYPE_EDGE:
+                    case TelephonyManager.NETWORK_TYPE_CDMA:
+                    case TelephonyManager.NETWORK_TYPE_1xRTT:
+                    case TelephonyManager.NETWORK_TYPE_IDEN:
+                        net_type = "2G";
+                        break;
+                }
+        }
+        return net_type;
     }
 
     static void send_sms(Context context, String send_to, String content, int slot, int sub_id) {
