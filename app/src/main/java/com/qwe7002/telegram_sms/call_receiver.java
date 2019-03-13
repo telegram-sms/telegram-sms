@@ -87,8 +87,7 @@ class call_state_listener extends PhoneStateListener {
 
             String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences);
             request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + display_address;
-            Gson gson = new Gson();
-            String request_body_raw = gson.toJson(request_body);
+            String request_body_raw = new Gson().toJson(request_body);
             RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
             OkHttpClient okhttp_client = public_func.get_okhttp_obj();
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
@@ -98,13 +97,11 @@ class call_state_listener extends PhoneStateListener {
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
                     String error_message = "Send missed call error:" + e.getMessage();
                     public_func.write_log(context, error_message);
-                    if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-                        if (sharedPreferences.getBoolean("fallback_sms", false)) {
-                            String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
-                            String msg_send_content = request_body.text;
-                            if (msg_send_to != null) {
-                                public_func.send_fallback_sms(msg_send_to, msg_send_content, -1);
-                            }
+                    if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && sharedPreferences.getBoolean("fallback_sms", false)) {
+                        String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
+                        String msg_send_content = request_body.text;
+                        if (msg_send_to != null) {
+                            public_func.send_fallback_sms(msg_send_to, msg_send_content, public_func.get_sub_id(context, slot));
                         }
                     }
                 }
