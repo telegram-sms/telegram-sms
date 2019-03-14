@@ -33,6 +33,7 @@ public class call_receiver extends BroadcastReceiver {
     private static String incoming_number;
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
         switch (Objects.requireNonNull(intent.getAction())) {
             case "android.intent.action.PHONE_STATE":
                 if (intent.getStringExtra("incoming_number") != null) {
@@ -66,78 +67,64 @@ class call_state_listener extends PhoneStateListener {
     public void onCallStateChanged(int state, String incomingNumber) {
         if (lastState == TelephonyManager.CALL_STATE_RINGING
                 && state == TelephonyManager.CALL_STATE_IDLE) {
-            when_miss_call();
+            final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+            if (!sharedPreferences.getBoolean("initialized", false)) {
+                Log.i(public_func.log_tag, "Uninitialized, Phone receiver is deactivated");
+                return;
+            }
+            String bot_token = sharedPreferences.getString("bot_token", "");
+            String chat_id = sharedPreferences.getString("chat_id", "");
+            String request_uri = public_func.get_url(bot_token, "sendMessage");
+            final message_json request_body = new message_json();
+            request_body.chat_id = chat_id;
+            String display_address = incoming_number;
+            if (display_address != null) {
+                String display_name = public_func.get_contact_name(context, incoming_number);
+                if (display_name != null) {
+                    display_address = display_name + "(" + incoming_number + ")";
+                }
+            }
+
+            String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences);
+            request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + display_address;
+            String request_body_raw = new Gson().toJson(request_body);
+            RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
+            OkHttpClient okhttp_client = public_func.get_okhttp_obj();
+            Request request = new Request.Builder().url(request_uri).method("POST", body).build();
+            Call call = okhttp_client.newCall(request);
+            call.enqueue(new Callback() {
+                @Override
+                public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    String error_message = "Send missed call error:" + e.getMessage();
+                    public_func.write_log(context, error_message);
+                    if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && sharedPreferences.getBoolean("fallback_sms", false)) {
+                        String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
+                        String msg_send_content = request_body.text;
+                        if (msg_send_to != null) {
+                            public_func.send_fallback_sms(msg_send_to, msg_send_content, public_func.get_sub_id(context, slot));
+                        }
+                    }
+                }
+
+                @Override
+                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    if (response.code() != 200) {
+                        assert response.body() != null;
+                        String error_message = "Send missed call error:" + response.body().string();
+                        public_func.write_log(context, error_message);
+                    }
+                    if (response.code() == 200) {
+                        assert response.body() != null;
+                        String result = response.body().string();
+                        JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject().get("result").getAsJsonObject();
+                        String message_id = result_obj.get("message_id").getAsString();
+                        public_func.add_message_list(context, message_id, incoming_number, slot);
+                    }
+                }
+            });
         }
 
         lastState = state;
     }
 
-    private void when_miss_call() {
-
-        final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-        if (!sharedPreferences.getBoolean("initialized", false)) {
-            Log.i(public_func.log_tag, "Uninitialized, Phone receiver is deactivated");
-            return;
-        }
-        String bot_token = sharedPreferences.getString("bot_token", "");
-        String chat_id = sharedPreferences.getString("chat_id", "");
-        String request_uri = public_func.get_url(bot_token, "sendMessage");
-        final message_json request_body = new message_json();
-        request_body.chat_id = chat_id;
-        String display_address = incoming_number;
-        if (display_address != null) {
-            String display_name = public_func.get_contact_name(context, incoming_number);
-            if (display_name != null) {
-                display_address = display_name + "(" + incoming_number + ")";
-            }
-        }
-
-        String dual_sim = "";
-        if (public_func.get_active_card(context) == 2) {
-            String display_name = public_func.get_sim_name_title(context, sharedPreferences, slot);
-            if (slot != -1) {
-                dual_sim = "SIM" + (slot + 1) + display_name + " ";
-            }
-        }
-
-        request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + display_address;
-        Gson gson = new Gson();
-        String request_body_raw = gson.toJson(request_body);
-        RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
-        OkHttpClient okhttp_client = public_func.get_okhttp_obj();
-        Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-        Call call = okhttp_client.newCall(request);
-        call.enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                String error_message = "Send missed call error:" + e.getMessage();
-                public_func.write_log(context, error_message);
-                if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-                    if (sharedPreferences.getBoolean("fallback_sms", false)) {
-                        String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
-                        String msg_send_content = request_body.text;
-                        if (msg_send_to != null) {
-                            public_func.send_sms(context, msg_send_to, msg_send_content, -1);
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                if (response.code() != 200) {
-                    assert response.body() != null;
-                    String error_message = "Send missed call error:" + response.body().string();
-                    public_func.write_log(context, error_message);
-                }
-                if (response.code() == 200) {
-                    assert response.body() != null;
-                    String result = response.body().string();
-                    JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject().get("result").getAsJsonObject();
-                    String message_id = result_obj.get("message_id").getAsString();
-                    public_func.add_message_list(context, message_id, incoming_number, slot);
-                }
-            }
-        });
-    }
 }

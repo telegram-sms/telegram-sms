@@ -10,9 +10,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.telephony.SmsMessage;
-import android.telephony.SubscriptionManager;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -31,6 +29,7 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class sms_receiver extends BroadcastReceiver {
     public void onReceive(final Context context, Intent intent) {
+        Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
         final boolean is_default = Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName());
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
@@ -42,22 +41,15 @@ public class sms_receiver extends BroadcastReceiver {
         String request_uri = public_func.get_url(bot_token, "sendMessage");
         if ("android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction())) {
             if (is_default) {
+                //When it is the default application, it will receive two broadcasts.
                 return;
             }
         }
         Bundle bundle = intent.getExtras();
         if (bundle != null) {
-            String dual_sim = "";
-            SubscriptionManager manager = SubscriptionManager.from(context);
-            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                if (manager.getActiveSubscriptionInfoCount() >= 2) {
-                    int slot = bundle.getInt("slot", -1);
-                    if (slot != -1) {
-                        String display_name = public_func.get_sim_name_title(context, sharedPreferences, slot);
-                        dual_sim = "SIM" + (slot + 1) + display_name + " ";
-                    }
-                }
-            }
+            int slot = bundle.getInt("slot", -1);
+            String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences);
+
             final int sub = bundle.getInt("subscription", -1);
             Object[] pdus = (Object[]) bundle.get("pdus");
             assert pdus != null;
@@ -109,15 +101,14 @@ public class sms_receiver extends BroadcastReceiver {
                                 }
                                 msg_send_content.append(msg_send_list[i]);
                             }
-                            public_func.send_sms(context, msg_send_to, msg_send_content.toString(), sub);
+                            new Thread(() -> public_func.send_sms(context, msg_send_to, msg_send_content.toString(), slot, sub)).start();
                             return;
                         }
                     }
                 }
 
-                Gson gson = new Gson();
-                String request_body_raw = gson.toJson(request_body);
-                RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
+                String request_body_json = new Gson().toJson(request_body);
+                RequestBody body = RequestBody.create(public_func.JSON, request_body_json);
                 OkHttpClient okhttp_client = public_func.get_okhttp_obj();
                 okhttp_client.retryOnConnectionFailure();
                 okhttp_client.connectTimeoutMillis();
@@ -128,14 +119,11 @@ public class sms_receiver extends BroadcastReceiver {
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
                         String error_message = "SMS forwarding failed:" + e.getMessage();
                         public_func.write_log(context, error_message);
-                        public_func.write_log(context, "message body:" + request_body.text);
-                        if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-                            if (sharedPreferences.getBoolean("fallback_sms", false)) {
-                                String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
-                                String msg_send_content = request_body.text;
-                                if (msg_send_to != null) {
-                                    public_func.send_sms(context, msg_send_to, msg_send_content, sub);
-                                }
+                        if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && sharedPreferences.getBoolean("fallback_sms", false)) {
+                            String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
+                            String msg_send_content = request_body.text;
+                            if (msg_send_to != null) {
+                                public_func.send_fallback_sms(msg_send_to, msg_send_content, sub);
                             }
                         }
                     }
@@ -146,7 +134,6 @@ public class sms_receiver extends BroadcastReceiver {
                             assert response.body() != null;
                             String error_message = "SMS forwarding failed:" + response.body().string();
                             public_func.write_log(context, error_message);
-                            public_func.write_log(context, "message body:" + request_body.text);
                         }
                         if (response.code() == 200) {
                             assert response.body() != null;

@@ -1,0 +1,3 @@
+Routine release of bug fixes and stability improvements.
+
+You can see the update log here (Chinese): https://github.com/qwe7002/telegram-sms/commits/master

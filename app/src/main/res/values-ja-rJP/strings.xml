@@ -28,7 +28,8 @@
     <string name="chat_id_or_token_not_config">ロボットトークンとトークIDを最初に設定してください。</string>
     <string name="no_recent">最近のトーク履歴はありません</string>
     <string name="chat_command">チャットコマンドを取得する</string>
-    <string name="command_format_error">コマンドフォーマットエラー</string>
+    <string name="command_format_error">コマンドフォーマットエラー。</string>
+    <string name="command_error_tip">SMSを送信するコマンドの書式:\n/sendsms\n{受信先の電話番号}\n{本文}</string>
     <string name="unknown_command">不明なコマンド</string>
     <string name="current_network_connection_status">ネットワーク状況：</string>
     <string name="cant_get_card_2_info">カードスロット2の情報を取得できないため。</string>
@@ -37,7 +38,7 @@
     <string name="service_is_running">サービスが実行されています…</string>
     <string name="Battery_monitoring">バッテリ監視</string>
     <string name="chat_command_service_name">チャットコマンド</string>
-    <string name="success">成功</string>
+    <string name="success">完了</string>
     <string name="available_command">利用可能なコマンド：\n/getinfo – システム情報の取得</string>
     <string name="restart_service">バックグラウンドサービスは正常に再起動しました。</string>
     <string name="status">状態：</string>

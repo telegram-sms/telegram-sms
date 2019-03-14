@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.os.BatteryManager;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.google.gson.Gson;
 
@@ -56,7 +57,7 @@ public class battery_monitoring_service extends Service {
         fallback = sharedPreferences.getBoolean("fallback_sms", false);
         trusted_phone_number = sharedPreferences.getString("trusted_phone_number", null);
 
-        IntentFilter intentFilter = new IntentFilter(public_func.boardcast_stop_service);
+        IntentFilter intentFilter = new IntentFilter(public_func.broadcast_stop_service);
         stop_broadcast_receiver = new stop_broadcast_receiver();
 
         battery_receiver = new battery_receiver();
@@ -98,6 +99,7 @@ class battery_receiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(final Context context, final Intent intent) {
+        Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
         String request_uri = public_func.get_url(battery_monitoring_service.bot_token, "sendMessage");
         final message_json request_body = new message_json();
         request_body.chat_id = battery_monitoring_service.chat_id;
@@ -130,13 +132,11 @@ class battery_receiver extends BroadcastReceiver {
                 String error_message = "Send battery info error:" + e.getMessage();
                 public_func.write_log(context, error_message);
                 if (action.equals(Intent.ACTION_BATTERY_LOW)) {
-                    if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-                        if (battery_monitoring_service.fallback) {
-                            String msg_send_to = battery_monitoring_service.trusted_phone_number;
-                            String msg_send_content = request_body.text;
-                            if (msg_send_to != null) {
-                                public_func.send_sms(context, msg_send_to, msg_send_content, -1);
-                            }
+                    if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && battery_monitoring_service.fallback) {
+                        String msg_send_to = battery_monitoring_service.trusted_phone_number;
+                        String msg_send_content = request_body.text;
+                        if (msg_send_to != null) {
+                            public_func.send_fallback_sms(msg_send_to, msg_send_content, -1);
                         }
                     }
                 }
