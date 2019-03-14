@@ -95,7 +95,6 @@ public class chat_long_polling_service extends Service {
     void start_long_polling() throws IOException {
         Request request_test = new Request.Builder().url("https://www.google.com/generate_204").build();
         Call call_test = okhttp_test_client.newCall(request_test);
-
         try {
             if (!public_func.check_network(context)) {
                 throw new IOException("Network");
