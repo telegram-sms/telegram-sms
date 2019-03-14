@@ -41,6 +41,7 @@ public class sms_receiver extends BroadcastReceiver {
         String request_uri = public_func.get_url(bot_token, "sendMessage");
         if ("android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction())) {
             if (is_default) {
+                //When it is the default application, it will receive two broadcasts.
                 return;
             }
         }
