@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
+apply plugin: "com.github.triplet.play"
 apply from: 'version.gradle'
-
 android {
     compileSdkVersion 28
 
@@ -36,13 +36,17 @@ android {
     }
 }
 
+play {
+    serviceAccountCredentials = file("play-service-key.json")
+}
+
 dependencies {
     //noinspection GradleDynamicVersion
-    implementation 'com.android.support:appcompat-v7:28+'
+    implementation 'com.android.support:appcompat-v7:+'
     //noinspection GradleDynamicVersion
-    implementation 'com.android.support.constraint:constraint-layout:1+'
+    implementation 'com.android.support.constraint:constraint-layout:+'
     //noinspection GradleDynamicVersion
-    implementation 'com.android.support:design:28+'
+    implementation 'com.android.support:design:+'
     //noinspection GradleDynamicVersion
     implementation 'com.squareup.okhttp3:okhttp:+'
     //noinspection GradleDynamicVersion

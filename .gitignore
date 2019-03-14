@@ -70,3 +70,5 @@ version.gradle
 app/.classpath
 app/.project
 app/.settings/
+
+play-service-key.json
