@@ -319,10 +319,5 @@ public class chat_long_polling_service extends Service {
             android.os.Process.killProcess(android.os.Process.myPid());
         }
     }
-
-    class polling_json {
-        int offset;
-        int timeout;
-    }
 }
 
