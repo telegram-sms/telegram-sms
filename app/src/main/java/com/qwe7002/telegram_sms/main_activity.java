@@ -29,6 +29,7 @@ import com.google.gson.JsonParser;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -42,7 +43,6 @@ import static android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATI
 
 public class main_activity extends AppCompatActivity {
     Context context = null;
-
 
     @SuppressLint("BatteryLife")
     @Override
@@ -117,8 +117,15 @@ public class main_activity extends AppCompatActivity {
             progress_dialog.setCancelable(false);
             progress_dialog.show();
             String request_uri = public_func.get_url(bot_token.getText().toString().trim(), "getUpdates");
-            OkHttpClient okhttp_client = new OkHttpClient();
-            Request request = new Request.Builder().url(request_uri).build();
+            OkHttpClient okhttp_client = public_func.get_okhttp_obj();
+            okhttp_client = okhttp_client.newBuilder()
+                    .readTimeout((120 + 5), TimeUnit.SECONDS)
+                    .build();
+            polling_json request_body = new polling_json();
+            request_body.offset = 0;
+            request_body.timeout = 120;
+            RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
+            Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
             call.enqueue(new Callback() {
                 @Override
