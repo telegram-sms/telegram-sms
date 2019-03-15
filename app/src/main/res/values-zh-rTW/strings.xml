@@ -26,7 +26,7 @@
     <string name="logcat">查看日誌</string>
     <string name="token_not_configure">請先配置機器人令牌。</string>
     <string name="chat_id_or_token_not_config">請先配置機器人令牌和對話ID</string>
-    <string name="no_recent">無法獲取最近的聊天記錄</string>
+    <string name="unable_get_recent">無法獲取最近的聊天記錄</string>
     <string name="chat_command">獲取聊天命令</string>
     <string name="command_format_error">命令格式錯誤。</string>
     <string name="command_error_tip">發送簡訊的格式是：\n/sendsms\n{接收方電話號碼}\n{簡訊內容}</string>
@@ -50,4 +50,6 @@
     <string name="unable_to_get_information">無法獲取信息。</string>
     <string name="sendsms">/sendsms - 發送簡訊</string>
     <string name="sending">正在發送</string>
+    <string name="get_recent_chat_message">請發送一些消息到Bot。</string>
+    <string name="get_recent_chat_title">獲取最近的對話...</string>
 </resources>
