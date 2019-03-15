@@ -26,7 +26,7 @@
     <string name="logcat">ログを見る</string>
     <string name="token_not_configure">まず、ロボットトークンを設定してください。</string>
     <string name="chat_id_or_token_not_config">ロボットトークンとトークIDを最初に設定してください。</string>
-    <string name="no_recent">最近のトーク履歴はありません</string>
+    <string name="unable_get_recent">最近のトーク履歴はありません</string>
     <string name="chat_command">チャットコマンドを取得する</string>
     <string name="command_format_error">コマンドフォーマットエラー。</string>
     <string name="command_error_tip">SMSを送信するコマンドの書式:\n/sendsms\n{受信先の電話番号}\n{本文}</string>
@@ -50,4 +50,6 @@
     <string name="unable_to_get_information">情報を取得できません。</string>
     <string name="sendsms">/sendsms - SMSの送信</string>
     <string name="sending">送信中</string>
+    <string name="get_recent_chat_message">ボットにメッセージを送ってください。</string>
+    <string name="get_recent_chat_title">最新の会話を取得中...</string>
 </resources>

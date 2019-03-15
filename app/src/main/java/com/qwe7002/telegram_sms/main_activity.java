@@ -111,8 +111,8 @@ public class main_activity extends AppCompatActivity {
             }
             final ProgressDialog progress_dialog = new ProgressDialog(main_activity.this);
             progress_dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            progress_dialog.setTitle(getString(R.string.connect_wait_title));
-            progress_dialog.setMessage(getString(R.string.connect_wait_message));
+            progress_dialog.setTitle(getString(R.string.get_recent_chat_title));
+            progress_dialog.setMessage(getString(R.string.get_recent_chat_message));
             progress_dialog.setIndeterminate(false);
             progress_dialog.setCancelable(false);
             progress_dialog.show();
@@ -154,7 +154,7 @@ public class main_activity extends AppCompatActivity {
                     JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
                     JsonArray chat_list = result_obj.getAsJsonArray("result");
                     if (chat_list.size() == 0) {
-                        Snackbar.make(v, R.string.no_recent, Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(v, R.string.unable_get_recent, Snackbar.LENGTH_LONG).show();
                         return;
                     }
                     final ArrayList<String> chat_name_list = new ArrayList<>();
