@@ -89,7 +89,7 @@ public class main_activity extends AppCompatActivity {
             int checkPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE);
             if (checkPermission != PackageManager.PERMISSION_GRANTED) {
                 display_dual_sim_display_name.setChecked(false);
-                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
+                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_PHONE_STATE}, 2);
             }
             if (checkPermission == PackageManager.PERMISSION_GRANTED) {
                 if (public_func.get_active_card(context) < 2) {
@@ -281,5 +281,18 @@ public class main_activity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == 2) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (public_func.get_active_card(context) < 2) {
+                    Switch display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
+                    display_dual_sim_display_name.setEnabled(false);
+                    display_dual_sim_display_name.setChecked(false);
+                }
+            }
+        }
+    }
 }
 
