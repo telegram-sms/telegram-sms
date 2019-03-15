@@ -43,7 +43,7 @@ import static android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATI
 
 public class main_activity extends AppCompatActivity {
     Context context = null;
-
+    Switch display_dual_sim_display_name;
     @SuppressLint("BatteryLife")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +56,7 @@ public class main_activity extends AppCompatActivity {
         final Switch chat_command = findViewById(R.id.chat_command);
         final Switch fallback_sms = findViewById(R.id.fallback_sms);
         final Switch battery_monitoring_switch = findViewById(R.id.battery_monitoring);
-        final Switch display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
+        display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
@@ -287,7 +287,6 @@ public class main_activity extends AppCompatActivity {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 if (public_func.get_active_card(context) < 2) {
-                    Switch display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
                     display_dual_sim_display_name.setEnabled(false);
                     display_dual_sim_display_name.setChecked(false);
                 }
