@@ -51,6 +51,6 @@
     <string name="sendsms">/sendsms - Send SMS</string>
     <string name="sending">Sending</string>
     <string name="command_error_tip">The command format to send an SMS is:\n/sendsms\n{Receiver phone number}\n{SMS content}</string>
-    <string name="get_recent_chat_title">Getting the most recent conversation...</string>
-    <string name="get_recent_chat_message">Please send some messages to the bot.</string>
+    <string name="get_recent_chat_title">Please send some messages to the bot</string>
+    <string name="get_recent_chat_message">The bot need your chat ID to know whom to forward…</string>
 </resources>
