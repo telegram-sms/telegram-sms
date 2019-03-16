@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Telegram SMS</string>
-    <string name="content">Message: </string>
+    <string name="content">Content: </string>
     <string name="from">From: </string>
     <string name="to">To: </string>
     <string name="send_sms_head">Send</string>
