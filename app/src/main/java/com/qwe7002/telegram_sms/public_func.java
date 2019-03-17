@@ -210,6 +210,7 @@ class public_func {
                 break;
             default:
                 sms_manager = android.telephony.SmsManager.getSmsManagerForSubscriptionId(sub_id);
+                break;
         }
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
         sms_manager.sendMultipartTextMessage(send_to, null, divideContents, null, null);
@@ -221,13 +222,12 @@ class public_func {
     }
 
     static Notification get_notification_obj(Context context, String notification_name) {
-        Notification notification = null;
+        Notification notification;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(notification_name, public_func.log_tag,
                     NotificationManager.IMPORTANCE_LOW);
             NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             manager.createNotificationChannel(channel);
-
             notification = new Notification.Builder(context, notification_name)
                     .setAutoCancel(false)
                     .setSmallIcon(R.mipmap.ic_launcher)
@@ -237,8 +237,7 @@ class public_func {
                     .setContentTitle(context.getString(R.string.app_name))
                     .setContentText(notification_name + context.getString(R.string.service_is_running))
                     .build();
-        }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        } else {//Notification generation method after O
             notification = new Notification.Builder(context)
                     .setAutoCancel(false)
                     .setSmallIcon(R.mipmap.ic_launcher)
