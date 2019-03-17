@@ -47,7 +47,7 @@ public class sms_receiver extends BroadcastReceiver {
         }
         Bundle bundle = intent.getExtras();
         if (bundle != null) {
-            int slot = bundle.getInt("slot", -1);
+            final int slot = bundle.getInt("slot", -1);
             String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences);
 
             final int sub = bundle.getInt("subscription", -1);
@@ -137,7 +137,7 @@ public class sms_receiver extends BroadcastReceiver {
                         }
                         if (response.code() == 200) {
                             assert response.body() != null;
-                            public_func.add_message_list(context, public_func.get_message_id(response.body().string()), msg_address, bundle.getInt("slot", -1));
+                            public_func.add_message_list(context, public_func.get_message_id(response.body().string()), msg_address, slot, sub);
                         }
                     }
                 });

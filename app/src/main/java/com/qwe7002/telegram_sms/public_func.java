@@ -365,7 +365,7 @@ class public_func {
         return read_file(context, "error.log");
     }
 
-    static void add_message_list(Context context, String message_id, String phone, int slot) {
+    static void add_message_list(Context context, String message_id, String phone, int slot, int sub_id) {
         String message_list_raw = public_func.read_file(context, "message.json");
         if (message_list_raw.length() == 0) {
             message_list_raw = "{}";
@@ -374,6 +374,7 @@ class public_func {
         JsonObject object = new JsonObject();
         object.addProperty("phone", phone);
         object.addProperty("card", slot);
+        object.addProperty("sub_id", sub_id);
         message_list_obj.add(message_id, object);
         public_func.write_file(context, "message.json", new Gson().toJson(message_list_obj));
     }

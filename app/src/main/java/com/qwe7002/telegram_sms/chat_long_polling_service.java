@@ -279,12 +279,14 @@ public class chat_long_polling_service extends Service {
                 String phone_number = message_item_obj.get("phone").getAsString();
                 int card_slot = message_item_obj.get("card").getAsInt();
                 int sub_id = -1;
-                if (card_slot != -1) {
+                if (message_item_obj.has("sub_id")) {
+                    sub_id = message_item_obj.get("sub_id").getAsInt();
+                }
+                if (card_slot != -1 && sub_id == -1) {
                     sub_id = public_func.get_sub_id(context, card_slot);
                 }
                 public_func.send_sms(context, phone_number, request_msg, card_slot, sub_id);
                 return;
-
             }
         }
 
