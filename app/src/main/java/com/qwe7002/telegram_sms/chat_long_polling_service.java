@@ -282,11 +282,9 @@ public class chat_long_polling_service extends Service {
                 if (card_slot != -1) {
                     sub_id = public_func.get_sub_id(context, card_slot);
                 }
-                if (sub_id != -1) {
-                    public_func.send_sms(context, phone_number, request_msg, card_slot, sub_id);
-                    return;
-                }
-                request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.unable_to_get_information);
+                public_func.send_sms(context, phone_number, request_msg, card_slot, sub_id);
+                return;
+
             }
         }
 
