@@ -44,6 +44,7 @@ import static android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATI
 public class main_activity extends AppCompatActivity {
     Context context = null;
     Switch display_dual_sim_display_name;
+
     @SuppressLint("BatteryLife")
     @Override
     protected void onCreate(Bundle savedInstanceState) {

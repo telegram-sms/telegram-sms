@@ -30,15 +30,14 @@ import static android.content.Context.BATTERY_SERVICE;
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class battery_monitoring_service extends Service {
-    private battery_receiver battery_receiver = null;
-    private stop_broadcast_receiver stop_broadcast_receiver = null;
     static String bot_token;
     static String chat_id;
     static Boolean fallback;
     static String trusted_phone_number;
     Context context;
     SharedPreferences sharedPreferences;
-
+    private battery_receiver battery_receiver = null;
+    private stop_broadcast_receiver stop_broadcast_receiver = null;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {

@@ -31,6 +31,7 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 public class call_receiver extends BroadcastReceiver {
     private static int slot;
     private static String incoming_number;
+
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
@@ -53,9 +54,9 @@ public class call_receiver extends BroadcastReceiver {
 
 class call_state_listener extends PhoneStateListener {
     private static int lastState = TelephonyManager.CALL_STATE_IDLE;
+    private static String incoming_number;
     private Context context;
     private int slot;
-    private static String incoming_number;
 
     call_state_listener(Context context, int slot, String incoming_number) {
         super();

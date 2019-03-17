@@ -71,6 +71,7 @@ class public_func {
         }
         return dual_sim;
     }
+
     static boolean check_network(Context context) {
 
         ConnectivityManager manager = (ConnectivityManager) context
