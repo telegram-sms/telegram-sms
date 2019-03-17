@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name" translatable="false">Telegram SMS</string>
     <string name="content">Content: </string>
     <string name="from">From: </string>
@@ -7,8 +7,8 @@
     <string name="send_sms_head">Send SMS</string>
     <string name="system_message_head">[System information]</string>
     <string name="success_connect">Connected to the Telegram API Server.</string>
-    <string name="connect_wait_title">Connecting to the Telegram API server...</string>
-    <string name="connect_wait_message">Please wait...</string>
+    <string name="connect_wait_title" tools:ignore="TypographyEllipsis">Connecting to the Telegram API server...</string>
+    <string name="connect_wait_message" tools:ignore="TypographyEllipsis">Please wait...</string>
     <string name="select_chat">Select Chat</string>
     <string name="missed_call_head">Missed Call</string>
     <string name="Incoming_number">Calling From: </string>
@@ -34,7 +34,7 @@
     <string name="cant_get_card_2_info">Failed to get SIM slot 2 information.</string>
     <string name="battery_monitoring">Monitor battery level change</string>
     <string name="trusted_phone_number_empty">Trusted phone number cannot be empty.</string>
-    <string name="service_is_running">Service is running...</string>
+    <string name="service_is_running" tools:ignore="TypographyEllipsis">Service is running...</string>
     <string name="Battery_monitoring">Battery monitor</string>
     <string name="chat_command_service_name">Chat command</string>
     <string name="success">Success</string>
@@ -52,5 +52,5 @@
     <string name="sending">Sending</string>
     <string name="command_error_tip">To send a SMS text message, use:\n/sendsms\n{Receiver phone number}\n{SMS content}</string>
     <string name="get_recent_chat_title">Please send some messages to the bot</string>
-    <string name="get_recent_chat_message">The bot need your chat ID to know whom to forward...</string>
+    <string name="get_recent_chat_message" tools:ignore="TypographyEllipsis">The bot need your chat ID to know whom to forward...</string>
 </resources>

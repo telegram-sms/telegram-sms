@@ -45,7 +45,7 @@
     <string name="send_failed">送信に失敗しました</string>
     <string name="airplan_mode">現在のデバイスは機内モードです</string>
     <string name="no_network">サービスなし</string>
-    <string name="sendsms_dual">/sendsms1 – SMSの送信\n/sendsms2 – 2番目のカードスロットを使用したSMSの送信</string>
+    <string name="sendsms_dual">/sendsms1 – 1番目のカードスロットを使用したSMSの送信\n/sendsms2 – 2番目のカードスロットを使用したSMSの送信</string>
     <string name="display_sim_card_alias_in_dual_card_mode">デュアルカードモードでSIMカードのエイリアスを表示する</string>
     <string name="unable_to_get_information">情報を取得できません。</string>
     <string name="sendsms">/sendsms - SMSの送信</string>
