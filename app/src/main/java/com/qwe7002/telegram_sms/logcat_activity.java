@@ -13,6 +13,7 @@ public class logcat_activity extends AppCompatActivity {
     Context context;
     file_observer observer;
     TextView logcat;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,6 +25,7 @@ public class logcat_activity extends AppCompatActivity {
         observer = new file_observer(context, logcat);
 
     }
+
     @Override
     public void onPause() {
         super.onPause();
@@ -36,6 +38,7 @@ public class logcat_activity extends AppCompatActivity {
         logcat.setText(public_func.read_log(context));
         observer.startWatching();
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.logcat_menu, menu);

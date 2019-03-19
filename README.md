@@ -9,6 +9,8 @@ A robot running on your Android device.
 
 [Download](https://github.com/qwe7002/telegram-sms/releases)
 
+[Android 5.0 or lower? Click here to download the latest and greatest.](https://github.com/qwe7002/telegram-sms-compat)
+
 **There may be unknown bugs in the pre-release version,Please use at your own risk.**
 
 ## Features
@@ -94,9 +96,9 @@ The birth of this software is inseparable from their help:
 
 Thanks for their translation and support of this project document:
 
-- en_US:[@tangbao](https://github.com/tangbao)
+- en_US:[@tangbao](https://github.com/tangbao) [@JixunMoe](https://github.com/JixunMoe)
 
-- ja-JP:[@Lollycc](https://github.com/lollycc) []()
+- ja-JP:[@Lollycc](https://github.com/lollycc) 
 
 The following organizations for providing image storage for this page:
 

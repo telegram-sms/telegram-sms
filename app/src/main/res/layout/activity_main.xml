@@ -80,7 +80,6 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="3dp"
                 android:text="@string/chat_command" />
-
             <Switch
                 android:id="@+id/display_dual_sim"
                 android:layout_width="match_parent"
