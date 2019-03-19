@@ -31,7 +31,10 @@ public class sms_send_receiver extends BroadcastReceiver {
     public void onReceive(final Context context, Intent intent) {
         Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
         Bundle extras = intent.getExtras();
-        assert extras != null;
+        if (extras == null) {
+            Log.d(public_func.log_tag, "reject: Error Extras");
+            return;
+        }
         context.getApplicationContext().unregisterReceiver(this);
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
