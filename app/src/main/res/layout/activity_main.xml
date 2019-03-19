@@ -86,13 +86,6 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="3dp"
                 android:text="@string/display_sim_card_alias_in_dual_card_mode" />
-
-            <Switch
-                android:id="@+id/dns_over_tls"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="3dp"
-                android:text="Using DNS over TLS" />
             <Button
                 android:id="@+id/get_id"
                 android:layout_width="match_parent"
