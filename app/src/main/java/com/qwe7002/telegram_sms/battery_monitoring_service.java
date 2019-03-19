@@ -30,15 +30,14 @@ import static android.content.Context.BATTERY_SERVICE;
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class battery_monitoring_service extends Service {
-    private battery_receiver battery_receiver = null;
-    private stop_broadcast_receiver stop_broadcast_receiver = null;
     static String bot_token;
     static String chat_id;
     static Boolean fallback;
     static String trusted_phone_number;
     Context context;
     SharedPreferences sharedPreferences;
-
+    private battery_receiver battery_receiver = null;
+    private stop_broadcast_receiver stop_broadcast_receiver = null;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -121,8 +120,22 @@ class battery_receiver extends BroadcastReceiver {
                 break;
         }
         request_body.text = prebody.append("\n").append(context.getString(R.string.current_battery_level)).append(batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)).append("%").toString();
-        Gson gson = new Gson();
-        String request_body_raw = gson.toJson(request_body);
+
+        if (!public_func.check_network(context)) {
+            public_func.write_log(context, "Send Message:No network connection");
+            if (action.equals(Intent.ACTION_BATTERY_LOW)) {
+                if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && battery_monitoring_service.fallback) {
+                    String msg_send_to = battery_monitoring_service.trusted_phone_number;
+                    String msg_send_content = request_body.text;
+                    if (msg_send_to != null) {
+                        public_func.send_fallback_sms(msg_send_to, msg_send_content, -1);
+                    }
+                }
+            }
+            return;
+        }
+
+        String request_body_raw = new Gson().toJson(request_body);
         RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);

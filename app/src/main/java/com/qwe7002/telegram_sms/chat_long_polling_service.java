@@ -102,6 +102,7 @@ public class chat_long_polling_service extends Service {
             call_test.execute();
             error_magnification = 1;
         } catch (IOException e) {
+            e.printStackTrace();
             int sleep_time = 30 * error_magnification;
 
             public_func.write_log(context, "No network service,try again after " + sleep_time + " seconds");
@@ -279,14 +280,14 @@ public class chat_long_polling_service extends Service {
                 String phone_number = message_item_obj.get("phone").getAsString();
                 int card_slot = message_item_obj.get("card").getAsInt();
                 int sub_id = -1;
-                if (card_slot != -1) {
+                if (message_item_obj.has("sub_id")) {
+                    sub_id = message_item_obj.get("sub_id").getAsInt();
+                }
+                if (card_slot != -1 && sub_id == -1) {
                     sub_id = public_func.get_sub_id(context, card_slot);
                 }
-                if (sub_id != -1) {
-                    public_func.send_sms(context, phone_number, request_msg, card_slot, sub_id);
-                    return;
-                }
-                request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.unable_to_get_information);
+                public_func.send_sms(context, phone_number, request_msg, card_slot, sub_id);
+                return;
             }
         }
 
@@ -301,6 +302,7 @@ public class chat_long_polling_service extends Service {
                 String error_message = "Send reply failed:" + e.getMessage();
                 public_func.write_log(context, error_message);
             }
+
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
@@ -318,11 +320,6 @@ public class chat_long_polling_service extends Service {
             stopSelf();
             android.os.Process.killProcess(android.os.Process.myPid());
         }
-    }
-
-    class polling_json {
-        int offset;
-        int timeout;
     }
 }
 

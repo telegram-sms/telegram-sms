@@ -1,54 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name" translatable="false">Telegram SMS</string>
     <string name="content">Content: </string>
     <string name="from">From: </string>
     <string name="to">To: </string>
     <string name="send_sms_head">Send SMS</string>
     <string name="system_message_head">[System information]</string>
-    <string name="success_connect">You\'ve connected to the Telegram bot server successfully.</string>
-    <string name="connect_wait_title">Connecting to server…</string>
-    <string name="connect_wait_message">Please wait…</string>
+    <string name="success_connect">Connected to the Telegram API Server.</string>
+    <string name="connect_wait_title" tools:ignore="TypographyEllipsis">Connecting to the Telegram API server...</string>
+    <string name="connect_wait_message" tools:ignore="TypographyEllipsis">Please wait...</string>
     <string name="select_chat">Select Chat</string>
     <string name="missed_call_head">Missed Call</string>
-    <string name="Incoming_number">Incoming number: </string>
-    <string name="battery_low">Device battery is low.</string>
-    <string name="ac_connect">AC Charger Connected.</string>
-    <string name="ac_disconnect">AC Charger Disconnected.</string>
+    <string name="Incoming_number">Calling From: </string>
+    <string name="battery_low">Battery level is low.</string>
+    <string name="ac_connect">Phone charger connected.</string>
+    <string name="ac_disconnect">Phone charger disconnected.</string>
     <string name="bot_token">Bot Token</string>
     <string name="chat_id">Chat ID</string>
     <string name="trusted_phone_number">Trusted phone number</string>
     <string name="get_recent_chat_id">Get recent chat ID</string>
     <string name="test_and_save">Test and save</string>
-    <string name="network_error_falls_back_to_sms">Network error falls back to SMS</string>
+    <string name="network_error_falls_back_to_sms">Resend using SMS when network error occurs</string>
     <string name="current_battery_level">Battery level:</string>
-    <string name="low_battery_status_end">The low battery status has ended.</string>
+    <string name="low_battery_status_end">Battery has been charged to a safe level.</string>
     <string name="logcat">View log</string>
     <string name="token_not_configure">Please configure the robot token first.</string>
     <string name="chat_id_or_token_not_config">Please configure the robot token and chat ID first.</string>
-    <string name="no_recent">Unable to get recent chat history</string>
+    <string name="unable_get_recent">Failed to get recent chat history</string>
     <string name="chat_command">Get chat command</string>
     <string name="command_format_error">Command format error.</string>
     <string name="unknown_command">Unknown command</string>
     <string name="current_network_connection_status">Network status:</string>
-    <string name="cant_get_card_2_info">Unable to get card slot 2 information.</string>
-    <string name="battery_monitoring">Monitor battery status changes</string>
-    <string name="trusted_phone_number_empty">The trusted phone number cannot be empty.</string>
-    <string name="service_is_running">service is running…</string>
-    <string name="Battery_monitoring">"Battery monitoring "</string>
-    <string name="chat_command_service_name">"Chat command "</string>
+    <string name="cant_get_card_2_info">Failed to get SIM slot 2 information.</string>
+    <string name="battery_monitoring">Monitor battery level change</string>
+    <string name="trusted_phone_number_empty">Trusted phone number cannot be empty.</string>
+    <string name="service_is_running" tools:ignore="TypographyEllipsis">Service is running...</string>
+    <string name="Battery_monitoring">Battery monitor</string>
+    <string name="chat_command_service_name">Chat command</string>
     <string name="success">Success</string>
     <string name="receive_sms_head">Receive SMS</string>
     <string name="available_command">Available Commands:\n/getinfo - Get system information</string>
-    <string name="restart_service">The background service restarted successfully.</string>
+    <string name="restart_service">Background service has been restarted.</string>
     <string name="status">Status:</string>
     <string name="send_failed">Failed to send</string>
-    <string name="airplan_mode">The current device is in Airplane mode</string>
+    <string name="airplan_mode">Device is in Airplane mode</string>
     <string name="no_network">No service</string>
-    <string name="sendsms_dual">/sendsms1 - Send SMS\n/sendsms2 - Send SMS using the second card slot</string>
-    <string name="display_sim_card_alias_in_dual_card_mode">Display SIM card alias in dual card mode</string>
-    <string name="unable_to_get_information">Unable to get information.</string>
+    <string name="sendsms_dual">/sendsms1 - Send SMS using SIM slot 1\n/sendsms2 - Send SMS using SIM slot 2</string>
+    <string name="display_sim_card_alias_in_dual_card_mode">Display SIM card alias in dual SIM mode</string>
+    <string name="unable_to_get_information">Failed to get information.</string>
     <string name="sendsms">/sendsms - Send SMS</string>
     <string name="sending">Sending</string>
-    <string name="command_error_tip">The command format to send an SMS is:\n/sendsms\n{Receiver phone number}\n{SMS content}</string>
+    <string name="command_error_tip">To send a SMS text message, use:\n/sendsms\n{Receiver phone number}\n{SMS content}</string>
+    <string name="get_recent_chat_title">Please send some messages to the bot</string>
+    <string name="get_recent_chat_message" tools:ignore="TypographyEllipsis">The bot need your chat ID to know whom to forward...</string>
 </resources>

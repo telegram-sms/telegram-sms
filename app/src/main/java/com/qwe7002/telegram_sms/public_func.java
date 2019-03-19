@@ -71,8 +71,8 @@ class public_func {
         }
         return dual_sim;
     }
-    static boolean check_network(Context context) {
 
+    static boolean check_network(Context context) {
         ConnectivityManager manager = (ConnectivityManager) context
                 .getApplicationContext().getSystemService(
                         Context.CONNECTIVITY_SERVICE);
@@ -88,12 +88,12 @@ class public_func {
     }
 
     static OkHttpClient get_okhttp_obj() {
-        return new OkHttpClient.Builder()
+        OkHttpClient.Builder okhttp = new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .readTimeout(15, TimeUnit.SECONDS)
                 .writeTimeout(15, TimeUnit.SECONDS)
-                .retryOnConnectionFailure(true)
-                .build();
+                .retryOnConnectionFailure(true);
+        return okhttp.build();
     }
 
     static boolean is_numeric(String str) {
@@ -210,6 +210,7 @@ class public_func {
                 break;
             default:
                 sms_manager = android.telephony.SmsManager.getSmsManagerForSubscriptionId(sub_id);
+                break;
         }
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
         sms_manager.sendMultipartTextMessage(send_to, null, divideContents, null, null);
@@ -221,13 +222,12 @@ class public_func {
     }
 
     static Notification get_notification_obj(Context context, String notification_name) {
-        Notification notification = null;
+        Notification notification;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(notification_name, public_func.log_tag,
                     NotificationManager.IMPORTANCE_LOW);
             NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             manager.createNotificationChannel(channel);
-
             notification = new Notification.Builder(context, notification_name)
                     .setAutoCancel(false)
                     .setSmallIcon(R.mipmap.ic_launcher)
@@ -237,8 +237,7 @@ class public_func {
                     .setContentTitle(context.getString(R.string.app_name))
                     .setContentText(notification_name + context.getString(R.string.service_is_running))
                     .build();
-        }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        } else {//Notification generation method after O
             notification = new Notification.Builder(context)
                     .setAutoCancel(false)
                     .setSmallIcon(R.mipmap.ic_launcher)
@@ -365,7 +364,7 @@ class public_func {
         return read_file(context, "error.log");
     }
 
-    static void add_message_list(Context context, String message_id, String phone, int slot) {
+    static void add_message_list(Context context, String message_id, String phone, int slot, int sub_id) {
         String message_list_raw = public_func.read_file(context, "message.json");
         if (message_list_raw.length() == 0) {
             message_list_raw = "{}";
@@ -374,6 +373,7 @@ class public_func {
         JsonObject object = new JsonObject();
         object.addProperty("phone", phone);
         object.addProperty("card", slot);
+        object.addProperty("sub_id", sub_id);
         message_list_obj.add(message_id, object);
         public_func.write_file(context, "message.json", new Gson().toJson(message_list_obj));
     }

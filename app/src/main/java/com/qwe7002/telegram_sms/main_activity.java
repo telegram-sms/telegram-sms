@@ -29,6 +29,7 @@ import com.google.gson.JsonParser;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -42,7 +43,7 @@ import static android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATI
 
 public class main_activity extends AppCompatActivity {
     Context context = null;
-
+    Switch display_dual_sim_display_name;
 
     @SuppressLint("BatteryLife")
     @Override
@@ -56,7 +57,7 @@ public class main_activity extends AppCompatActivity {
         final Switch chat_command = findViewById(R.id.chat_command);
         final Switch fallback_sms = findViewById(R.id.fallback_sms);
         final Switch battery_monitoring_switch = findViewById(R.id.battery_monitoring);
-        final Switch display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
+        display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
@@ -89,7 +90,7 @@ public class main_activity extends AppCompatActivity {
             int checkPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE);
             if (checkPermission != PackageManager.PERMISSION_GRANTED) {
                 display_dual_sim_display_name.setChecked(false);
-                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
+                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_PHONE_STATE}, 2);
             }
             if (checkPermission == PackageManager.PERMISSION_GRANTED) {
                 if (public_func.get_active_card(context) < 2) {
@@ -111,14 +112,21 @@ public class main_activity extends AppCompatActivity {
             }
             final ProgressDialog progress_dialog = new ProgressDialog(main_activity.this);
             progress_dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            progress_dialog.setTitle(getString(R.string.connect_wait_title));
-            progress_dialog.setMessage(getString(R.string.connect_wait_message));
+            progress_dialog.setTitle(getString(R.string.get_recent_chat_title));
+            progress_dialog.setMessage(getString(R.string.get_recent_chat_message));
             progress_dialog.setIndeterminate(false);
             progress_dialog.setCancelable(false);
             progress_dialog.show();
             String request_uri = public_func.get_url(bot_token.getText().toString().trim(), "getUpdates");
-            OkHttpClient okhttp_client = new OkHttpClient();
-            Request request = new Request.Builder().url(request_uri).build();
+            OkHttpClient okhttp_client = public_func.get_okhttp_obj();
+            okhttp_client = okhttp_client.newBuilder()
+                    .readTimeout((120 + 5), TimeUnit.SECONDS)
+                    .build();
+            polling_json request_body = new polling_json();
+            request_body.offset = 0;
+            request_body.timeout = 120;
+            RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
+            Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
             call.enqueue(new Callback() {
                 @Override
@@ -147,7 +155,7 @@ public class main_activity extends AppCompatActivity {
                     JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
                     JsonArray chat_list = result_obj.getAsJsonArray("result");
                     if (chat_list.size() == 0) {
-                        Snackbar.make(v, R.string.no_recent, Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(v, R.string.unable_get_recent, Snackbar.LENGTH_LONG).show();
                         return;
                     }
                     final ArrayList<String> chat_name_list = new ArrayList<>();
@@ -240,6 +248,7 @@ public class main_activity extends AppCompatActivity {
                 @Override
                 public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                     Looper.prepare();
+                    String new_bot_token = bot_token.getText().toString().trim();
                     progress_dialog.cancel();
                     if (response.code() != 200) {
                         assert response.body() != null;
@@ -250,11 +259,11 @@ public class main_activity extends AppCompatActivity {
                         Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
                         return;
                     }
-                    if (!bot_token.getText().toString().trim().equals(bot_token_save)) {
+                    if (!new_bot_token.equals(bot_token_save)) {
                         public_func.write_file(context, "message.json", "{}");
                     }
                     SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString("bot_token", bot_token.getText().toString().trim());
+                    editor.putString("bot_token", new_bot_token);
                     editor.putString("chat_id", chat_id.getText().toString().trim());
                     editor.putString("trusted_phone_number", trusted_phone_number.getText().toString().trim());
                     editor.putBoolean("fallback_sms", fallback_sms.isChecked());
@@ -273,5 +282,17 @@ public class main_activity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == 2) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (public_func.get_active_card(context) < 2) {
+                    display_dual_sim_display_name.setEnabled(false);
+                    display_dual_sim_display_name.setChecked(false);
+                }
+            }
+        }
+    }
 }
 
