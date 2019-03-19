@@ -30,6 +30,11 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 public class sms_receiver extends BroadcastReceiver {
     public void onReceive(final Context context, Intent intent) {
         Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
+        Bundle bundle = intent.getExtras();
+        if (bundle == null) {
+            Log.d(public_func.log_tag, "reject: Error Extras");
+            return;
+        }
         final boolean is_default = Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName());
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
@@ -44,11 +49,6 @@ public class sms_receiver extends BroadcastReceiver {
                 //When it is the default application, it will receive two broadcasts.
                 return;
             }
-        }
-        Bundle bundle = intent.getExtras();
-        if (bundle == null) {
-            Log.d(public_func.log_tag, "reject: Error Extras");
-            return;
         }
         final int slot = bundle.getInt("slot", -1);
         String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences);
