@@ -88,6 +88,19 @@ class call_state_listener extends PhoneStateListener {
 
             String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences);
             request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + display_address;
+
+            if (!public_func.check_network(context)) {
+                public_func.write_log(context, "Send Message:No network connection");
+                if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && sharedPreferences.getBoolean("fallback_sms", false)) {
+                    String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
+                    String msg_send_content = request_body.text;
+                    if (msg_send_to != null) {
+                        public_func.send_fallback_sms(msg_send_to, msg_send_content, public_func.get_sub_id(context, slot));
+                    }
+                }
+                return;
+            }
+
             String request_body_raw = new Gson().toJson(request_body);
             RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
             OkHttpClient okhttp_client = public_func.get_okhttp_obj();

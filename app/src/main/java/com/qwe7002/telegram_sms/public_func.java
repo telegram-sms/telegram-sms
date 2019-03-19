@@ -89,12 +89,12 @@ class public_func {
     }
 
     static OkHttpClient get_okhttp_obj() {
-        return new OkHttpClient.Builder()
+        OkHttpClient.Builder okhttp = new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .readTimeout(15, TimeUnit.SECONDS)
                 .writeTimeout(15, TimeUnit.SECONDS)
-                .retryOnConnectionFailure(true)
-                .build();
+                .retryOnConnectionFailure(true);
+        return okhttp.build();
     }
 
     static boolean is_numeric(String str) {
