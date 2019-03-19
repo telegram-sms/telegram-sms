@@ -35,21 +35,23 @@ public class sms_receiver extends BroadcastReceiver {
             Log.d(public_func.log_tag, "reject: Error Extras");
             return;
         }
-        final boolean is_default = Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName());
+
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
             Log.i(public_func.log_tag, "Uninitialized, SMS receiver is deactivated");
             return;
         }
+        final boolean is_default = Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName());
+        if ("android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction()) && is_default) {
+            //When it is the default application, it will receive two broadcasts.
+            Log.i(public_func.log_tag, "reject: android.provider.Telephony.SMS_RECEIVED");
+            return;
+        }
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = public_func.get_url(bot_token, "sendMessage");
-        if ("android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction())) {
-            if (is_default) {
-                //When it is the default application, it will receive two broadcasts.
-                return;
-            }
-        }
+
+
         final int slot = bundle.getInt("slot", -1);
         String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences);
 
