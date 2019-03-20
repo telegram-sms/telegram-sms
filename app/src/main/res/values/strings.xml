@@ -53,4 +53,5 @@
     <string name="command_error_tip">To send a SMS text message, use:\n/sendsms\n{Receiver phone number}\n{SMS content}</string>
     <string name="get_recent_chat_title">Please send some messages to the bot</string>
     <string name="get_recent_chat_message" tools:ignore="TypographyEllipsis">The bot need your chat ID to know whom to forward...</string>
+    <string name="using_doh">Using DNS over HTTPS</string>
 </resources>

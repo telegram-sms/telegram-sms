@@ -52,4 +52,5 @@
     <string name="sending">送信中</string>
     <string name="get_recent_chat_message">ボットにメッセージを送ってください。</string>
     <string name="get_recent_chat_title">最新の会話を取得中...</string>
+    <string name="using_doh">DNS over HTTPS使う</string>
 </resources>

@@ -30,8 +30,8 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 public class sms_receiver extends BroadcastReceiver {
     public void onReceive(final Context context, Intent intent) {
         Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
-        Bundle bundle = intent.getExtras();
-        if (bundle == null) {
+        Bundle extras = intent.getExtras();
+        if (extras == null) {
             Log.d(public_func.log_tag, "reject: Error Extras");
             return;
         }
@@ -51,12 +51,11 @@ public class sms_receiver extends BroadcastReceiver {
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = public_func.get_url(bot_token, "sendMessage");
 
-
-        final int slot = bundle.getInt("slot", -1);
+        final int slot = extras.getInt("slot", -1);
         String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences);
 
-        final int sub = bundle.getInt("subscription", -1);
-        Object[] pdus = (Object[]) bundle.get("pdus");
+        final int sub = extras.getInt("subscription", -1);
+        Object[] pdus = (Object[]) extras.get("pdus");
         assert pdus != null;
         final SmsMessage[] messages = new SmsMessage[pdus.length];
         for (int i = 0; i < pdus.length; i++) {
@@ -124,7 +123,7 @@ public class sms_receiver extends BroadcastReceiver {
             }
             String request_body_json = new Gson().toJson(request_body);
             RequestBody body = RequestBody.create(public_func.JSON, request_body_json);
-            OkHttpClient okhttp_client = public_func.get_okhttp_obj();
+            OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
             okhttp_client.retryOnConnectionFailure();
             okhttp_client.connectTimeoutMillis();
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();

@@ -52,4 +52,5 @@
     <string name="sending">正在發送</string>
     <string name="get_recent_chat_message">請發送一些消息到Bot。</string>
     <string name="get_recent_chat_title">獲取最近的對話.....</string>
+    <string name="using_doh">使用DNS over HTTPS</string>
 </resources>

@@ -57,6 +57,7 @@ public class main_activity extends AppCompatActivity {
         final Switch chat_command = findViewById(R.id.chat_command);
         final Switch fallback_sms = findViewById(R.id.fallback_sms);
         final Switch battery_monitoring_switch = findViewById(R.id.battery_monitoring);
+        final Switch doh_switch = findViewById(R.id.doh_switch);
         display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         String bot_token_save = sharedPreferences.getString("bot_token", "");
@@ -85,7 +86,7 @@ public class main_activity extends AppCompatActivity {
         battery_monitoring_switch.setChecked(sharedPreferences.getBoolean("battery_monitoring_switch", false));
         fallback_sms.setChecked(sharedPreferences.getBoolean("fallback_sms", false));
         chat_command.setChecked(sharedPreferences.getBoolean("chat_command", false));
-
+        doh_switch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
         display_dual_sim_display_name.setOnClickListener(v -> {
             int checkPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE);
             if (checkPermission != PackageManager.PERMISSION_GRANTED) {
@@ -118,7 +119,7 @@ public class main_activity extends AppCompatActivity {
             progress_dialog.setCancelable(false);
             progress_dialog.show();
             String request_uri = public_func.get_url(bot_token.getText().toString().trim(), "getUpdates");
-            OkHttpClient okhttp_client = public_func.get_okhttp_obj();
+            OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked());
             okhttp_client = okhttp_client.newBuilder()
                     .readTimeout((120 + 5), TimeUnit.SECONDS)
                     .build();
@@ -230,7 +231,7 @@ public class main_activity extends AppCompatActivity {
             Gson gson = new Gson();
             String request_body_raw = gson.toJson(request_body);
             RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
-            OkHttpClient okhttp_client = public_func.get_okhttp_obj();
+            OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked());
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
             call.enqueue(new Callback() {
@@ -270,6 +271,7 @@ public class main_activity extends AppCompatActivity {
                     editor.putBoolean("chat_command", chat_command.isChecked());
                     editor.putBoolean("battery_monitoring_switch", battery_monitoring_switch.isChecked());
                     editor.putBoolean("display_dual_sim_display_name", display_dual_sim_display_name.isChecked());
+                    editor.putBoolean("doh_switch", doh_switch.isChecked());
                     editor.putBoolean("initialized", true);
                     editor.apply();
                     public_func.stop_all_service(context);

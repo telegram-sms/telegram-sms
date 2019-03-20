@@ -50,5 +50,7 @@ dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.squareup.okhttp3:okhttp:+'
     //noinspection GradleDynamicVersion
+    implementation 'com.squareup.okhttp3:okhttp-dnsoverhttps:+'
+    //noinspection GradleDynamicVersion
     implementation 'com.google.code.gson:gson:+'
 }
