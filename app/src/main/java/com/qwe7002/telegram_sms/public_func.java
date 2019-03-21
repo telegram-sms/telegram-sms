@@ -339,8 +339,11 @@ class public_func {
             if (get_active_card(context) == 1 && slot == 0) {
                 info = SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(1);
             }
+            if (info == null) {
+                return "Unknown";
+            }
         }
-        assert info != null;
+
         String result = info.getDisplayName().toString();
         if (info.getDisplayName().toString().contains("CARD") || info.getDisplayName().toString().contains("SUB")) {
             result = info.getCarrierName().toString();
