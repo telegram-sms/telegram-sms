@@ -53,4 +53,7 @@
     <string name="get_recent_chat_message">ボットにメッセージを送ってください。</string>
     <string name="get_recent_chat_title">最新の会話を取得中...</string>
     <string name="using_doh">DNS over HTTPS使う</string>
+    <string name="sim_card_error">SIMカードのエラーです。</string>
+    <string name="sim_card_insert">SIMカードが挿入されています。</string>
+    <string name="sim_card_remove">SIMカードが取り外されました。</string>
 </resources>

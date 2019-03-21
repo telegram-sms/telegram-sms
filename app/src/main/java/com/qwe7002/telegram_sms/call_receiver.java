@@ -1,11 +1,9 @@
 package com.qwe7002.telegram_sms;
 
-import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -26,7 +24,6 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 import static android.content.Context.MODE_PRIVATE;
-import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class call_receiver extends BroadcastReceiver {
     private static int slot;
@@ -91,13 +88,7 @@ class call_state_listener extends PhoneStateListener {
 
             if (!public_func.check_network(context)) {
                 public_func.write_log(context, "Send Message:No network connection");
-                if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && sharedPreferences.getBoolean("fallback_sms", false)) {
-                    String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
-                    String msg_send_content = request_body.text;
-                    if (msg_send_to != null) {
-                        public_func.send_fallback_sms(msg_send_to, msg_send_content, public_func.get_sub_id(context, slot));
-                    }
-                }
+                public_func.send_fallback_sms(context, request_body.text, public_func.get_sub_id(context, slot));
                 return;
             }
 
@@ -111,13 +102,8 @@ class call_state_listener extends PhoneStateListener {
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
                     String error_message = "Send missed call error:" + e.getMessage();
                     public_func.write_log(context, error_message);
-                    if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && sharedPreferences.getBoolean("fallback_sms", false)) {
-                        String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
-                        String msg_send_content = request_body.text;
-                        if (msg_send_to != null) {
-                            public_func.send_fallback_sms(msg_send_to, msg_send_content, public_func.get_sub_id(context, slot));
-                        }
-                    }
+                    public_func.send_fallback_sms(context, request_body.text, public_func.get_sub_id(context, slot));
+
                 }
 
                 @Override

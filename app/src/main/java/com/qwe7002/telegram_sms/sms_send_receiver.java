@@ -1,12 +1,10 @@
 package com.qwe7002.telegram_sms;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.util.Log;
@@ -24,17 +22,14 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 import static android.content.Context.MODE_PRIVATE;
-import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class sms_send_receiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, Intent intent) {
         Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
         Bundle extras = intent.getExtras();
-        if (extras == null) {
-            Log.d(public_func.log_tag, "reject: Error Extras");
-            return;
-        }
+        assert extras != null;
+        int sub = extras.getInt("sub_id");
         context.getApplicationContext().unregisterReceiver(this);
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
@@ -70,13 +65,7 @@ public class sms_send_receiver extends BroadcastReceiver {
         }
         if (!public_func.check_network(context)) {
             public_func.write_log(context, "Send Message:No network connection");
-            if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && sharedPreferences.getBoolean("fallback_sms", false)) {
-                String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
-                String msg_send_content = request_body.text;
-                if (msg_send_to != null) {
-                    public_func.send_fallback_sms(msg_send_to, msg_send_content, extras.getInt("sub_id"));
-                }
-            }
+            public_func.send_fallback_sms(context, request_body.text, sub);
             return;
         }
         String request_body_raw = new Gson().toJson(request_body);
@@ -89,15 +78,7 @@ public class sms_send_receiver extends BroadcastReceiver {
             public void onFailure(Call call, IOException e) {
                 String error_message = "failed to send SMS status:" + e.getMessage();
                 public_func.write_log(context, error_message);
-                if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-                    if (sharedPreferences.getBoolean("fallback_sms", false)) {
-                        String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
-                        String msg_send_content = request_body.text;
-                        if (msg_send_to != null) {
-                            public_func.send_fallback_sms(msg_send_to, msg_send_content, extras.getInt("sub_id"));
-                        }
-                    }
-                }
+                public_func.send_fallback_sms(context, request_body.text, sub);
             }
 
             @Override

@@ -221,7 +221,15 @@ class public_func {
         sms_manager.sendMultipartTextMessage(send_to, null, divideContents, send_receiver_list, null);
     }
 
-    static void send_fallback_sms(String send_to, String content, int sub_id) {
+    static void send_fallback_sms(Context context, String content, int sub_id) {
+        if (checkSelfPermission(context, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            return;
+
+        }
+        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        if (!sharedPreferences.getBoolean("fallback", false)) {
+            return;
+        }
         android.telephony.SmsManager sms_manager;
         switch (sub_id) {
             case -1:
@@ -232,7 +240,8 @@ class public_func {
                 break;
         }
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
-        sms_manager.sendMultipartTextMessage(send_to, null, divideContents, null, null);
+        sms_manager.sendMultipartTextMessage(sharedPreferences.getString("trusted_phone_number", null), null, divideContents, null, null);
+
     }
 
     static String get_message_id(String result) {

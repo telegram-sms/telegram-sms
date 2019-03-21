@@ -54,4 +54,7 @@
     <string name="get_recent_chat_title">Please send some messages to the bot</string>
     <string name="get_recent_chat_message" tools:ignore="TypographyEllipsis">The bot need your chat ID to know whom to forward...</string>
     <string name="using_doh">Using DNS over HTTPS</string>
+    <string name="sim_card_insert">Sim card inserted.</string>
+    <string name="sim_card_remove">SIM card removed.</string>
+    <string name="sim_card_error">Sim card error.</string>
 </resources>

@@ -112,20 +112,12 @@ public class sms_receiver extends BroadcastReceiver {
             }
             if (!public_func.check_network(context)) {
                 public_func.write_log(context, "Send Message:No network connection");
-                if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && sharedPreferences.getBoolean("fallback_sms", false)) {
-                    String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
-                    String msg_send_content = request_body.text;
-                    if (msg_send_to != null) {
-                        public_func.send_fallback_sms(msg_send_to, msg_send_content, sub);
-                    }
-                }
+                public_func.send_fallback_sms(context, request_body.text, sub);
                 return;
             }
             String request_body_json = new Gson().toJson(request_body);
             RequestBody body = RequestBody.create(public_func.JSON, request_body_json);
             OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
-            okhttp_client.retryOnConnectionFailure();
-            okhttp_client.connectTimeoutMillis();
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
             call.enqueue(new Callback() {
@@ -133,13 +125,7 @@ public class sms_receiver extends BroadcastReceiver {
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
                     String error_message = "SMS forwarding failed:" + e.getMessage();
                     public_func.write_log(context, error_message);
-                    if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && sharedPreferences.getBoolean("fallback_sms", false)) {
-                        String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
-                        String msg_send_content = request_body.text;
-                        if (msg_send_to != null) {
-                            public_func.send_fallback_sms(msg_send_to, msg_send_content, sub);
-                        }
-                    }
+                    public_func.send_fallback_sms(context, request_body.text, sub);
                 }
 
                 @Override
