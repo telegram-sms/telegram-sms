@@ -340,7 +340,7 @@ class public_func {
     }
 
     static String get_sim_display_name(Context context, int slot) {
-        String result = "Unknown"
+        String result = "Unknown";
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             return result;
         }
