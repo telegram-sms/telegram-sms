@@ -227,7 +227,7 @@ class public_func {
 
         }
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-        if (!sharedPreferences.getBoolean("fallback", false)) {
+        if (!sharedPreferences.getBoolean("fallback_sms", false)) {
             return;
         }
         android.telephony.SmsManager sms_manager;
@@ -340,8 +340,9 @@ class public_func {
     }
 
     static String get_sim_display_name(Context context, int slot) {
+        String result = "Unknown"
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            return "Unknown";
+            return result;
         }
         SubscriptionInfo info = SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(slot);
         if (info == null) {
@@ -349,11 +350,11 @@ class public_func {
                 info = SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(1);
             }
             if (info == null) {
-                return "Unknown";
+                return result;
             }
         }
 
-        String result = info.getDisplayName().toString();
+        result = info.getDisplayName().toString();
         if (info.getDisplayName().toString().contains("CARD") || info.getDisplayName().toString().contains("SUB")) {
             result = info.getCarrierName().toString();
         }
