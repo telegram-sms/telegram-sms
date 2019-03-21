@@ -14,7 +14,6 @@ push_github:
   only:
     - develop
   script:
-    - ./gradlew publishApk  --track beta
     - git push -f --set-upstream https://${github_key}@github.com/qwe7002/telegram-sms.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
     - /opt/github-release-upload.sh github_api_token=${github_key} owner=qwe7002 repo=telegram-sms tag="pre-release"$(date "+%Y%m%d%H%M%S") filename="./app/build/outputs/apk/release/app-release.apk" pre_release="true"
 
@@ -41,6 +40,7 @@ build:
     - export GRADLE_USER_HOME=$(pwd)/.gradle
     - chmod +x ./gradlew
     - ./gradlew assembleRelease
+    - ./gradlew publishApk  --track beta
   artifacts:
     paths:
       - app/build/outputs/apk/release/app-release.apk
