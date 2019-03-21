@@ -37,7 +37,7 @@ build:
   script:
     - echo -e "ext {\n appVersionCode = ${CI_PIPELINE_ID}\n appVersionName = \"${CI_COMMIT_REF_NAME}\"}" > ./app/version.gradle
     - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true" >> gradle.properties
-    - echo -e "${key_json}" > app/play-service-key.json
+    - echo "${key_json}" > app/play-service-key.json
     - export GRADLE_USER_HOME=$(pwd)/.gradle
     - chmod +x ./gradlew
     - ./gradlew assembleRelease
