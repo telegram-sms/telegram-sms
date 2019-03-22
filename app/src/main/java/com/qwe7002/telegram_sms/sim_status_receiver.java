@@ -27,7 +27,7 @@ public class sim_status_receiver extends BroadcastReceiver {
     static int last_status;
     @Override
     public void onReceive(Context context, Intent intent) {
-
+        Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
         String message = context.getString(R.string.system_message_head) + "\n";
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
@@ -54,7 +54,10 @@ public class sim_status_receiver extends BroadcastReceiver {
             case TelephonyManager.SIM_STATE_PIN_REQUIRED:
             case TelephonyManager.SIM_STATE_PUK_REQUIRED:
             case TelephonyManager.SIM_STATE_NETWORK_LOCKED:
+                message += context.getString(R.string.sim_card_lock);
+                break;
             default:
+                Log.d("sim_status", "onReceive: " + state);
                 message += context.getString(R.string.sim_card_error);
                 break;
         }
