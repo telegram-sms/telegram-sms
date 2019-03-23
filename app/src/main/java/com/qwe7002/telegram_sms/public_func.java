@@ -31,8 +31,6 @@ import com.google.gson.JsonParser;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -100,21 +98,12 @@ class public_func {
         if (doh_switch) {
             okhttp.dns(new DnsOverHttps.Builder().client(new OkHttpClient.Builder().retryOnConnectionFailure(true).build())
                     .url(HttpUrl.get("https://cloudflare-dns.com/dns-query"))
-                    .bootstrapDnsHosts(getByIp("1.1.1.1"))
                     .includeIPv6(true)
                     .build());
         }
         return okhttp.build();
     }
 
-    private static InetAddress getByIp(String host) {
-        try {
-            return InetAddress.getByName(host);
-        } catch (UnknownHostException e) {
-            // unlikely
-            throw new RuntimeException(e);
-        }
-    }
     static boolean is_numeric(String str) {
         for (int i = str.length(); --i >= 0; ) {
             char c = str.charAt(i);
