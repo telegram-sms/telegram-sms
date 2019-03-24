@@ -69,15 +69,11 @@ public class chat_long_polling_service extends Service {
             while (true) {
                 try {
                     start_long_polling();
-                    Thread.sleep(100);
                 } catch (IOException e) {
                     if (magnification > 1) {
                         magnification--;
                     }
                     e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    break;
                 }
             }
         }).start();
