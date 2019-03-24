@@ -12,6 +12,7 @@ import static android.content.Context.MODE_PRIVATE;
 public class boot_receiver extends BroadcastReceiver {
 
     @SuppressLint("UnsafeProtectedBroadcastReceiver")
+    //
     @Override
     public void onReceive(final Context context, Intent intent) {
         Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
