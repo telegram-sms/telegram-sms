@@ -322,8 +322,7 @@ public class chat_long_polling_service extends Service {
         }
 
         String request_uri = public_func.get_url(bot_token, "sendMessage");
-        Gson gson = new Gson();
-        RequestBody body = RequestBody.create(public_func.JSON, gson.toJson(request_body));
+        RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
         Request send_request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(send_request);
         final String error_head = "Send reply failed:";
