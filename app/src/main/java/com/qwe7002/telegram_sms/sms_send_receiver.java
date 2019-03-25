@@ -64,7 +64,7 @@ public class sms_send_receiver extends BroadcastReceiver {
                 break;
         }
         if (!public_func.check_network(context)) {
-            public_func.write_log(context, "Send Message:No network connection");
+            public_func.write_log(context, public_func.network_error);
             public_func.send_fallback_sms(context, request_body.text, sub);
             return;
         }
@@ -73,10 +73,11 @@ public class sms_send_receiver extends BroadcastReceiver {
         OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
+        final String error_head = "Send SMS status failed:";
         call.enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                String error_message = "failed to send SMS status:" + e.getMessage();
+                String error_message = error_head + e.getMessage();
                 public_func.write_log(context, error_message);
                 public_func.send_fallback_sms(context, request_body.text, sub);
             }
@@ -85,7 +86,7 @@ public class sms_send_receiver extends BroadcastReceiver {
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.code() != 200) {
                     assert response.body() != null;
-                    String error_message = "failed to send SMS status:" + response.body().string();
+                    String error_message = error_head + response.body().string();
                     public_func.write_log(context, error_message);
 
                 }

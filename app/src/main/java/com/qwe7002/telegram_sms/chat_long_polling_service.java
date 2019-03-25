@@ -292,10 +292,11 @@ public class chat_long_polling_service extends Service {
         RequestBody body = RequestBody.create(public_func.JSON, gson.toJson(request_body));
         Request send_request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(send_request);
+        final String error_head = "Send reply failed:";
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                String error_message = "Send reply failed:" + e.getMessage();
+                String error_message = error_head + e.getMessage();
                 public_func.write_log(context, error_message);
             }
 
@@ -303,7 +304,7 @@ public class chat_long_polling_service extends Service {
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
                     assert response.body() != null;
-                    String error_message = "Send reply failed:" + response.body().string();
+                    String error_message = error_head + response.body().string();
                     public_func.write_log(context, error_message);
                 }
             }
