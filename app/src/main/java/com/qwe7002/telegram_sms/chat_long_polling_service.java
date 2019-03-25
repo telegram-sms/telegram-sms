@@ -20,7 +20,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -219,6 +223,32 @@ public class chat_long_polling_service extends Service {
                         }
                     }
                     request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
+                    break;
+                case "/log":
+                    try {
+                        FileInputStream file_stream = context.openFileInput("error.log");
+                        FileChannel channel = file_stream.getChannel();
+                        ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+                        buffer.position((int) channel.size());
+                        int count = 0;
+                        StringBuilder builder = new StringBuilder();
+                        for (long i = channel.size() - 1; i >= 0; i--) {
+                            char c = (char) buffer.get((int) i);
+                            builder.insert(0, c);
+                            if (c == '\n') {
+                                if (count == 9) {
+                                    break;
+                                }
+                                count++;
+                            }
+                        }
+                        channel.close();
+                        request_body.text = getString(R.string.system_message_head) + builder.toString();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     break;
                 case "/sendsms":
                 case "/sendsms1":
