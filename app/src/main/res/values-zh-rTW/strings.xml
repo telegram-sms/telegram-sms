@@ -57,4 +57,5 @@
     <string name="sim_card_insert">SIM卡被插入。</string>
     <string name="sim_card_remove">SIM卡被移除。</string>
     <string name="sim_card_lock">SIM卡被锁定。</string>
+    <string name="no_logs">無日誌。</string>
 </resources>

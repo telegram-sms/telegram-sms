@@ -57,4 +57,5 @@
     <string name="sim_card_insert">SIMカードが挿入されています。</string>
     <string name="sim_card_remove">SIMカードが取り外されました。</string>
     <string name="sim_card_lock">SIMカードがロックされています。</string>
+    <string name="no_logs">ログはありません。</string>
 </resources>
