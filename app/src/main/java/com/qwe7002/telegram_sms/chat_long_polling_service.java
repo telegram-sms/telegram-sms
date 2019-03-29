@@ -228,7 +228,7 @@ public class chat_long_polling_service extends Service {
                     request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
                     break;
                 case "/log":
-                    String result = getString(R.string.no_logs);
+                    String result = "\n" + getString(R.string.no_logs);
                     try {
                         FileInputStream file_stream = context.openFileInput("error.log");
                         FileChannel channel = file_stream.getChannel();
@@ -258,6 +258,7 @@ public class chat_long_polling_service extends Service {
                         return;
                     }
                     request_body.text = getString(R.string.system_message_head) + result;
+                    break;
                 case "/sendsms":
                 case "/sendsms1":
                 case "/sendsms2":
