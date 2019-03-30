@@ -53,4 +53,9 @@
     <string name="get_recent_chat_message">請發送一些消息到Bot。</string>
     <string name="get_recent_chat_title">獲取最近的對話.....</string>
     <string name="using_doh">使用DNS over HTTPS</string>
+    <string name="sim_card_error">SIM卡錯誤。</string>
+    <string name="sim_card_insert">SIM卡被插入。</string>
+    <string name="sim_card_remove">SIM卡被移除。</string>
+    <string name="sim_card_lock">SIM卡被锁定。</string>
+    <string name="no_logs">無日誌。</string>
 </resources>

@@ -1,7 +1,6 @@
 package com.qwe7002.telegram_sms;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -29,6 +28,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -37,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
@@ -53,6 +54,7 @@ import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 class public_func {
     static final String log_tag = "telegram-sms";
+    static final String network_error = "Send Message:No network connection";
     static final String broadcast_stop_service = "com.qwe7002.telegram_sms.stop_all";
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
@@ -100,7 +102,7 @@ class public_func {
         if (doh_switch) {
             okhttp.dns(new DnsOverHttps.Builder().client(new OkHttpClient.Builder().retryOnConnectionFailure(true).build())
                     .url(HttpUrl.get("https://cloudflare-dns.com/dns-query"))
-                    .bootstrapDnsHosts(getByIp("1.1.1.1"))
+                    .bootstrapDnsHosts(getByIp("1.1.1.1"), getByIp("2606:4700:4700::1111"), getByIp("185.222.222.222"), getByIp("2a09::"))
                     .includeIPv6(true)
                     .build());
         }
@@ -221,7 +223,14 @@ class public_func {
         sms_manager.sendMultipartTextMessage(send_to, null, divideContents, send_receiver_list, null);
     }
 
-    static void send_fallback_sms(String send_to, String content, int sub_id) {
+    static void send_fallback_sms(Context context, String content, int sub_id) {
+        if (checkSelfPermission(context, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        if (!sharedPreferences.getBoolean("fallback_sms", false)) {
+            return;
+        }
         android.telephony.SmsManager sms_manager;
         switch (sub_id) {
             case -1:
@@ -232,7 +241,8 @@ class public_func {
                 break;
         }
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
-        sms_manager.sendMultipartTextMessage(send_to, null, divideContents, null, null);
+        sms_manager.sendMultipartTextMessage(sharedPreferences.getString("trusted_phone_number", null), null, divideContents, null, null);
+
     }
 
     static String get_message_id(String result) {
@@ -331,17 +341,21 @@ class public_func {
     }
 
     static String get_sim_display_name(Context context, int slot) {
+        String result = "Unknown";
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            return "Unknown";
+            return result;
         }
         SubscriptionInfo info = SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(slot);
         if (info == null) {
             if (get_active_card(context) == 1 && slot == 0) {
                 info = SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(1);
             }
+            if (info == null) {
+                return result;
+            }
         }
-        assert info != null;
-        String result = info.getDisplayName().toString();
+
+        result = info.getDisplayName().toString();
         if (info.getDisplayName().toString().contains("CARD") || info.getDisplayName().toString().contains("SUB")) {
             result = info.getCarrierName().toString();
         }
@@ -373,7 +387,7 @@ class public_func {
 
     static void write_log(Context context, String log) {
         Log.i(public_func.log_tag, log);
-        @SuppressLint("SimpleDateFormat") SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.UK);
         Date ts = new Date(System.currentTimeMillis());
         String error_log = read_file(context, "error.log") + "\n" + simpleDateFormat.format(ts) + " " + log;
         write_file(context, "error.log", error_log);
@@ -403,7 +417,7 @@ class public_func {
             byte[] bytes = write_string.getBytes();
             file_stream.write(bytes);
             file_stream.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -417,10 +431,11 @@ class public_func {
             file_stream.read(buffer);
             result = new String(buffer, StandardCharsets.UTF_8);
             file_stream.close();
-        } catch (Exception e) {
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return result;
-
     }
 }

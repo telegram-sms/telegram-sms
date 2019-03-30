@@ -1,11 +1,9 @@
 package com.qwe7002.telegram_sms;
 
-import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -26,7 +24,6 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 import static android.content.Context.MODE_PRIVATE;
-import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class call_receiver extends BroadcastReceiver {
     private static int slot;
@@ -90,14 +87,8 @@ class call_state_listener extends PhoneStateListener {
             request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + display_address;
 
             if (!public_func.check_network(context)) {
-                public_func.write_log(context, "Send Message:No network connection");
-                if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && sharedPreferences.getBoolean("fallback_sms", false)) {
-                    String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
-                    String msg_send_content = request_body.text;
-                    if (msg_send_to != null) {
-                        public_func.send_fallback_sms(msg_send_to, msg_send_content, public_func.get_sub_id(context, slot));
-                    }
-                }
+                public_func.write_log(context, public_func.network_error);
+                public_func.send_fallback_sms(context, request_body.text, public_func.get_sub_id(context, slot));
                 return;
             }
 
@@ -106,25 +97,21 @@ class call_state_listener extends PhoneStateListener {
             OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
+            final String error_head = "Send missed call error:";
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    String error_message = "Send missed call error:" + e.getMessage();
+                    String error_message = error_head + e.getMessage();
                     public_func.write_log(context, error_message);
-                    if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && sharedPreferences.getBoolean("fallback_sms", false)) {
-                        String msg_send_to = sharedPreferences.getString("trusted_phone_number", null);
-                        String msg_send_content = request_body.text;
-                        if (msg_send_to != null) {
-                            public_func.send_fallback_sms(msg_send_to, msg_send_content, public_func.get_sub_id(context, slot));
-                        }
-                    }
+                    public_func.send_fallback_sms(context, request_body.text, public_func.get_sub_id(context, slot));
+
                 }
 
                 @Override
                 public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                     if (response.code() != 200) {
                         assert response.body() != null;
-                        String error_message = "Send missed call error:" + response.body().string();
+                        String error_message = error_head + response.body().string();
                         public_func.write_log(context, error_message);
                     }
                     if (response.code() == 200) {

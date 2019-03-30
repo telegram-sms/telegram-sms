@@ -13,6 +13,7 @@ import android.os.BatteryManager;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -20,7 +21,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -69,15 +74,11 @@ public class chat_long_polling_service extends Service {
             while (true) {
                 try {
                     start_long_polling();
-                    Thread.sleep(100);
                 } catch (IOException e) {
                     if (magnification > 1) {
                         magnification--;
                     }
                     e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    break;
                 }
             }
         }).start();
@@ -202,9 +203,11 @@ public class chat_long_polling_service extends Service {
             }
         }
 
+        Log.d(public_func.log_tag, "receive_handle: " + command);
+
         if (!message_obj.has("reply_to_message")) {
-            public_func.write_log(context, "request command: " + command);
             switch (command) {
+                case "/help":
                 case "/start":
                     String dual_card = "\n" + getString(R.string.sendsms);
                     if (public_func.get_active_card(context) == 2) {
@@ -223,6 +226,38 @@ public class chat_long_polling_service extends Service {
                         }
                     }
                     request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
+                    break;
+                case "/log":
+                    String result = "\n" + getString(R.string.no_logs);
+                    try {
+                        FileInputStream file_stream = context.openFileInput("error.log");
+                        FileChannel channel = file_stream.getChannel();
+                        ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+                        buffer.position((int) channel.size());
+                        int count = 0;
+                        StringBuilder builder = new StringBuilder();
+                        for (long i = channel.size() - 1; i >= 0; i--) {
+                            char c = (char) buffer.get((int) i);
+                            builder.insert(0, c);
+                            if (c == '\n') {
+                                if (count == 9) {
+                                    break;
+                                }
+                                count++;
+                            }
+                        }
+                        channel.close();
+                        if (!builder.toString().isEmpty()) {
+                            result = builder.toString();
+                        }
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                        return;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        return;
+                    }
+                    request_body.text = getString(R.string.system_message_head) + result;
                     break;
                 case "/sendsms":
                 case "/sendsms1":
@@ -292,14 +327,14 @@ public class chat_long_polling_service extends Service {
         }
 
         String request_uri = public_func.get_url(bot_token, "sendMessage");
-        Gson gson = new Gson();
-        RequestBody body = RequestBody.create(public_func.JSON, gson.toJson(request_body));
+        RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
         Request send_request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(send_request);
+        final String error_head = "Send reply failed:";
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                String error_message = "Send reply failed:" + e.getMessage();
+                String error_message = error_head + e.getMessage();
                 public_func.write_log(context, error_message);
             }
 
@@ -307,7 +342,7 @@ public class chat_long_polling_service extends Service {
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
                     assert response.body() != null;
-                    String error_message = "Send reply failed:" + response.body().string();
+                    String error_message = error_head + response.body().string();
                     public_func.write_log(context, error_message);
                 }
             }

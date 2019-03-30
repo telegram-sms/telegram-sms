@@ -129,11 +129,12 @@ public class main_activity extends AppCompatActivity {
             RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
+            final String error_head = "Get chat ID failed:";
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
                     progress_dialog.cancel();
-                    String error_message = "Get ID Network Error：" + e.getMessage();
+                    String error_message = error_head + e.getMessage();
                     Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
                     public_func.write_log(context, error_message);
                 }
@@ -142,16 +143,15 @@ public class main_activity extends AppCompatActivity {
                 public void onResponse(Call call, Response response) throws IOException {
                     Looper.prepare();
                     progress_dialog.cancel();
+                    assert response.body() != null;
                     if (response.code() != 200) {
-                        assert response.body() != null;
                         String result = response.body().string();
                         JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
-                        String error_message = "Get ID API Error:" + result_obj.get("description").getAsString();
+                        String error_message = error_head + result_obj.get("description").getAsString();
                         public_func.write_log(context, error_message);
                         Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
                         return;
                     }
-                    assert response.body() != null;
                     String result = response.body().string();
                     JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
                     JsonArray chat_list = result_obj.getAsJsonArray("result");
@@ -234,12 +234,13 @@ public class main_activity extends AppCompatActivity {
             OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked());
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
+            final String error_head = "Send message failed:";
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
                     Looper.prepare();
                     progress_dialog.cancel();
-                    String error_message = "Send Message Network Error:" + e.getMessage();
+                    String error_message = error_head + e.getMessage();
                     public_func.write_log(context, error_message);
                     Snackbar.make(v, error_message, Snackbar.LENGTH_LONG)
                             .show();
@@ -255,7 +256,7 @@ public class main_activity extends AppCompatActivity {
                         assert response.body() != null;
                         String result = response.body().string();
                         JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
-                        String error_message = "Send Message API Error:" + result_obj.get("description");
+                        String error_message = error_head + result_obj.get("description");
                         public_func.write_log(context, error_message);
                         Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
                         return;
