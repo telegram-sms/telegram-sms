@@ -94,18 +94,30 @@ public class chat_long_polling_service extends Service {
 
 
     void start_long_polling() throws IOException {
-        Request request_test = new Request.Builder().url("https://www.google.com/generate_204").build();
-        Call call_test = okhttp_test_client.newCall(request_test);
+        int read_timeout = 30 * magnification;
+        OkHttpClient okhttp_client_new = okhttp_client.newBuilder()
+                .readTimeout((read_timeout + 5), TimeUnit.SECONDS)
+                .build();
+        String request_uri = public_func.get_url(bot_token, "getUpdates");
+        polling_json request_body = new polling_json();
+        request_body.offset = offset;
+        request_body.timeout = read_timeout;
+        RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
+        Request request = new Request.Builder().url(request_uri).method("POST", body).build();
+        Call call = okhttp_client_new.newCall(request);
+        Response response;
         try {
             if (!public_func.check_network(context)) {
                 throw new IOException("Network");
             }
-            call_test.execute();
+            response = call.execute();
+            if (magnification <= 9) {
+                magnification++;
+            }
             error_magnification = 1;
         } catch (IOException e) {
             e.printStackTrace();
             int sleep_time = 5 * error_magnification;
-
             public_func.write_log(context, "No network service,try again after " + sleep_time + " seconds");
 
             magnification = 1;
@@ -120,22 +132,6 @@ public class chat_long_polling_service extends Service {
             return;
 
         }
-        if (magnification <= 9) {
-            magnification++;
-        }
-
-        int read_timeout = 30 * magnification;
-        OkHttpClient okhttp_client_new = okhttp_client.newBuilder()
-                .readTimeout((read_timeout + 5), TimeUnit.SECONDS)
-                .build();
-        String request_uri = public_func.get_url(bot_token, "getUpdates");
-        polling_json request_body = new polling_json();
-        request_body.offset = offset;
-        request_body.timeout = read_timeout;
-        RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
-        Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-        Call call = okhttp_client_new.newCall(request);
-        Response response = call.execute();
         if (response != null && response.code() == 200) {
             assert response.body() != null;
             JsonObject result_obj = new JsonParser().parse(response.body().string()).getAsJsonObject();
