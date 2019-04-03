@@ -174,7 +174,7 @@ public class main_activity extends AppCompatActivity {
                                 if (chat_obj.has("username")) {
                                     username = chat_obj.get("username").getAsString();
                                 }
-                                chat_name_list.add(username + "(Chat)");
+                                chat_name_list.add(username + "(" + chat_obj.get("type").getAsString() + ")");
                                 chat_id_list.add(chat_obj.get("id").getAsString());
                             }
                         }

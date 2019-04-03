@@ -104,12 +104,12 @@ public class chat_long_polling_service extends Service {
             error_magnification = 1;
         } catch (IOException e) {
             e.printStackTrace();
-            int sleep_time = 30 * error_magnification;
+            int sleep_time = 5 * error_magnification;
 
             public_func.write_log(context, "No network service,try again after " + sleep_time + " seconds");
 
             magnification = 1;
-            if (error_magnification <= 9) {
+            if (error_magnification <= 59) {
                 error_magnification++;
             }
             try {
@@ -169,7 +169,6 @@ public class chat_long_polling_service extends Service {
             message_obj = result_obj.get("channel_post").getAsJsonObject();
         }
         if (message_obj == null) {
-            //Reject group request
             public_func.write_log(context, "Request type is not allowed by security policy");
             return;
         }
@@ -200,6 +199,10 @@ public class chat_long_polling_service extends Service {
                 int command_offset = entities_obj_command.get("offset").getAsInt();
                 int command_end_offset = command_offset + entities_obj_command.get("length").getAsInt();
                 command = request_msg.substring(command_offset, command_end_offset).trim().toLowerCase();
+                if (command.contains("@")) {
+                    int command_at_location = command.indexOf("@");
+                    command = command.substring(0, command_at_location);
+                }
             }
         }
 
