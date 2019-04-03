@@ -39,7 +39,7 @@
     <string name="Battery_monitoring">電池監控</string>
     <string name="chat_command_service_name">聊天命令</string>
     <string name="success">成功</string>
-    <string name="available_command">可用命令：\n/getinfo - 獲取系統訊息</string>
+    <string name="available_command">可用命令：\n/getinfo - 獲取系統訊息\n/log - 輸出最後10條日誌記錄</string>
     <string name="restart_service">後台服務已成功重新啟動。</string>
     <string name="status">狀態：</string>
     <string name="send_failed">發送失敗</string>

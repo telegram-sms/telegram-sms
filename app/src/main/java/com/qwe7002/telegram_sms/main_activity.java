@@ -168,13 +168,16 @@ public class main_activity extends AppCompatActivity {
                             JsonObject chat_obj = message_obj.get("chat").getAsJsonObject();
                             if (!chat_id_list.contains(chat_obj.get("id").getAsString())) {
                                 String username = "";
-                                if (!chat_obj.has("username")) {
-                                    username = chat_obj.get("first_name").getAsString() + " " + chat_obj.get("last_name").getAsString();
-                                }
                                 if (chat_obj.has("username")) {
                                     username = chat_obj.get("username").getAsString();
                                 }
-                                chat_name_list.add(username + "(Chat)");
+                                if (chat_obj.has("title")) {
+                                    username = chat_obj.get("title").getAsString();
+                                }
+                                if (username.equals("") && !chat_obj.has("username")) {
+                                    username = chat_obj.get("first_name").getAsString() + " " + chat_obj.get("last_name").getAsString();
+                                }
+                                chat_name_list.add(username + "(" + chat_obj.get("type").getAsString() + ")");
                                 chat_id_list.add(chat_obj.get("id").getAsString());
                             }
                         }

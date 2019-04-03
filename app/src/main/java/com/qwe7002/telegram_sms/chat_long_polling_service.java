@@ -45,7 +45,6 @@ public class chat_long_polling_service extends Service {
     Context context;
     SharedPreferences sharedPreferences;
     OkHttpClient okhttp_client;
-    OkHttpClient okhttp_test_client;
     private stop_broadcast_receiver stop_broadcast_receiver = null;
 
     @Override
@@ -67,19 +66,12 @@ public class chat_long_polling_service extends Service {
         sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
-        okhttp_test_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
-        okhttp_client = okhttp_test_client;
+        okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
+
 
         new Thread(() -> {
             while (true) {
-                try {
-                    start_long_polling();
-                } catch (IOException e) {
-                    if (magnification > 1) {
-                        magnification--;
-                    }
-                    e.printStackTrace();
-                }
+                start_long_polling();
             }
         }).start();
 
@@ -93,23 +85,34 @@ public class chat_long_polling_service extends Service {
     }
 
 
-    void start_long_polling() throws IOException {
-        Request request_test = new Request.Builder().url("https://www.google.com/generate_204").build();
-        Call call_test = okhttp_test_client.newCall(request_test);
+    void start_long_polling() {
+        int read_timeout = 30 * magnification;
+        Log.d(public_func.log_tag, "read timeout: " + read_timeout);
+        OkHttpClient okhttp_client_new = okhttp_client.newBuilder()
+                .readTimeout((read_timeout + 5), TimeUnit.SECONDS)
+                .writeTimeout((read_timeout + 5), TimeUnit.SECONDS)
+                .build();
+        String request_uri = public_func.get_url(bot_token, "getUpdates");
+        polling_json request_body = new polling_json();
+        request_body.offset = offset;
+        request_body.timeout = read_timeout;
+        RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
+        Request request = new Request.Builder().url(request_uri).method("POST", body).build();
+        Call call = okhttp_client_new.newCall(request);
+        Response response;
         try {
             if (!public_func.check_network(context)) {
                 throw new IOException("Network");
             }
-            call_test.execute();
+            response = call.execute();
             error_magnification = 1;
         } catch (IOException e) {
             e.printStackTrace();
-            int sleep_time = 30 * error_magnification;
-
+            int sleep_time = 5 * error_magnification;
             public_func.write_log(context, "No network service,try again after " + sleep_time + " seconds");
 
             magnification = 1;
-            if (error_magnification <= 9) {
+            if (error_magnification <= 59) {
                 error_magnification++;
             }
             try {
@@ -120,30 +123,24 @@ public class chat_long_polling_service extends Service {
             return;
 
         }
-        if (magnification <= 9) {
-            magnification++;
-        }
-
-        int read_timeout = 30 * magnification;
-        OkHttpClient okhttp_client_new = okhttp_client.newBuilder()
-                .readTimeout((read_timeout + 5), TimeUnit.SECONDS)
-                .build();
-        String request_uri = public_func.get_url(bot_token, "getUpdates");
-        polling_json request_body = new polling_json();
-        request_body.offset = offset;
-        request_body.timeout = read_timeout;
-        RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
-        Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-        Call call = okhttp_client_new.newCall(request);
-        Response response = call.execute();
         if (response != null && response.code() == 200) {
             assert response.body() != null;
-            JsonObject result_obj = new JsonParser().parse(response.body().string()).getAsJsonObject();
+            String result;
+            try {
+                result = response.body().string();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+            JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
             if (result_obj.get("ok").getAsBoolean()) {
                 JsonArray result_array = result_obj.get("result").getAsJsonArray();
                 for (JsonElement item : result_array) {
                     receive_handle(item.getAsJsonObject());
                 }
+            }
+            if (magnification <= 9) {
+                magnification++;
             }
         }
     }
@@ -169,7 +166,6 @@ public class chat_long_polling_service extends Service {
             message_obj = result_obj.get("channel_post").getAsJsonObject();
         }
         if (message_obj == null) {
-            //Reject group request
             public_func.write_log(context, "Request type is not allowed by security policy");
             return;
         }
@@ -200,6 +196,10 @@ public class chat_long_polling_service extends Service {
                 int command_offset = entities_obj_command.get("offset").getAsInt();
                 int command_end_offset = command_offset + entities_obj_command.get("length").getAsInt();
                 command = request_msg.substring(command_offset, command_end_offset).trim().toLowerCase();
+                if (command.contains("@")) {
+                    int command_at_location = command.indexOf("@");
+                    command = command.substring(0, command_at_location);
+                }
             }
         }
 
