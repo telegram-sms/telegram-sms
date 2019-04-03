@@ -90,6 +90,7 @@ public class chat_long_polling_service extends Service {
         Log.d(public_func.log_tag, "read timeout: " + read_timeout);
         OkHttpClient okhttp_client_new = okhttp_client.newBuilder()
                 .readTimeout((read_timeout + 5), TimeUnit.SECONDS)
+                .writeTimeout((read_timeout + 5), TimeUnit.SECONDS)
                 .build();
         String request_uri = public_func.get_url(bot_token, "getUpdates");
         polling_json request_body = new polling_json();
