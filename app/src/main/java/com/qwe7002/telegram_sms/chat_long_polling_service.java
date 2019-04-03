@@ -45,7 +45,6 @@ public class chat_long_polling_service extends Service {
     Context context;
     SharedPreferences sharedPreferences;
     OkHttpClient okhttp_client;
-    OkHttpClient okhttp_test_client;
     private stop_broadcast_receiver stop_broadcast_receiver = null;
 
     @Override
@@ -67,8 +66,8 @@ public class chat_long_polling_service extends Service {
         sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
-        okhttp_test_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
-        okhttp_client = okhttp_test_client;
+        okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
+
 
         new Thread(() -> {
             while (true) {
