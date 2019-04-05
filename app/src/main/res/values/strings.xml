@@ -29,7 +29,7 @@
     <string name="unable_get_recent">Failed to get recent chat history</string>
     <string name="chat_command">Get chat command</string>
     <string name="command_format_error">Command format error.</string>
-    <string name="unknown_command">Unknown command</string>
+    <string name="unknown_command">Unknown command,type /help to get a list of available commands.</string>
     <string name="current_network_connection_status">Network status:</string>
     <string name="cant_get_card_2_info">Failed to get SIM slot 2 information.</string>
     <string name="battery_monitoring">Monitor battery level change</string>
