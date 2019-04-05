@@ -86,7 +86,7 @@ public class chat_long_polling_service extends Service {
 
 
     void start_long_polling() {
-        int read_timeout = 30 * magnification;
+        int read_timeout = 5 * magnification;
         OkHttpClient okhttp_client_new = okhttp_client.newBuilder()
                 .readTimeout((read_timeout + 5), TimeUnit.SECONDS)
                 .writeTimeout((read_timeout + 5), TimeUnit.SECONDS)
@@ -138,7 +138,7 @@ public class chat_long_polling_service extends Service {
                     receive_handle(item.getAsJsonObject());
                 }
             }
-            if (magnification <= 9) {
+            if (magnification <= 11) {
                 magnification++;
             }
         }
