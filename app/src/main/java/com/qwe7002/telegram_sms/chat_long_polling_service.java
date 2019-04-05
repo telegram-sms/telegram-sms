@@ -87,7 +87,6 @@ public class chat_long_polling_service extends Service {
 
     void start_long_polling() {
         int read_timeout = 30 * magnification;
-        Log.d(public_func.log_tag, "read timeout: " + read_timeout);
         OkHttpClient okhttp_client_new = okhttp_client.newBuilder()
                 .readTimeout((read_timeout + 5), TimeUnit.SECONDS)
                 .writeTimeout((read_timeout + 5), TimeUnit.SECONDS)
