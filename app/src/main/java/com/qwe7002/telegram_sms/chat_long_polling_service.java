@@ -52,7 +52,6 @@ public class chat_long_polling_service extends Service {
         Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
         startForeground(2, notification);
         return START_STICKY;
-
     }
 
     @Override
