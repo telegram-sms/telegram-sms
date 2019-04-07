@@ -13,8 +13,8 @@
     <string name="missed_call_head">不在着信</string>
     <string name="Incoming_number">発信者番号：</string>
     <string name="battery_low">低電力。</string>
-    <string name="ac_connect">"AC充電器が接続されています。"</string>
-    <string name="ac_disconnect">"AC充電器が接続されていません。"</string>
+    <string name="charger_connect">"AC充電器が接続されています。"</string>
+    <string name="charger_disconnect">"AC充電器が接続されていません。"</string>
     <string name="bot_token">ロボットトークン</string>
     <string name="chat_id">ダイアログID </string>
     <string name="trusted_phone_number">信頼できる電話番号</string>
@@ -51,7 +51,7 @@
     <string name="sendsms">/sendsms - SMSの送信</string>
     <string name="sending">送信中</string>
     <string name="get_recent_chat_message">ボットにメッセージを送ってください。</string>
-    <string name="get_recent_chat_title">最新の会話を取得中...</string>
+    <string name="get_recent_chat_title">最新の会話を取得中…</string>
     <string name="using_doh">DNS over HTTPS使う</string>
     <string name="sim_card_error">SIMカードのエラーです。</string>
     <string name="sim_card_insert">SIMカードが挿入されています。</string>

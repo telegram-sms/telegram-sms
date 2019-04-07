@@ -13,8 +13,8 @@
     <string name="missed_call_head">Missed Call</string>
     <string name="Incoming_number">Calling From: </string>
     <string name="battery_low">Battery level is low.</string>
-    <string name="ac_connect">Phone charger connected.</string>
-    <string name="ac_disconnect">Phone charger disconnected.</string>
+    <string name="charger_connect">Phone charger connected.</string>
+    <string name="charger_disconnect">Phone charger disconnected.</string>
     <string name="bot_token">Bot Token</string>
     <string name="chat_id">Chat ID</string>
     <string name="trusted_phone_number">Trusted phone number</string>

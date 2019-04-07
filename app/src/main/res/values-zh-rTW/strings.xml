@@ -13,8 +13,8 @@
     <string name="missed_call_head">未接來電</string>
     <string name="Incoming_number">來電號碼：</string>
     <string name="battery_low">設備電池電量低。</string>
-    <string name="ac_connect">交流充電器已連接。</string>
-    <string name="ac_disconnect">交流充電器斷開連接。</string>
+    <string name="charger_connect">交流充電器已連接。</string>
+    <string name="charger_disconnect">交流充電器斷開連接。</string>
     <string name="bot_token">機器人令牌</string>
     <string name="chat_id">對話ID</string>
     <string name="trusted_phone_number">可信的電話號碼</string>
