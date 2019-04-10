@@ -138,7 +138,9 @@ public class sms_receiver extends BroadcastReceiver {
                     }
                     if (response.code() == 200) {
                         assert response.body() != null;
-                        public_func.add_message_list(context, public_func.get_message_id(response.body().string()), msg_address, slot, sub);
+                        if (public_func.is_numeric(msg_address)) {
+                            public_func.add_message_list(context, public_func.get_message_id(response.body().string()), msg_address, slot, sub);
+                        }
                     }
                 }
             });
