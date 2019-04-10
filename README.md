@@ -7,6 +7,8 @@
 
 A robot running on your Android device.
 
+You can come [here](https://bbs.qwe7002.com) to submit an issue or discuss any issues with this project.
+
 [Download](https://github.com/qwe7002/telegram-sms/releases)
 
 [Android 5.0 or lower? Click here to download the latest and greatest.](https://github.com/qwe7002/telegram-sms-compat)
