@@ -12,8 +12,8 @@
     <string name="missed_call_head">未接来电</string>
     <string name="Incoming_number">来电号码：</string>
     <string name="battery_low">设备电池电量低。</string>
-    <string name="ac_connect">交流充电器已连接。</string>
-    <string name="ac_disconnect">交流充电器已断开。</string>
+    <string name="charger_connect">交流充电器已连接。</string>
+    <string name="charger_disconnect">交流充电器已断开。</string>
     <string name="bot_token">机器人令牌</string>
     <string name="chat_id">对话ID</string>
     <string name="trusted_phone_number">可信的电话号码</string>
@@ -29,7 +29,7 @@
     <string name="chat_command">获取聊天命令</string>
     <string name="command_format_error">命令格式错误。</string>
     <string name="command_error_tip">发送短信的格式是：\n/sendsms\n{接收方电话号码}\n{短信内容}</string>
-    <string name="unknown_command">未知的命令</string>
+    <string name="unknown_command">未知的命令，输入 /help 获取可用命令列表。</string>
     <string name="current_network_connection_status">网络状态：</string>
     <string name="cant_get_card_2_info">无法获取卡槽2信息。</string>
     <string name="battery_monitoring">监控电池状态变动</string>

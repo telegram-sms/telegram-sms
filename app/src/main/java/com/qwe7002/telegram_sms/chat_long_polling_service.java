@@ -52,7 +52,6 @@ public class chat_long_polling_service extends Service {
         Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
         startForeground(2, notification);
         return START_STICKY;
-
     }
 
     @Override
@@ -86,8 +85,7 @@ public class chat_long_polling_service extends Service {
 
 
     void start_long_polling() {
-        int read_timeout = 30 * magnification;
-        Log.d(public_func.log_tag, "read timeout: " + read_timeout);
+        int read_timeout = 5 * magnification;
         OkHttpClient okhttp_client_new = okhttp_client.newBuilder()
                 .readTimeout((read_timeout + 5), TimeUnit.SECONDS)
                 .writeTimeout((read_timeout + 5), TimeUnit.SECONDS)
@@ -139,7 +137,7 @@ public class chat_long_polling_service extends Service {
                     receive_handle(item.getAsJsonObject());
                 }
             }
-            if (magnification <= 9) {
+            if (magnification <= 11) {
                 magnification++;
             }
         }

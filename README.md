@@ -7,6 +7,8 @@
 
 A robot running on your Android device.
 
+You can come [https://reall.uk](https://reall.uk) to submit an issue or discuss any issues with this project.
+
 [Download](https://github.com/qwe7002/telegram-sms/releases)
 
 [Android 5.0 or lower? Click here to download the latest and greatest.](https://github.com/qwe7002/telegram-sms-compat)
@@ -96,9 +98,9 @@ The birth of this software is inseparable from their help:
 
 Thanks for their translation and support of this project document:
 
-- en_US:[@tangbao](https://github.com/tangbao) [@jixunmoe](https://github.com/jixunmoe)
+- en:[@tangbao](https://github.com/tangbao) [@jixunmoe](https://github.com/jixunmoe)
 
-- ja-JP:[@Lollycc](https://github.com/lollycc) [@AisakaMk2](https://github.com/AisakaMk2)
+- ja:[@Lollycc](https://github.com/lollycc) [@AisakaMk2](https://github.com/AisakaMk2)
 
 The following organizations for providing image storage for this page:
 

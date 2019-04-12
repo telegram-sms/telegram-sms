@@ -13,8 +13,8 @@
     <string name="missed_call_head">未接來電</string>
     <string name="Incoming_number">來電號碼：</string>
     <string name="battery_low">設備電池電量低。</string>
-    <string name="ac_connect">交流充電器已連接。</string>
-    <string name="ac_disconnect">交流充電器斷開連接。</string>
+    <string name="charger_connect">交流充電器已連接。</string>
+    <string name="charger_disconnect">交流充電器斷開連接。</string>
     <string name="bot_token">機器人令牌</string>
     <string name="chat_id">對話ID</string>
     <string name="trusted_phone_number">可信的電話號碼</string>
@@ -30,7 +30,7 @@
     <string name="chat_command">獲取聊天命令</string>
     <string name="command_format_error">命令格式錯誤。</string>
     <string name="command_error_tip">發送簡訊的格式是：\n/sendsms\n{接收方電話號碼}\n{簡訊內容}</string>
-    <string name="unknown_command">未知的命令</string>
+    <string name="unknown_command">未知的命令，輸入 /help 獲取可用命令列表。</string>
     <string name="current_network_connection_status">網路狀態：</string>
     <string name="cant_get_card_2_info">無法獲取卡槽2信息。</string>
     <string name="battery_monitoring">監控電池狀態變動</string>
