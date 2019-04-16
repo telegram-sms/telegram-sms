@@ -263,8 +263,8 @@ class public_func {
                     .setOngoing(true)
                     .setTicker(context.getString(R.string.app_name))
                     .setWhen(System.currentTimeMillis())
-                    .setContentTitle(context.getString(R.string.app_name))
-                    .setContentText(notification_name + context.getString(R.string.service_is_running))
+                    .setContentTitle(notification_name)
+                    .setContentText(context.getString(R.string.service_is_running))
                     .build();
         } else {//Notification generation method after O
             notification = new Notification.Builder(context)
@@ -273,8 +273,8 @@ class public_func {
                     .setOngoing(true)
                     .setTicker(context.getString(R.string.app_name))
                     .setWhen(System.currentTimeMillis())
-                    .setContentTitle(context.getString(R.string.app_name))
-                    .setContentText(notification_name + context.getString(R.string.service_is_running))
+                    .setContentTitle(notification_name)
+                    .setContentText(context.getString(R.string.service_is_running))
                     .setPriority(Notification.PRIORITY_MIN)
                     .build();
         }
