@@ -57,7 +57,7 @@ public class sms_send_receiver extends BroadcastReceiver {
                 request_body.text += context.getString(R.string.send_failed);
                 break;
             case SmsManager.RESULT_ERROR_RADIO_OFF:
-                request_body.text += context.getString(R.string.airplan_mode);
+                request_body.text += context.getString(R.string.airplane_mode);
                 break;
             case SmsManager.RESULT_ERROR_NO_SERVICE:
                 request_body.text += context.getString(R.string.no_network);

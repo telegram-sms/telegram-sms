@@ -74,6 +74,13 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="3dp"
                 android:text="@string/battery_monitoring" />
+
+            <Switch
+                android:id="@+id/charger_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="3dp"
+                android:text="@string/charger_status" />
             <Switch
                 android:id="@+id/chat_command"
                 android:layout_width="match_parent"

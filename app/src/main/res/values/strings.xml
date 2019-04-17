@@ -35,15 +35,15 @@
     <string name="battery_monitoring">Monitor battery level change</string>
     <string name="trusted_phone_number_empty">Trusted phone number cannot be empty.</string>
     <string name="service_is_running" tools:ignore="TypographyEllipsis">Service is running...</string>
-    <string name="Battery_monitoring">Battery monitor</string>
-    <string name="chat_command_service_name">Chat command</string>
+    <string name="Battery_monitoring">"Battery monitor "</string>
+    <string name="chat_command_service_name">"Chat command "</string>
     <string name="success">Success</string>
     <string name="receive_sms_head">Receive SMS</string>
     <string name="available_command">Available Commands:\n/getinfo - Get system information\n/log - Output the last 10 log records</string>
     <string name="restart_service">Background service has been restarted.</string>
     <string name="status">Status:</string>
     <string name="send_failed">Failed to send</string>
-    <string name="airplan_mode">Device is in Airplane mode</string>
+    <string name="airplane_mode">Device is in Airplane mode</string>
     <string name="no_network">No service</string>
     <string name="sendsms_dual">/sendsms1 - Send SMS using SIM slot 1\n/sendsms2 - Send SMS using SIM slot 2</string>
     <string name="display_sim_card_alias_in_dual_card_mode">Display SIM card alias in dual SIM mode</string>
@@ -59,4 +59,5 @@
     <string name="sim_card_error">SIM card error.</string>
     <string name="sim_card_lock">SIM card locked.</string>
     <string name="no_logs">No logs yet.</string>
+    <string name="charger_status">Monitor charger status</string>
 </resources>

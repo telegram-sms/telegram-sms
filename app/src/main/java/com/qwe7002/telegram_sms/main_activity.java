@@ -60,6 +60,8 @@ public class main_activity extends AppCompatActivity {
         final Switch doh_switch = findViewById(R.id.doh_switch);
         display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
+        final Switch charger_status = findViewById(R.id.charger_status);
+
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
         assert bot_token_save != null;
@@ -84,6 +86,8 @@ public class main_activity extends AppCompatActivity {
 
         trusted_phone_number.setText(sharedPreferences.getString("trusted_phone_number", ""));
         battery_monitoring_switch.setChecked(sharedPreferences.getBoolean("battery_monitoring_switch", false));
+        charger_status.setEnabled(battery_monitoring_switch.isChecked());
+        charger_status.setChecked(sharedPreferences.getBoolean("charger_status", false));
         fallback_sms.setChecked(sharedPreferences.getBoolean("fallback_sms", false));
         chat_command.setChecked(sharedPreferences.getBoolean("chat_command", false));
         doh_switch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
@@ -100,7 +104,9 @@ public class main_activity extends AppCompatActivity {
                 }
             }
         });
-
+        battery_monitoring_switch.setOnClickListener(v -> {
+            charger_status.setEnabled(battery_monitoring_switch.isChecked());
+        });
         logcat.setOnClickListener(v -> {
             Intent logcat_intent = new Intent(main_activity.this, logcat_activity.class);
             startActivity(logcat_intent);
@@ -274,6 +280,7 @@ public class main_activity extends AppCompatActivity {
                     editor.putBoolean("fallback_sms", fallback_sms.isChecked());
                     editor.putBoolean("chat_command", chat_command.isChecked());
                     editor.putBoolean("battery_monitoring_switch", battery_monitoring_switch.isChecked());
+                    editor.putBoolean("charger_status", charger_status.isChecked());
                     editor.putBoolean("display_dual_sim_display_name", display_dual_sim_display_name.isChecked());
                     editor.putBoolean("doh_switch", doh_switch.isChecked());
                     editor.putBoolean("initialized", true);
