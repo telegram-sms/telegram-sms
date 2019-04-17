@@ -32,6 +32,7 @@ public class battery_monitoring_service extends Service {
     static Boolean fallback;
     static String trusted_phone_number;
     static boolean doh_switch;
+    static boolean charger_status;
     Context context;
     SharedPreferences sharedPreferences;
     private battery_receiver battery_receiver = null;
@@ -54,6 +55,7 @@ public class battery_monitoring_service extends Service {
         fallback = sharedPreferences.getBoolean("fallback_sms", false);
         trusted_phone_number = sharedPreferences.getString("trusted_phone_number", null);
         doh_switch = sharedPreferences.getBoolean("doh_switch", true);
+        charger_status = sharedPreferences.getBoolean("charger_status", false);
         IntentFilter intentFilter = new IntentFilter(public_func.broadcast_stop_service);
         stop_broadcast_receiver = new stop_broadcast_receiver();
 
@@ -61,8 +63,10 @@ public class battery_monitoring_service extends Service {
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_OKAY);
         filter.addAction(Intent.ACTION_BATTERY_LOW);
-        filter.addAction(Intent.ACTION_POWER_CONNECTED);
-        filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+        if (charger_status) {
+            filter.addAction(Intent.ACTION_POWER_CONNECTED);
+            filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+        }
         registerReceiver(battery_receiver, filter);
         registerReceiver(stop_broadcast_receiver, intentFilter);
 
