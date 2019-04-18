@@ -86,7 +86,7 @@ class public_func {
             return false;
         }
         NetworkInfo networkinfo = manager.getActiveNetworkInfo();
-        return networkinfo != null && networkinfo.isAvailable();
+        return networkinfo != null && networkinfo.isConnected();
     }
 
     static String get_url(String token, String func) {
