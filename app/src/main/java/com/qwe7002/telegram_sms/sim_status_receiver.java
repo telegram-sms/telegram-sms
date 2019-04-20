@@ -81,7 +81,6 @@ public class sim_status_receiver extends BroadcastReceiver {
                 String error_message = error_head + e.getMessage();
                 public_func.write_log(context, error_message);
                 public_func.send_fallback_sms(context, request_body.text, -1);
-
             }
 
             @Override
