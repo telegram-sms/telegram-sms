@@ -8,8 +8,6 @@ cache:
     - .gradle/
 
 push_github:
-  dependencies:
-    - build
   stage: deploy
   only:
     - develop
