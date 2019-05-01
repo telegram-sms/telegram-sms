@@ -8,7 +8,7 @@ buildscript {
     }
     dependencies {
         //noinspection GradleDependency
-        classpath 'com.android.tools.build:gradle:3.4.0-rc03'
+        classpath 'com.android.tools.build:gradle:3.4.0'
         classpath 'com.github.triplet.gradle:play-publisher:2.2.0-SNAPSHOT'
     }
 }
