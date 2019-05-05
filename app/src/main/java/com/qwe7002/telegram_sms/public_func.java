@@ -171,6 +171,10 @@ class public_func {
     }
 
     static void send_sms(Context context, String send_to, String content, int slot, int sub_id) {
+        if (!is_numeric(send_to)) {
+            write_log(context, "[" + send_to + "] is an illegal phone number");
+            return;
+        }
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
