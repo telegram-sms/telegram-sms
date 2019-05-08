@@ -24,8 +24,8 @@
     <string name="current_battery_level">Battery level:</string>
     <string name="low_battery_status_end">Battery has been charged to a safe level.</string>
     <string name="logcat">View log</string>
-    <string name="token_not_configure">Please configure the robot token first.</string>
-    <string name="chat_id_or_token_not_config">Please configure the robot token and chat ID first.</string>
+    <string name="token_not_configure">Please configure the bot token first.</string>
+    <string name="chat_id_or_token_not_config">Please configure the bot token and chat ID first.</string>
     <string name="unable_get_recent">Failed to get recent chat history</string>
     <string name="chat_command">Get chat command</string>
     <string name="command_format_error">Command format error.</string>
