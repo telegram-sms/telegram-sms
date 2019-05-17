@@ -34,6 +34,7 @@ android {
             signingConfig signingConfigs.releaseConfig
         }
     }
+    buildToolsVersion = '29.0.0 rc2'
 }
 
 play {

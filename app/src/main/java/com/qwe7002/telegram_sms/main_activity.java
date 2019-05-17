@@ -233,6 +233,7 @@ public class main_activity extends AppCompatActivity {
                     }
                 }
             }
+
             final ProgressDialog progress_dialog = new ProgressDialog(main_activity.this);
             progress_dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             progress_dialog.setTitle(getString(R.string.connect_wait_title));
@@ -240,6 +241,7 @@ public class main_activity extends AppCompatActivity {
             progress_dialog.setIndeterminate(false);
             progress_dialog.setCancelable(false);
             progress_dialog.show();
+
             String request_uri = public_func.get_url(bot_token.getText().toString().trim(), "sendMessage");
             message_json request_body = new message_json();
             request_body.chat_id = chat_id.getText().toString().trim();
