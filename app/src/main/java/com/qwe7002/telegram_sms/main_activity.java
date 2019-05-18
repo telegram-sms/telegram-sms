@@ -17,6 +17,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Switch;
@@ -88,7 +90,12 @@ public class main_activity extends AppCompatActivity {
         battery_monitoring_switch.setChecked(sharedPreferences.getBoolean("battery_monitoring_switch", false));
         charger_status.setEnabled(battery_monitoring_switch.isChecked());
         charger_status.setChecked(sharedPreferences.getBoolean("charger_status", false));
+
         fallback_sms.setChecked(sharedPreferences.getBoolean("fallback_sms", false));
+        if (trusted_phone_number.length() == 0) {
+            fallback_sms.setEnabled(false);
+            fallback_sms.setChecked(false);
+        }
         chat_command.setChecked(sharedPreferences.getBoolean("chat_command", false));
         doh_switch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
         display_dual_sim_display_name.setOnClickListener(v -> {
@@ -102,6 +109,30 @@ public class main_activity extends AppCompatActivity {
                     display_dual_sim_display_name.setEnabled(false);
                     display_dual_sim_display_name.setChecked(false);
                 }
+            }
+        });
+        trusted_phone_number.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (count != 0) {
+                    fallback_sms.setEnabled(true);
+                }
+                if (count == 0) {
+                    fallback_sms.setEnabled(false);
+                    fallback_sms.setChecked(false);
+                }
+
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
             }
         });
         battery_monitoring_switch.setOnClickListener(v -> {
