@@ -28,7 +28,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -49,6 +48,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.dnsoverhttps.DnsOverHttps;
 
+import static android.content.Context.MODE_APPEND;
 import static android.content.Context.MODE_PRIVATE;
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
@@ -395,8 +395,7 @@ class public_func {
         Log.i(public_func.log_tag, log);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.UK);
         Date ts = new Date(System.currentTimeMillis());
-        String error_log = read_file(context, "error.log") + "\n" + simpleDateFormat.format(ts) + " " + log;
-        write_file(context, "error.log", error_log);
+        append_file(context, "error.log", "\n" + simpleDateFormat.format(ts) + " " + log);
     }
 
     static String read_log(Context context) {
@@ -417,6 +416,16 @@ class public_func {
         public_func.write_file(context, "message.json", new Gson().toJson(message_list_obj));
     }
 
+    private static void append_file(Context context, String file_name, String append_string) {
+        try {
+            FileOutputStream file_stream = context.openFileOutput(file_name, MODE_APPEND);
+            byte[] bytes = append_string.getBytes();
+            file_stream.write(bytes);
+            file_stream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     static void write_file(Context context, String file_name, String write_string) {
         try {
             FileOutputStream file_stream = context.openFileOutput(file_name, MODE_PRIVATE);
@@ -437,8 +446,6 @@ class public_func {
             file_stream.read(buffer);
             result = new String(buffer, StandardCharsets.UTF_8);
             file_stream.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
