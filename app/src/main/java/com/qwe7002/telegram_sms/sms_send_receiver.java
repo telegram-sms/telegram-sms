@@ -86,7 +86,7 @@ public class sms_send_receiver extends BroadcastReceiver {
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.code() != 200) {
                     assert response.body() != null;
-                    String error_message = error_head + response.body().string();
+                    String error_message = error_head + response.code() + " " + response.body().string();
                     public_func.write_log(context, error_message);
 
                 }

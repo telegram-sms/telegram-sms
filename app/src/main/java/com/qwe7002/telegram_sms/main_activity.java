@@ -96,8 +96,10 @@ public class main_activity extends AppCompatActivity {
             fallback_sms.setEnabled(false);
             fallback_sms.setChecked(false);
         }
+
         chat_command.setChecked(sharedPreferences.getBoolean("chat_command", false));
         doh_switch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
+
         display_dual_sim_display_name.setOnClickListener(v -> {
             int checkPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE);
             if (checkPermission != PackageManager.PERMISSION_GRANTED) {
@@ -111,6 +113,7 @@ public class main_activity extends AppCompatActivity {
                 }
             }
         });
+
         trusted_phone_number.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -119,15 +122,13 @@ public class main_activity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (count != 0) {
+                if (trusted_phone_number.length() != 0) {
                     fallback_sms.setEnabled(true);
                 }
-                if (count == 0) {
+                if (trusted_phone_number.length() == 0) {
                     fallback_sms.setEnabled(false);
                     fallback_sms.setChecked(false);
                 }
-
-
             }
 
             @Override
@@ -135,9 +136,7 @@ public class main_activity extends AppCompatActivity {
 
             }
         });
-        battery_monitoring_switch.setOnClickListener(v -> {
-            charger_status.setEnabled(battery_monitoring_switch.isChecked());
-        });
+        battery_monitoring_switch.setOnClickListener(v -> charger_status.setEnabled(battery_monitoring_switch.isChecked()));
         logcat.setOnClickListener(v -> {
             Intent logcat_intent = new Intent(main_activity.this, logcat_activity.class);
             startActivity(logcat_intent);
@@ -159,11 +158,11 @@ public class main_activity extends AppCompatActivity {
             String request_uri = public_func.get_url(bot_token.getText().toString().trim(), "getUpdates");
             OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked());
             okhttp_client = okhttp_client.newBuilder()
-                    .readTimeout((120 + 5), TimeUnit.SECONDS)
+                    .readTimeout(60, TimeUnit.SECONDS)
                     .build();
             polling_json request_body = new polling_json();
             request_body.offset = 0;
-            request_body.timeout = 120;
+            request_body.timeout = 60;
             RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);

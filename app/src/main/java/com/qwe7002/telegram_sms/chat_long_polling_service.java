@@ -336,7 +336,7 @@ public class chat_long_polling_service extends Service {
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
                     assert response.body() != null;
-                    String error_message = error_head + response.body().string();
+                    String error_message = error_head + response.code() + " " + response.body().string();
                     public_func.write_log(context, error_message);
                 }
             }
