@@ -48,8 +48,6 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.dnsoverhttps.DnsOverHttps;
 
-import static android.content.Context.MODE_APPEND;
-import static android.content.Context.MODE_PRIVATE;
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 class public_func {
@@ -177,7 +175,7 @@ class public_func {
             write_log(context, "[" + send_to + "] is an illegal phone number");
             return;
         }
-        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = public_func.get_url(bot_token, "sendMessage");
@@ -233,7 +231,7 @@ class public_func {
         if (checkSelfPermission(context, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("fallback_sms", false)) {
             return;
         }
@@ -416,19 +414,16 @@ class public_func {
         public_func.write_file(context, "message.json", new Gson().toJson(message_list_obj));
     }
 
-    private static void append_file(Context context, String file_name, String append_string) {
-        try {
-            FileOutputStream file_stream = context.openFileOutput(file_name, MODE_APPEND);
-            byte[] bytes = append_string.getBytes();
-            file_stream.write(bytes);
-            file_stream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private static void append_file(Context context, String file_name, String write_string) {
+        private_write_file(context,file_name,write_string,Context.MODE_APPEND);
     }
     static void write_file(Context context, String file_name, String write_string) {
+        private_write_file(context,file_name,write_string,Context.MODE_PRIVATE);
+
+    }
+    private static void private_write_file(Context context, String file_name, String write_string,int mode) {
         try {
-            FileOutputStream file_stream = context.openFileOutput(file_name, MODE_PRIVATE);
+            FileOutputStream file_stream = context.openFileOutput(file_name, mode);
             byte[] bytes = write_string.getBytes();
             file_stream.write(bytes);
             file_stream.close();
