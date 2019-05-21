@@ -1,28 +1,17 @@
 package com.qwe7002.telegram_sms;
 
 import android.Manifest;
-import android.content.BroadcastReceiver;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.support.annotation.NonNull;
 import android.telephony.SmsMessage;
 import android.util.Log;
-
 import com.google.gson.Gson;
+import okhttp3.*;
 
 import java.io.IOException;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 import static android.content.Context.MODE_PRIVATE;
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
@@ -115,8 +104,12 @@ public class sms_receiver extends BroadcastReceiver {
                 public_func.send_fallback_sms(context, request_body.text, sub);
                 return;
             }
-            String request_body_json = new Gson().toJson(request_body);
-            RequestBody body = RequestBody.create(public_func.JSON, request_body_json);
+            String verification = public_func.get_verification_code(msgBody.toString());
+            if (verification != null) {
+                request_body.parse_mode = "html";
+                request_body.text += "\n" + context.getString(R.string.verification_code) + ":<pre>" + verification + "</pre>";
+            }
+            RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
             OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);

@@ -5,11 +5,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
@@ -22,10 +18,11 @@ import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import okhttp3.*;
+import okhttp3.dnsoverhttps.DnsOverHttps;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -38,15 +35,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-
-import okhttp3.Call;
-import okhttp3.HttpUrl;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.dnsoverhttps.DnsOverHttps;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
@@ -443,6 +433,23 @@ class public_func {
             file_stream.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        return result;
+    }
+
+    static String get_verification_code(String body) {
+        Pattern p1 = Pattern.compile("^.*?(?:(?:verification(?:\\s*code)?(?: for .* )?(?:\\s*is|\\s*[:：]?))|(?:(?:驗證|验证|校[验驗]|安全|登[錄录入]|短信密)[码碼](?:[为為是])?(?:[:：])?)|(?:(?:認証)?\\s*コード(?:は)?(?:[:：])?))[\\s ]*(\\d{4,6}).*$");
+        Matcher m1 = p1.matcher(body);
+        String result = null;
+        if (m1.find()) {
+            result = m1.group(1);
+        }
+        if (result == null) {
+            Pattern p2 = Pattern.compile("^.*?(\\d{4,6})(?:(?:(?:\\s*is).*?verification(?:\\s*code)?)|(?:(?:\\s*[为為是])?.*?(?:驗證|验证|校[验驗]|安全|登[錄录入]|短信密)[码碼])|(?:(?:\\s*は).*?(?:認証)?コード)).*$");
+            Matcher m2 = p2.matcher(body);
+            if (m2.find()) {
+                result = m2.group(1);
+            }
         }
         return result;
     }

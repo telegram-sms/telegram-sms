@@ -22,23 +22,12 @@ import android.text.TextWatcher;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Switch;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
+import okhttp3.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 import static android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS;
 
@@ -336,6 +325,22 @@ public class main_activity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == 1) {
+            for (String item : permissions) {
+                switch (item) {
+                    case Manifest.permission.READ_PHONE_STATE:
+                        break;
+                    case Manifest.permission.READ_CALL_LOG:
+                        break;
+                    case Manifest.permission.READ_CONTACTS:
+                        break;
+                    default:
+                        //no sms
+                }
+
+            }
+
+        }
         if (requestCode == 2) {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
