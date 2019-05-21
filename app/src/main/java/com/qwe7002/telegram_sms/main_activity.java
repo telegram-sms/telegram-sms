@@ -325,22 +325,6 @@ public class main_activity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == 1) {
-            for (String item : permissions) {
-                switch (item) {
-                    case Manifest.permission.READ_PHONE_STATE:
-                        break;
-                    case Manifest.permission.READ_CALL_LOG:
-                        break;
-                    case Manifest.permission.READ_CONTACTS:
-                        break;
-                    default:
-                        //no sms
-                }
-
-            }
-
-        }
         if (requestCode == 2) {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
