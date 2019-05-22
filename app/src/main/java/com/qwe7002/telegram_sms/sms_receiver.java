@@ -104,7 +104,7 @@ public class sms_receiver extends BroadcastReceiver {
                 public_func.send_fallback_sms(context, request_body.text, sub);
                 return;
             }
-            String send_message_raw = request_body.text;
+            String raw_request_body_text = request_body.text;
             String verification = public_func.get_verification_code(msgBody.toString());
             if (verification != null) {
                 request_body.parse_mode = "html";
@@ -120,7 +120,7 @@ public class sms_receiver extends BroadcastReceiver {
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
                     String error_message = error_head + e.getMessage();
                     public_func.write_log(context, error_message);
-                    public_func.send_fallback_sms(context, send_message_raw, sub);
+                    public_func.send_fallback_sms(context, raw_request_body_text, sub);
                 }
 
                 @Override
@@ -129,7 +129,7 @@ public class sms_receiver extends BroadcastReceiver {
                         assert response.body() != null;
                         String error_message = error_head + response.code() + " " + response.body().string();
                         public_func.write_log(context, error_message);
-                        public_func.send_fallback_sms(context, send_message_raw, sub);
+                        public_func.send_fallback_sms(context, raw_request_body_text, sub);
                     }
                     if (response.code() == 200) {
                         assert response.body() != null;
