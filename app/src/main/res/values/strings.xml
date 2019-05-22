@@ -60,5 +60,4 @@
     <string name="sim_card_lock">SIM card locked.</string>
     <string name="no_logs">No logs yet.</string>
     <string name="charger_status">Monitor charger status</string>
-    <string name="verification_code">Verification Code</string>
 </resources>

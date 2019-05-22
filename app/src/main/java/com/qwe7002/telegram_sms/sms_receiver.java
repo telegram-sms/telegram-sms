@@ -104,10 +104,11 @@ public class sms_receiver extends BroadcastReceiver {
                 public_func.send_fallback_sms(context, request_body.text, sub);
                 return;
             }
+            String send_message_raw = request_body.text;
             String verification = public_func.get_verification_code(msgBody.toString());
             if (verification != null) {
                 request_body.parse_mode = "html";
-                request_body.text += "\n" + context.getString(R.string.verification_code) + ":<pre>" + verification + "</pre>";
+                request_body.text = request_body.text.replace(verification, "<code>" + verification + "</code>");
             }
             RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
             OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
@@ -119,7 +120,7 @@ public class sms_receiver extends BroadcastReceiver {
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
                     String error_message = error_head + e.getMessage();
                     public_func.write_log(context, error_message);
-                    public_func.send_fallback_sms(context, request_body.text, sub);
+                    public_func.send_fallback_sms(context, send_message_raw, sub);
                 }
 
                 @Override
@@ -128,7 +129,7 @@ public class sms_receiver extends BroadcastReceiver {
                         assert response.body() != null;
                         String error_message = error_head + response.code() + " " + response.body().string();
                         public_func.write_log(context, error_message);
-                        public_func.send_fallback_sms(context, request_body.text, sub);
+                        public_func.send_fallback_sms(context, send_message_raw, sub);
                     }
                     if (response.code() == 200) {
                         assert response.body() != null;
