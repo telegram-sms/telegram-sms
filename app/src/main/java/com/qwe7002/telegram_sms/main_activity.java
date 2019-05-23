@@ -52,7 +52,7 @@ public class main_activity extends AppCompatActivity {
         display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         final Switch charger_status = findViewById(R.id.charger_status);
-
+        final Switch verification_code = findViewById(R.id.verification_code_switch);
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
         assert bot_token_save != null;
@@ -87,6 +87,7 @@ public class main_activity extends AppCompatActivity {
         }
 
         chat_command.setChecked(sharedPreferences.getBoolean("chat_command", false));
+        verification_code.setChecked(sharedPreferences.getBoolean("verification_code", false));
         doh_switch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
 
         display_dual_sim_display_name.setOnClickListener(v -> {
@@ -310,6 +311,7 @@ public class main_activity extends AppCompatActivity {
                     editor.putBoolean("battery_monitoring_switch", battery_monitoring_switch.isChecked());
                     editor.putBoolean("charger_status", charger_status.isChecked());
                     editor.putBoolean("display_dual_sim_display_name", display_dual_sim_display_name.isChecked());
+                    editor.putBoolean("verification_code", verification_code.isChecked());
                     editor.putBoolean("doh_switch", doh_switch.isChecked());
                     editor.putBoolean("initialized", true);
                     editor.apply();

@@ -60,28 +60,28 @@ public class sms_receiver extends BroadcastReceiver {
 
         }
         if (messages.length > 0) {
-            StringBuilder msgBody = new StringBuilder();
+            StringBuilder message_body = new StringBuilder();
             for (SmsMessage item : messages) {
-                msgBody.append(item.getMessageBody());
+                message_body.append(item.getMessageBody());
             }
-            String msg_address = messages[0].getOriginatingAddress();
+            String message_address = messages[0].getOriginatingAddress();
 
             final message_json request_body = new message_json();
             request_body.chat_id = chat_id;
-            String display_address = msg_address;
+            String display_address = message_address;
             if (display_address != null) {
                 String display_name = public_func.get_contact_name(context, display_address);
                 if (display_name != null) {
                     display_address = display_name + "(" + display_address + ")";
                 }
             }
-            request_body.text = "[" + dual_sim + context.getString(R.string.receive_sms_head) + "]" + "\n" + context.getString(R.string.from) + display_address + "\n" + context.getString(R.string.content) + msgBody;
-            assert msg_address != null;
+            request_body.text = "[" + dual_sim + context.getString(R.string.receive_sms_head) + "]" + "\n" + context.getString(R.string.from) + display_address + "\n" + context.getString(R.string.content) + message_body;
+            assert message_address != null;
             if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-                if (msg_address.equals(sharedPreferences.getString("trusted_phone_number", null))) {
-                    String[] msg_send_list = msgBody.toString().split("\n");
+                if (message_address.equals(sharedPreferences.getString("trusted_phone_number", null))) {
+                    String[] msg_send_list = message_body.toString().split("\n");
                     String msg_send_to = public_func.get_send_phone_number(msg_send_list[0]);
-                    if (msgBody.toString().equals("restart-service")) {
+                    if (message_body.toString().equals("restart-service")) {
                         public_func.stop_all_service(context.getApplicationContext());
                         public_func.start_service(context.getApplicationContext(), sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
                         request_body.text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
@@ -105,10 +105,16 @@ public class sms_receiver extends BroadcastReceiver {
                 return;
             }
             String raw_request_body_text = request_body.text;
-            String verification = public_func.get_verification_code(msgBody.toString());
-            if (verification != null) {
-                request_body.parse_mode = "html";
-                request_body.text = request_body.text.replace(verification, "<code>" + verification + "</code>");
+            if (sharedPreferences.getBoolean("verification_code", false)) {
+                String verification = public_func.get_verification_code(message_body.toString());
+                if (verification != null) {
+                    request_body.parse_mode = "html";
+                    request_body.text = request_body.text
+                            .replace("<", "&lt;")
+                            .replace(">", "&gt;")
+                            .replace("&", "&amp;")
+                            .replace(verification, "<code>" + verification + "</code>");
+                }
             }
             RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
             OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
@@ -133,8 +139,8 @@ public class sms_receiver extends BroadcastReceiver {
                     }
                     if (response.code() == 200) {
                         assert response.body() != null;
-                        if (public_func.is_numeric(msg_address)) {
-                            public_func.add_message_list(context, public_func.get_message_id(response.body().string()), msg_address, slot, sub);
+                        if (public_func.is_numeric(message_address)) {
+                            public_func.add_message_list(context, public_func.get_message_id(response.body().string()), message_address, slot, sub);
                         }
                     }
                 }

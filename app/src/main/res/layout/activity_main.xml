@@ -87,6 +87,12 @@
                     android:layout_height="wrap_content"
                     android:paddingStart="3dp"
                     android:text="@string/chat_command" tools:ignore="RtlSymmetry"/>
+            <Switch
+                    android:id="@+id/verification_code_switch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="3dp"
+                    android:text="@string/using_verification_code_identification" tools:ignore="RtlSymmetry"/>
 
             <Switch
                     android:id="@+id/display_dual_sim"
