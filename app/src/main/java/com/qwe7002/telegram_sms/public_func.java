@@ -438,20 +438,20 @@ class public_func {
     }
 
     static String get_verification_code(String body) {
-        Pattern verification_code_foot = Pattern.compile("^.*?(?:(?:verification(?:\\s*code)?(?: for .* )?(?:\\s*is|\\s*[:：]?))|(?:(?:驗證|验证|校[验驗]|安全|登[錄录入]|短信密)[码碼](?:[为為是])?(?:[:：])?)|(?:(?:認証)?\\s*コード(?:は)?(?:[:：])?))[\\s ]*(\\d{4,6}).*$");
+        String result = get_regexp("^.*?(?:(?:verification(?:\\s*code)?(?: for .* )?(?:\\s*is|\\s*[:：]?))|(?:(?:驗證|验证|校[验驗]|安全|登[錄录入]|短信密)[码碼](?:[为為是])?(?:[:：])?)|(?:(?:認証)?\\s*コード(?:は)?(?:[:：])?))[\\s ]*(\\d{4,6}).*$", body);
+        if (result == null) {
+            result = get_regexp("^.*?(\\d{4,6})(?:(?:(?:\\s*is).*?verification(?:\\s*code)?)|(?:(?:\\s*[为為是])?.*?(?:驗證|验证|校[验驗]|安全|登[錄录入]|短信密)[码碼])|(?:(?:\\s*は).*?(?:認証)?コード)).*$", body);
+        }
+        return result;
+    }
+
+    private static String get_regexp(String regexp, String body) {
+        Pattern verification_code_foot = Pattern.compile(regexp);
         Matcher match1 = verification_code_foot.matcher(body);
         String result = null;
         if (match1.find()) {
             result = match1.group(1);
-            Log.d(log_tag, "get_verification_code: Match1:" + result);
-        }
-        if (result == null) {
-            Pattern verification_code_head = Pattern.compile("^.*?(\\d{4,6})(?:(?:(?:\\s*is).*?verification(?:\\s*code)?)|(?:(?:\\s*[为為是])?.*?(?:驗證|验证|校[验驗]|安全|登[錄录入]|短信密)[码碼])|(?:(?:\\s*は).*?(?:認証)?コード)).*$");
-            Matcher match2 = verification_code_head.matcher(body);
-            if (match2.find()) {
-                result = match2.group(1);
-                Log.d(log_tag, "get_verification_code: Match2:" + result);
-            }
+            Log.d(log_tag, "get_regexp: " + result);
         }
         return result;
     }
