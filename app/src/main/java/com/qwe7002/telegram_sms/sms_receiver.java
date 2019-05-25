@@ -3,6 +3,7 @@ package com.qwe7002.telegram_sms;
 import android.Manifest;
 import android.content.*;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.support.annotation.NonNull;
@@ -45,7 +46,14 @@ public class sms_receiver extends BroadcastReceiver {
         assert pdus != null;
         final SmsMessage[] messages = new SmsMessage[pdus.length];
         for (int i = 0; i < pdus.length; i++) {
-            messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                String format = extras.getString("format");
+                Log.d(public_func.log_tag, "onReceive: " + format);
+                messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i], format);
+            } else {
+                messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+            }
+
             if (is_default) {
                 ContentValues values = new ContentValues();
                 values.put(Telephony.Sms.ADDRESS, messages[i].getOriginatingAddress());
@@ -125,7 +133,6 @@ public class sms_receiver extends BroadcastReceiver {
                     public_func.write_log(context, error_message);
                     public_func.send_fallback_sms(context, raw_request_body_text, sub);
                 }
-
                 @Override
                 public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                     if (response.code() != 200) {
@@ -143,7 +150,6 @@ public class sms_receiver extends BroadcastReceiver {
                 }
             });
         }
-
     }
 }
 
