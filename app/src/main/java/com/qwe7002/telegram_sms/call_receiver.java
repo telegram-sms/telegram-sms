@@ -8,22 +8,14 @@ import android.support.annotation.NonNull;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import okhttp3.*;
 
 import java.io.IOException;
 import java.util.Objects;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-
-import static android.content.Context.MODE_PRIVATE;
 
 public class call_receiver extends BroadcastReceiver {
     private static int slot;
@@ -65,7 +57,7 @@ class call_state_listener extends PhoneStateListener {
     public void onCallStateChanged(int state, String incomingNumber) {
         if (lastState == TelephonyManager.CALL_STATE_RINGING
                 && state == TelephonyManager.CALL_STATE_IDLE) {
-            final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+            final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
             if (!sharedPreferences.getBoolean("initialized", false)) {
                 Log.i(public_func.log_tag, "Uninitialized, Phone receiver is deactivated");
                 return;

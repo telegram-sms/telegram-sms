@@ -8,19 +8,10 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-
 import com.google.gson.Gson;
+import okhttp3.*;
 
 import java.io.IOException;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-
-import static android.content.Context.MODE_PRIVATE;
 
 
 public class sim_status_receiver extends BroadcastReceiver {
@@ -29,7 +20,7 @@ public class sim_status_receiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
         String message = context.getString(R.string.system_message_head) + "\n";
-        final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
             Log.i(public_func.log_tag, "Uninitialized, SIM status receiver is deactivated");
             return;

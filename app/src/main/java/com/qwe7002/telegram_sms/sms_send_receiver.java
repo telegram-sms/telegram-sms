@@ -8,18 +8,11 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.util.Log;
-
 import com.google.gson.Gson;
+import okhttp3.*;
 
 import java.io.IOException;
 import java.util.Objects;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -43,11 +36,11 @@ public class sms_send_receiver extends BroadcastReceiver {
         String request_uri = public_func.get_url(bot_token, "sendMessage");
         int message_id = Integer.parseInt(Objects.requireNonNull(extras.getString("message_id")));
         if (message_id != -1) {
+            Log.d(public_func.log_tag, "ms_send_receiver: Find the message_id and switch to edit mode.");
             request_uri = public_func.get_url(bot_token, "editMessageText");
             request_body.message_id = message_id;
+
         }
-
-
         request_body.text = extras.getString("message_text") + "\n" + context.getString(R.string.status);
         switch (getResultCode()) {
             case Activity.RESULT_OK:
@@ -88,7 +81,6 @@ public class sms_send_receiver extends BroadcastReceiver {
                     assert response.body() != null;
                     String error_message = error_head + response.code() + " " + response.body().string();
                     public_func.write_log(context, error_message);
-
                 }
             }
         });

@@ -13,8 +13,6 @@ import okhttp3.*;
 
 import java.io.IOException;
 
-import static android.content.Context.MODE_PRIVATE;
-import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 public class sms_receiver extends BroadcastReceiver {
     public void onReceive(final Context context, Intent intent) {
@@ -24,8 +22,7 @@ public class sms_receiver extends BroadcastReceiver {
             Log.d(public_func.log_tag, "reject: Error Extras");
             return;
         }
-
-        final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
             Log.i(public_func.log_tag, "Uninitialized, SMS receiver is deactivated");
             return;
@@ -77,7 +74,7 @@ public class sms_receiver extends BroadcastReceiver {
             }
             request_body.text = "[" + dual_sim + context.getString(R.string.receive_sms_head) + "]" + "\n" + context.getString(R.string.from) + display_address + "\n" + context.getString(R.string.content) + message_body;
             assert message_address != null;
-            if (checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+            if (android.support.v4.content.ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                 if (message_address.equals(sharedPreferences.getString("trusted_phone_number", null))) {
                     String[] msg_send_list = message_body.toString().split("\n");
                     String msg_send_to = public_func.get_send_phone_number(msg_send_list[0]);
