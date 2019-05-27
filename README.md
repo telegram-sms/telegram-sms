@@ -98,9 +98,9 @@ The birth of this software is inseparable from their help:
 
 Thanks for their translation and support of this project document:
 
-- en:[@tangbao](https://github.com/tangbao) [@jixunmoe](https://github.com/jixunmoe)
+- En translate:[@tangbao](https://github.com/tangbao) Proofreading:[@jixunmoe](https://github.com/jixunmoe)
 
-- ja:[@Lollycc](https://github.com/lollycc) [@AisakaMk2](https://github.com/AisakaMk2)
+- Ja translate:[@Lollycc](https://github.com/lollycc) Proofreading:[@AisakaMk2](https://github.com/AisakaMk2)
 
 The following organizations for providing image storage for this page:
 
