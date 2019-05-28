@@ -31,6 +31,7 @@ public class sim_status_receiver extends BroadcastReceiver {
         TelephonyManager tm = (TelephonyManager) context.getSystemService(Service.TELEPHONY_SERVICE);
         int state = tm.getSimState();
         if (last_status == state) {
+            Log.d(public_func.log_tag, "sim_status_receiver: SIM status is the same as the previous one");
             return;
         }
         last_status = state;

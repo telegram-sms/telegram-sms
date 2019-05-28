@@ -9,6 +9,8 @@ A robot running on your Android device.
 
 You can come [https://reall.uk](https://reall.uk) to submit an issue or discuss any issues with this project.
 
+You can follow the channel https://t.me/tg_sms_changelog for the latest news.
+
 [Download](https://github.com/qwe7002/telegram-sms/releases)
 
 [Android 5.0 or lower? Click here to download the latest and greatest.](https://github.com/qwe7002/telegram-sms-compat)
