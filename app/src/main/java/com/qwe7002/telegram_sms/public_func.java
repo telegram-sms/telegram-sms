@@ -5,11 +5,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
@@ -22,13 +18,13 @@ import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import okhttp3.*;
+import okhttp3.dnsoverhttps.DnsOverHttps;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -40,16 +36,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import okhttp3.Call;
-import okhttp3.HttpUrl;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.dnsoverhttps.DnsOverHttps;
-
-import static android.content.Context.MODE_PRIVATE;
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 class public_func {
@@ -143,6 +129,8 @@ class public_func {
                 break;
             case ConnectivityManager.TYPE_MOBILE:
                 switch (network_info.getSubtype()) {
+                    case TelephonyManager.NETWORK_TYPE_UNKNOWN:
+                        break;
                     case TelephonyManager.NETWORK_TYPE_LTE:
                         net_type = "LTE/4G";
                         break;
@@ -175,7 +163,7 @@ class public_func {
             write_log(context, "[" + send_to + "] is an illegal phone number");
             return;
         }
-        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = public_func.get_url(bot_token, "sendMessage");
@@ -211,6 +199,7 @@ class public_func {
             }
             message_id = get_message_id(response.body().string());
         } catch (IOException e) {
+            e.printStackTrace();
             public_func.write_log(context, "failed to send message:" + e.getMessage());
         }
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
@@ -231,7 +220,7 @@ class public_func {
         if (checkSelfPermission(context, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("fallback_sms", false)) {
             return;
         }
@@ -393,8 +382,7 @@ class public_func {
         Log.i(public_func.log_tag, log);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.UK);
         Date ts = new Date(System.currentTimeMillis());
-        String error_log = read_file(context, "error.log") + "\n" + simpleDateFormat.format(ts) + " " + log;
-        write_file(context, "error.log", error_log);
+        append_file(context, "error.log", "\n" + simpleDateFormat.format(ts) + " " + log);
     }
 
     static String read_log(Context context) {
@@ -415,9 +403,16 @@ class public_func {
         public_func.write_file(context, "message.json", new Gson().toJson(message_list_obj));
     }
 
+    static void append_file(Context context, String file_name, String write_string) {
+        private_write_file(context,file_name,write_string,Context.MODE_APPEND);
+    }
     static void write_file(Context context, String file_name, String write_string) {
+        private_write_file(context,file_name,write_string,Context.MODE_PRIVATE);
+
+    }
+    private static void private_write_file(Context context, String file_name, String write_string,int mode) {
         try {
-            FileOutputStream file_stream = context.openFileOutput(file_name, MODE_PRIVATE);
+            FileOutputStream file_stream = context.openFileOutput(file_name, mode);
             byte[] bytes = write_string.getBytes();
             file_stream.write(bytes);
             file_stream.close();
@@ -435,11 +430,14 @@ class public_func {
             file_stream.read(buffer);
             result = new String(buffer, StandardCharsets.UTF_8);
             file_stream.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
         return result;
+    }
+
+    static String get_verification_code(String body) {
+        code_aux_lib parser = new code_aux_lib();
+        return parser.find(body);
     }
 }

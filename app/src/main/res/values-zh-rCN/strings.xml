@@ -59,4 +59,5 @@
     <string name="sim_card_lock">SIM卡被锁定。</string>
     <string name="no_logs">无日志。</string>
     <string name="charger_status">监控充电器状态</string>
+    <string name="using_verification_code_identification">验证码自动提取(Alpha)</string>
 </resources>

@@ -17,26 +17,17 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Switch;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
+import okhttp3.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 import static android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS;
 
@@ -61,7 +52,7 @@ public class main_activity extends AppCompatActivity {
         display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         final Switch charger_status = findViewById(R.id.charger_status);
-
+        final Switch verification_code = findViewById(R.id.verification_code_switch);
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
         assert bot_token_save != null;
@@ -88,9 +79,17 @@ public class main_activity extends AppCompatActivity {
         battery_monitoring_switch.setChecked(sharedPreferences.getBoolean("battery_monitoring_switch", false));
         charger_status.setEnabled(battery_monitoring_switch.isChecked());
         charger_status.setChecked(sharedPreferences.getBoolean("charger_status", false));
+
         fallback_sms.setChecked(sharedPreferences.getBoolean("fallback_sms", false));
+        if (trusted_phone_number.length() == 0) {
+            fallback_sms.setEnabled(false);
+            fallback_sms.setChecked(false);
+        }
+
         chat_command.setChecked(sharedPreferences.getBoolean("chat_command", false));
+        verification_code.setChecked(sharedPreferences.getBoolean("verification_code", false));
         doh_switch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
+
         display_dual_sim_display_name.setOnClickListener(v -> {
             int checkPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE);
             if (checkPermission != PackageManager.PERMISSION_GRANTED) {
@@ -104,9 +103,30 @@ public class main_activity extends AppCompatActivity {
                 }
             }
         });
-        battery_monitoring_switch.setOnClickListener(v -> {
-            charger_status.setEnabled(battery_monitoring_switch.isChecked());
+
+        trusted_phone_number.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (trusted_phone_number.length() != 0) {
+                    fallback_sms.setEnabled(true);
+                }
+                if (trusted_phone_number.length() == 0) {
+                    fallback_sms.setEnabled(false);
+                    fallback_sms.setChecked(false);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
         });
+        battery_monitoring_switch.setOnClickListener(v -> charger_status.setEnabled(battery_monitoring_switch.isChecked()));
         logcat.setOnClickListener(v -> {
             Intent logcat_intent = new Intent(main_activity.this, logcat_activity.class);
             startActivity(logcat_intent);
@@ -128,11 +148,11 @@ public class main_activity extends AppCompatActivity {
             String request_uri = public_func.get_url(bot_token.getText().toString().trim(), "getUpdates");
             OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked());
             okhttp_client = okhttp_client.newBuilder()
-                    .readTimeout((120 + 5), TimeUnit.SECONDS)
+                    .readTimeout(60, TimeUnit.SECONDS)
                     .build();
             polling_json request_body = new polling_json();
             request_body.offset = 0;
-            request_body.timeout = 120;
+            request_body.timeout = 60;
             RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
@@ -233,6 +253,7 @@ public class main_activity extends AppCompatActivity {
                     }
                 }
             }
+
             final ProgressDialog progress_dialog = new ProgressDialog(main_activity.this);
             progress_dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             progress_dialog.setTitle(getString(R.string.connect_wait_title));
@@ -240,6 +261,7 @@ public class main_activity extends AppCompatActivity {
             progress_dialog.setIndeterminate(false);
             progress_dialog.setCancelable(false);
             progress_dialog.show();
+
             String request_uri = public_func.get_url(bot_token.getText().toString().trim(), "sendMessage");
             message_json request_body = new message_json();
             request_body.chat_id = chat_id.getText().toString().trim();
@@ -289,6 +311,7 @@ public class main_activity extends AppCompatActivity {
                     editor.putBoolean("battery_monitoring_switch", battery_monitoring_switch.isChecked());
                     editor.putBoolean("charger_status", charger_status.isChecked());
                     editor.putBoolean("display_dual_sim_display_name", display_dual_sim_display_name.isChecked());
+                    editor.putBoolean("verification_code", verification_code.isChecked());
                     editor.putBoolean("doh_switch", doh_switch.isChecked());
                     editor.putBoolean("initialized", true);
                     editor.apply();

@@ -62,45 +62,50 @@
             </android.support.design.widget.TextInputLayout>
 
             <Switch
-                android:id="@+id/fallback_sms"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="3dp"
-                android:text="@string/network_error_falls_back_to_sms" />
+                    android:id="@+id/fallback_sms"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="3dp"
+                    android:text="@string/network_error_falls_back_to_sms" tools:ignore="RtlSymmetry"/>
 
             <Switch
-                android:id="@+id/battery_monitoring"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="3dp"
-                android:text="@string/battery_monitoring" />
+                    android:id="@+id/battery_monitoring"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="3dp"
+                    android:text="@string/battery_monitoring" tools:ignore="RtlSymmetry"/>
 
             <Switch
-                android:id="@+id/charger_status"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="3dp"
-                android:text="@string/charger_status" />
+                    android:id="@+id/charger_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="3dp"
+                    android:text="@string/charger_status" tools:ignore="RtlSymmetry"/>
             <Switch
-                android:id="@+id/chat_command"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="3dp"
-                android:text="@string/chat_command" />
+                    android:id="@+id/chat_command"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="3dp"
+                    android:text="@string/chat_command" tools:ignore="RtlSymmetry"/>
+            <Switch
+                    android:id="@+id/verification_code_switch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="3dp"
+                    android:text="@string/using_verification_code_identification" tools:ignore="RtlSymmetry"/>
 
             <Switch
-                android:id="@+id/doh_switch"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="3dp"
-                android:text="@string/using_doh" />
+                    android:id="@+id/display_dual_sim"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="3dp"
+                    android:text="@string/display_sim_card_alias_in_dual_card_mode" tools:ignore="RtlSymmetry"/>
             <Switch
-                android:id="@+id/display_dual_sim"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="3dp"
-                android:text="@string/display_sim_card_alias_in_dual_card_mode" />
-
+                    android:id="@+id/doh_switch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="3dp"
+                    android:text="@string/using_doh" tools:ignore="RtlSymmetry"/>
             <Button
                 android:id="@+id/get_id"
                 android:layout_width="match_parent"

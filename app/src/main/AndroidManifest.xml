@@ -32,20 +32,20 @@
         </receiver>
 
         <service
-            android:name=".chat_long_polling_service"
-            android:enabled="true"
-            android:exported="false"
-            android:permission="android.permission.INTERNET"
-            android:process=":command" />
+                android:name="com.qwe7002.telegram_sms.chat_long_polling_service"
+                android:enabled="true"
+                android:exported="false"
+                android:permission="android.permission.INTERNET"
+                android:process=":command" />
 
         <activity android:name=".logcat_activity" />
 
         <service
-            android:name=".battery_monitoring_service"
-            android:enabled="true"
-            android:exported="false"
-            android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE"
-            android:process=":battery">
+                android:name="com.qwe7002.telegram_sms.battery_monitoring_service"
+                android:enabled="true"
+                android:exported="false"
+                android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE"
+                android:process=":battery">
             <intent-filter>
                 <action android:name="android.intent.action.RESPOND_VIA_MESSAGE" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -56,7 +56,7 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </service>
-        <receiver android:name=".boot_receiver">
+        <receiver android:name="com.qwe7002.telegram_sms.boot_receiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
@@ -64,27 +64,27 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".sms_receiver"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="android.permission.BROADCAST_SMS">
+                android:name="com.qwe7002.telegram_sms.sms_receiver"
+                android:enabled="true"
+                android:exported="true"
+                android:permission="android.permission.BROADCAST_SMS">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.provider.Telephony.SMS_DELIVER" />
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".wap_receiver"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="android.permission.BROADCAST_WAP_PUSH">
+                android:name="com.qwe7002.telegram_sms.wap_receiver"
+                android:enabled="true"
+                android:exported="true"
+                android:permission="android.permission.BROADCAST_WAP_PUSH">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.provider.Telephony.WAP_PUSH_DELIVER" />
 
                 <data android:mimeType="application/vnd.wap.mms-message" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".call_receiver">
+        <receiver android:name="com.qwe7002.telegram_sms.call_receiver">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.intent.action.PHONE_STATE" />
                 <action android:name="android.intent.action.SUBSCRIPTION_PHONE_STATE" />
@@ -92,11 +92,10 @@
         </receiver>
 
         <activity
-            android:name=".main_activity"
-            android:label="@string/app_name">
+                android:name="com.qwe7002.telegram_sms.main_activity"
+                android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>

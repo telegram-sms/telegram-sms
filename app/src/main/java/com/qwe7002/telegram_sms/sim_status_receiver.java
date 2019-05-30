@@ -8,19 +8,10 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-
 import com.google.gson.Gson;
+import okhttp3.*;
 
 import java.io.IOException;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-
-import static android.content.Context.MODE_PRIVATE;
 
 
 public class sim_status_receiver extends BroadcastReceiver {
@@ -29,7 +20,7 @@ public class sim_status_receiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
         String message = context.getString(R.string.system_message_head) + "\n";
-        final SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
             Log.i(public_func.log_tag, "Uninitialized, SIM status receiver is deactivated");
             return;
@@ -40,6 +31,7 @@ public class sim_status_receiver extends BroadcastReceiver {
         TelephonyManager tm = (TelephonyManager) context.getSystemService(Service.TELEPHONY_SERVICE);
         int state = tm.getSimState();
         if (last_status == state) {
+            Log.d(public_func.log_tag, "sim_status_receiver: SIM status is the same as the previous one");
             return;
         }
         last_status = state;
@@ -87,7 +79,8 @@ public class sim_status_receiver extends BroadcastReceiver {
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
                     assert response.body() != null;
-                    public_func.write_log(context, error_head + response.body().string());
+                    String error_message = error_head + response.code() + " " + response.body().string();
+                    public_func.write_log(context, error_message);
                 }
             }
         });
