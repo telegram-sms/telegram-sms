@@ -35,8 +35,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
@@ -439,26 +437,7 @@ class public_func {
     }
 
     static String get_verification_code(String body) {
-        String result = null;
-        String[] regexp_list = {"^.*?(?:(?:verification(?:\\s*code)?(?: for .* )?(?:\\s*is|\\s*[:：]?))|(?:(?:驗證|验证|校[验驗]|安全|登[錄录入]|短信密)[码碼](?:[为為是])?(?:[:：])?)|(?:(?:認証)?\\s*コード(?:は)?(?:[:：])?))[\\s ]*(\\d{4,6}).*$"
-                , "^.*?(\\d{4,6})(?:(?:(?:\\s*is).*?verification(?:\\s*code)?)|(?:(?:\\s*[为為是])?.*?(?:驗證|验证|校[验驗]|安全|登[錄录入]|短信密)[码碼])|(?:(?:\\s*は).*?(?:認証)?コード)).*$"};
-        for (String item : regexp_list) {
-            result = get_regexp(item, body);
-            if (result != null) {
-                break;
-            }
-        }
-        return result;
-    }
-
-    private static String get_regexp(String regexp, String body) {
-        Pattern regexp_pattern = Pattern.compile(regexp);
-        Matcher match = regexp_pattern.matcher(body);
-        String result = null;
-        if (match.find()) {
-            result = match.group(1);
-            Log.d(log_tag, "get_regexp: " + result);
-        }
-        return result;
+        code_aux_lib parser = new code_aux_lib();
+        return parser.find(body);
     }
 }
