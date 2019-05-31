@@ -43,6 +43,7 @@ class public_func {
     static final String network_error = "Send Message:No network connection";
     static final String broadcast_stop_service = "com.qwe7002.telegram_sms.stop_all";
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    private static final code_aux_lib parser = new code_aux_lib();
 
     static String get_send_phone_number(String phone_number) {
         return phone_number.trim()
@@ -437,7 +438,6 @@ class public_func {
     }
 
     static String get_verification_code(String body) {
-        code_aux_lib parser = new code_aux_lib();
         return parser.find(body);
     }
 }
