@@ -53,6 +53,7 @@ public class main_activity extends AppCompatActivity {
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         final Switch charger_status = findViewById(R.id.charger_status);
         final Switch verification_code = findViewById(R.id.verification_code_switch);
+        final Switch wakelock_switch = findViewById(R.id.wakelock_switch);
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
         assert bot_token_save != null;
@@ -88,7 +89,11 @@ public class main_activity extends AppCompatActivity {
 
         chat_command.setChecked(sharedPreferences.getBoolean("chat_command", false));
         verification_code.setChecked(sharedPreferences.getBoolean("verification_code", false));
+        wakelock_switch.setChecked(sharedPreferences.getBoolean("wakelock", false));
+        wakelock_switch.setEnabled(chat_command.isChecked());
         doh_switch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
+
+        chat_command.setOnClickListener(v -> wakelock_switch.setEnabled(chat_command.isChecked()));
 
         display_dual_sim_display_name.setOnClickListener(v -> {
             int checkPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE);
