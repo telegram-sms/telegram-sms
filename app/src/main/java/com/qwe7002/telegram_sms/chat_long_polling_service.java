@@ -304,6 +304,10 @@ public class chat_long_polling_service extends Service {
 
                     break;
                 default:
+                    if (!message_obj.get("chat").getAsJsonObject().get("type").getAsString().equals("private")) {
+                        Log.d(public_func.log_tag, "receive_handle: The conversation is not Private and does not prompt an error.");
+                        return;
+                    }
                     request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
                     break;
             }

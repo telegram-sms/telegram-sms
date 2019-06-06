@@ -18,7 +18,7 @@ android {
     }
 
     signingConfigs {
-        releaseConfig {
+        release {
             storeFile file("keys.jks")
             storePassword project.hasProperty("KEYSTORE_PASS") ? KEYSTORE_PASS : System.getenv("KEYSTORE_PASS")
             keyAlias project.hasProperty("ALIAS_NAME") ? ALIAS_NAME : System.getenv("ALIAS_NAME")
@@ -31,9 +31,10 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            signingConfig signingConfigs.releaseConfig
+            signingConfig signingConfigs.release
         }
     }
+
 }
 
 play {

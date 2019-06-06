@@ -112,7 +112,6 @@ public class main_activity extends AppCompatActivity {
         trusted_phone_number.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
             }
 
             @Override
@@ -128,7 +127,6 @@ public class main_activity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-
             }
         });
         battery_monitoring_switch.setOnClickListener(v -> charger_status.setEnabled(battery_monitoring_switch.isChecked()));
@@ -213,7 +211,6 @@ public class main_activity extends AppCompatActivity {
                                     if (chat_obj.has("last_name")) {
                                         username += " " + chat_obj.get("last_name").getAsString();
                                     }
-
                                 }
                                 chat_name_list.add(username + "(" + chat_obj.get("type").getAsString() + ")");
                                 chat_id_list.add(chat_obj.get("id").getAsString());
