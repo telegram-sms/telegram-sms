@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
+import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
@@ -171,12 +172,10 @@ class public_func {
         message_json request_body = new message_json();
         request_body.chat_id = chat_id;
         android.telephony.SmsManager sms_manager;
-        switch (sub_id) {
-            case -1:
-                sms_manager = android.telephony.SmsManager.getDefault();
-                break;
-            default:
-                sms_manager = android.telephony.SmsManager.getSmsManagerForSubscriptionId(sub_id);
+        if (sub_id == -1) {
+            sms_manager = SmsManager.getDefault();
+        } else {
+            sms_manager = SmsManager.getSmsManagerForSubscriptionId(sub_id);
         }
         String dual_sim = get_dual_sim_card_display(context, slot, sharedPreferences);
         String display_to_address = send_to;
@@ -226,13 +225,10 @@ class public_func {
             return;
         }
         android.telephony.SmsManager sms_manager;
-        switch (sub_id) {
-            case -1:
-                sms_manager = android.telephony.SmsManager.getDefault();
-                break;
-            default:
-                sms_manager = android.telephony.SmsManager.getSmsManagerForSubscriptionId(sub_id);
-                break;
+        if (sub_id == -1) {
+            sms_manager = SmsManager.getDefault();
+        } else {
+            sms_manager = SmsManager.getSmsManagerForSubscriptionId(sub_id);
         }
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
         sms_manager.sendMultipartTextMessage(sharedPreferences.getString("trusted_phone_number", null), null, divideContents, null, null);
