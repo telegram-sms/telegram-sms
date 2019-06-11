@@ -56,9 +56,11 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </service>
-        <receiver android:name="com.qwe7002.telegram_sms.boot_receiver">
+        <receiver android:name="com.qwe7002.telegram_sms.boot_receiver"
+                  android:directBootAware="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED"/>
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>

@@ -225,10 +225,13 @@ class public_func {
             return;
         }
         android.telephony.SmsManager sms_manager;
-        if (sub_id == -1) {
-            sms_manager = SmsManager.getDefault();
-        } else {
-            sms_manager = SmsManager.getSmsManagerForSubscriptionId(sub_id);
+        switch (sub_id) {
+            case -1:
+                sms_manager = android.telephony.SmsManager.getDefault();
+                break;
+            default:
+                sms_manager = android.telephony.SmsManager.getSmsManagerForSubscriptionId(sub_id);
+                break;
         }
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
         sms_manager.sendMultipartTextMessage(sharedPreferences.getString("trusted_phone_number", null), null, divideContents, null, null);
