@@ -56,8 +56,6 @@ public class main_activity extends AppCompatActivity {
         final Switch wakelock_switch = findViewById(R.id.wakelock_switch);
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
-        assert bot_token_save != null;
-        assert chat_id_save != null;
         if (sharedPreferences.getBoolean("initialized", false)) {
             public_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
         }
@@ -246,6 +244,7 @@ public class main_activity extends AppCompatActivity {
 
             PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                assert powerManager != null;
                 boolean has_ignored = powerManager.isIgnoringBatteryOptimizations(getPackageName());
                 if (!has_ignored) {
                     Intent intent = new Intent(ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);

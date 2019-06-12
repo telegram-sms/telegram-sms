@@ -33,6 +33,7 @@
 package com.qwe7002.telegram_sms;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -86,7 +87,7 @@ class code_aux_lib {
         for (Pattern p : patterns) {
             Matcher matcher = p.matcher(input);
             if (matcher.find()) {
-                return matcher.group(1).replaceAll("[\\s-]", "");
+                return Objects.requireNonNull(matcher.group(1)).replaceAll("[\\s-]", "");
             }
         }
         return null;

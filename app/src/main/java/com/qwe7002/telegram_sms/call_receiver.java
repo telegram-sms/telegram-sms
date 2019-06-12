@@ -32,6 +32,7 @@ public class call_receiver extends BroadcastReceiver {
                 TelephonyManager telephony = (TelephonyManager) context
                         .getSystemService(Context.TELEPHONY_SERVICE);
                 call_state_listener custom_phone_listener = new call_state_listener(context, slot, incoming_number);
+                assert telephony != null;
                 telephony.listen(custom_phone_listener, PhoneStateListener.LISTEN_CALL_STATE);
                 break;
             case "android.intent.action.SUBSCRIPTION_PHONE_STATE":

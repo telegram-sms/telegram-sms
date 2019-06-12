@@ -59,12 +59,12 @@ public class chat_long_polling_service extends Service {
         bot_token = sharedPreferences.getString("bot_token", "");
         okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
 
-        wifiLock = ((WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi");
+        wifiLock = ((WifiManager) Objects.requireNonNull(context.getApplicationContext().getSystemService(Context.WIFI_SERVICE))).createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi");
         wifiLock.acquire();
 
         wakelock_switch = sharedPreferences.getBoolean("wakelock", false);
         if (wakelock_switch) {
-            wakelock = ((PowerManager) context.getSystemService(Context.POWER_SERVICE)).newWakeLock(PARTIAL_WAKE_LOCK, "bot_command_polling");
+            wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(PARTIAL_WAKE_LOCK, "bot_command_polling");
             wakelock.setReferenceCounted(false);
         }
 
@@ -233,6 +233,7 @@ public class chat_long_polling_service extends Service {
                             card_info = "\nSIM1:" + public_func.get_sim_display_name(context, 0) + "\nSIM2:" + public_func.get_sim_display_name(context, 1);
                         }
                     }
+                    assert batteryManager != null;
                     request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
                     break;
                 case "/log":

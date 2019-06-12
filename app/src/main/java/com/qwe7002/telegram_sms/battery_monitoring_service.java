@@ -108,6 +108,7 @@ class battery_receiver extends BroadcastReceiver {
                 prebody = prebody.append(context.getString(R.string.charger_disconnect));
                 break;
         }
+        assert batteryManager != null;
         request_body.text = prebody.append("\n").append(context.getString(R.string.current_battery_level)).append(batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)).append("%").toString();
 
         if (!public_func.check_network(context)) {
