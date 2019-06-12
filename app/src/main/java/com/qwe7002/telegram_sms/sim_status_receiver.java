@@ -29,6 +29,7 @@ public class sim_status_receiver extends BroadcastReceiver {
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = public_func.get_url(bot_token, "sendMessage");
         TelephonyManager tm = (TelephonyManager) context.getSystemService(Service.TELEPHONY_SERVICE);
+        assert tm != null;
         int state = tm.getSimState();
         if (last_status == state) {
             Log.d(public_func.log_tag, "sim_status_receiver: SIM status is the same as the previous one");

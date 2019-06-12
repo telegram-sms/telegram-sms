@@ -122,6 +122,7 @@ class public_func {
     static String get_network_type(Context context) {
         String net_type = "Unknown";
         ConnectivityManager connect_manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        assert connect_manager != null;
         NetworkInfo network_info = connect_manager.getActiveNetworkInfo();
         if (network_info == null) {
             return net_type;
@@ -250,6 +251,7 @@ class public_func {
             NotificationChannel channel = new NotificationChannel(notification_name, public_func.log_tag,
                     NotificationManager.IMPORTANCE_LOW);
             NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            assert manager != null;
             manager.createNotificationChannel(channel);
             notification = new Notification.Builder(context, notification_name)
                     .setAutoCancel(false)
