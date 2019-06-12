@@ -403,7 +403,7 @@ class public_func {
         public_func.write_file(context, "message.json", new Gson().toJson(message_list_obj));
     }
 
-    static void append_file(Context context, String file_name, String write_string) {
+    private static void append_file(Context context, String file_name, String write_string) {
         private_write_file(context,file_name,write_string,Context.MODE_APPEND);
     }
     static void write_file(Context context, String file_name, String write_string) {
