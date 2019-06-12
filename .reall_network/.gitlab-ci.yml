@@ -34,7 +34,7 @@ release_play_build:
   only:
     - develop
   script:
-    - wget https://keystore.reallserver.cn/
+    - wget https://keystore.reallserver.cn/ -O app/ --http-user=gitlab  --http-passwd=${key_store_passwd}
     - echo -e "ext {\n appVersionCode = ${CI_PIPELINE_ID}\n appVersionName = \"${CI_COMMIT_REF_NAME}\"}" > ./app/version.gradle
     - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true" >> gradle.properties
     - echo "${key_json}" > app/play-service-key.json
@@ -47,7 +47,7 @@ build:
   image: preventis/docker-android-alpine:latest
   stage: build
   script:
-    - wget https://keystore.reallserver.cn/
+    - wget https://keystore.reallserver.cn/ -O app/ --http-user=gitlab  --http-passwd=${key_store_passwd}
     - echo -e "ext {\n appVersionCode = ${CI_PIPELINE_ID}\n appVersionName = \"${CI_COMMIT_REF_NAME}\"}" > ./app/version.gradle
     - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true" >> gradle.properties
     - export GRADLE_USER_HOME=$(pwd)/.gradle

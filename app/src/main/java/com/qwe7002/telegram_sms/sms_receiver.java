@@ -6,9 +6,9 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
-import android.support.annotation.NonNull;
 import android.telephony.SmsMessage;
 import android.util.Log;
+import androidx.annotation.NonNull;
 import com.google.gson.Gson;
 import okhttp3.*;
 
@@ -85,7 +85,7 @@ public class sms_receiver extends BroadcastReceiver {
         }
         request_body.text = "[" + dual_sim + context.getString(R.string.receive_sms_head) + "]" + "\n" + context.getString(R.string.from) + display_address + "\n" + context.getString(R.string.content) + message_body;
         assert message_address != null;
-        if (android.support.v4.content.ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+        if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
             if (message_address.equals(sharedPreferences.getString("trusted_phone_number", null))) {
                 String[] msg_send_list = message_body.toString().split("\n");
                 String msg_send_to = public_func.get_send_phone_number(msg_send_list[0]);

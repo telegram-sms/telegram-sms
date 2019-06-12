@@ -10,9 +10,9 @@ import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.util.Log;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 import com.google.gson.*;
 import okhttp3.*;
 
