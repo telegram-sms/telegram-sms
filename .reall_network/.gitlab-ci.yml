@@ -47,7 +47,7 @@ release_play_build_master:
     image: preventis/docker-android-alpine:latest
     stage: play
     only:
-        - develop
+        - master
     script:
         - curl https://keystore.reallserver.cn/android/telegram-sms/keys.jks -o app/keys.jks -u gitlab:${key_store_passwd}
         - curl https://keystore.reallserver.cn/android/play-service-key.json -o app/play-service-key.json -u gitlab:${key_store_passwd}
