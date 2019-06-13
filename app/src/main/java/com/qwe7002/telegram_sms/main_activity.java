@@ -11,17 +11,17 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.PowerManager;
-import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Switch;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.*;
 import okhttp3.*;
 
@@ -53,10 +53,9 @@ public class main_activity extends AppCompatActivity {
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         final Switch charger_status = findViewById(R.id.charger_status);
         final Switch verification_code = findViewById(R.id.verification_code_switch);
+        final Switch wakelock_switch = findViewById(R.id.wakelock_switch);
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
-        assert bot_token_save != null;
-        assert chat_id_save != null;
         if (sharedPreferences.getBoolean("initialized", false)) {
             public_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
         }
@@ -88,7 +87,11 @@ public class main_activity extends AppCompatActivity {
 
         chat_command.setChecked(sharedPreferences.getBoolean("chat_command", false));
         verification_code.setChecked(sharedPreferences.getBoolean("verification_code", false));
+        wakelock_switch.setChecked(sharedPreferences.getBoolean("wakelock", false));
+        wakelock_switch.setEnabled(chat_command.isChecked());
         doh_switch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
+
+        chat_command.setOnClickListener(v -> wakelock_switch.setEnabled(chat_command.isChecked()));
 
         display_dual_sim_display_name.setOnClickListener(v -> {
             int checkPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE);
@@ -107,7 +110,6 @@ public class main_activity extends AppCompatActivity {
         trusted_phone_number.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
             }
 
             @Override
@@ -123,7 +125,6 @@ public class main_activity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-
             }
         });
         battery_monitoring_switch.setOnClickListener(v -> charger_status.setEnabled(battery_monitoring_switch.isChecked()));
@@ -208,7 +209,6 @@ public class main_activity extends AppCompatActivity {
                                     if (chat_obj.has("last_name")) {
                                         username += " " + chat_obj.get("last_name").getAsString();
                                     }
-
                                 }
                                 chat_name_list.add(username + "(" + chat_obj.get("type").getAsString() + ")");
                                 chat_id_list.add(chat_obj.get("id").getAsString());
@@ -244,6 +244,7 @@ public class main_activity extends AppCompatActivity {
 
             PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                assert powerManager != null;
                 boolean has_ignored = powerManager.isIgnoringBatteryOptimizations(getPackageName());
                 if (!has_ignored) {
                     Intent intent = new Intent(ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);

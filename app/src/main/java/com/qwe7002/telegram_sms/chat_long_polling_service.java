@@ -1,25 +1,20 @@
 package com.qwe7002.telegram_sms;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.content.pm.PackageManager;
+import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
+import android.os.PowerManager;
 import android.util.Log;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import com.google.gson.*;
+import okhttp3.*;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -28,12 +23,7 @@ import java.nio.channels.FileChannel;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import static android.os.PowerManager.PARTIAL_WAKE_LOCK;
 
 public class chat_long_polling_service extends Service {
     static int offset = 0;
@@ -42,10 +32,12 @@ public class chat_long_polling_service extends Service {
     String chat_id;
     String bot_token;
     Context context;
+    Boolean wakelock_switch;
     SharedPreferences sharedPreferences;
     OkHttpClient okhttp_client;
     private stop_broadcast_receiver stop_broadcast_receiver = null;
-
+    private PowerManager.WakeLock wakelock;
+    private WifiManager.WifiLock wifiLock;
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
@@ -53,6 +45,7 @@ public class chat_long_polling_service extends Service {
         return START_STICKY;
     }
 
+    @SuppressLint("InvalidWakeLockTag")
     @Override
     public void onCreate() {
         super.onCreate();
@@ -66,10 +59,24 @@ public class chat_long_polling_service extends Service {
         bot_token = sharedPreferences.getString("bot_token", "");
         okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
 
+        wifiLock = ((WifiManager) Objects.requireNonNull(context.getApplicationContext().getSystemService(Context.WIFI_SERVICE))).createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi");
+        wifiLock.acquire();
+
+        wakelock_switch = sharedPreferences.getBoolean("wakelock", false);
+        if (wakelock_switch) {
+            wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(PARTIAL_WAKE_LOCK, "bot_command_polling");
+            wakelock.setReferenceCounted(false);
+        }
 
         new Thread(() -> {
             while (true) {
+                if (wakelock_switch) {
+                    wakelock.acquire(90000);
+                }
                 start_long_polling();
+                if (wakelock_switch) {
+                    wakelock.release();
+                }
             }
         }).start();
 
@@ -77,6 +84,10 @@ public class chat_long_polling_service extends Service {
 
     @Override
     public void onDestroy() {
+        wifiLock.release();
+        if (wakelock_switch) {
+            wakelock.release();
+        }
         unregisterReceiver(stop_broadcast_receiver);
         stopForeground(true);
         super.onDestroy();
@@ -222,6 +233,7 @@ public class chat_long_polling_service extends Service {
                             card_info = "\nSIM1:" + public_func.get_sim_display_name(context, 0) + "\nSIM2:" + public_func.get_sim_display_name(context, 1);
                         }
                     }
+                    assert batteryManager != null;
                     request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
                     break;
                 case "/log":
@@ -293,6 +305,10 @@ public class chat_long_polling_service extends Service {
 
                     break;
                 default:
+                    if (!message_obj.get("chat").getAsJsonObject().get("type").getAsString().equals("private")) {
+                        Log.d(public_func.log_tag, "receive_handle: The conversation is not Private and does not prompt an error.");
+                        return;
+                    }
                     request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
                     break;
             }

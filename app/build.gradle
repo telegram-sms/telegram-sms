@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 apply plugin: "com.github.triplet.play"
 apply from: 'version.gradle'
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
     defaultConfig {
         applicationId "com.qwe7002.telegram_sms"
         minSdkVersion 22
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode appVersionCode
         versionName appVersionName
     }
@@ -18,7 +18,7 @@ android {
     }
 
     signingConfigs {
-        releaseConfig {
+        release {
             storeFile file("keys.jks")
             storePassword project.hasProperty("KEYSTORE_PASS") ? KEYSTORE_PASS : System.getenv("KEYSTORE_PASS")
             keyAlias project.hasProperty("ALIAS_NAME") ? ALIAS_NAME : System.getenv("ALIAS_NAME")
@@ -31,10 +31,10 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            signingConfig signingConfigs.releaseConfig
+            signingConfig signingConfigs.release
         }
     }
-    buildToolsVersion = '29.0.0 rc2'
+
 }
 
 play {
@@ -42,9 +42,9 @@ play {
 }
 
 dependencies {
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
-    implementation 'com.android.support:design:28.0.0'
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'com.google.android.material:material:1.0.0'
     implementation 'com.squareup.okhttp3:okhttp:3.14.2'
     implementation 'com.squareup.okhttp3:okhttp-dnsoverhttps:3.14.2'
     implementation 'com.google.code.gson:gson:2.8.5'

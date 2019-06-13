@@ -3,10 +3,10 @@ package com.qwe7002.telegram_sms;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.FileObserver;
-import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class logcat_activity extends AppCompatActivity {
 
