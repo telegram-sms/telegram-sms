@@ -30,7 +30,6 @@ release_github:
 release_play_build_develop:
     image: preventis/docker-android-alpine:latest
     stage: play
-    when: manual
     only:
         - develop
     script:
@@ -40,13 +39,12 @@ release_play_build_develop:
         - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true\n android.enableJetifier=true\n android.useAndroidX=true" >> gradle.properties
         - export GRADLE_USER_HOME=$(pwd)/.gradle
         - chmod +x ./gradlew
-        - ./gradlew publishApk --track beta
+        - ./gradlew publishApk --track beta --release-status draft
     allow_failure: true
 
 release_play_build_master:
     image: preventis/docker-android-alpine:latest
     stage: play
-    when: manual
     only:
         - develop
     script:
@@ -56,7 +54,7 @@ release_play_build_master:
         - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true\n android.enableJetifier=true\n android.useAndroidX=true" >> gradle.properties
         - export GRADLE_USER_HOME=$(pwd)/.gradle
         - chmod +x ./gradlew
-        - ./gradlew publishApk --track production
+        - ./gradlew publishApk --track production --release-status draft
     allow_failure: true
 
 
