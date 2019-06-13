@@ -28,7 +28,7 @@ release_github:
         - git push -f --set-upstream https://${github_key}@github.com/telegram-sms/telegram-sms.wiki.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
 
 release_play_build:
-    image: jangrewe/gitlab-ci-android:latest
+    image: preventis/docker-android-alpine:latest
     stage: play
     when: manual
     only:
@@ -44,7 +44,7 @@ release_play_build:
     allow_failure: true
 
 build:
-    image: jangrewe/gitlab-ci-android:latest
+    image: preventis/docker-android-alpine:latest
     stage: build
     script:
         - curl https://keystore.reallserver.cn/android/telegram-sms/keys.jks  -o app/keys.jks -u gitlab:${key_store_passwd}
