@@ -1,59 +1,59 @@
 stages:
-  - build
-  - deploy
-  - play
+    - build
+    - deploy
+    - play
 cache:
-  key: ${CI_PROJECT_ID}
-  paths:
-    - .gradle/
+    key: ${CI_PROJECT_ID}
+    paths:
+        - .gradle/
 
 push_github:
-  stage: deploy
-  only:
-    - develop
-  script:
-    - git push -f --set-upstream https://${github_key}@github.com/telegram-sms/telegram-sms.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
+    stage: deploy
+    only:
+        - develop
+    script:
+        - git push -f --set-upstream https://${github_key}@github.com/telegram-sms/telegram-sms.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
 
 release_github:
-  dependencies:
-    - build
-  only:
-    - master
-  stage: deploy
-  script:
-    - git push --set-upstream https://${github_key}@github.com/telegram-sms/telegram-sms.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
-    - /opt/github-release-upload.sh github_api_token=${github_key} owner=telegram-sms repo=telegram-sms tag=$(date "+%Y%m%d%H%M%S") filename="./app/build/outputs/apk/release/app-release.apk" pre_release="false"
-    - git clone https://git.reallserver.cn/qwe7002/telegram-sms.wiki.git wiki
-    - cd wiki
-    - git push -f --set-upstream https://${github_key}@github.com/telegram-sms/telegram-sms.wiki.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
+    dependencies:
+        - build
+    only:
+        - master
+    stage: deploy
+    script:
+        - git push --set-upstream https://${github_key}@github.com/telegram-sms/telegram-sms.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
+        - /opt/github-release-upload.sh github_api_token=${github_key} owner=telegram-sms repo=telegram-sms tag=$(date "+%Y%m%d%H%M%S") filename="./app/build/outputs/apk/release/app-release.apk" pre_release="false"
+        - git clone https://git.reallserver.cn/qwe7002/telegram-sms.wiki.git wiki
+        - cd wiki
+        - git push -f --set-upstream https://${github_key}@github.com/telegram-sms/telegram-sms.wiki.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
 
 release_play_build:
-  image: jangrewe/gitlab-ci-android:latest
-  stage: play
-  when: manual
-  only:
-    - develop
-  script:
-    - wget https://keystore.reallserver.cn/android/telegram-sms/keys.jks  -O app/keys.jks --http-user=gitlab  --http-passwd=${key_store_passwd}
-    - wget https://keystore.reallserver.cn/android/play-service-key.json  -O app/play-service-key.json --http-user=gitlab  --http-passwd=${key_store_passwd}
-    - echo -e "ext {\n appVersionCode = ${CI_PIPELINE_ID}\n appVersionName = \"${CI_COMMIT_REF_NAME}\"}" > ./app/version.gradle
-    - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true" >> gradle.properties
-    - export GRADLE_USER_HOME=$(pwd)/.gradle
-    - chmod +x ./gradlew
-    - ./gradlew publishApk --track beta
-  allow_failure: true
+    image: jangrewe/gitlab-ci-android:latest
+    stage: play
+    when: manual
+    only:
+        - develop
+    script:
+        - curl https://keystore.reallserver.cn/android/telegram-sms/keys.jks  -o app/keys.jks -u gitlab:${key_store_passwd}
+        - curl https://keystore.reallserver.cn/android/play-service-key.json  -o app/play-service-key.json -u gitlab:${key_store_passwd}
+        - echo -e "ext {\n appVersionCode = ${CI_PIPELINE_ID}\n appVersionName = \"${CI_COMMIT_REF_NAME}\"}" > ./app/version.gradle
+        - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true" >> gradle.properties
+        - export GRADLE_USER_HOME=$(pwd)/.gradle
+        - chmod +x ./gradlew
+        - ./gradlew publishApk --track beta
+    allow_failure: true
 
 build:
-  image: jangrewe/gitlab-ci-android:latest
-  stage: build
-  script:
-    - wget https://keystore.reallserver.cn/android/telegram-sms/keys.jks  -O app/keys.jks --http-user=gitlab  --http-passwd=${key_store_passwd}
-    - echo -e "ext {\n appVersionCode = ${CI_PIPELINE_ID}\n appVersionName = \"${CI_COMMIT_REF_NAME}\"}" > ./app/version.gradle
-    - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true" >> gradle.properties
-    - export GRADLE_USER_HOME=$(pwd)/.gradle
-    - chmod +x ./gradlew
-    - ./gradlew assembleRelease
-  artifacts:
-    paths:
-      - app/build/outputs/apk/release/app-release.apk
-    expire_in: 1 week
+    image: jangrewe/gitlab-ci-android:latest
+    stage: build
+    script:
+        - curl https://keystore.reallserver.cn/android/telegram-sms/keys.jks  -o app/keys.jks -u gitlab:${key_store_passwd}
+        - echo -e "ext {\n appVersionCode = ${CI_PIPELINE_ID}\n appVersionName = \"${CI_COMMIT_REF_NAME}\"}" > ./app/version.gradle
+        - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true" >> gradle.properties
+        - export GRADLE_USER_HOME=$(pwd)/.gradle
+        - chmod +x ./gradlew
+        - ./gradlew assembleRelease
+    artifacts:
+        paths:
+            - app/build/outputs/apk/release/app-release.apk
+        expire_in: 1 week
