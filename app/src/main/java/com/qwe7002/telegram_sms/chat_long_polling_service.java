@@ -32,10 +32,10 @@ public class chat_long_polling_service extends Service {
     String chat_id;
     String bot_token;
     Context context;
-    Boolean wakelock_switch;
     SharedPreferences sharedPreferences;
     OkHttpClient okhttp_client;
     private stop_broadcast_receiver stop_broadcast_receiver = null;
+    Boolean wakelock_switch;
     private PowerManager.WakeLock wakelock;
     private WifiManager.WifiLock wifiLock;
     @Override
