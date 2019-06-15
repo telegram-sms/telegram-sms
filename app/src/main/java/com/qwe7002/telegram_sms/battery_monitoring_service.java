@@ -109,7 +109,11 @@ class battery_receiver extends BroadcastReceiver {
                 break;
         }
         assert batteryManager != null;
-        request_body.text = prebody.append("\n").append(context.getString(R.string.current_battery_level)).append(batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)).append("%").toString();
+        int battery_level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+        if (battery_level > 100) {
+            battery_level = 100;
+        }
+        request_body.text = prebody.append("\n").append(context.getString(R.string.current_battery_level)).append(battery_level).append("%").toString();
 
         if (!public_func.check_network_status(context)) {
             public_func.write_log(context, public_func.network_error);

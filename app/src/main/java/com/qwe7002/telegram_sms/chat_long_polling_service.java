@@ -234,7 +234,11 @@ public class chat_long_polling_service extends Service {
                         }
                     }
                     assert batteryManager != null;
-                    request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
+                    int battery_level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+                    if (battery_level > 100) {
+                        battery_level = 100;
+                    }
+                    request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + battery_level + "%\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
                     break;
                 case "/log":
                     String result = "\n" + getString(R.string.no_logs);
