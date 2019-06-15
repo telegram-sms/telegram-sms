@@ -35,7 +35,7 @@
     <string name="battery_monitoring">监控电池状态变动</string>
     <string name="trusted_phone_number_empty">可信电话号码不能为空。</string>
     <string name="service_is_running">服务正在运行......</string>
-    <string name="Battery_monitoring">电池监控</string>
+    <string name="battery_monitoring_notify">电池监控</string>
     <string name="chat_command_service_name">聊天命令</string>
     <string name="success">成功</string>
     <string name="receive_sms_head">收到短信</string>

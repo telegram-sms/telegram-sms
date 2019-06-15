@@ -35,7 +35,7 @@
     <string name="battery_monitoring">Monitor battery level change</string>
     <string name="trusted_phone_number_empty">Trusted phone number cannot be empty.</string>
     <string name="service_is_running" tools:ignore="TypographyEllipsis">Service is running...</string>
-    <string name="Battery_monitoring">"Battery monitor "</string>
+    <string name="battery_monitoring_notify">"Battery monitor "</string>
     <string name="chat_command_service_name">"Chat command "</string>
     <string name="success">Success</string>
     <string name="receive_sms_head">Receive SMS</string>

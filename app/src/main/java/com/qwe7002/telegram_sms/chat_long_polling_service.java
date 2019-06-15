@@ -109,7 +109,7 @@ public class chat_long_polling_service extends Service {
         Call call = okhttp_client_new.newCall(request);
         Response response;
         try {
-            if (!public_func.check_network(context)) {
+            if (!public_func.check_network_status(context)) {
                 throw new IOException("Network");
             }
             response = call.execute();

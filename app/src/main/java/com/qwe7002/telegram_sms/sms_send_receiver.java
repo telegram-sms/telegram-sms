@@ -56,7 +56,7 @@ public class sms_send_receiver extends BroadcastReceiver {
                 request_body.text += context.getString(R.string.no_network);
                 break;
         }
-        if (!public_func.check_network(context)) {
+        if (!public_func.check_network_status(context)) {
             public_func.write_log(context, public_func.network_error);
             public_func.send_fallback_sms(context, request_body.text, sub);
             return;

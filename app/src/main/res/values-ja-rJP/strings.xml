@@ -36,7 +36,7 @@
     <string name="battery_monitoring">バッテリー状態の変化を監視する</string>
     <string name="trusted_phone_number_empty">信頼できる電話番号は空にできません。</string>
     <string name="service_is_running">サービスが実行されています…</string>
-    <string name="Battery_monitoring">バッテリ監視</string>
+    <string name="battery_monitoring_notify">バッテリ監視</string>
     <string name="chat_command_service_name">チャットコマンド</string>
     <string name="success">完了</string>
     <string name="available_command">利用可能なコマンド：\n/getinfo – システム情報の取得\n/log - 最後の10件のログレコードを出力します</string>
@@ -60,5 +60,5 @@
     <string name="no_logs">ログはありません。</string>
     <string name="charger_status">充電器の状態を監視する</string>
     <string name="using_verification_code_identification">認証コード自動抽出(Alpha)</string>
-    <string name="wakelock">起きている（消費電力の増加）</string>
+    <string name="wakelock">スリープしない（消費電力の増加）</string>
 </resources>
