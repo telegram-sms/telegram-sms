@@ -13,8 +13,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility 1.11
+        targetCompatibility 1.11
     }
 
     signingConfigs {
@@ -27,14 +27,12 @@ android {
             v2SigningEnabled true
         }
     }
-
     buildTypes {
         release {
             minifyEnabled false
             signingConfig signingConfigs.release
         }
     }
-
 }
 
 play {
