@@ -7,9 +7,11 @@
 
 A robot running on your Android device.
 
+The primary language used for commit messages are Chinese. You can use English or Chinese in commit messages.
+
 You can come [https://reall.uk](https://reall.uk) to submit an issue or discuss any issues with this project.
 
-You can follow the channel https://t.me/tg_sms_changelog for the latest news.
+You can follow the channel https://t.me/tg_sms_changelog for the latest news.(Use only Simplified Chinese)
 
 [Download](https://github.com/qwe7002/telegram-sms/releases)
 
