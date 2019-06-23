@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.PowerManager;
@@ -30,7 +29,6 @@ import okhttp3.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 
@@ -351,44 +349,13 @@ public class main_activity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        Locale locale;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            locale = getResources().getConfiguration().getLocales().get(0);
-        } else {
-            locale = getResources().getConfiguration().locale;
-        }
-        String language = locale.getLanguage() + "-" + locale.getCountry();
         String file_name = "";
         switch (item.getItemId()) {
             case R.id.user_manual:
-                file_name = "user_manual";
-                switch (language) {
-                    case "zh-CN":
-                        file_name = "用户手册";
-                        break;
-                    case "zh-TW":
-                    case "zh-HK":
-                        file_name = "用戶手冊";
-                        break;
-                    case "ja-JP":
-                        file_name = "マニュアル";
-                        break;
-                }
+                file_name = context.getString(R.string.user_manual_url);
                 break;
             case R.id.privacy_policy:
-                file_name = "Privacy_policy";
-                switch (language) {
-                    case "zh-CN":
-                        file_name = "隐私条款";
-                        break;
-                    case "zh-TW":
-                    case "zh-HK":
-                        file_name = "隱私條款";
-                        break;
-                    case "ja-JP":
-                        //file_name = "プライバシーポリシー";
-                        break;
-                }
+                file_name = context.getString(R.string.privacy_policy_url);
                 break;
         }
 
