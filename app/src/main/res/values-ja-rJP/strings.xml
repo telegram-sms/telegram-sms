@@ -61,4 +61,6 @@
     <string name="charger_status">充電器の状態を監視する</string>
     <string name="using_verification_code_identification">認証コード自動抽出(Alpha)</string>
     <string name="wakelock">スリープしない（消費電力の増加）</string>
+    <string name="user_manual">マニュアル</string>
+    <string name="privacy_policy">プライバシーポリシー</string>
 </resources>

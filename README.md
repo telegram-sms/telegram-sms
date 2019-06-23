@@ -45,10 +45,10 @@ You can set this app as the default SMS app, which will block all SMS notificati
 
 ## User manual
 
-- [English](https://github.com/qwe7002/telegram-sms/wiki/User_manual)
-- [简体中文](https://github.com/qwe7002/telegram-sms/wiki/用户手册)
-- [繁體中文](https://github.com/qwe7002/telegram-sms/wiki/用戶手冊)
-- [日本語](https://github.com/qwe7002/telegram-sms/wiki/マニュアル)
+- [English](https://get-tg-sms.reall.uk/get/wiki/User_manual)
+- [简体中文](https://get-tg-sms.reall.uk/get/wiki/用户手册)
+- [繁體中文](https://get-tg-sms.reall.uk/get/wiki/用戶手冊)
+- [日本語](https://get-tg-sms.reall.uk/get/wiki/マニュアル)
 
 ## License
 

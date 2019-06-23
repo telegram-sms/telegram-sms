@@ -8,11 +8,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Switch;
@@ -27,6 +30,7 @@ import okhttp3.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 
@@ -48,11 +52,15 @@ public class main_activity extends AppCompatActivity {
         final Switch fallback_sms = findViewById(R.id.fallback_sms);
         final Switch battery_monitoring_switch = findViewById(R.id.battery_monitoring);
         final Switch doh_switch = findViewById(R.id.doh_switch);
-        display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         final Switch charger_status = findViewById(R.id.charger_status);
         final Switch verification_code = findViewById(R.id.verification_code_switch);
         final Switch wakelock_switch = findViewById(R.id.wakelock_switch);
+        final Button save_button = findViewById(R.id.save);
+        final Button get_id = findViewById(R.id.get_id);
+        final Button logcat = findViewById(R.id.logcat_button);
+        display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
+
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
         if (sharedPreferences.getBoolean("initialized", false)) {
@@ -66,9 +74,6 @@ public class main_activity extends AppCompatActivity {
             }
             display_dual_sim_display_name.setChecked(display_dual_sim_display_name_config);
         }
-        Button save_button = findViewById(R.id.save);
-        Button get_id = findViewById(R.id.get_id);
-        Button logcat = findViewById(R.id.logcat_button);
 
         bot_token.setText(bot_token_save);
         chat_id.setText(chat_id_save);
@@ -337,5 +342,63 @@ public class main_activity extends AppCompatActivity {
             }
         }
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        Locale locale;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            locale = getResources().getConfiguration().getLocales().get(0);
+        } else {
+            locale = getResources().getConfiguration().locale;
+        }
+        String language = locale.getLanguage() + "-" + locale.getCountry();
+        String file_name = "";
+        switch (item.getItemId()) {
+            case R.id.user_manual:
+                file_name = "user_manual";
+                switch (language) {
+                    case "zh-CN":
+                        file_name = "用户手册";
+                        break;
+                    case "zh-TW":
+                    case "zh-HK":
+                        file_name = "用戶手冊";
+                        break;
+                    case "ja-JP":
+                        file_name = "マニュアル";
+                        break;
+                }
+                break;
+            case R.id.privacy_policy:
+                file_name = "privacy_policy";
+                switch (language) {
+                    case "zh-CN":
+                        file_name = "隐私条款";
+                        break;
+                    case "zh-TW":
+                    case "zh-HK":
+                        file_name = "隱私條款";
+                        break;
+                    case "ja-JP":
+                        //file_name = "プライバシーポリシー";
+                        break;
+                }
+                break;
+        }
+
+        Uri uri = Uri.parse("https://get-tg-sms.reall.uk/get/wiki/" + file_name);
+        Intent intent = new Intent();
+        intent.setAction("android.intent.action.VIEW");
+        intent.setData(uri);
+        startActivity(intent);
+        return true;
+    }
+
 }
 
