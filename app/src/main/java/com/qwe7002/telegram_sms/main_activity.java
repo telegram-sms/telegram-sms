@@ -3,6 +3,7 @@ package com.qwe7002.telegram_sms;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -363,7 +364,12 @@ public class main_activity extends AppCompatActivity {
         Intent intent = new Intent();
         intent.setAction("android.intent.action.VIEW");
         intent.setData(uri);
-        startActivity(intent);
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            e.printStackTrace();
+            Snackbar.make(findViewById(R.id.bot_token), "No Activity found to handle Intent", Snackbar.LENGTH_LONG).show();
+        }
         return true;
     }
 
