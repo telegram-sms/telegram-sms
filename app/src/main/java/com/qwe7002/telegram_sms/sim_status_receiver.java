@@ -59,7 +59,6 @@ public class sim_status_receiver extends BroadcastReceiver {
         request_body.text = message;
         if (!public_func.check_network_status(context)) {
             public_func.write_log(context, public_func.network_error);
-            public_func.send_fallback_sms(context, request_body.text, -1);
             return;
         }
         String request_body_json = new Gson().toJson(request_body);
@@ -73,7 +72,6 @@ public class sim_status_receiver extends BroadcastReceiver {
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 String error_message = error_head + e.getMessage();
                 public_func.write_log(context, error_message);
-                public_func.send_fallback_sms(context, request_body.text, -1);
             }
 
             @Override
