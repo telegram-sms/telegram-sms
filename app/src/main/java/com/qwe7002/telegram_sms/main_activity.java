@@ -376,7 +376,7 @@ public class main_activity extends AppCompatActivity {
                 }
                 break;
             case R.id.privacy_policy:
-                file_name = "privacy_policy";
+                file_name = "Privacy_policy";
                 switch (language) {
                     case "zh-CN":
                         file_name = "隐私条款";
