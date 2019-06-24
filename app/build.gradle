@@ -27,14 +27,12 @@ android {
             v2SigningEnabled true
         }
     }
-
     buildTypes {
         release {
             minifyEnabled false
             signingConfig signingConfigs.release
         }
     }
-
 }
 
 play {

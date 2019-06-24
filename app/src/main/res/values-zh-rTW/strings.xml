@@ -36,7 +36,7 @@
     <string name="battery_monitoring">監控電池狀態變動</string>
     <string name="trusted_phone_number_empty">可信電話號碼不能為空。</string>
     <string name="service_is_running">服務正在運行......</string>
-    <string name="Battery_monitoring">電池監控</string>
+    <string name="battery_monitoring_notify">電池監控</string>
     <string name="chat_command_service_name">聊天命令</string>
     <string name="success">成功</string>
     <string name="available_command">可用命令：\n/getinfo - 獲取系統訊息\n/log - 輸出最後10條日誌記錄</string>
@@ -61,4 +61,6 @@
     <string name="charger_status">監控充電器狀態</string>
     <string name="using_verification_code_identification">驗證碼自動提取(Alpha)</string>
     <string name="wakelock">保持喚醒(會增加耗電）</string>
+    <string name="user_manual">用戶手冊</string>
+    <string name="privacy_policy">隱私條款</string>
 </resources>

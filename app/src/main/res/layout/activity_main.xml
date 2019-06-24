@@ -13,9 +13,9 @@
 
 
     <ScrollView
-        android:id="@+id/login_form"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+            android:id="@+id/login_form"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" tools:ignore="UselessParent">
 
         <LinearLayout
             android:id="@+id/email_login_form"
@@ -28,13 +28,13 @@
                 android:layout_height="wrap_content">
 
                 <EditText
-                    android:id="@+id/bot_token"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/bot_token"
-                    android:inputType="textEmailAddress"
-                    android:maxLines="1"
-                    android:singleLine="true" />
+                        android:id="@+id/bot_token"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/bot_token"
+                        android:inputType="textEmailAddress"
+                        android:maxLines="1"
+                        android:singleLine="true" tools:ignore="Autofill"/>
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -42,23 +42,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
                 <EditText
-                    android:id="@+id/chat_id"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/chat_id"
-                    android:maxLines="1"
-                    android:singleLine="true" />
+                        android:id="@+id/chat_id"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/chat_id"
+                        android:maxLines="1"
+                        android:singleLine="true" tools:ignore="Autofill,TextFields"/>
             </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
                 <EditText
-                    android:id="@+id/trusted_phone_number"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/trusted_phone_number"
-                    android:maxLines="1"
-                    android:singleLine="true" />
+                        android:id="@+id/trusted_phone_number"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/trusted_phone_number"
+                        android:maxLines="1"
+                        android:singleLine="true" tools:ignore="Autofill,TextFields"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <Switch
@@ -88,17 +88,17 @@
                     android:paddingStart="3dp"
                     android:text="@string/chat_command" tools:ignore="RtlSymmetry"/>
             <Switch
-                    android:id="@+id/verification_code_switch"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="3dp"
-                    android:text="@string/using_verification_code_identification" tools:ignore="RtlSymmetry"/>
-            <Switch
                     android:id="@+id/wakelock_switch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingStart="3dp"
                     android:text="@string/wakelock" tools:ignore="RtlSymmetry"/>
+            <Switch
+                    android:id="@+id/verification_code_switch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="3dp"
+                    android:text="@string/using_verification_code_identification" tools:ignore="RtlSymmetry"/>
             <Switch
                     android:id="@+id/display_dual_sim"
                     android:layout_width="match_parent"

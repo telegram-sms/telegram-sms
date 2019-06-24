@@ -7,9 +7,11 @@
 
 A robot running on your Android device.
 
+The primary language used for commit messages are Chinese. You can use English or Chinese in commit messages.
+
 You can come [https://reall.uk](https://reall.uk) to submit an issue or discuss any issues with this project.
 
-You can follow the channel https://t.me/tg_sms_changelog for the latest news.
+You can follow the channel [Telegram 更新日志](https://t.me/tg_sms_changelog) for the latest news.(Use only Simplified Chinese)
 
 [Download](https://github.com/qwe7002/telegram-sms/releases)
 
@@ -43,10 +45,10 @@ You can set this app as the default SMS app, which will block all SMS notificati
 
 ## User manual
 
-- [English](https://github.com/qwe7002/telegram-sms/wiki/User_manual)
-- [简体中文](https://github.com/qwe7002/telegram-sms/wiki/用户手册)
-- [繁體中文](https://github.com/qwe7002/telegram-sms/wiki/用戶手冊)
-- [日本語](https://github.com/qwe7002/telegram-sms/wiki/マニュアル)
+- [English](https://get-tg-sms.reall.uk/get/wiki/User_manual)
+- [简体中文](https://get-tg-sms.reall.uk/get/wiki/用户手册)
+- [繁體中文](https://get-tg-sms.reall.uk/get/wiki/用戶手冊)
+- [日本語](https://get-tg-sms.reall.uk/get/wiki/マニュアル)
 
 ## License
 

@@ -67,7 +67,7 @@ class public_func {
         return dual_sim;
     }
 
-    static boolean check_network(Context context) {
+    static boolean check_network_status(Context context) {
         ConnectivityManager manager = (ConnectivityManager) context
                 .getApplicationContext().getSystemService(
                         Context.CONNECTIVITY_SERVICE);
@@ -133,7 +133,8 @@ class public_func {
                 break;
             case ConnectivityManager.TYPE_MOBILE:
                 switch (network_info.getSubtype()) {
-                    case TelephonyManager.NETWORK_TYPE_UNKNOWN:
+                    case TelephonyManager.NETWORK_TYPE_NR:
+                        net_type = "5G";
                         break;
                     case TelephonyManager.NETWORK_TYPE_LTE:
                         net_type = "LTE/4G";
@@ -158,6 +159,7 @@ class public_func {
                         net_type = "2G";
                         break;
                 }
+                break;
         }
         return net_type;
     }

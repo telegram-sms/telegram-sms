@@ -3,6 +3,7 @@ package com.qwe7002.telegram_sms;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,6 +14,8 @@ import android.os.Looper;
 import android.os.PowerManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Switch;
@@ -29,7 +32,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import static android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS;
 
 
 public class main_activity extends AppCompatActivity {
@@ -49,11 +51,15 @@ public class main_activity extends AppCompatActivity {
         final Switch fallback_sms = findViewById(R.id.fallback_sms);
         final Switch battery_monitoring_switch = findViewById(R.id.battery_monitoring);
         final Switch doh_switch = findViewById(R.id.doh_switch);
-        display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         final Switch charger_status = findViewById(R.id.charger_status);
         final Switch verification_code = findViewById(R.id.verification_code_switch);
         final Switch wakelock_switch = findViewById(R.id.wakelock_switch);
+        final Button save_button = findViewById(R.id.save);
+        final Button get_id = findViewById(R.id.get_id);
+        final Button logcat = findViewById(R.id.logcat_button);
+        display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
+
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
         if (sharedPreferences.getBoolean("initialized", false)) {
@@ -67,9 +73,6 @@ public class main_activity extends AppCompatActivity {
             }
             display_dual_sim_display_name.setChecked(display_dual_sim_display_name_config);
         }
-        Button save_button = findViewById(R.id.save);
-        Button get_id = findViewById(R.id.get_id);
-        Button logcat = findViewById(R.id.logcat_button);
 
         bot_token.setText(bot_token_save);
         chat_id.setText(chat_id_save);
@@ -223,7 +226,7 @@ public class main_activity extends AppCompatActivity {
                             }
                         }
                     }
-                    main_activity.this.runOnUiThread(() -> new AlertDialog.Builder(v.getContext()).setTitle(R.string.select_chat).setItems(chat_name_list.toArray(new String[0]), (dialogInterface, i) -> chat_id.setText(chat_id_list.get(i))).setPositiveButton("Cancel", null).show());
+                    main_activity.this.runOnUiThread(() -> new AlertDialog.Builder(context).setTitle(R.string.select_chat).setItems(chat_name_list.toArray(new String[0]), (dialogInterface, i) -> chat_id.setText(chat_id_list.get(i))).setPositiveButton("Cancel", null).show());
                     Looper.loop();
                 }
             });
@@ -247,7 +250,7 @@ public class main_activity extends AppCompatActivity {
                 assert powerManager != null;
                 boolean has_ignored = powerManager.isIgnoringBatteryOptimizations(getPackageName());
                 if (!has_ignored) {
-                    Intent intent = new Intent(ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                    Intent intent = new Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
                     intent.setData(Uri.parse("package:" + getPackageName()));
                     if (intent.resolveActivityInfo(getPackageManager(), PackageManager.MATCH_DEFAULT_ONLY) != null) {
                         startActivity(intent);
@@ -338,5 +341,37 @@ public class main_activity extends AppCompatActivity {
             }
         }
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        String file_name = "";
+        switch (item.getItemId()) {
+            case R.id.user_manual:
+                file_name = context.getString(R.string.user_manual_url);
+                break;
+            case R.id.privacy_policy:
+                file_name = context.getString(R.string.privacy_policy_url);
+                break;
+        }
+
+        Uri uri = Uri.parse("https://get-tg-sms.reall.uk/get/wiki/" + file_name);
+        Intent intent = new Intent();
+        intent.setAction("android.intent.action.VIEW");
+        intent.setData(uri);
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            e.printStackTrace();
+            Snackbar.make(findViewById(R.id.bot_token), "Browser not found.", Snackbar.LENGTH_LONG).show();
+        }
+        return true;
+    }
+
 }
 

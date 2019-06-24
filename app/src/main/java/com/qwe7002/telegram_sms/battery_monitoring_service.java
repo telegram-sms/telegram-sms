@@ -29,7 +29,7 @@ public class battery_monitoring_service extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Notification notification = public_func.get_notification_obj(context, getString(R.string.Battery_monitoring));
+        Notification notification = public_func.get_notification_obj(context, getString(R.string.battery_monitoring_notify));
         startForeground(1, notification);
         return START_STICKY;
     }
@@ -109,9 +109,13 @@ class battery_receiver extends BroadcastReceiver {
                 break;
         }
         assert batteryManager != null;
-        request_body.text = prebody.append("\n").append(context.getString(R.string.current_battery_level)).append(batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)).append("%").toString();
+        int battery_level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+        if (battery_level > 100) {
+            battery_level = 100;
+        }
+        request_body.text = prebody.append("\n").append(context.getString(R.string.current_battery_level)).append(battery_level).append("%").toString();
 
-        if (!public_func.check_network(context)) {
+        if (!public_func.check_network_status(context)) {
             public_func.write_log(context, public_func.network_error);
             if (action.equals(Intent.ACTION_BATTERY_LOW)) {
                 public_func.send_fallback_sms(context, request_body.text, -1);

@@ -79,7 +79,7 @@ class call_state_listener extends PhoneStateListener {
             String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences);
             request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + display_address;
 
-            if (!public_func.check_network(context)) {
+            if (!public_func.check_network_status(context)) {
                 public_func.write_log(context, public_func.network_error);
                 public_func.send_fallback_sms(context, request_body.text, public_func.get_sub_id(context, slot));
                 return;

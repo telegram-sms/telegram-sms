@@ -32,10 +32,10 @@ public class chat_long_polling_service extends Service {
     String chat_id;
     String bot_token;
     Context context;
-    Boolean wakelock_switch;
     SharedPreferences sharedPreferences;
     OkHttpClient okhttp_client;
     private stop_broadcast_receiver stop_broadcast_receiver = null;
+    Boolean wakelock_switch;
     private PowerManager.WakeLock wakelock;
     private WifiManager.WifiLock wifiLock;
     @Override
@@ -109,7 +109,7 @@ public class chat_long_polling_service extends Service {
         Call call = okhttp_client_new.newCall(request);
         Response response;
         try {
-            if (!public_func.check_network(context)) {
+            if (!public_func.check_network_status(context)) {
                 throw new IOException("Network");
             }
             response = call.execute();
@@ -234,7 +234,11 @@ public class chat_long_polling_service extends Service {
                         }
                     }
                     assert batteryManager != null;
-                    request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "%\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
+                    int battery_level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+                    if (battery_level > 100) {
+                        battery_level = 100;
+                    }
+                    request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + battery_level + "%\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
                     break;
                 case "/log":
                     String result = "\n" + getString(R.string.no_logs);

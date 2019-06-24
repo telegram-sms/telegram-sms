@@ -35,7 +35,7 @@
     <string name="battery_monitoring">监控电池状态变动</string>
     <string name="trusted_phone_number_empty">可信电话号码不能为空。</string>
     <string name="service_is_running">服务正在运行......</string>
-    <string name="Battery_monitoring">电池监控</string>
+    <string name="battery_monitoring_notify">电池监控</string>
     <string name="chat_command_service_name">聊天命令</string>
     <string name="success">成功</string>
     <string name="receive_sms_head">收到短信</string>
@@ -61,4 +61,6 @@
     <string name="charger_status">监控充电器状态</string>
     <string name="using_verification_code_identification">验证码自动提取(Alpha)</string>
     <string name="wakelock">保持唤醒(会增加耗电）</string>
+    <string name="user_manual">用户手册</string>
+    <string name="privacy_policy">隐私条款</string>
 </resources>
