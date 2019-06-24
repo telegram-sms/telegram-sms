@@ -368,7 +368,7 @@ public class main_activity extends AppCompatActivity {
             startActivity(intent);
         } catch (ActivityNotFoundException e) {
             e.printStackTrace();
-            Snackbar.make(findViewById(R.id.bot_token), "No Activity found to handle Intent", Snackbar.LENGTH_LONG).show();
+            Snackbar.make(findViewById(R.id.bot_token), "Browser not found.", Snackbar.LENGTH_LONG).show();
         }
         return true;
     }

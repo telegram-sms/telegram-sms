@@ -36,10 +36,9 @@ public class sms_send_receiver extends BroadcastReceiver {
         String request_uri = public_func.get_url(bot_token, "sendMessage");
         int message_id = Integer.parseInt(Objects.requireNonNull(extras.getString("message_id")));
         if (message_id != -1) {
-            Log.d(public_func.log_tag, "ms_send_receiver: Find the message_id and switch to edit mode.");
+            Log.d(public_func.log_tag, "sms_send_receiver: Find the message_id and switch to edit mode.");
             request_uri = public_func.get_url(bot_token, "editMessageText");
             request_body.message_id = message_id;
-
         }
         request_body.text = extras.getString("message_text") + "\n" + context.getString(R.string.status);
         switch (getResultCode()) {
