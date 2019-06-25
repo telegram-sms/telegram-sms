@@ -10,7 +10,7 @@ cache:
 push_github:
     stage: deploy
     only:
-        - develop
+        - nightly
     script:
         - git push -f --set-upstream https://${github_key}@github.com/telegram-sms/telegram-sms.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
 
@@ -31,7 +31,7 @@ release_play_build_develop:
     image: preventis/docker-android-alpine:latest
     stage: play
     only:
-        - develop
+        - nightly
     script:
         - curl https://keystore.reallserver.cn/android/telegram-sms/keys.jks -o app/keys.jks -u gitlab:${key_store_passwd}
         - curl https://keystore.reallserver.cn/android/play-service-key.json -o app/play-service-key.json -u gitlab:${key_store_passwd}
@@ -63,6 +63,8 @@ release_play_build_master:
 build:
     image: preventis/docker-android-alpine:latest
     stage: build
+    only:
+        - master
     script:
         - curl https://keystore.reallserver.cn/android/telegram-sms/keys.jks  -o app/keys.jks -u gitlab:${key_store_passwd}
         - export GRADLE_USER_HOME=$(pwd)/.gradle
