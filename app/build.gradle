@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-android'
 apply plugin: "com.github.triplet.play"
 apply from: 'version.gradle'
 android {
@@ -46,4 +48,9 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.14.2'
     implementation 'com.squareup.okhttp3:okhttp-dnsoverhttps:3.14.2'
     implementation 'com.google.code.gson:gson:2.8.5'
+    implementation "androidx.core:core-ktx:1.0.2"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+}
+repositories {
+    mavenCentral()
 }
