@@ -7,11 +7,20 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
+
 import com.google.gson.Gson;
-import okhttp3.*;
 
 import java.io.IOException;
+import java.util.Objects;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 
 public class sim_status_receiver extends BroadcastReceiver {
@@ -62,7 +71,7 @@ public class sim_status_receiver extends BroadcastReceiver {
             return;
         }
         String request_body_json = new Gson().toJson(request_body);
-        RequestBody body = RequestBody.create(public_func.JSON, request_body_json);
+        RequestBody body = RequestBody.create(request_body_json, public_func.JSON);
         OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
@@ -78,7 +87,7 @@ public class sim_status_receiver extends BroadcastReceiver {
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
                     assert response.body() != null;
-                    String error_message = error_head + response.code() + " " + response.body().string();
+                    String error_message = error_head + response.code() + " " + Objects.requireNonNull(response.body()).string();
                     public_func.write_log(context, error_message);
                 }
             }

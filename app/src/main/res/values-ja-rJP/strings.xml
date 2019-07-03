@@ -32,7 +32,6 @@
     <string name="command_error_tip">SMSを送信するコマンドの書式:\n/sendsms\n{受信先の電話番号}\n{本文}</string>
     <string name="unknown_command">不明なコマンド、/ helpと入力して使用可能なコマンドの一覧を表示します。</string>
     <string name="current_network_connection_status">ネットワーク状況：</string>
-    <string name="cant_get_card_2_info">カードスロット2の情報を取得できないため。</string>
     <string name="battery_monitoring">バッテリー状態の変化を監視する</string>
     <string name="trusted_phone_number_empty">信頼できる電話番号は空にできません。</string>
     <string name="service_is_running">サービスが実行されています…</string>

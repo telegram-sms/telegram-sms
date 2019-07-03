@@ -19,18 +19,31 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Switch;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
 import com.google.android.material.snackbar.Snackbar;
-import com.google.gson.*;
-import okhttp3.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 
 
@@ -157,13 +170,13 @@ public class main_activity extends AppCompatActivity {
             polling_json request_body = new polling_json();
             request_body.offset = 0;
             request_body.timeout = 60;
-            RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
+            RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_func.JSON);
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
             final String error_head = "Get chat ID failed:";
             call.enqueue(new Callback() {
                 @Override
-                public void onFailure(Call call, IOException e) {
+                public void onFailure(@NonNull Call call, @NonNull IOException e) {
                     progress_dialog.cancel();
                     String error_message = error_head + e.getMessage();
                     Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
@@ -171,19 +184,19 @@ public class main_activity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onResponse(Call call, Response response) throws IOException {
+                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                     Looper.prepare();
                     progress_dialog.cancel();
                     assert response.body() != null;
                     if (response.code() != 200) {
-                        String result = response.body().string();
+                        String result = Objects.requireNonNull(response.body()).string();
                         JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
                         String error_message = error_head + result_obj.get("description").getAsString();
                         public_func.write_log(context, error_message);
                         Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
                         return;
                     }
-                    String result = response.body().string();
+                    String result = Objects.requireNonNull(response.body()).string();
                     JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
                     JsonArray chat_list = result_obj.getAsJsonArray("result");
                     if (chat_list.size() == 0) {
@@ -272,7 +285,7 @@ public class main_activity extends AppCompatActivity {
             request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
             Gson gson = new Gson();
             String request_body_raw = gson.toJson(request_body);
-            RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
+            RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
             OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked());
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
@@ -296,7 +309,7 @@ public class main_activity extends AppCompatActivity {
                     progress_dialog.cancel();
                     if (response.code() != 200) {
                         assert response.body() != null;
-                        String result = response.body().string();
+                        String result = Objects.requireNonNull(response.body()).string();
                         JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
                         String error_message = error_head + result_obj.get("description");
                         public_func.write_log(context, error_message);

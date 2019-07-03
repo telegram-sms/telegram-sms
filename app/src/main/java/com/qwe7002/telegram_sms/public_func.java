@@ -5,7 +5,11 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.*;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
@@ -18,13 +22,13 @@ import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.PermissionChecker;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import okhttp3.*;
-import okhttp3.dnsoverhttps.DnsOverHttps;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -36,7 +40,17 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+
+import okhttp3.Call;
+import okhttp3.HttpUrl;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.dnsoverhttps.DnsOverHttps;
 
 import static androidx.core.content.PermissionChecker.checkSelfPermission;
 
@@ -192,7 +206,7 @@ class public_func {
         request_body.text = send_content + "\n" + context.getString(R.string.status) + context.getString(R.string.sending);
         Gson gson = new Gson();
         String request_body_raw = gson.toJson(request_body);
-        RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
+        RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
         OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
@@ -201,7 +215,7 @@ class public_func {
             if (response.code() != 200 || response.body() == null) {
                 throw new IOException(String.valueOf(response.code()));
             }
-            message_id = get_message_id(response.body().string());
+            message_id = get_message_id(Objects.requireNonNull(response.body()).string());
         } catch (IOException e) {
             e.printStackTrace();
             public_func.write_log(context, "failed to send message:" + e.getMessage());

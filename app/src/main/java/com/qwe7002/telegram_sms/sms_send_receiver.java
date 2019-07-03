@@ -8,11 +8,20 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+
 import com.google.gson.Gson;
-import okhttp3.*;
 
 import java.io.IOException;
 import java.util.Objects;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -61,24 +70,24 @@ public class sms_send_receiver extends BroadcastReceiver {
             return;
         }
         String request_body_raw = new Gson().toJson(request_body);
-        RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
+        RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
         OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
         final String error_head = "Send SMS status failed:";
         call.enqueue(new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) {
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 String error_message = error_head + e.getMessage();
                 public_func.write_log(context, error_message);
                 public_func.send_fallback_sms(context, request_body.text, sub);
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
                     assert response.body() != null;
-                    String error_message = error_head + response.code() + " " + response.body().string();
+                    String error_message = error_head + response.code() + " " + Objects.requireNonNull(response.body()).string();
                     public_func.write_log(context, error_message);
                 }
             }
