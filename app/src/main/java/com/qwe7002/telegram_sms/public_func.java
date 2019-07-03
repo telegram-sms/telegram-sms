@@ -56,7 +56,7 @@ import static androidx.core.content.PermissionChecker.checkSelfPermission;
 
 class public_func {
     static final String log_tag = "telegram-sms";
-    static final String network_error = "Send Message:No network connection";
+    static final String network_error = "Send Message:No network connection.";
     static final String broadcast_stop_service = "com.qwe7002.telegram_sms.stop_all";
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final code_aux_lib parser = new code_aux_lib();

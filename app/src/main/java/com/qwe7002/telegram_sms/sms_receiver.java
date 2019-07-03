@@ -33,12 +33,12 @@ public class sms_receiver extends BroadcastReceiver {
         Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
         Bundle extras = intent.getExtras();
         if (extras == null) {
-            Log.d(public_func.log_tag, "reject: Error Extras");
+            Log.d(public_func.log_tag, "reject: Error Extras.");
             return;
         }
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
-            Log.i(public_func.log_tag, "Uninitialized, SMS receiver is deactivated");
+            Log.i(public_func.log_tag, "Uninitialized, SMS receiver is deactivated.");
             return;
         }
         final boolean is_default = Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName());
@@ -78,7 +78,7 @@ public class sms_receiver extends BroadcastReceiver {
 
         }
         if (messages.length == 0) {
-            public_func.write_log(context, "Message length is equal to 0");
+            public_func.write_log(context, "Message length is equal to 0.");
             return;
         }
         StringBuilder message_body = new StringBuilder();

@@ -31,7 +31,7 @@ public class sim_status_receiver extends BroadcastReceiver {
         String message = context.getString(R.string.system_message_head) + "\n";
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
-            Log.i(public_func.log_tag, "Uninitialized, SIM status receiver is deactivated");
+            Log.i(public_func.log_tag, "Uninitialized, SIM status receiver is deactivated.");
             return;
         }
         String bot_token = sharedPreferences.getString("bot_token", "");
@@ -41,7 +41,7 @@ public class sim_status_receiver extends BroadcastReceiver {
         assert tm != null;
         int state = tm.getSimState();
         if (last_status == state) {
-            Log.d(public_func.log_tag, "sim_status_receiver: SIM status is the same as the previous one");
+            Log.d(public_func.log_tag, "sim_status_receiver: SIM status is the same as the previous one.");
             return;
         }
         last_status = state;

@@ -35,7 +35,7 @@ public class sms_send_receiver extends BroadcastReceiver {
         context.getApplicationContext().unregisterReceiver(this);
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
-            public_func.write_log(context, "Receive Phone:Uninitialized");
+            Log.i(public_func.log_tag, "Uninitialized, SMS send receiver is deactivated.");
             return;
         }
         String bot_token = sharedPreferences.getString("bot_token", "");
