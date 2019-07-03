@@ -61,7 +61,7 @@ public class chat_long_polling_service extends Service {
         return START_STICKY;
     }
 
-    @SuppressLint("InvalidWakeLockTag")
+    @SuppressLint({"InvalidWakeLockTag", "WakelockTimeout"})
     @Override
     public void onCreate() {
         super.onCreate();
@@ -82,17 +82,11 @@ public class chat_long_polling_service extends Service {
         if (wakelock_switch) {
             wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(PARTIAL_WAKE_LOCK, "bot_command_polling");
             wakelock.setReferenceCounted(false);
+            wakelock.acquire();
         }
-
         new Thread(() -> {
             while (true) {
-                if (wakelock_switch) {
-                    wakelock.acquire(90000);
-                }
                 start_long_polling();
-                if (wakelock_switch) {
-                    wakelock.release();
-                }
             }
         }).start();
 

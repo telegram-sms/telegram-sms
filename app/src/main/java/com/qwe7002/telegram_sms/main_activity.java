@@ -330,6 +330,7 @@ public class main_activity extends AppCompatActivity {
                     editor.putBoolean("display_dual_sim_display_name", display_dual_sim_display_name.isChecked());
                     editor.putBoolean("verification_code", verification_code.isChecked());
                     editor.putBoolean("doh_switch", doh_switch.isChecked());
+                    editor.putBoolean("wakelock", wakelock_switch.isChecked());
                     editor.putBoolean("initialized", true);
                     editor.apply();
                     public_func.stop_all_service(context);
