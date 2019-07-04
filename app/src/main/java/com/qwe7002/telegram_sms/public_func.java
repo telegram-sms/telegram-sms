@@ -105,7 +105,7 @@ class public_func {
         if (doh_switch) {
             okhttp.dns(new DnsOverHttps.Builder().client(new OkHttpClient.Builder().retryOnConnectionFailure(true).build())
                     .url(HttpUrl.get("https://cloudflare-dns.com/dns-query"))
-                    .bootstrapDnsHosts(getByIp("1.1.1.1"), getByIp("2606:4700:4700::1111"), getByIp("185.222.222.222"), getByIp("2a09::"))
+                    .bootstrapDnsHosts(getByIp("1.0.0.1"), getByIp("1.1.1.1"), getByIp("185.222.222.222"), getByIp("2606:4700:4700::1001"), getByIp("2606:4700:4700::1111"), getByIp("2a09::"))
                     .includeIPv6(true)
                     .build());
         }
