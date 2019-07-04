@@ -17,6 +17,8 @@ You can follow the channel [Telegram 更新日志](https://t.me/tg_sms_changelog
 
 [Android 5.0 or lower? Click here to download the latest and greatest.](https://github.com/qwe7002/telegram-sms-compat)
 
+We have discovered that some improper configured network devices can cause the connection to 1.1.1.1 via DNS-over-HTTPS (DoH) to fail. If you could not connect to `api.telegram.org` while we working on a fix, you can turn off DoH temporarily.
+
 **There may be unknown bugs in the pre-release version,Please use at your own risk.**
 
 ## Features
