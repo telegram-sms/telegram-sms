@@ -41,7 +41,7 @@
     <string name="available_command">可用命令：\n/getinfo - 獲取系統訊息\n/log - 輸出最後10條日誌記錄</string>
     <string name="restart_service">後台服務已成功重新啟動。</string>
     <string name="status">狀態：</string>
-    <string name="send_failed">發送失敗</string>
+    <string name="send_failed">失敗</string>
     <string name="airplane_mode">當前設備處於飛行模式</string>
     <string name="no_network">無服務</string>
     <string name="sendsms_dual">/sendsms1 - 使用第一个卡槽發送簡訊\n/sendsms2 - 使用第二个卡槽發送簡訊</string>

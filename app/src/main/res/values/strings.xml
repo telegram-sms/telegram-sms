@@ -41,7 +41,7 @@
     <string name="available_command">Available Commands:\n/getinfo - Get system information\n/log - Output the last 10 log records</string>
     <string name="restart_service">Background service has been restarted.</string>
     <string name="status">Status:</string>
-    <string name="send_failed">Failed to send</string>
+    <string name="send_failed">Failed</string>
     <string name="airplane_mode">Device is in Airplane mode</string>
     <string name="no_network">No service</string>
     <string name="sendsms_dual">/sendsms1 - Send SMS using SIM slot 1\n/sendsms2 - Send SMS using SIM slot 2</string>

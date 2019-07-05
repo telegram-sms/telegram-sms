@@ -41,7 +41,7 @@
     <string name="available_command">利用可能なコマンド：\n/getinfo – システム情報の取得\n/log - 最後の10件のログレコードを出力します</string>
     <string name="restart_service">バックグラウンドサービスは正常に再起動しました。</string>
     <string name="status">状態：</string>
-    <string name="send_failed">送信に失敗しました</string>
+    <string name="send_failed">失敗</string>
     <string name="airplane_mode">現在のデバイスは機内モードです</string>
     <string name="no_network">サービスなし</string>
     <string name="sendsms_dual">/sendsms1 – 1番目のカードスロットを使用したSMSの送信\n/sendsms2 – 2番目のカードスロットを使用したSMSの送信</string>
