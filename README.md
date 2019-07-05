@@ -116,6 +116,14 @@ Thanks for their translation and support of this project document:
 
 - Proofreading:[@AisakaMk2](https://github.com/AisakaMk2)
 
+This software uses the following public DNS service:
+
+- [1.1.1.1](https://1.1.1.1/)
+
+- [Quad9](https://www.quad9.net/)
+
+- [dns.sb](https://dns.sb/)
+
 The following organizations for providing image storage for this page:
 
 - [sm.ms](https://sm.ms)
