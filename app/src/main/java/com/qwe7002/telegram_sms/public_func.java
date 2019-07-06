@@ -5,7 +5,11 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.*;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
@@ -18,13 +22,13 @@ import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.PermissionChecker;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import okhttp3.*;
-import okhttp3.dnsoverhttps.DnsOverHttps;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -36,13 +40,23 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+
+import okhttp3.Call;
+import okhttp3.HttpUrl;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.dnsoverhttps.DnsOverHttps;
 
 import static androidx.core.content.PermissionChecker.checkSelfPermission;
 
 class public_func {
     static final String log_tag = "telegram-sms";
-    static final String network_error = "Send Message:No network connection";
+    static final String network_error = "Send Message:No network connection.";
     static final String broadcast_stop_service = "com.qwe7002.telegram_sms.stop_all";
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final code_aux_lib parser = new code_aux_lib();
@@ -91,7 +105,7 @@ class public_func {
         if (doh_switch) {
             okhttp.dns(new DnsOverHttps.Builder().client(new OkHttpClient.Builder().retryOnConnectionFailure(true).build())
                     .url(HttpUrl.get("https://cloudflare-dns.com/dns-query"))
-                    .bootstrapDnsHosts(getByIp("1.1.1.1"), getByIp("2606:4700:4700::1111"), getByIp("185.222.222.222"), getByIp("2a09::"))
+                    .bootstrapDnsHosts(getByIp("1.0.0.1"), getByIp("9.9.9.9"), getByIp("185.222.222.222"), getByIp("2606:4700:4700::1001"), getByIp("2620:fe::fe"), getByIp("2a09::"))
                     .includeIPv6(true)
                     .build());
         }
@@ -102,6 +116,7 @@ class public_func {
         try {
             return InetAddress.getByName(host);
         } catch (UnknownHostException e) {
+            e.printStackTrace();
             // unlikely
             throw new RuntimeException(e);
         }
@@ -192,7 +207,7 @@ class public_func {
         request_body.text = send_content + "\n" + context.getString(R.string.status) + context.getString(R.string.sending);
         Gson gson = new Gson();
         String request_body_raw = gson.toJson(request_body);
-        RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
+        RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
         OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
@@ -201,7 +216,7 @@ class public_func {
             if (response.code() != 200 || response.body() == null) {
                 throw new IOException(String.valueOf(response.code()));
             }
-            message_id = get_message_id(response.body().string());
+            message_id = get_message_id(Objects.requireNonNull(response.body()).string());
         } catch (IOException e) {
             e.printStackTrace();
             public_func.write_log(context, "failed to send message:" + e.getMessage());

@@ -31,7 +31,6 @@
     <string name="command_error_tip">发送短信的格式是：\n/sendsms\n{接收方电话号码}\n{短信内容}</string>
     <string name="unknown_command">未知的命令，输入 /help 获取可用命令列表。</string>
     <string name="current_network_connection_status">网络状态：</string>
-    <string name="cant_get_card_2_info">无法获取卡槽2信息。</string>
     <string name="battery_monitoring">监控电池状态变动</string>
     <string name="trusted_phone_number_empty">可信电话号码不能为空。</string>
     <string name="service_is_running">服务正在运行......</string>
@@ -42,7 +41,7 @@
     <string name="available_command">可用命令：\n/getinfo - 获取系统信息\n/log - 输出最后10条日志记录</string>
     <string name="restart_service">后台服务已成功重新启动。</string>
     <string name="status">状态：</string>
-    <string name="send_failed">发送失败</string>
+    <string name="send_failed">失败</string>
     <string name="airplane_mode">当前设备处于飞行模式</string>
     <string name="no_network">无服务</string>
     <string name="sendsms_dual">/sendsms1 - 使用第一个卡槽发送短信\n/sendsms2 - 使用第二个卡槽发送短信</string>

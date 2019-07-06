@@ -7,14 +7,22 @@ import android.content.SharedPreferences;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import okhttp3.*;
 
 import java.io.IOException;
 import java.util.Objects;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 
 public class call_receiver extends BroadcastReceiver {
@@ -60,7 +68,7 @@ class call_state_listener extends PhoneStateListener {
                 && state == TelephonyManager.CALL_STATE_IDLE) {
             final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
             if (!sharedPreferences.getBoolean("initialized", false)) {
-                Log.i(public_func.log_tag, "Uninitialized, Phone receiver is deactivated");
+                Log.i(public_func.log_tag, "Uninitialized, Phone receiver is deactivated.");
                 return;
             }
             String bot_token = sharedPreferences.getString("bot_token", "");
@@ -86,7 +94,7 @@ class call_state_listener extends PhoneStateListener {
             }
 
             String request_body_raw = new Gson().toJson(request_body);
-            RequestBody body = RequestBody.create(public_func.JSON, request_body_raw);
+            RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
             OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
@@ -104,12 +112,12 @@ class call_state_listener extends PhoneStateListener {
                 public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                     if (response.code() != 200) {
                         assert response.body() != null;
-                        String error_message = error_head + response.code() + " " + response.body().string();
+                        String error_message = error_head + response.code() + " " + Objects.requireNonNull(response.body()).string();
                         public_func.write_log(context, error_message);
                     }
                     if (response.code() == 200) {
                         assert response.body() != null;
-                        String result = response.body().string();
+                        String result = Objects.requireNonNull(response.body()).string();
                         JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject().get("result").getAsJsonObject();
                         String message_id = result_obj.get("message_id").getAsString();
                         public_func.add_message_list(context, message_id, incoming_number, slot, public_func.get_sub_id(context, slot));

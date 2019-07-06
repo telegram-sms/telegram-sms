@@ -1,18 +1,31 @@
 package com.qwe7002.telegram_sms;
 
 import android.Manifest;
-import android.content.*;
+import android.content.BroadcastReceiver;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
+
 import com.google.gson.Gson;
-import okhttp3.*;
 
 import java.io.IOException;
+import java.util.Objects;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 
 public class sms_receiver extends BroadcastReceiver {
@@ -20,12 +33,12 @@ public class sms_receiver extends BroadcastReceiver {
         Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
         Bundle extras = intent.getExtras();
         if (extras == null) {
-            Log.d(public_func.log_tag, "reject: Error Extras");
+            Log.d(public_func.log_tag, "reject: Error Extras.");
             return;
         }
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
-            Log.i(public_func.log_tag, "Uninitialized, SMS receiver is deactivated");
+            Log.i(public_func.log_tag, "Uninitialized, SMS receiver is deactivated.");
             return;
         }
         final boolean is_default = Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName());
@@ -65,7 +78,7 @@ public class sms_receiver extends BroadcastReceiver {
 
         }
         if (messages.length == 0) {
-            public_func.write_log(context, "Message length is equal to 0");
+            public_func.write_log(context, "Message length is equal to 0.");
             return;
         }
         StringBuilder message_body = new StringBuilder();
@@ -124,7 +137,7 @@ public class sms_receiver extends BroadcastReceiver {
                         .replace(verification, "<code>" + verification + "</code>");
             }
         }
-        RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
+        RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_func.JSON);
         OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
@@ -141,14 +154,14 @@ public class sms_receiver extends BroadcastReceiver {
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
                     assert response.body() != null;
-                    String error_message = error_head + response.code() + " " + response.body().string();
+                    String error_message = error_head + response.code() + " " + Objects.requireNonNull(response.body()).string();
                     public_func.write_log(context, error_message);
                     public_func.send_fallback_sms(context, raw_request_body_text, sub);
                 }
                 if (response.code() == 200) {
                     assert response.body() != null;
                     if (public_func.is_numeric(message_address)) {
-                        public_func.add_message_list(context, public_func.get_message_id(response.body().string()), message_address, slot, sub);
+                        public_func.add_message_list(context, public_func.get_message_id(Objects.requireNonNull(response.body()).string()), message_address, slot, sub);
                     }
                 }
             }

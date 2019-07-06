@@ -4,17 +4,26 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.Service;
-import android.content.*;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
-import com.google.gson.*;
-import okhttp3.*;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -22,6 +31,13 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 import static android.os.PowerManager.PARTIAL_WAKE_LOCK;
 
@@ -45,7 +61,7 @@ public class chat_long_polling_service extends Service {
         return START_STICKY;
     }
 
-    @SuppressLint("InvalidWakeLockTag")
+    @SuppressLint({"InvalidWakeLockTag", "WakelockTimeout"})
     @Override
     public void onCreate() {
         super.onCreate();
@@ -66,17 +82,11 @@ public class chat_long_polling_service extends Service {
         if (wakelock_switch) {
             wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(PARTIAL_WAKE_LOCK, "bot_command_polling");
             wakelock.setReferenceCounted(false);
+            wakelock.acquire();
         }
-
         new Thread(() -> {
             while (true) {
-                if (wakelock_switch) {
-                    wakelock.acquire(90000);
-                }
                 start_long_polling();
-                if (wakelock_switch) {
-                    wakelock.release();
-                }
             }
         }).start();
 
@@ -104,7 +114,7 @@ public class chat_long_polling_service extends Service {
         polling_json request_body = new polling_json();
         request_body.offset = offset;
         request_body.timeout = read_timeout;
-        RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
+        RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_func.JSON);
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client_new.newCall(request);
         Response response;
@@ -117,7 +127,7 @@ public class chat_long_polling_service extends Service {
         } catch (IOException e) {
             e.printStackTrace();
             int sleep_time = 5 * error_magnification;
-            public_func.write_log(context, "No network service,try again after " + sleep_time + " seconds");
+            public_func.write_log(context, "No network service,try again after " + sleep_time + " seconds.");
 
             magnification = 1;
             if (error_magnification <= 59) {
@@ -131,11 +141,11 @@ public class chat_long_polling_service extends Service {
             return;
 
         }
-        if (response != null && response.code() == 200) {
+        if (response.code() == 200) {
             assert response.body() != null;
             String result;
             try {
-                result = response.body().string();
+                result = Objects.requireNonNull(response.body()).string();
             } catch (IOException e) {
                 e.printStackTrace();
                 return;
@@ -174,7 +184,7 @@ public class chat_long_polling_service extends Service {
             message_obj = result_obj.get("channel_post").getAsJsonObject();
         }
         if (message_obj == null) {
-            public_func.write_log(context, "Request type is not allowed by security policy");
+            public_func.write_log(context, "Request type is not allowed by security policy.");
             return;
         }
         JsonObject from_obj = null;
@@ -188,7 +198,7 @@ public class chat_long_polling_service extends Service {
         assert from_obj != null;
         String from_id = from_obj.get("id").getAsString();
         if (!Objects.equals(chat_id, from_id)) {
-            public_func.write_log(context, "Chat ID[" + from_id + "] not allow");
+            public_func.write_log(context, "Chat ID[" + from_id + "] not allow.");
             return;
         }
 
@@ -197,133 +207,11 @@ public class chat_long_polling_service extends Service {
         if (message_obj.has("text")) {
             request_msg = message_obj.get("text").getAsString();
         }
-        if (message_obj.has("entities")) {
-            JsonArray entities_arr = message_obj.get("entities").getAsJsonArray();
-            JsonObject entities_obj_command = entities_arr.get(0).getAsJsonObject();
-            if (entities_obj_command.get("type").getAsString().equals("bot_command")) {
-                int command_offset = entities_obj_command.get("offset").getAsInt();
-                int command_end_offset = command_offset + entities_obj_command.get("length").getAsInt();
-                command = request_msg.substring(command_offset, command_end_offset).trim().toLowerCase();
-                if (command.contains("@")) {
-                    int command_at_location = command.indexOf("@");
-                    command = command.substring(0, command_at_location);
-                }
-            }
-        }
-
-        Log.d(public_func.log_tag, "receive_handle: " + command);
-
-        if (!message_obj.has("reply_to_message")) {
-            switch (command) {
-                case "/help":
-                case "/start":
-                    String dual_card = "\n" + getString(R.string.sendsms);
-                    if (public_func.get_active_card(context) == 2) {
-                        dual_card = "\n" + getString(R.string.sendsms_dual);
-                    }
-                    request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.available_command) + dual_card;
-                    break;
-                case "/ping":
-                case "/getinfo":
-                    BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
-                    String card_info = "";
-                    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                        card_info = "\nSIM:" + public_func.get_sim_display_name(context, 0);
-                        if (public_func.get_active_card(context) == 2) {
-                            card_info = "\nSIM1:" + public_func.get_sim_display_name(context, 0) + "\nSIM2:" + public_func.get_sim_display_name(context, 1);
-                        }
-                    }
-                    assert batteryManager != null;
-                    int battery_level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
-                    if (battery_level > 100) {
-                        battery_level = 100;
-                    }
-                    request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + battery_level + "%\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
-                    break;
-                case "/log":
-                    String result = "\n" + getString(R.string.no_logs);
-                    try {
-                        FileInputStream file_stream = context.openFileInput("error.log");
-                        FileChannel channel = file_stream.getChannel();
-                        ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-                        buffer.position((int) channel.size());
-                        int count = 0;
-                        StringBuilder builder = new StringBuilder();
-                        for (long i = channel.size() - 1; i >= 0; i--) {
-                            char c = (char) buffer.get((int) i);
-                            builder.insert(0, c);
-                            if (c == '\n') {
-                                if (count == 9) {
-                                    break;
-                                }
-                                count++;
-                            }
-                        }
-                        channel.close();
-                        if (!builder.toString().isEmpty()) {
-                            result = builder.toString();
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        return;
-                    }
-                    request_body.text = getString(R.string.system_message_head) + result;
-                    break;
-                case "/sendsms":
-                case "/sendsms1":
-                case "/sendsms2":
-                    request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.command_format_error) + "\n\n" + getString(R.string.command_error_tip);
-                    String[] msg_send_list = request_msg.split("\n");
-                    if (msg_send_list.length > 2) {
-                        String msg_send_to = public_func.get_send_phone_number(msg_send_list[1]);
-                        if (public_func.is_numeric(msg_send_to)) {
-                            StringBuilder msg_send_content = new StringBuilder();
-                            for (int i = 2; i < msg_send_list.length; i++) {
-                                if (msg_send_list.length != 3 && i != 2) {
-                                    msg_send_content.append("\n");
-                                }
-                                msg_send_content.append(msg_send_list[i]);
-                            }
-                            if (public_func.get_active_card(context) == 1) {
-                                public_func.send_sms(context, msg_send_to, msg_send_content.toString(), -1, -1);
-                                return;
-                            }
-                            int slot = -1;
-                            switch (command) {
-                                case "/sendsms":
-                                case "/sendsms1":
-                                    slot = 0;
-                                    break;
-                                case "/sendsms2":
-                                    slot = 1;
-                                    break;
-                            }
-                            request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.unable_to_get_information);
-                            int sub_id = public_func.get_sub_id(context, slot);
-                            if (sub_id != -1) {
-                                public_func.send_sms(context, msg_send_to, msg_send_content.toString(), slot, sub_id);
-                                return;
-                            }
-                        }
-                    }
-
-                    break;
-                default:
-                    if (!message_obj.get("chat").getAsJsonObject().get("type").getAsString().equals("private")) {
-                        Log.d(public_func.log_tag, "receive_handle: The conversation is not Private and does not prompt an error.");
-                        return;
-                    }
-                    request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
-                    break;
-            }
-        }
-
         if (message_obj.has("reply_to_message")) {
             JsonObject reply_obj = message_obj.get("reply_to_message").getAsJsonObject();
             String reply_id = reply_obj.get("message_id").getAsString();
             String message_list_raw = public_func.read_file(context, "message.json");
             JsonObject message_list = new JsonParser().parse(message_list_raw).getAsJsonObject();
-            request_body.text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.unable_to_get_information);
             if (message_list.has(reply_id)) {
                 JsonObject message_item_obj = message_list.get(reply_id).getAsJsonObject();
                 String phone_number = message_item_obj.get("phone").getAsString();
@@ -339,9 +227,124 @@ public class chat_long_polling_service extends Service {
                 return;
             }
         }
+        if (message_obj.has("entities")) {
+            JsonArray entities_arr = message_obj.get("entities").getAsJsonArray();
+            JsonObject entities_obj_command = entities_arr.get(0).getAsJsonObject();
+            if (entities_obj_command.get("type").getAsString().equals("bot_command")) {
+                int command_offset = entities_obj_command.get("offset").getAsInt();
+                int command_end_offset = command_offset + entities_obj_command.get("length").getAsInt();
+                command = request_msg.substring(command_offset, command_end_offset).trim().toLowerCase();
+                if (command.contains("@")) {
+                    int command_at_location = command.indexOf("@");
+                    command = command.substring(0, command_at_location);
+                }
+            }
+        }
+        Log.d(public_func.log_tag, "receive_handle: " + command);
+        switch (command) {
+            case "/help":
+            case "/start":
+                String dual_card = "\n" + getString(R.string.sendsms);
+                if (public_func.get_active_card(context) == 2) {
+                    dual_card = "\n" + getString(R.string.sendsms_dual);
+                }
+                request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.available_command) + dual_card;
+                break;
+            case "/ping":
+            case "/getinfo":
+                BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
+                String card_info = "";
+                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+                    card_info = "\nSIM:" + public_func.get_sim_display_name(context, 0);
+                    if (public_func.get_active_card(context) == 2) {
+                        card_info = "\nSIM1:" + public_func.get_sim_display_name(context, 0) + "\nSIM2:" + public_func.get_sim_display_name(context, 1);
+                    }
+                }
+                assert batteryManager != null;
+                int battery_level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+                if (battery_level > 100) {
+                    battery_level = 100;
+                }
+                request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + battery_level + "%\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
+                break;
+            case "/log":
+                String result = "\n" + getString(R.string.no_logs);
+                try {
+                    FileInputStream file_stream = context.openFileInput("error.log");
+                    FileChannel channel = file_stream.getChannel();
+                    ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+                    buffer.position((int) channel.size());
+                    int count = 0;
+                    StringBuilder builder = new StringBuilder();
+                    for (long i = channel.size() - 1; i >= 0; i--) {
+                        char c = (char) buffer.get((int) i);
+                        builder.insert(0, c);
+                        if (c == '\n') {
+                            if (count == 9) {
+                                break;
+                            }
+                            count++;
+                        }
+                    }
+                    channel.close();
+                    if (!builder.toString().isEmpty()) {
+                        result = builder.toString();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                request_body.text = getString(R.string.system_message_head) + result;
+                break;
+            case "/sendsms":
+            case "/sendsms1":
+            case "/sendsms2":
+                request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.command_format_error) + "\n\n" + getString(R.string.command_error_tip);
+                String[] msg_send_list = request_msg.split("\n");
+                if (msg_send_list.length > 2) {
+                    String msg_send_to = public_func.get_send_phone_number(msg_send_list[1]);
+                    if (public_func.is_numeric(msg_send_to)) {
+                        StringBuilder msg_send_content = new StringBuilder();
+                        for (int i = 2; i < msg_send_list.length; i++) {
+                            if (msg_send_list.length != 3 && i != 2) {
+                                msg_send_content.append("\n");
+                            }
+                            msg_send_content.append(msg_send_list[i]);
+                        }
+                        if (public_func.get_active_card(context) == 1) {
+                            public_func.send_sms(context, msg_send_to, msg_send_content.toString(), -1, -1);
+                            return;
+                        }
+                        int slot = -1;
+                        switch (command) {
+                            case "/sendsms":
+                            case "/sendsms1":
+                                slot = 0;
+                                break;
+                            case "/sendsms2":
+                                slot = 1;
+                                break;
+                        }
+                        request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.unable_to_get_information);
+                        int sub_id = public_func.get_sub_id(context, slot);
+                        if (sub_id != -1) {
+                            public_func.send_sms(context, msg_send_to, msg_send_content.toString(), slot, sub_id);
+                            return;
+                        }
+                    }
+                }
 
+                break;
+            default:
+                if (!message_obj.get("chat").getAsJsonObject().get("type").getAsString().equals("private")) {
+                    Log.d(public_func.log_tag, "receive_handle: The conversation is not Private and does not prompt an error.");
+                    return;
+                }
+                request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
+                break;
+        }
         String request_uri = public_func.get_url(bot_token, "sendMessage");
-        RequestBody body = RequestBody.create(public_func.JSON, new Gson().toJson(request_body));
+        RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_func.JSON);
         Request send_request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(send_request);
         final String error_head = "Send reply failed:";
@@ -356,7 +359,7 @@ public class chat_long_polling_service extends Service {
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
                     assert response.body() != null;
-                    String error_message = error_head + response.code() + " " + response.body().string();
+                    String error_message = error_head + response.code() + " " + Objects.requireNonNull(response.body()).string();
                     public_func.write_log(context, error_message);
                 }
             }

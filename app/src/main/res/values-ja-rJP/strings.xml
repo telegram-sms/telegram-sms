@@ -32,7 +32,6 @@
     <string name="command_error_tip">SMSを送信するコマンドの書式:\n/sendsms\n{受信先の電話番号}\n{本文}</string>
     <string name="unknown_command">不明なコマンド、/ helpと入力して使用可能なコマンドの一覧を表示します。</string>
     <string name="current_network_connection_status">ネットワーク状況：</string>
-    <string name="cant_get_card_2_info">カードスロット2の情報を取得できないため。</string>
     <string name="battery_monitoring">バッテリー状態の変化を監視する</string>
     <string name="trusted_phone_number_empty">信頼できる電話番号は空にできません。</string>
     <string name="service_is_running">サービスが実行されています…</string>
@@ -42,7 +41,7 @@
     <string name="available_command">利用可能なコマンド：\n/getinfo – システム情報の取得\n/log - 最後の10件のログレコードを出力します</string>
     <string name="restart_service">バックグラウンドサービスは正常に再起動しました。</string>
     <string name="status">状態：</string>
-    <string name="send_failed">送信に失敗しました</string>
+    <string name="send_failed">失敗</string>
     <string name="airplane_mode">現在のデバイスは機内モードです</string>
     <string name="no_network">サービスなし</string>
     <string name="sendsms_dual">/sendsms1 – 1番目のカードスロットを使用したSMSの送信\n/sendsms2 – 2番目のカードスロットを使用したSMSの送信</string>
