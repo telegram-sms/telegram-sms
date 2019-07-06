@@ -66,7 +66,6 @@ public class sms_receiver extends BroadcastReceiver {
             } else {
                 messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
             }
-
             if (is_default) {
                 ContentValues values = new ContentValues();
                 values.put(Telephony.Sms.ADDRESS, messages[i].getOriginatingAddress());
@@ -75,7 +74,6 @@ public class sms_receiver extends BroadcastReceiver {
                 values.put(Telephony.Sms.READ, "1");
                 context.getContentResolver().insert(Telephony.Sms.CONTENT_URI, values);
             }
-
         }
         if (messages.length == 0) {
             public_func.write_log(context, "Message length is equal to 0.");

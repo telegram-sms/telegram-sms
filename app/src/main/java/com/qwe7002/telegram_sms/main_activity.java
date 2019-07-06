@@ -176,7 +176,6 @@ public class main_activity extends AppCompatActivity {
             Call call = okhttp_client.newCall(request);
             progress_dialog.setOnKeyListener((dialogInterface, i, keyEvent) -> {
                 if (keyEvent.getKeyCode() == android.view.KeyEvent.KEYCODE_BACK) {
-                    progress_dialog.cancel();
                     call.cancel();
                 }
                 return false;
