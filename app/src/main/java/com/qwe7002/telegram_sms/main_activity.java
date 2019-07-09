@@ -48,8 +48,8 @@ import okhttp3.Response;
 
 
 public class main_activity extends AppCompatActivity {
-    Context context = null;
-    Switch display_dual_sim_display_name;
+    private Context context = null;
+    private Switch display_dual_sim_display_name;
 
     @SuppressLint("BatteryLife")
     @Override
