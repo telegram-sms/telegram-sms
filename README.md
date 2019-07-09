@@ -41,8 +41,6 @@ This app requires the following permissions:
 
 - Call log : Get the incoming number.
 
-- Contact : Get the contact information and automatically identify the incoming caller's number.
-
 You can set this app as the default SMS app, which will block all SMS notifications and automatically set the SMS to read.
 
 ## User manual
