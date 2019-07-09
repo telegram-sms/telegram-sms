@@ -66,7 +66,6 @@ public class sms_receiver extends BroadcastReceiver {
             } else {
                 messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
             }
-
             if (is_default) {
                 ContentValues values = new ContentValues();
                 values.put(Telephony.Sms.ADDRESS, messages[i].getOriginatingAddress());
@@ -75,7 +74,6 @@ public class sms_receiver extends BroadcastReceiver {
                 values.put(Telephony.Sms.READ, "1");
                 context.getContentResolver().insert(Telephony.Sms.CONTENT_URI, values);
             }
-
         }
         if (messages.length == 0) {
             public_func.write_log(context, "Message length is equal to 0.");
@@ -89,14 +87,7 @@ public class sms_receiver extends BroadcastReceiver {
 
         final message_json request_body = new message_json();
         request_body.chat_id = chat_id;
-        String display_address = message_address;
-        if (display_address != null) {
-            String display_name = public_func.get_contact_name(context, display_address);
-            if (display_name != null) {
-                display_address = display_name + "(" + display_address + ")";
-            }
-        }
-        request_body.text = "[" + dual_sim + context.getString(R.string.receive_sms_head) + "]" + "\n" + context.getString(R.string.from) + display_address + "\n" + context.getString(R.string.content) + message_body;
+        request_body.text = "[" + dual_sim + context.getString(R.string.receive_sms_head) + "]" + "\n" + context.getString(R.string.from) + message_address + "\n" + context.getString(R.string.content) + message_body;
         assert message_address != null;
         if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
             if (message_address.equals(sharedPreferences.getString("trusted_phone_number", null))) {

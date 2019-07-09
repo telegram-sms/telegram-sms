@@ -93,5 +93,4 @@ public class sim_status_receiver extends BroadcastReceiver {
             }
         });
     }
-
 }
