@@ -49,8 +49,6 @@ public class battery_monitoring_service extends Service {
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
-        Boolean fallback = sharedPreferences.getBoolean("fallback_sms", false);
-        String trusted_phone_number = sharedPreferences.getString("trusted_phone_number", null);
         doh_switch = sharedPreferences.getBoolean("doh_switch", true);
         boolean charger_status = sharedPreferences.getBoolean("charger_status", false);
         IntentFilter intentFilter = new IntentFilter(public_func.broadcast_stop_service);
