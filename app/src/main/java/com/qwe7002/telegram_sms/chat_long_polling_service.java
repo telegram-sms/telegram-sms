@@ -39,7 +39,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import static android.os.PowerManager.PARTIAL_WAKE_LOCK;
 
 public class chat_long_polling_service extends Service {
     private static int offset = 0;
@@ -79,7 +78,7 @@ public class chat_long_polling_service extends Service {
 
         wakelock_switch = sharedPreferences.getBoolean("wakelock", false);
         if (wakelock_switch) {
-            wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(PARTIAL_WAKE_LOCK, "bot_command_polling");
+            wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "bot_command_polling");
             wakelock.setReferenceCounted(false);
             wakelock.acquire();
         }
