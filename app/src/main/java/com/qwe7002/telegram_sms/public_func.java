@@ -1,6 +1,7 @@
 package com.qwe7002.telegram_sms;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -118,6 +119,7 @@ class public_func {
             throw new RuntimeException(e);
         }
     }
+
     static boolean is_numeric(String str) {
         for (int i = str.length(); --i >= 0; ) {
             char c = str.charAt(i);
@@ -144,12 +146,19 @@ class public_func {
                 net_type = "WIFI";
                 break;
             case ConnectivityManager.TYPE_MOBILE:
+                boolean is_att = get_imsi(context).startsWith("3104101");
                 switch (network_info.getSubtype()) {
                     case TelephonyManager.NETWORK_TYPE_NR:
                         net_type = "5G";
+                        if (is_att) {
+                            net_type = "5G+";
+                        }
                         break;
                     case TelephonyManager.NETWORK_TYPE_LTE:
                         net_type = "LTE/4G";
+                        if (is_att) {
+                            net_type = "5G E";
+                        }
                         break;
                     case TelephonyManager.NETWORK_TYPE_EVDO_0:
                     case TelephonyManager.NETWORK_TYPE_EVDO_A:
@@ -162,6 +171,9 @@ class public_func {
                     case TelephonyManager.NETWORK_TYPE_TD_SCDMA:
                     case TelephonyManager.NETWORK_TYPE_UMTS:
                         net_type = "3G";
+                        if (is_att) {
+                            net_type = "4G";
+                        }
                         break;
                     case TelephonyManager.NETWORK_TYPE_GPRS:
                     case TelephonyManager.NETWORK_TYPE_EDGE:
@@ -176,6 +188,17 @@ class public_func {
         return net_type;
     }
 
+    @SuppressLint("HardwareIds")
+    private static String get_imsi(Context context) {
+        TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        assert telephonyManager != null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                return "";
+            }
+        }
+        return telephonyManager.getSubscriberId();
+    }
     static void send_sms(Context context, String send_to, String content, int slot, int sub_id) {
         if (!is_numeric(send_to)) {
             write_log(context, "[" + send_to + "] is an illegal phone number");
