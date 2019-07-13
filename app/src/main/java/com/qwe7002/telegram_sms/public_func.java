@@ -1,7 +1,6 @@
 package com.qwe7002.telegram_sms;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -146,7 +145,7 @@ class public_func {
                 net_type = "WIFI";
                 break;
             case ConnectivityManager.TYPE_MOBILE:
-                boolean is_att = get_imsi(context).startsWith("3104101");
+                boolean is_att = get_data_sim_display_name(context).contains("AT&T");
                 switch (network_info.getSubtype()) {
                     case TelephonyManager.NETWORK_TYPE_NR:
                         net_type = "5G";
@@ -189,18 +188,21 @@ class public_func {
         return net_type;
     }
 
-    @SuppressLint("HardwareIds")
-    private static String get_imsi(Context context) {
-        TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        assert telephonyManager != null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-                return "";
-            }
+    private static String get_data_sim_display_name(Context context) {
+        String result = "Unknown";
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            return result;
         }
-        return telephonyManager.getSubscriberId();
+        SubscriptionInfo info = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            info = SubscriptionManager.from(context).getActiveSubscriptionInfo(SubscriptionManager.getDefaultDataSubscriptionId());
+        }
+        if (info == null) {
+            return result;
+        }
+        result = info.getCarrierName().toString();
+        return result;
     }
-
     static void send_sms(Context context, String send_to, String content, int slot, int sub_id) {
         if (!is_numeric(send_to)) {
             write_log(context, "[" + send_to + "] is an illegal phone number");
