@@ -71,7 +71,6 @@ public class main_activity extends AppCompatActivity {
         final Switch wakelock_switch = findViewById(R.id.wakelock_switch);
         final Button save_button = findViewById(R.id.save);
         final Button get_id = findViewById(R.id.get_id);
-        final Button logcat = findViewById(R.id.logcat_button);
         display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
 
         String bot_token_save = sharedPreferences.getString("bot_token", "");
@@ -145,10 +144,6 @@ public class main_activity extends AppCompatActivity {
             }
         });
         battery_monitoring_switch.setOnClickListener(v -> charger_status.setEnabled(battery_monitoring_switch.isChecked()));
-        logcat.setOnClickListener(v -> {
-            Intent logcat_intent = new Intent(main_activity.this, logcat_activity.class);
-            startActivity(logcat_intent);
-        });
 
         get_id.setOnClickListener(v -> {
             if (bot_token.getText().toString().isEmpty()) {
@@ -371,6 +366,12 @@ public class main_activity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.logcat) {
+            Intent logcat_intent = new Intent(main_activity.this, logcat_activity.class);
+            startActivity(logcat_intent);
+            return true;
+        }
+
         String file_name = "";
         switch (item.getItemId()) {
             case R.id.user_manual:
