@@ -1,25 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center_horizontal"
-    android:orientation="vertical"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context=".main_activity">
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        tools:context=".main_activity">
+
+    <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:alpha="0.3"
+            android:scaleType="fitEnd"
+            android:src="@mipmap/character_set"
+            tools:ignore="ContentDescription" />
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
 
     <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent" tools:ignore="UselessParent">
 
+
         <LinearLayout
                 android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -108,18 +120,24 @@
                     android:layout_height="wrap_content"
                     android:paddingStart="3dp"
                     android:text="@string/using_doh" tools:ignore="RtlSymmetry"/>
-            <Button
-                android:id="@+id/get_id"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/get_recent_chat_id" />
 
             <Button
-                android:id="@+id/save"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/test_and_save" />
+                    android:id="@+id/get_id"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.8"
+                    android:text="@string/get_recent_chat_id" />
+
+            <Button
+                    android:id="@+id/save"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.8"
+                    android:text="@string/test_and_save" />
 
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
+
+
+</FrameLayout>
