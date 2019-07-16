@@ -86,6 +86,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_large)
 
+Artworks used in Telegram SMS were created by [@walliant](https://www.pixiv.net/member.php?id=5600144).
+
+Copyright belongs to the original author.
+
+Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+
+Download resource file: [mega.nz](https://mega.nz/#F!TmwQSYjD!XN-uVfciajwy3okjIdpCAQ)
+
 ## Acknowledgements
 
 This software uses these open source libraries:
@@ -99,6 +107,8 @@ The birth of this software is inseparable from their help:
 - [@SumiMakito](https://github.com/SumiMakito)
 
 - [@zsxsoft](https://github.com/zsxsoft)
+
+- [@walliant](https://www.pixiv.net/member.php?id=5600144)
 
 Thanks for their translation and support of this project document:
 
