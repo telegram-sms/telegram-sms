@@ -17,12 +17,6 @@
             android:src="@mipmap/character_set"
             tools:ignore="ContentDescription" />
 
-    <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
-
     <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent" tools:ignore="UselessParent">
@@ -137,7 +131,6 @@
 
         </LinearLayout>
     </ScrollView>
-</LinearLayout>
 
 
 </FrameLayout>
