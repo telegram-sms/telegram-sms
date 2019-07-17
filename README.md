@@ -104,11 +104,11 @@ This software uses these open source libraries:
 
 The birth of this software is inseparable from their help:
 
-- [@SumiMakito](https://github.com/SumiMakito)
+- [@SumiMakito](https://github.com/SumiMakito) ([Paypal](https://paypal.me/makito))
 
 - [@zsxsoft](https://github.com/zsxsoft)
 
-- [@walliant](https://www.pixiv.net/member.php?id=5600144)
+- [@walliant](https://www.pixiv.net/member.php?id=5600144) ([weibo](https://www.weibo.com/p/1005053186671274))
 
 Thanks for their translation and support of this project document:
 
@@ -116,7 +116,7 @@ Thanks for their translation and support of this project document:
 
 - Translate:[@tangbao](https://github.com/tangbao)
 
-- Proofreading:[@jixunmoe](https://github.com/jixunmoe)
+- Proofreading:[@jixunmoe](https://github.com/jixunmoe) ([Paypal](https://paypal.me/jixun))
 
 #### Japanese
 
