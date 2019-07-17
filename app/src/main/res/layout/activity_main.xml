@@ -8,7 +8,7 @@
     <ImageView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:alpha="0.1"
+            android:alpha="0.15"
             android:scaleType="fitEnd"
             android:src="@mipmap/character_set"
             tools:ignore="ContentDescription" />
