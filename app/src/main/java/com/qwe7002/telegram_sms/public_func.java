@@ -118,6 +118,7 @@ class public_func {
             throw new RuntimeException(e);
         }
     }
+
     static boolean is_numeric(String str) {
         for (int i = str.length(); --i >= 0; ) {
             char c = str.charAt(i);
@@ -144,19 +145,30 @@ class public_func {
                 net_type = "WIFI";
                 break;
             case ConnectivityManager.TYPE_MOBILE:
+                boolean is_att = get_data_sim_carrier_name(context).contains("AT&T");
                 switch (network_info.getSubtype()) {
                     case TelephonyManager.NETWORK_TYPE_NR:
                         net_type = "5G";
+                        if (is_att) {
+                            net_type = "5G+";
+                        }
                         break;
                     case TelephonyManager.NETWORK_TYPE_LTE:
-                        net_type = "LTE/4G";
+                        net_type = "LTE";
+                        if (is_att) {
+                            net_type = "5G E";
+                        }
                         break;
+                    case TelephonyManager.NETWORK_TYPE_HSPAP:
+                        if (is_att) {
+                            net_type = "4G";
+                            break;
+                        }
                     case TelephonyManager.NETWORK_TYPE_EVDO_0:
                     case TelephonyManager.NETWORK_TYPE_EVDO_A:
                     case TelephonyManager.NETWORK_TYPE_EVDO_B:
                     case TelephonyManager.NETWORK_TYPE_EHRPD:
                     case TelephonyManager.NETWORK_TYPE_HSDPA:
-                    case TelephonyManager.NETWORK_TYPE_HSPAP:
                     case TelephonyManager.NETWORK_TYPE_HSUPA:
                     case TelephonyManager.NETWORK_TYPE_HSPA:
                     case TelephonyManager.NETWORK_TYPE_TD_SCDMA:
@@ -176,6 +188,21 @@ class public_func {
         return net_type;
     }
 
+    private static String get_data_sim_carrier_name(Context context) {
+        String result = "Unknown";
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            return result;
+        }
+        SubscriptionInfo info = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            info = SubscriptionManager.from(context).getActiveSubscriptionInfo(SubscriptionManager.getDefaultDataSubscriptionId());
+        }
+        if (info == null) {
+            return result;
+        }
+        result = info.getCarrierName().toString();
+        return result;
+    }
     static void send_sms(Context context, String send_to, String content, int slot, int sub_id) {
         if (!is_numeric(send_to)) {
             write_log(context, "[" + send_to + "] is an illegal phone number");
@@ -264,7 +291,7 @@ class public_func {
             manager.createNotificationChannel(channel);
             notification = new Notification.Builder(context, notification_name)
                     .setAutoCancel(false)
-                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setSmallIcon(R.drawable.ic_stat)
                     .setOngoing(true)
                     .setTicker(context.getString(R.string.app_name))
                     .setWhen(System.currentTimeMillis())
@@ -274,7 +301,7 @@ class public_func {
         } else {//Notification generation method after O
             notification = new Notification.Builder(context)
                     .setAutoCancel(false)
-                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setSmallIcon(R.drawable.ic_stat)
                     .setOngoing(true)
                     .setTicker(context.getString(R.string.app_name))
                     .setWhen(System.currentTimeMillis())
@@ -299,17 +326,14 @@ class public_func {
     static void start_service(Context context, Boolean battery_switch, Boolean chat_command_switch) {
         Intent battery_service = new Intent(context, battery_monitoring_service.class);
         Intent chat_long_polling_service = new Intent(context, chat_long_polling_service.class);
-        boolean foreground = false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            foreground = true;
             if (battery_switch) {
                 context.startForegroundService(battery_service);
             }
             if (chat_command_switch) {
                 context.startForegroundService(chat_long_polling_service);
             }
-        }
-        if (!foreground) {
+        } else {//Service activation after O
             if (battery_switch) {
                 context.startService(battery_service);
             }

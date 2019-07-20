@@ -30,12 +30,8 @@ import static android.content.Context.BATTERY_SERVICE;
 public class battery_monitoring_service extends Service {
     static String bot_token;
     static String chat_id;
-    static Boolean fallback;
-    static String trusted_phone_number;
     static boolean doh_switch;
-    static boolean charger_status;
-    Context context;
-    SharedPreferences sharedPreferences;
+    private Context context;
     private battery_receiver battery_receiver = null;
     private stop_broadcast_receiver stop_broadcast_receiver = null;
 
@@ -50,13 +46,11 @@ public class battery_monitoring_service extends Service {
     public void onCreate() {
         super.onCreate();
         context = getApplicationContext();
-        sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
-        fallback = sharedPreferences.getBoolean("fallback_sms", false);
-        trusted_phone_number = sharedPreferences.getString("trusted_phone_number", null);
         doh_switch = sharedPreferences.getBoolean("doh_switch", true);
-        charger_status = sharedPreferences.getBoolean("charger_status", false);
+        boolean charger_status = sharedPreferences.getBoolean("charger_status", false);
         IntentFilter intentFilter = new IntentFilter(public_func.broadcast_stop_service);
         stop_broadcast_receiver = new stop_broadcast_receiver();
 

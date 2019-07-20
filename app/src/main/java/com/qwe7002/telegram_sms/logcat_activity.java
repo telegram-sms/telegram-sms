@@ -6,14 +6,15 @@ import android.os.FileObserver;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class logcat_activity extends AppCompatActivity {
 
-    Context context;
-    file_observer observer;
-    TextView logcat;
+    private Context context;
+    private file_observer observer;
+    private TextView logcat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,8 +55,8 @@ public class logcat_activity extends AppCompatActivity {
     }
 
     class file_observer extends FileObserver {
-        private Context context;
-        private TextView logcat;
+        private final Context context;
+        private final TextView logcat;
 
         file_observer(Context context, TextView logcat) {
             super(context.getFilesDir().getAbsolutePath());

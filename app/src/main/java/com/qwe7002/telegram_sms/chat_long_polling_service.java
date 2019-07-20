@@ -39,19 +39,17 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import static android.os.PowerManager.PARTIAL_WAKE_LOCK;
 
 public class chat_long_polling_service extends Service {
-    static int offset = 0;
-    static int magnification = 1;
-    static int error_magnification = 1;
-    String chat_id;
-    String bot_token;
-    Context context;
-    SharedPreferences sharedPreferences;
-    OkHttpClient okhttp_client;
+    private static int offset = 0;
+    private static int magnification = 1;
+    private static int error_magnification = 1;
+    private String chat_id;
+    private String bot_token;
+    private Context context;
+    private OkHttpClient okhttp_client;
     private stop_broadcast_receiver stop_broadcast_receiver = null;
-    Boolean wakelock_switch;
+    private Boolean wakelock_switch;
     private PowerManager.WakeLock wakelock;
     private WifiManager.WifiLock wifiLock;
     @Override
@@ -70,7 +68,7 @@ public class chat_long_polling_service extends Service {
         stop_broadcast_receiver = new stop_broadcast_receiver();
         registerReceiver(stop_broadcast_receiver, intentFilter);
 
-        sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
         okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
@@ -80,7 +78,7 @@ public class chat_long_polling_service extends Service {
 
         wakelock_switch = sharedPreferences.getBoolean("wakelock", false);
         if (wakelock_switch) {
-            wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(PARTIAL_WAKE_LOCK, "bot_command_polling");
+            wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "bot_command_polling");
             wakelock.setReferenceCounted(false);
             wakelock.acquire();
         }
@@ -104,7 +102,7 @@ public class chat_long_polling_service extends Service {
     }
 
 
-    void start_long_polling() {
+    private void start_long_polling() {
         int read_timeout = 5 * magnification;
         OkHttpClient okhttp_client_new = okhttp_client.newBuilder()
                 .readTimeout((read_timeout + 5), TimeUnit.SECONDS)

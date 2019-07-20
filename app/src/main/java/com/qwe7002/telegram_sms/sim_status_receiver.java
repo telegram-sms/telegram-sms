@@ -24,7 +24,7 @@ import okhttp3.Response;
 
 
 public class sim_status_receiver extends BroadcastReceiver {
-    static int last_status;
+    private static int last_status;
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(public_func.log_tag, "onReceive: " + intent.getAction());

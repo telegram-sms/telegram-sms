@@ -53,8 +53,8 @@ public class call_receiver extends BroadcastReceiver {
 class call_state_listener extends PhoneStateListener {
     private static int lastState = TelephonyManager.CALL_STATE_IDLE;
     private static String incoming_number;
-    private Context context;
-    private int slot;
+    private final Context context;
+    private final int slot;
 
     call_state_listener(Context context, int slot, String incoming_number) {
         super();
