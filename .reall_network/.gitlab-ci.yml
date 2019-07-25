@@ -90,7 +90,7 @@ build_play:
         - echo -e "ext {\n appVersionCode = ${CI_PIPELINE_ID}\n appVersionName = \"${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}\"}" > ./app/version.gradle
         - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true\n android.enableJetifier=true\n android.useAndroidX=true" >> gradle.properties
         - chmod +x ./gradlew
-        - rm ./app/src/main/AndroidManifest.xml && rm ./app/src/main/java/com/qwe7002/telegram_sms/wap_receiver
+        - rm ./app/src/main/AndroidManifest.xml && rm ./app/src/main/java/com/qwe7002/telegram_sms/wap_receiver.java
         - cp ./reall_network/AndroidManifest.xml ./app/src/main/AndroidManifest.xml
         - ./gradlew assembleRelease
     artifacts:
