@@ -290,7 +290,6 @@ public class chat_long_polling_service extends Service {
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
-                    return;
                 }
                 request_body.text = getString(R.string.system_message_head) + result;
                 break;
