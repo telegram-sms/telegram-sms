@@ -1,7 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
-apply plugin: "com.github.triplet.play"
 apply from: 'version.gradle'
 android {
     compileSdkVersion 29
@@ -35,10 +34,6 @@ android {
             signingConfig signingConfigs.release
         }
     }
-}
-
-play {
-    serviceAccountCredentials = file("play-service-key.json")
 }
 
 dependencies {

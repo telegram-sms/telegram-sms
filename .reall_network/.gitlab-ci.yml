@@ -26,42 +26,6 @@ release_github:
         - git clone https://git.reallserver.cn/qwe7002/telegram-sms.wiki.git wiki
         - cd wiki
         - git push -f --set-upstream https://${github_key}@github.com/telegram-sms/telegram-sms.wiki.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
-
-release_play_build_develop:
-    image: preventis/docker-android-alpine:latest
-    stage: play
-    only:
-        - nightly
-    script:
-        - curl https://keystore.reallserver.cn/android/telegram-sms/keys.jks -o app/keys.jks -u gitlab:${key_store_passwd}
-        - curl https://keystore.reallserver.cn/android/play-service-key.json -o app/play-service-key.json -u gitlab:${key_store_passwd}
-        - export GRADLE_USER_HOME=$(pwd)/.gradle
-        - touch $(pwd)/.gradle/gradle.properties && echo "org.gradle.daemon=true" >> $(pwd)/.gradle/gradle.properties
-        - echo -e "ext {\n appVersionCode = ${CI_PIPELINE_ID}\n appVersionName = \"${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}\"}" > ./app/version.gradle
-        - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true\n android.enableJetifier=true\n android.useAndroidX=true" >> gradle.properties
-        - chmod +x ./gradlew
-        - ./gradlew publishApk --track beta
-    allow_failure: true
-
-release_play_build_master:
-    image: preventis/docker-android-alpine:latest
-    stage: play
-    only:
-        - master
-    script:
-        - curl https://keystore.reallserver.cn/android/telegram-sms/keys.jks -o app/keys.jks -u gitlab:${key_store_passwd}
-        - curl https://keystore.reallserver.cn/android/play-service-key.json -o app/play-service-key.json -u gitlab:${key_store_passwd}
-        - export GRADLE_USER_HOME=$(pwd)/.gradle
-        - touch $(pwd)/.gradle/gradle.properties && echo "org.gradle.daemon=true" >> $(pwd)/.gradle/gradle.properties
-        - echo -e "ext {\n appVersionCode = ${CI_PIPELINE_ID}\n appVersionName = \"${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}\"}" > ./app/version.gradle
-        - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true\n android.enableJetifier=true\n android.useAndroidX=true" >> gradle.properties
-        - chmod +x ./gradlew
-        - rm ./app/src/main/AndroidManifest.xml && rm ./app/src/main/java/com/qwe7002/telegram_sms/wap_receiver.java
-        - cp ./.reall_network/AndroidManifest.xml ./app/src/main/AndroidManifest.xml
-        - ./gradlew publishApk --track production --release-status draft
-    allow_failure: true
-
-
 build:
     image: preventis/docker-android-alpine:latest
     stage: build
@@ -74,30 +38,9 @@ build:
         - echo -e "ext {\n appVersionCode = ${CI_PIPELINE_ID}\n appVersionName = \"${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}\"}" > ./app/version.gradle
         - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true\n android.enableJetifier=true\n android.useAndroidX=true" >> gradle.properties
         - chmod +x ./gradlew
-        - rm ./app/src/main/AndroidManifest.xml && rm ./app/src/main/java/com/qwe7002/telegram_sms/wap_receiver.java
-        - cp ./.reall_network/AndroidManifest.xml ./app/src/main/AndroidManifest.xml
         - ./gradlew assembleRelease
     artifacts:
         paths:
             - app/build/outputs/apk/release/app-release.apk
         expire_in: 1 week
 
-build_play:
-    image: preventis/docker-android-alpine:latest
-    stage: build
-    only:
-        - master
-    script:
-        - curl https://keystore.reallserver.cn/android/telegram-sms/keys.jks  -o app/keys.jks -u gitlab:${key_store_passwd}
-        - export GRADLE_USER_HOME=$(pwd)/.gradle
-        - touch $(pwd)/.gradle/gradle.properties && echo "org.gradle.daemon=true" >> $(pwd)/.gradle/gradle.properties
-        - echo -e "ext {\n appVersionCode = ${CI_PIPELINE_ID}\n appVersionName = \"${CI_COMMIT_REF_NAME}-play-${CI_COMMIT_SHORT_SHA}\"}" > ./app/version.gradle
-        - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true\n android.enableJetifier=true\n android.useAndroidX=true" >> gradle.properties
-        - chmod +x ./gradlew
-        - rm ./app/src/main/AndroidManifest.xml && rm ./app/src/main/java/com/qwe7002/telegram_sms/wap_receiver.java
-        - cp ./.reall_network/AndroidManifest.xml ./app/src/main/AndroidManifest.xml
-        - ./gradlew assembleRelease
-    artifacts:
-        paths:
-            - app/build/outputs/apk/release/app-release.apk
-        expire_in: 1 week
