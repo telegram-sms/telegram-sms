@@ -60,19 +60,20 @@ public class sms_receiver extends BroadcastReceiver {
         final SmsMessage[] messages = new SmsMessage[pdus.length];
         for (int i = 0; i < pdus.length; i++) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                String format = extras.getString("format");
-                Log.d(public_func.log_tag, "onReceive: " + format);
-                messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i], format);
+                messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i], extras.getString("format"));
             } else {
                 messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
             }
             if (is_default) {
-                ContentValues values = new ContentValues();
-                values.put(Telephony.Sms.ADDRESS, messages[i].getOriginatingAddress());
-                values.put(Telephony.Sms.BODY, messages[i].getMessageBody());
-                values.put(Telephony.Sms.SUBSCRIPTION_ID, String.valueOf(sub));
-                values.put(Telephony.Sms.READ, "1");
-                context.getContentResolver().insert(Telephony.Sms.CONTENT_URI, values);
+                final int final_i = i;
+                new Thread(() -> {
+                    ContentValues values = new ContentValues();
+                    values.put(Telephony.Sms.ADDRESS, messages[final_i].getOriginatingAddress());
+                    values.put(Telephony.Sms.BODY, messages[final_i].getMessageBody());
+                    values.put(Telephony.Sms.SUBSCRIPTION_ID, String.valueOf(sub));
+                    values.put(Telephony.Sms.READ, "1");
+                    context.getContentResolver().insert(Telephony.Sms.CONTENT_URI, values);
+                }).start();
             }
         }
         if (messages.length == 0) {
