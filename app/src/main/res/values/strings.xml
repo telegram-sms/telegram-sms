@@ -63,4 +63,5 @@
     <string name="wakelock">Stay awake (increased power consumption)</string>
     <string name="user_manual">User manual</string>
     <string name="privacy_policy">Privacy policy</string>
+    <string name="charging">Charging</string>
 </resources>

@@ -62,4 +62,5 @@
     <string name="wakelock">スリープしない（消費電力の増加）</string>
     <string name="user_manual">マニュアル</string>
     <string name="privacy_policy">プライバシーポリシー</string>
+    <string name="charging">充電中</string>
 </resources>

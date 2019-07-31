@@ -250,7 +250,6 @@ public class chat_long_polling_service extends Service {
                 break;
             case "/ping":
             case "/getinfo":
-                BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
                 String card_info = "";
                 if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                     card_info = "\nSIM:" + public_func.get_sim_display_name(context, 0);
@@ -258,12 +257,17 @@ public class chat_long_polling_service extends Service {
                         card_info = "\nSIM1:" + public_func.get_sim_display_name(context, 0) + "\nSIM2:" + public_func.get_sim_display_name(context, 1);
                     }
                 }
+                BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
                 assert batteryManager != null;
                 int battery_level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
                 if (battery_level > 100) {
                     battery_level = 100;
                 }
-                request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + battery_level + "%\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
+                String battery_level_string = battery_level + "%";
+                if (public_func.is_charging(context)) {
+                    battery_level_string += "(" + context.getString(R.string.charging) + ")";
+                }
+                request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + battery_level_string + "\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
                 break;
             case "/log":
                 String result = "\n" + getString(R.string.no_logs);
