@@ -274,13 +274,15 @@ public class chat_long_polling_service extends Service {
                     buffer.position((int) channel.size());
                     int count = 0;
                     StringBuilder builder = new StringBuilder();
+                    StringBuilder line_builder = new StringBuilder();
                     for (long i = channel.size() - 1; i >= 0; i--) {
                         char c = (char) buffer.get((int) i);
-                        builder.insert(0, c);
                         if (c == '\n') {
+                            builder.insert(0, line_builder.toString());
                             if (count == 9) {
                                 break;
                             }
+                            line_builder = new StringBuilder();
                             count++;
                         }
                     }
