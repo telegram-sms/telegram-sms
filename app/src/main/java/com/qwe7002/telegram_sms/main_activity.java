@@ -23,6 +23,7 @@ import android.widget.Switch;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -383,11 +384,12 @@ public class main_activity extends AppCompatActivity {
         }
 
         Uri uri = Uri.parse("https://get-tg-sms.reall.uk/get/wiki/" + file_name);
-        Intent intent = new Intent();
-        intent.setAction("android.intent.action.VIEW");
-        intent.setData(uri);
+
+        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+        builder.setToolbarColor(ContextCompat.getColor(this, R.color.colorPrimary));
+        CustomTabsIntent customTabsIntent = builder.build();
         try {
-            startActivity(intent);
+            customTabsIntent.launchUrl(this, uri);
         } catch (ActivityNotFoundException e) {
             e.printStackTrace();
             Snackbar.make(findViewById(R.id.bot_token), "Browser not found.", Snackbar.LENGTH_LONG).show();
