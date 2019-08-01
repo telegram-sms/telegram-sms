@@ -265,7 +265,7 @@ public class chat_long_polling_service extends Service {
                 }
                 String battery_level_string = battery_level + "%";
                 if (public_func.is_charging(context)) {
-                    battery_level_string += "(" + context.getString(R.string.charging) + ")";
+                    battery_level_string += " (" + context.getString(R.string.charging) + ")";
                 }
                 request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + battery_level_string + "\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
                 break;
@@ -372,6 +372,7 @@ public class chat_long_polling_service extends Service {
     class stop_broadcast_receiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
+            Log.i(public_func.log_tag, "Chat command:Received stop signal, quitting now...");
             stopSelf();
             android.os.Process.killProcess(android.os.Process.myPid());
         }

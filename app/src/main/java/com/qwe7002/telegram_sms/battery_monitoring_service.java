@@ -83,6 +83,7 @@ public class battery_monitoring_service extends Service {
     class stop_broadcast_receiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
+            Log.i(public_func.log_tag, "Battery monitoring:Received stop signal, quitting now...");
             stopSelf();
             android.os.Process.killProcess(android.os.Process.myPid());
         }
