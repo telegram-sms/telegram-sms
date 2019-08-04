@@ -46,10 +46,9 @@
     <string name="no_network">No service</string>
     <string name="sendsms_dual">/sendsms1 - Send SMS using SIM slot 1\n/sendsms2 - Send SMS using SIM slot 2</string>
     <string name="display_sim_card_alias_in_dual_card_mode">Display SIM card alias in dual SIM mode</string>
-    <string name="unable_to_get_information">Failed to get information.</string>
+    <string name="failed_to_get_information">Failed to get information.</string>
     <string name="sendsms">/sendsms - Send SMS</string>
     <string name="sending">Sending</string>
-    <string name="command_error_tip">To send a SMS text message, use:\n/sendsms\n{Receiver phone number}\n{SMS content}</string>
     <string name="get_recent_chat_title">Please send some messages to the bot</string>
     <string name="get_recent_chat_message" tools:ignore="TypographyEllipsis">The bot need your chat ID to know whom to forward...</string>
     <string name="using_doh">Using DNS over HTTPS</string>
@@ -64,4 +63,7 @@
     <string name="user_manual">User manual</string>
     <string name="privacy_policy">Privacy policy</string>
     <string name="charging">Charging</string>
+    <string name="enter_number">Please enter the number you want to send.</string>
+    <string name="enter_content">Please enter the content of the message to be sent.</string>
+    <string name="unable_get_phone_number">Unable to get phone number.</string>
 </resources>

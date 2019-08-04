@@ -29,7 +29,6 @@
     <string name="unable_get_recent">無法獲取最近的聊天記錄</string>
     <string name="chat_command">獲取聊天命令</string>
     <string name="command_format_error">命令格式錯誤。</string>
-    <string name="command_error_tip">發送簡訊的格式是：\n/sendsms\n{接收方電話號碼}\n{簡訊內容}</string>
     <string name="unknown_command">未知的命令，輸入 /help 獲取可用命令列表。</string>
     <string name="current_network_connection_status">網路狀態：</string>
     <string name="battery_monitoring">監控電池狀態變動</string>
@@ -46,7 +45,7 @@
     <string name="no_network">無服務</string>
     <string name="sendsms_dual">/sendsms1 - 使用第一个卡槽發送簡訊\n/sendsms2 - 使用第二个卡槽發送簡訊</string>
     <string name="display_sim_card_alias_in_dual_card_mode">在雙卡模式下顯示SIM卡別名</string>
-    <string name="unable_to_get_information">無法獲取信息。</string>
+    <string name="failed_to_get_information">無法獲取信息。</string>
     <string name="sendsms">/sendsms - 發送簡訊</string>
     <string name="sending">正在發送</string>
     <string name="get_recent_chat_message">請發送一些消息到Bot。</string>
@@ -63,4 +62,7 @@
     <string name="user_manual">用戶手冊</string>
     <string name="privacy_policy">隱私條款</string>
     <string name="charging">正在充電</string>
+    <string name="enter_number">请输入您要发送的号码。</string>
+    <string name="enter_content">請輸入要發送的消息的內容。</string>
+    <string name="unable_get_phone_number">無法獲取電話號碼。</string>
 </resources>

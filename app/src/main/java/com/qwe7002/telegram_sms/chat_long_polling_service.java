@@ -52,6 +52,9 @@ public class chat_long_polling_service extends Service {
     private Boolean wakelock_switch;
     private PowerManager.WakeLock wakelock;
     private WifiManager.WifiLock wifiLock;
+    private int send_sms_status = -1;
+    private int send_slot_temp = -1;
+    private String send_to_temp;
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
@@ -168,6 +171,7 @@ public class chat_long_polling_service extends Service {
     }
 
     private void receive_handle(JsonObject result_obj) {
+
         int update_id = result_obj.get("update_id").getAsInt();
         if (update_id >= offset) {
             offset = update_id + 1;
@@ -239,6 +243,7 @@ public class chat_long_polling_service extends Service {
             }
         }
         Log.d(public_func.log_tag, "receive_handle: " + command);
+        boolean has_command = false;
         switch (command) {
             case "/help":
             case "/start":
@@ -247,6 +252,7 @@ public class chat_long_polling_service extends Service {
                     dual_card = "\n" + getString(R.string.sendsms_dual);
                 }
                 request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.available_command) + dual_card;
+                has_command = true;
                 break;
             case "/ping":
             case "/getinfo":
@@ -268,6 +274,7 @@ public class chat_long_polling_service extends Service {
                     battery_level_string += " (" + context.getString(R.string.charging) + ")";
                 }
                 request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + battery_level_string + "\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
+                has_command = true;
                 break;
             case "/log":
                 String result = "\n" + getString(R.string.no_logs);
@@ -298,11 +305,11 @@ public class chat_long_polling_service extends Service {
                     e.printStackTrace();
                 }
                 request_body.text = getString(R.string.system_message_head) + result;
+                has_command = true;
                 break;
             case "/sendsms":
             case "/sendsms1":
             case "/sendsms2":
-                request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.command_format_error) + "\n\n" + getString(R.string.command_error_tip);
                 String[] msg_send_list = request_msg.split("\n");
                 if (msg_send_list.length > 2) {
                     String msg_send_to = public_func.get_send_phone_number(msg_send_list[1]);
@@ -328,15 +335,34 @@ public class chat_long_polling_service extends Service {
                                 slot = 1;
                                 break;
                         }
-                        request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.unable_to_get_information);
                         int sub_id = public_func.get_sub_id(context, slot);
                         if (sub_id != -1) {
                             public_func.send_sms(context, msg_send_to, msg_send_content.toString(), slot, sub_id);
                             return;
                         }
+                        request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
+                    }
+
+                }
+                has_command = true;
+                if (msg_send_list.length == 1) {
+                    send_sms_status = 0;
+                    send_slot_temp = -1;
+                    request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.enter_number);
+                    has_command = false;
+                    if (public_func.get_active_card(context) == 1) {
+                        break;
+                    }
+                    switch (command) {
+                        case "/sendsms":
+                        case "/sendsms1":
+                            send_slot_temp = 0;
+                            break;
+                        case "/sendsms2":
+                            send_slot_temp = 1;
+                            break;
                     }
                 }
-
                 break;
             default:
                 if (!message_obj.get("chat").getAsJsonObject().get("type").getAsString().equals("private")) {
@@ -346,6 +372,48 @@ public class chat_long_polling_service extends Service {
                 request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
                 break;
         }
+        if (!has_command) {
+            switch (send_sms_status) {
+                case 0:
+                    send_sms_status = 1;
+                    break;
+                case 1:
+                    String temp_to = public_func.get_send_phone_number(request_msg);
+                    Log.d(public_func.log_tag, "receive_handle: " + temp_to);
+                    if (public_func.is_numeric(temp_to)) {
+                        send_to_temp = temp_to;
+                        request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.enter_content);
+                        send_sms_status = 2;
+                    } else {
+                        send_sms_status = -1;
+                        send_slot_temp = -1;
+                        send_to_temp = null;
+                        request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.unable_get_phone_number);
+
+                    }
+                    break;
+                case 2:
+                    if (public_func.get_active_card(context) == 1) {
+                        public_func.send_sms(context, send_to_temp, request_msg, -1, -1);
+                        return;
+                    }
+                    int sub_id = public_func.get_sub_id(context, send_slot_temp);
+                    if (sub_id != -1) {
+                        public_func.send_sms(context, send_to_temp, request_msg, send_slot_temp, sub_id);
+                        send_sms_status = -1;
+                        send_slot_temp = -1;
+                        send_to_temp = null;
+                        return;
+                    }
+                    request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
+                    break;
+            }
+        } else {
+            send_sms_status = -1;
+            send_slot_temp = -1;
+            send_to_temp = null;
+        }
+
         String request_uri = public_func.get_url(bot_token, "sendMessage");
         RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_func.JSON);
         Request send_request = new Request.Builder().url(request_uri).method("POST", body).build();
