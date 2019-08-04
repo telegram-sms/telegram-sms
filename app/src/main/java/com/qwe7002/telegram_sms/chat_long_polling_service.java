@@ -242,6 +242,7 @@ public class chat_long_polling_service extends Service {
                 }
             }
         }
+
         Log.d(public_func.log_tag, "receive_handle: " + command);
         boolean has_command = false;
         switch (command) {
@@ -372,6 +373,7 @@ public class chat_long_polling_service extends Service {
                 request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
                 break;
         }
+
         if (!has_command) {
             switch (send_sms_status) {
                 case 0:

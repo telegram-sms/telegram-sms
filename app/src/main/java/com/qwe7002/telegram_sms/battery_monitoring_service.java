@@ -120,7 +120,11 @@ class battery_receiver extends BroadcastReceiver {
         if (battery_level > 100) {
             battery_level = 100;
         }
-        request_body.text = prebody.append("\n").append(context.getString(R.string.current_battery_level)).append(battery_level).append("%").toString();
+        String battery_charging_string = "";
+        if (action.equals(Intent.ACTION_POWER_CONNECTED)) {
+            battery_charging_string += " (" + context.getString(R.string.charging) + ")";
+        }
+        request_body.text = prebody.append("\n").append(context.getString(R.string.current_battery_level)).append(battery_level).append("%").toString() + battery_charging_string;
 
         if (!public_func.check_network_status(context)) {
             public_func.write_log(context, public_func.network_error);
