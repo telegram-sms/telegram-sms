@@ -41,7 +41,7 @@ import okhttp3.Response;
 
 
 public class chat_long_polling_service extends Service {
-    private static int offset = 0;
+    private static long offset = 0;
     private static int magnification = 1;
     private static int error_magnification = 1;
     private String chat_id;
@@ -171,8 +171,7 @@ public class chat_long_polling_service extends Service {
     }
 
     private void receive_handle(JsonObject result_obj) {
-
-        int update_id = result_obj.get("update_id").getAsInt();
+        long update_id = result_obj.get("update_id").getAsInt();
         offset = update_id + 1;
         final message_json request_body = new message_json();
         request_body.chat_id = chat_id;
