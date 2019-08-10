@@ -173,9 +173,7 @@ public class chat_long_polling_service extends Service {
     private void receive_handle(JsonObject result_obj) {
 
         int update_id = result_obj.get("update_id").getAsInt();
-        if (update_id >= offset) {
-            offset = update_id + 1;
-        }
+        offset = update_id + 1;
         final message_json request_body = new message_json();
         request_body.chat_id = chat_id;
         JsonObject message_obj = null;
