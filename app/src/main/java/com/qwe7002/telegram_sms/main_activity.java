@@ -320,7 +320,7 @@ public class main_activity extends AppCompatActivity {
                         return;
                     }
                     if (!new_bot_token.equals(bot_token_save)) {
-                        public_func.write_file(context, "message.json", "{}");
+                        public_func.write_file(context, "message.json", "{}", Context.MODE_PRIVATE);
                     }
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putString("bot_token", new_bot_token);
