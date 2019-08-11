@@ -28,7 +28,6 @@
     <string name="chat_id_or_token_not_config">ロボットトークンとトークIDを最初に設定してください。</string>
     <string name="unable_get_recent">最近のトーク履歴はありません</string>
     <string name="chat_command">チャットコマンドを取得する</string>
-    <string name="command_format_error">コマンドフォーマットエラー。</string>
     <string name="unknown_command">不明なコマンド、/ helpと入力して使用可能なコマンドの一覧を表示します。</string>
     <string name="current_network_connection_status">ネットワーク状況：</string>
     <string name="battery_monitoring">バッテリー状態の変化を監視する</string>

@@ -27,7 +27,6 @@
     <string name="chat_id_or_token_not_config">请先配置机器人令牌和对话ID</string>
     <string name="unable_get_recent">无法获取最近的聊天记录</string>
     <string name="chat_command">获取聊天命令</string>
-    <string name="command_format_error">命令格式错误。</string>
     <string name="unknown_command">未知的命令，输入 /help 获取可用命令列表。</string>
     <string name="current_network_connection_status">网络状态：</string>
     <string name="battery_monitoring">监控电池状态变动</string>
