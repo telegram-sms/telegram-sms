@@ -13,8 +13,8 @@
     <string name="missed_call_head">不在着信</string>
     <string name="Incoming_number">発信者番号:</string>
     <string name="battery_low">低電力。</string>
-    <string name="charger_connect">"AC充電器が接続されています。"</string>
-    <string name="charger_disconnect">"AC充電器が接続されていません。"</string>
+    <string name="charger_connect">AC充電器が接続されています。</string>
+    <string name="charger_disconnect">AC充電器が接続されていません。</string>
     <string name="bot_token">ロボットトークン</string>
     <string name="chat_id">ダイアログID </string>
     <string name="trusted_phone_number">信頼できる電話番号</string>
