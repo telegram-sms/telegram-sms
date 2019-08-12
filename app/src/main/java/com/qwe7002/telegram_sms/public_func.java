@@ -404,7 +404,7 @@ class public_func {
     static void write_log(Context context, String log) {
         Log.i(public_func.log_tag, log);
         int new_file_mode = Context.MODE_PRIVATE;
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.UK);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z", Locale.UK);
         Date ts = new Date(System.currentTimeMillis());
         String write_string = "\n" + simpleDateFormat.format(ts) + " " + log;
         try {
