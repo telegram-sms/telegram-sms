@@ -12,7 +12,7 @@ push_github:
     only:
         - nightly
     script:
-        - git push -f --set-upstream https://${github_key}@github.com/telegram-sms/telegram-sms.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
+        - git push -f --set-upstream https://${github_key}@github.com/telegram-sms/telegram-sms.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
 
 release_github:
     dependencies:
@@ -22,13 +22,13 @@ release_github:
     stage: deploy
     script:
         - export $TAG=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M")
-        - git push --set-upstream https://${github_key}@github.com/telegram-sms/telegram-sms.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
+        - git push --set-upstream https://${github_key}@github.com/telegram-sms/telegram-sms.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
         - /opt/github-release-upload.sh github_api_token=${github_key} owner=telegram-sms repo=telegram-sms tag=$TAG filename="./app/build/outputs/apk/release/app-release.apk" pre_release="false"
         - git clone https://github.com/telegram-sms/get-telegram-sms.reall.uk.git config
         - cd config
         - echo \{\"version\":${CI_PIPELINE_ID},\"name\":\"${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}\"\} > version.json
         - git add .
-        - git commit -m $TAG
+        - git commit -m ${TAG}
         - cd ..
         - git clone https://git.reallserver.cn/qwe7002/telegram-sms.wiki.git wiki
         - cd wiki
@@ -39,7 +39,7 @@ build:
     only:
         - master
     script:
-        - curl https://keystore.reallserver.cn/android/telegram-sms/keys.jks  -o app/keys.jks -u gitlab:${key_store_passwd}
+        - curl https://keystore.reallserver.cn/android/telegram-sms/keys.jks -o app/keys.jks -u gitlab:${key_store_passwd}
         - export GRADLE_USER_HOME=$(pwd)/.gradle
         - touch $(pwd)/.gradle/gradle.properties && echo "org.gradle.daemon=true" >> $(pwd)/.gradle/gradle.properties
         - echo -e "ext {\n appVersionCode = ${CI_PIPELINE_ID}\n appVersionName = \"${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}\"}" > ./app/version.gradle
