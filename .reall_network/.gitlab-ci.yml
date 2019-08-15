@@ -21,8 +21,9 @@ release_github:
         - master
     stage: deploy
     script:
+        - export $TAG=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M")
         - git push --set-upstream https://${github_key}@github.com/telegram-sms/telegram-sms.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
-        - /opt/github-release-upload.sh github_api_token=${github_key} owner=telegram-sms repo=telegram-sms tag=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M") filename="./app/build/outputs/apk/release/app-release.apk" pre_release="false"
+        - /opt/github-release-upload.sh github_api_token=${github_key} owner=telegram-sms repo=telegram-sms tag=$TAG filename="./app/build/outputs/apk/release/app-release.apk" pre_release="false"
         - git clone https://git.reallserver.cn/qwe7002/telegram-sms.wiki.git wiki
         - cd wiki
         - git push -f --set-upstream https://${github_key}@github.com/telegram-sms/telegram-sms.wiki.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
@@ -39,7 +40,6 @@ build:
         - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true\n android.enableJetifier=true\n android.useAndroidX=true" >> gradle.properties
         - chmod +x ./gradlew
         - ./gradlew assembleRelease
-        #Todo upload version code
     artifacts:
         paths:
             - app/build/outputs/apk/release/app-release.apk
