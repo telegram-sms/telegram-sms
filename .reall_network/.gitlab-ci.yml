@@ -26,7 +26,7 @@ release_github:
         - /opt/github-release-upload.sh github_api_token=${github_key} owner=telegram-sms repo=telegram-sms tag=$TAG filename="./app/build/outputs/apk/release/app-release.apk" pre_release="false"
         - git clone https://github.com/telegram-sms/get-telegram-sms.reall.uk.git config
         - cd config
-        - echo \{\"version\":${CI_PIPELINE_ID},\"name\":\"${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}\"\} > version.json
+        - echo \{\"version\":${CI_PIPELINE_ID},\"name\":\"${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}\"\,\"download_link\":\"https://github.com/telegram-sms/telegram-sms/releases/download/${TAG}/app-release.apk\"} > version.json
         - git add .
         - git commit -m ${TAG}
         - cd ..
