@@ -49,7 +49,6 @@ public class chat_long_polling_service extends Service {
     private Context context;
     private OkHttpClient okhttp_client;
     private stop_broadcast_receiver stop_broadcast_receiver = null;
-    private Boolean wakelock_switch;
     private PowerManager.WakeLock wakelock;
     private WifiManager.WifiLock wifiLock;
     private int send_sms_status = -1;
@@ -79,12 +78,10 @@ public class chat_long_polling_service extends Service {
         wifiLock = ((WifiManager) Objects.requireNonNull(context.getApplicationContext().getSystemService(Context.WIFI_SERVICE))).createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi");
         wifiLock.acquire();
 
-        wakelock_switch = sharedPreferences.getBoolean("wakelock", false);
-        if (wakelock_switch) {
-            wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "bot_command_polling");
-            wakelock.setReferenceCounted(false);
-            wakelock.acquire();
-        }
+        wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "bot_command_polling");
+        wakelock.setReferenceCounted(false);
+        wakelock.acquire();
+
         new Thread(() -> {
             while (true) {
                 start_long_polling();
@@ -96,9 +93,8 @@ public class chat_long_polling_service extends Service {
     @Override
     public void onDestroy() {
         wifiLock.release();
-        if (wakelock_switch) {
-            wakelock.release();
-        }
+        wakelock.release();
+
         unregisterReceiver(stop_broadcast_receiver);
         stopForeground(true);
         super.onDestroy();
