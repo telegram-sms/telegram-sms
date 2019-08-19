@@ -145,7 +145,7 @@ public class main_activity extends AppCompatActivity {
                 Snackbar.make(v, R.string.token_not_configure, Snackbar.LENGTH_LONG).show();
                 return;
             }
-            public_func.stop_all_service(context);
+            new Thread(() -> public_func.stop_all_service(context)).start();
             final ProgressDialog progress_dialog = new ProgressDialog(main_activity.this);
             progress_dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             progress_dialog.setTitle(getString(R.string.get_recent_chat_title));
@@ -336,8 +336,10 @@ public class main_activity extends AppCompatActivity {
                     editor.putBoolean("doh_switch", doh_switch.isChecked());
                     editor.putBoolean("initialized", true);
                     editor.apply();
-                    public_func.stop_all_service(context);
-                    public_func.start_service(context, battery_monitoring_switch.isChecked(), chat_command.isChecked());
+                    new Thread(() -> {
+                        public_func.stop_all_service(context);
+                        public_func.start_service(context, battery_monitoring_switch.isChecked(), chat_command.isChecked());
+                    }).start();
                     Looper.prepare();
                     Snackbar.make(v, R.string.success, Snackbar.LENGTH_LONG)
                             .show();
