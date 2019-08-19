@@ -174,10 +174,9 @@ public class main_activity extends AppCompatActivity {
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    Looper.prepare();
                     progress_dialog.cancel();
-                    Looper.loop();
                     String error_message = error_head + e.getMessage();
+
                     Looper.prepare();
                     Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
                     Looper.loop();
@@ -186,15 +185,14 @@ public class main_activity extends AppCompatActivity {
 
                 @Override
                 public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                    Looper.prepare();
                     progress_dialog.cancel();
-                    Looper.loop();
                     assert response.body() != null;
                     if (response.code() != 200) {
                         String result = Objects.requireNonNull(response.body()).string();
                         JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
                         String error_message = error_head + result_obj.get("description").getAsString();
                         public_func.write_log(context, error_message);
+
                         Looper.prepare();
                         Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
                         Looper.loop();
@@ -204,7 +202,9 @@ public class main_activity extends AppCompatActivity {
                     JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
                     JsonArray chat_list = result_obj.getAsJsonArray("result");
                     if (chat_list.size() == 0) {
+                        Looper.prepare();
                         Snackbar.make(v, R.string.unable_get_recent, Snackbar.LENGTH_LONG).show();
+                        Looper.loop();
                         return;
                     }
                     final ArrayList<String> chat_name_list = new ArrayList<>();
@@ -296,9 +296,7 @@ public class main_activity extends AppCompatActivity {
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    Looper.prepare();
                     progress_dialog.cancel();
-                    Looper.loop();
                     String error_message = error_head + e.getMessage();
                     public_func.write_log(context, error_message);
                     Looper.prepare();
@@ -309,11 +307,8 @@ public class main_activity extends AppCompatActivity {
 
                 @Override
                 public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-
-                    String new_bot_token = bot_token.getText().toString().trim();
-                    Looper.prepare();
                     progress_dialog.cancel();
-                    Looper.loop();
+                    String new_bot_token = bot_token.getText().toString().trim();
                     if (response.code() != 200) {
                         assert response.body() != null;
                         String result = Objects.requireNonNull(response.body()).string();
