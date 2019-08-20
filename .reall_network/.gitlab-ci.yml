@@ -27,6 +27,8 @@ release_github:
         - git clone https://github.com/telegram-sms/get-telegram-sms.reall.uk.git config
         - cd config
         - echo \{\"version\":${CI_PIPELINE_ID},\"name\":\"${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}\"\,\"download_link\":\"https://github.com/telegram-sms/telegram-sms/releases/download/${TAG}/app-release.apk\"} > version.json
+        - git config --global user.email "reall_network@hotmail.com"
+        - git config --global user.name ${CI_RUNNER_DESCRIPTION}
         - git add .
         - git commit -m ${TAG}
         - cd ..
