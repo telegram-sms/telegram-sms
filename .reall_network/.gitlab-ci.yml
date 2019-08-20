@@ -21,7 +21,7 @@ release_github:
         - master
     stage: deploy
     script:
-        - export $TAG=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M")
+        - export TAG=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M")
         - git push --set-upstream https://${github_key}@github.com/telegram-sms/telegram-sms.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
         - /opt/github-release-upload.sh github_api_token=${github_key} owner=telegram-sms repo=telegram-sms tag=$TAG filename="./app/build/outputs/apk/release/app-release.apk" pre_release="false"
         - git clone https://github.com/telegram-sms/get-telegram-sms.reall.uk.git config
