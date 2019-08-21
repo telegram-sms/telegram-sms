@@ -102,6 +102,8 @@ This software uses these open source libraries:
 
 - [Gson](https://github.com/google/gson)
 
+- [CodeauxLib](https://gist.github.com/SumiMakito/59992fd15a865c3b9709b8e2c3bc9cf1)
+
 The birth of this software is inseparable from their help:
 
 - [@SumiMakito](https://github.com/SumiMakito) ([Paypal](https://paypal.me/makito))
@@ -140,7 +142,7 @@ The following organizations for providing image storage for this page:
 
 - [Support me in Paypal](https://paypal.me/nicoranshi)
 
-- Support me in Bitcoin (**17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae**)
+- [Support me in Bitcoin](bitcoin:17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae) (**17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae**)
 
 - [Support me in Cloud QuickPass](https://static.reallct.com/2019/02/21/5c6d812840bac.png)
 
