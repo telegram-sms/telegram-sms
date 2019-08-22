@@ -2,7 +2,7 @@
 
 ![pipeline status](https://badges.git.reallct.com/qwe7002/telegram-sms/badges/master/pipeline.svg)
 ![Min Android Version](https://img.shields.io/badge/Min%20Android%20Version-5.0+-orange.svg)
-[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/qwe7002/telegram-sms/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/telegram-sms/telegram-sms/blob/master/LICENSE)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_shield)
 
 A robot running on your Android device.
@@ -45,10 +45,10 @@ You can set this app as the default SMS app, which will block all SMS notificati
 
 ## User manual
 
-- [English](https://get-tg-sms.reall.uk/get/wiki/User_manual)
-- [简体中文](https://get-tg-sms.reall.uk/get/wiki/用户手册)
-- [繁體中文](https://get-tg-sms.reall.uk/get/wiki/用戶手冊)
-- [日本語](https://get-tg-sms.reall.uk/get/wiki/マニュアル)
+- [English](https://get-telegram-sms.reall.uk/get/wiki/User_manual)
+- [简体中文](https://get-telegram-sms.reall.uk/get/wiki/用户手册)
+- [繁體中文](https://get-telegram-sms.reall.uk/get/wiki/用戶手冊)
+- [日本語](https://get-telegram-sms.reall.uk/get/wiki/マニュアル)
 
 ## License
 
@@ -85,6 +85,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_large)
+
+CodeauxLib is licensed under [BSD 3-Clause License](https://github.com/telegram-sms/telegram-sms/blob/master/codeauxlib-license/LICENSE).
 
 Artworks used in Telegram SMS were created by [@walliant](https://www.pixiv.net/member.php?id=5600144).
 
