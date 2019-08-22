@@ -31,6 +31,7 @@ release_github:
         - git config --global user.name ${CI_RUNNER_DESCRIPTION}
         - git add .
         - git commit -m ${TAG}
+        - git push -f --set-upstream https://${github_key}@github.com/telegram-sms/get-telegram-sms.reall.uk.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
         - cd ..
         - git clone https://git.reallserver.cn/qwe7002/telegram-sms.wiki.git wiki
         - cd wiki
