@@ -63,4 +63,5 @@
     <string name="enter_number">请输入您要发送的号码。</string>
     <string name="enter_content">请输入要发送的消息的内容。</string>
     <string name="unable_get_phone_number">无法获取电话号码。</string>
+    <string name="donate">捐助</string>
 </resources>

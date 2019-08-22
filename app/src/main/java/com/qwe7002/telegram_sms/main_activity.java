@@ -376,7 +376,7 @@ public class main_activity extends AppCompatActivity {
             return true;
         }
 
-        String file_name = "";
+        String file_name = null;
         switch (item.getItemId()) {
             case R.id.user_manual:
                 file_name = context.getString(R.string.user_manual_url);
@@ -385,8 +385,12 @@ public class main_activity extends AppCompatActivity {
                 file_name = context.getString(R.string.privacy_policy_url);
                 break;
         }
-
-        Uri uri = Uri.parse("https://get-telegram-sms.reall.uk/get/wiki/" + file_name);
+        Uri uri;
+        if (file_name != null) {
+            uri = Uri.parse("https://get-telegram-sms.reall.uk/get/wiki/" + file_name);
+        } else {
+            uri = Uri.parse("https://github.com/telegram-sms/telegram-sms/blob/master/README.md#give-a-cup-of-coffee-and-let-me-better-maintain-this-project");
+        }
 
         CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
         builder.setToolbarColor(ContextCompat.getColor(this, R.color.colorPrimary));
