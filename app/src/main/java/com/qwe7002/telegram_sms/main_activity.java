@@ -370,27 +370,24 @@ public class main_activity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.logcat) {
-            Intent logcat_intent = new Intent(main_activity.this, logcat_activity.class);
-            startActivity(logcat_intent);
-            return true;
-        }
-
         String file_name = null;
         switch (item.getItemId()) {
             case R.id.user_manual:
-                file_name = context.getString(R.string.user_manual_url);
+                file_name = "/wiki/" + context.getString(R.string.user_manual_url);
                 break;
             case R.id.privacy_policy:
-                file_name = context.getString(R.string.privacy_policy_url);
+                file_name = "/wiki/" + context.getString(R.string.privacy_policy_url);
                 break;
+            case R.id.logcat:
+                Intent logcat_intent = new Intent(main_activity.this, logcat_activity.class);
+                startActivity(logcat_intent);
+                return true;
+            case R.id.donate:
+                file_name = "/donate";
         }
-        Uri uri;
-        if (file_name != null) {
-            uri = Uri.parse("https://get-telegram-sms.reall.uk/get/wiki/" + file_name);
-        } else {
-            uri = Uri.parse("https://github.com/telegram-sms/telegram-sms/blob/master/README.md#give-a-cup-of-coffee-and-let-me-better-maintain-this-project");
-        }
+
+        Uri uri = Uri.parse("https://get-telegram-sms.reall.uk/get" + file_name);
+
 
         CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
         builder.setToolbarColor(ContextCompat.getColor(this, R.color.colorPrimary));
