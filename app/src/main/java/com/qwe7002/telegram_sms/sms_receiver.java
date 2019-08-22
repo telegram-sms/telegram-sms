@@ -144,14 +144,12 @@ public class sms_receiver extends BroadcastReceiver {
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                assert response.body() != null;
                 if (response.code() != 200) {
-                    assert response.body() != null;
                     String error_message = error_head + response.code() + " " + Objects.requireNonNull(response.body()).string();
                     public_func.write_log(context, error_message);
                     public_func.send_fallback_sms(context, raw_request_body_text, sub);
-                }
-                if (response.code() == 200) {
-                    assert response.body() != null;
+                } else {
                     if (public_func.is_numeric(message_address)) {
                         public_func.add_message_list(context, public_func.get_message_id(Objects.requireNonNull(response.body()).string()), message_address, slot, sub);
                     }
