@@ -287,7 +287,9 @@ class public_func {
                 break;
         }
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
-        sms_manager.sendMultipartTextMessage(sharedPreferences.getString("trusted_phone_number", null), null, divideContents, null, null);
+        String trust_number = sharedPreferences.getString("trusted_phone_number", null);
+        assert trust_number != null;
+        sms_manager.sendMultipartTextMessage(trust_number, null, divideContents, null, null);
 
     }
 
