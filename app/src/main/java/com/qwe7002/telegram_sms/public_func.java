@@ -213,6 +213,10 @@ class public_func {
         return result;
     }
     static void send_sms(Context context, String send_to, String content, int slot, int sub_id) {
+        if (androidx.core.content.PermissionChecker.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PermissionChecker.PERMISSION_GRANTED) {
+            Log.d(log_tag, "send_fallback_sms: No permission.");
+            return;
+        }
         if (!is_numeric(send_to)) {
             write_log(context, "[" + send_to + "] is an illegal phone number");
             return;
