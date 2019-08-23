@@ -90,9 +90,8 @@ class public_func {
         ConnectivityManager manager = (ConnectivityManager) context
                 .getApplicationContext().getSystemService(
                         Context.CONNECTIVITY_SERVICE);
-        if (manager == null) {
-            return false;
-        }
+
+        assert manager != null;
         NetworkInfo networkinfo = manager.getActiveNetworkInfo();
         return networkinfo != null && networkinfo.isConnected();
     }
@@ -127,7 +126,7 @@ class public_func {
         }
     }
 
-    static boolean is_numeric(String str) {
+    static boolean is_phone_number(String str) {
         for (int i = str.length(); --i >= 0; ) {
             char c = str.charAt(i);
             if (c == '+') {
@@ -217,7 +216,7 @@ class public_func {
             Log.d(log_tag, "send_sms: No permission.");
             return;
         }
-        if (!is_numeric(send_to)) {
+        if (!is_phone_number(send_to)) {
             write_log(context, "[" + send_to + "] is an illegal phone number");
             return;
         }
