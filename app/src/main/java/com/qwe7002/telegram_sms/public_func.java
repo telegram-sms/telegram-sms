@@ -214,7 +214,7 @@ class public_func {
     }
     static void send_sms(Context context, String send_to, String content, int slot, int sub_id) {
         if (androidx.core.content.PermissionChecker.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PermissionChecker.PERMISSION_GRANTED) {
-            Log.d(log_tag, "send_fallback_sms: No permission.");
+            Log.d(log_tag, "send_sms: No permission.");
             return;
         }
         if (!is_numeric(send_to)) {
