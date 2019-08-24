@@ -42,10 +42,11 @@ build:
     only:
         - master
     script:
+        - export VERSION_CODE=${CI_PIPELINE_ID}
+        - export VERSION_NAME=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}
         - curl https://keystore.reallserver.cn/android/telegram-sms/keys.jks -o app/keys.jks -u gitlab:${key_store_passwd}
         - export GRADLE_USER_HOME=$(pwd)/.gradle
         - touch $(pwd)/.gradle/gradle.properties && echo "org.gradle.daemon=true" >> $(pwd)/.gradle/gradle.properties
-        - echo -e "ext {\n appVersionCode = ${CI_PIPELINE_ID}\n appVersionName = \"${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}\"}" > ./app/version.gradle
         - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true\n android.enableJetifier=true\n android.useAndroidX=true" >> gradle.properties
         - chmod +x ./gradlew
         - ./gradlew assembleRelease
