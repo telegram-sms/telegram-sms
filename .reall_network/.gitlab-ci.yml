@@ -39,8 +39,6 @@ release_github:
 build:
     image: preventis/docker-android-alpine:latest
     stage: build
-    only:
-        - master
     script:
         - export VERSION_CODE=${CI_PIPELINE_ID}
         - export VERSION_NAME=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}
