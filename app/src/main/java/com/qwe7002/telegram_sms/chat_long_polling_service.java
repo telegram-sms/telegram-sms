@@ -305,7 +305,7 @@ public class chat_long_polling_service extends Service {
                 String[] msg_send_list = request_msg.split("\n");
                 if (msg_send_list.length > 2) {
                     String msg_send_to = public_func.get_send_phone_number(msg_send_list[1]);
-                    if (public_func.is_numeric(msg_send_to)) {
+                    if (public_func.is_phone_number(msg_send_to)) {
                         StringBuilder msg_send_content = new StringBuilder();
                         for (int i = 2; i < msg_send_list.length; i++) {
                             if (msg_send_list.length != 3 && i != 2) {
@@ -373,7 +373,7 @@ public class chat_long_polling_service extends Service {
                 case 1:
                     String temp_to = public_func.get_send_phone_number(request_msg);
                     Log.d(public_func.log_tag, "receive_handle: " + temp_to);
-                    if (public_func.is_numeric(temp_to)) {
+                    if (public_func.is_phone_number(temp_to)) {
                         send_to_temp = temp_to;
                         request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.enter_content);
                         send_sms_status = 2;

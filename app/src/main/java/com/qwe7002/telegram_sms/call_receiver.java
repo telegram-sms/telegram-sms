@@ -45,6 +45,7 @@ public class call_receiver extends BroadcastReceiver {
                 break;
             case "android.intent.action.SUBSCRIPTION_PHONE_STATE":
                 slot = intent.getIntExtra("slot", -1);
+                break;
 
         }
     }
@@ -102,13 +103,11 @@ class call_state_listener extends PhoneStateListener {
 
                 @Override
                 public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    assert response.body() != null;
                     if (response.code() != 200) {
-                        assert response.body() != null;
                         String error_message = error_head + response.code() + " " + Objects.requireNonNull(response.body()).string();
                         public_func.write_log(context, error_message);
-                    }
-                    if (response.code() == 200) {
-                        assert response.body() != null;
+                    } else {
                         String result = Objects.requireNonNull(response.body()).string();
                         JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject().get("result").getAsJsonObject();
                         String message_id = result_obj.get("message_id").getAsString();

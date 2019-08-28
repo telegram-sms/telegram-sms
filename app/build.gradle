@@ -1,7 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
-apply from: 'version.gradle'
 android {
     compileSdkVersion 29
 
@@ -9,8 +8,8 @@ android {
         applicationId "com.qwe7002.telegram_sms"
         minSdkVersion 22
         targetSdkVersion 29
-        versionCode appVersionCode
-        versionName appVersionName
+        versionCode System.getenv("VERSION_CODE") == null ? 1 : System.getenv("VERSION_CODE").toInteger()
+        versionName System.getenv("VERSION_NAME") == null ? "debug-Do_not_leak" : System.getenv("VERSION_NAME")
     }
 
     compileOptions {
