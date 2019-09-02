@@ -429,19 +429,6 @@ class public_func {
         return result;
     }
 
-    static void add_message_list(Context context, String message_id, String phone, int slot, int sub_id) {
-        String message_list_raw = public_func.read_file(context, "message.json");
-        if (message_list_raw.length() == 0) {
-            message_list_raw = "{}";
-        }
-        JsonObject message_list_obj = new JsonParser().parse(message_list_raw).getAsJsonObject();
-        JsonObject object = new JsonObject();
-        object.addProperty("phone", phone);
-        object.addProperty("card", slot);
-        object.addProperty("sub_id", sub_id);
-        message_list_obj.add(message_id, object);
-        public_func.write_file(context, "message.json", new Gson().toJson(message_list_obj), Context.MODE_PRIVATE);
-    }
 
     @SuppressWarnings("WeakerAccess")
     static String read_file_last_line(Context context, String file, int line) {
@@ -470,6 +457,7 @@ class public_func {
         }
 
     }
+
     static void write_file(Context context, String file_name, String write_string, int mode) {
         try {
             FileOutputStream file_stream = context.openFileOutput(file_name, mode);
@@ -494,6 +482,20 @@ class public_func {
             e.printStackTrace();
         }
         return result;
+    }
+
+    static void add_message_list(Context context, String message_id, String phone, int slot, int sub_id) {
+        String message_list_raw = public_func.read_file(context, "message.json");
+        if (message_list_raw.length() == 0) {
+            message_list_raw = "{}";
+        }
+        JsonObject message_list_obj = new JsonParser().parse(message_list_raw).getAsJsonObject();
+        JsonObject object = new JsonObject();
+        object.addProperty("phone", phone);
+        object.addProperty("card", slot);
+        object.addProperty("sub_id", sub_id);
+        message_list_obj.add(message_id, object);
+        public_func.write_file(context, "message.json", new Gson().toJson(message_list_obj), Context.MODE_PRIVATE);
     }
 
     static String get_verification_code(String body) {

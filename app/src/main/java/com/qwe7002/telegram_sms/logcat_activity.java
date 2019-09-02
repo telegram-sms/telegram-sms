@@ -15,7 +15,7 @@ public class logcat_activity extends AppCompatActivity {
     private Context context;
     private file_observer observer;
     private TextView logcat;
-    final int line = 100;
+    private final int line = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +67,7 @@ public class logcat_activity extends AppCompatActivity {
 
         @Override
         public void onEvent(int event, String path) {
-            if (event == FileObserver.MODIFY) {
+            if (event == FileObserver.MODIFY && path.contains("error.log")) {
                 runOnUiThread(() -> logcat.setText(public_func.read_log(context, line)));
             }
         }
