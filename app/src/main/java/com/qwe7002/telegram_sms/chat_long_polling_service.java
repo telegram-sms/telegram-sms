@@ -25,10 +25,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -271,32 +268,7 @@ public class chat_long_polling_service extends Service {
                 has_command = true;
                 break;
             case "/log":
-                String result = "\n" + getString(R.string.no_logs);
-                try {
-                    FileInputStream file_stream = context.openFileInput("error.log");
-                    FileChannel channel = file_stream.getChannel();
-                    ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-                    buffer.position((int) channel.size());
-                    int count = 0;
-                    StringBuilder builder = new StringBuilder();
-                    for (long i = channel.size() - 1; i >= 0; i--) {
-                        char c = (char) buffer.get((int) i);
-                        builder.insert(0, c);
-                        if (c == '\n') {
-                            if (count == 9) {
-                                break;
-                            }
-                            count++;
-                        }
-                    }
-                    channel.close();
-                    if (!builder.toString().isEmpty()) {
-                        result = builder.toString();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                request_body.text = getString(R.string.system_message_head) + result;
+                request_body.text = getString(R.string.system_message_head) + public_func.read_log(context, 10);
                 has_command = true;
                 break;
             case "/sendsms":

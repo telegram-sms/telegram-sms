@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.PowerManager;
@@ -108,9 +109,8 @@ public class main_activity extends AppCompatActivity {
             int checkPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE);
             if (checkPermission != PackageManager.PERMISSION_GRANTED) {
                 display_dual_sim_display_name.setChecked(false);
-                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_PHONE_STATE}, 2);
-            }
-            if (checkPermission == PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
+            } else {
                 if (public_func.get_active_card(context) < 2) {
                     display_dual_sim_display_name.setEnabled(false);
                     display_dual_sim_display_name.setChecked(false);
@@ -138,7 +138,7 @@ public class main_activity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
             }
         });
-        battery_monitoring_switch.setOnClickListener(v -> charger_status.setEnabled(battery_monitoring_switch.isChecked()));
+
 
         get_id.setOnClickListener(v -> {
             if (bot_token.getText().toString().isEmpty()) {
@@ -351,9 +351,8 @@ public class main_activity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == 2) {
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                 if (public_func.get_active_card(context) < 2) {
                     display_dual_sim_display_name.setEnabled(false);
                     display_dual_sim_display_name.setChecked(false);
@@ -361,6 +360,7 @@ public class main_activity extends AppCompatActivity {
             }
         }
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -384,11 +384,10 @@ public class main_activity extends AppCompatActivity {
                 return true;
             case R.id.donate:
                 file_name = "/donate";
+                break;
         }
-
+        assert file_name != null;
         Uri uri = Uri.parse("https://get-telegram-sms.reall.uk/get" + file_name);
-
-
         CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
         builder.setToolbarColor(ContextCompat.getColor(this, R.color.colorPrimary));
         CustomTabsIntent customTabsIntent = builder.build();

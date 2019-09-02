@@ -34,6 +34,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -411,25 +413,20 @@ class public_func {
 
     static void write_log(Context context, String log) {
         Log.i(public_func.log_tag, log);
-        int new_file_mode = Context.MODE_PRIVATE;
+        int new_file_mode = Context.MODE_APPEND;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z", Locale.UK);
         Date ts = new Date(System.currentTimeMillis());
         String write_string = "\n" + simpleDateFormat.format(ts) + " " + log;
-        try {
-            FileInputStream file_stream = context.openFileInput("error.log");
-            if (file_stream.available() <= 1048576) {
-                new_file_mode = Context.MODE_APPEND;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            write_string = "\n" + simpleDateFormat.format(ts) + " Create a new log file." + write_string;
-        }
-
         write_file(context, "error.log", write_string, new_file_mode);
     }
 
-    static String read_log(Context context) {
-        return read_file(context, "error.log");
+    static String read_log(Context context, int line) {
+        String result = "\n" + context.getString(R.string.no_logs);
+        String log_content = public_func.read_file_last_line(context, "error.log", line);
+        if (!log_content.isEmpty()) {
+            result = log_content;
+        }
+        return result;
     }
 
     static void add_message_list(Context context, String message_id, String phone, int slot, int sub_id) {
@@ -446,7 +443,33 @@ class public_func {
         public_func.write_file(context, "message.json", new Gson().toJson(message_list_obj), Context.MODE_PRIVATE);
     }
 
+    @SuppressWarnings("WeakerAccess")
+    static String read_file_last_line(Context context, String file, int line) {
+        StringBuilder builder = new StringBuilder();
+        try {
+            FileInputStream file_stream = context.openFileInput(file);
+            FileChannel channel = file_stream.getChannel();
+            ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+            buffer.position((int) channel.size());
+            int count = 0;
+            for (long i = channel.size() - 1; i >= 0; i--) {
+                char c = (char) buffer.get((int) i);
+                builder.insert(0, c);
+                if (c == '\n') {
+                    if (count == (line - 1)) {
+                        break;
+                    }
+                    count++;
+                }
+            }
+            channel.close();
+            return builder.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "";
+        }
 
+    }
     static void write_file(Context context, String file_name, String write_string, int mode) {
         try {
             FileOutputStream file_stream = context.openFileOutput(file_name, mode);
