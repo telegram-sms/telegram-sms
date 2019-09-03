@@ -354,10 +354,10 @@ public class chat_long_polling_service extends Service {
                         send_slot_temp = -1;
                         send_to_temp = null;
                         request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.unable_get_phone_number);
-
                     }
                     break;
                 case 2:
+                    assert send_to_temp != null;
                     if (public_func.get_active_card(context) == 1) {
                         public_func.send_sms(context, send_to_temp, request_msg, -1, -1);
                         return;
