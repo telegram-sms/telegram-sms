@@ -13,9 +13,9 @@ Please visit [https://reall.uk](https://reall.uk) to submit and discuss issues r
 
 You can follow the Telegram channel [Telegram SMS 更新日志 (tg_sms_changelog)](https://t.me/tg_sms_changelog) for the latest news. (Simplified Chinese only)
 
-[Release Download](https://github.com/qwe7002/telegram-sms/releases)
+[Release Download](https://github.com/telegram-sms/telegram-sms/releases)
 
-Android 5.0 or lower? [Click here](https://github.com/qwe7002/telegram-sms-compat) to download the latest and greatest.
+Android 5.0 or lower? [Click here](https://github.com/telegram-sms/telegram-sms-compat) to download the latest and greatest.
 
 **No warranty expressed or implied. Use at your own risk. You have been warned.**
 
@@ -41,10 +41,10 @@ You can set this app as the default SMS app, which will prevent SMS notification
 
 ## User manual
 
-- [English](https://get-telegram-sms.reall.uk/get/wiki/User_manual)
-- [简体中文](https://get-telegram-sms.reall.uk/get/wiki/用户手册)
-- [繁體中文](https://get-telegram-sms.reall.uk/get/wiki/用戶手冊)
-- [日本語](https://get-telegram-sms.reall.uk/get/wiki/マニュアル)
+- [English](https://get-telegram-sms.reall.uk/wiki/User_manual)
+- [简体中文](https://get-telegram-sms.reall.uk/wiki/用户手册)
+- [繁體中文](https://get-telegram-sms.reall.uk/wiki/用戶手冊)
+- [日本語](https://get-telegram-sms.reall.uk/wiki/マニュアル)
 
 ## License
 
@@ -121,8 +121,10 @@ And finally, [sm.ms](https://sm.ms) for hosting images used in this page.
 
 ## Buy me a cup of coffee to help maintain this project further?
 
+- [via Patreon](https://www.patreon.com/user?u=16899295)
 - [via Paypal](https://paypal.me/nicoranshi)
 - [via Bitcoin](bitcoin:17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae) (**17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae**)
-- [via Cloud QuickPass](https://static.reallct.com/2019/02/21/5c6d812840bac.png)
+- [via UnionPay(中国银联云闪付)](https://get-telegram-sms.reall.uk/donate/unionpay)
+- [via Alipay(支付宝)](https://get-telegram-sms.reall.uk/donate/alipay)
 
 Your donation will make me work better for this project.
