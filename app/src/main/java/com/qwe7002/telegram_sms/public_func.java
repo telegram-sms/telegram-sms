@@ -88,6 +88,7 @@ class public_func {
         return dual_sim;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     static boolean check_network_status(Context context) {
         ConnectivityManager manager = (ConnectivityManager) context
                 .getApplicationContext().getSystemService(
@@ -279,13 +280,10 @@ class public_func {
             return;
         }
         android.telephony.SmsManager sms_manager;
-        switch (sub_id) {
-            case -1:
-                sms_manager = android.telephony.SmsManager.getDefault();
-                break;
-            default:
-                sms_manager = android.telephony.SmsManager.getSmsManagerForSubscriptionId(sub_id);
-                break;
+        if (sub_id == -1) {
+            sms_manager = SmsManager.getDefault();
+        } else {
+            sms_manager = SmsManager.getSmsManagerForSubscriptionId(sub_id);
         }
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
         String trust_number = sharedPreferences.getString("trusted_phone_number", null);
@@ -300,35 +298,24 @@ class public_func {
     }
 
     static Notification get_notification_obj(Context context, String notification_name) {
-        Notification notification;
+        Notification.Builder notification;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(notification_name, public_func.log_tag,
                     NotificationManager.IMPORTANCE_MIN);
             NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             assert manager != null;
             manager.createNotificationChannel(channel);
-            notification = new Notification.Builder(context, notification_name)
-                    .setAutoCancel(false)
-                    .setSmallIcon(R.drawable.ic_stat)
-                    .setOngoing(true)
-                    .setTicker(context.getString(R.string.app_name))
-                    .setWhen(System.currentTimeMillis())
-                    .setContentTitle(context.getString(R.string.app_name))
-                    .setContentText(notification_name + context.getString(R.string.service_is_running))
-                    .build();
+            notification = new Notification.Builder(context, notification_name);
         } else {//Notification generation method after O
-            notification = new Notification.Builder(context)
-                    .setAutoCancel(false)
-                    .setSmallIcon(R.drawable.ic_stat)
-                    .setOngoing(true)
-                    .setTicker(context.getString(R.string.app_name))
-                    .setWhen(System.currentTimeMillis())
-                    .setContentTitle(context.getString(R.string.app_name))
-                    .setContentText(notification_name + context.getString(R.string.service_is_running))
-                    .setPriority(Notification.PRIORITY_MIN)
-                    .build();
+            notification = new Notification.Builder(context).setPriority(Notification.PRIORITY_MIN);
         }
-        return notification;
+        notification.setAutoCancel(false)
+                .setSmallIcon(R.drawable.ic_stat)
+                .setOngoing(true)
+                .setTicker(context.getString(R.string.app_name))
+                .setContentTitle(context.getString(R.string.app_name))
+                .setContentText(notification_name + context.getString(R.string.service_is_running));
+        return notification.build();
     }
 
     static void stop_all_service(Context context) {
@@ -431,7 +418,7 @@ class public_func {
 
 
     @SuppressWarnings("WeakerAccess")
-    static String read_file_last_line(Context context, String file, int line) {
+    static String read_file_last_line(Context context, @SuppressWarnings("SameParameterValue") String file, int line) {
         StringBuilder builder = new StringBuilder();
         try {
             FileInputStream file_stream = context.openFileInput(file);
@@ -469,12 +456,13 @@ class public_func {
         }
     }
 
-    static String read_file(Context context, String file_name) {
+    static String read_file(Context context, @SuppressWarnings("SameParameterValue") String file_name) {
         String result = "";
         try {
             FileInputStream file_stream = context.openFileInput(file_name);
             int length = file_stream.available();
             byte[] buffer = new byte[length];
+            //noinspection ResultOfMethodCallIgnored
             file_stream.read(buffer);
             result = new String(buffer, StandardCharsets.UTF_8);
             file_stream.close();

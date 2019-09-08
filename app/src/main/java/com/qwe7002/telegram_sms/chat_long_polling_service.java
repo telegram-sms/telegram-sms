@@ -77,7 +77,9 @@ public class chat_long_polling_service extends Service {
 
         wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "bot_command_polling");
         wakelock.setReferenceCounted(false);
-        wakelock.acquire();
+        if (!wakelock.isHeld()) {
+            wakelock.acquire();
+        }
 
         new Thread(() -> {
             while (true) {
@@ -306,26 +308,22 @@ public class chat_long_polling_service extends Service {
                         }
                         request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
                     }
-
-                }
-                has_command = true;
-                if (msg_send_list.length == 1) {
+                    has_command = true;
+                } else {
                     send_sms_status = 0;
                     send_slot_temp = -1;
-                    request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.enter_number);
+                    if (public_func.get_active_card(context) > 1) {
+                        switch (command) {
+                            case "/sendsms":
+                            case "/sendsms1":
+                                send_slot_temp = 0;
+                                break;
+                            case "/sendsms2":
+                                send_slot_temp = 1;
+                                break;
+                        }
+                    }
                     has_command = false;
-                    if (public_func.get_active_card(context) == 1) {
-                        break;
-                    }
-                    switch (command) {
-                        case "/sendsms":
-                        case "/sendsms1":
-                            send_slot_temp = 0;
-                            break;
-                        case "/sendsms2":
-                            send_slot_temp = 1;
-                            break;
-                    }
                 }
                 break;
             default:
@@ -341,6 +339,8 @@ public class chat_long_polling_service extends Service {
             switch (send_sms_status) {
                 case 0:
                     send_sms_status = 1;
+                    request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.enter_number);
+                    Log.i(public_func.log_tag, "receive_handle: Enter the interactive SMS sending mode.");
                     break;
                 case 1:
                     String temp_to = public_func.get_send_phone_number(request_msg);
