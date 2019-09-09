@@ -65,4 +65,5 @@
     <string name="enter_content">Please enter the content of the message to be sent.</string>
     <string name="unable_get_phone_number">Unable to get phone number.</string>
     <string name="donate">Donate</string>
+    <string name="not_charging">Not charging</string>
 </resources>

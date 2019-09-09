@@ -64,4 +64,5 @@
     <string name="enter_content">送信するメッセージの内容を入力してください。</string>
     <string name="unable_get_phone_number">電話番号を取得できません。</string>
     <string name="donate">寄付する</string>
+    <string name="not_charging" >充電していません</string>
 </resources>

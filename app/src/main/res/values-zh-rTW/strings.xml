@@ -64,4 +64,5 @@
     <string name="enter_content">請輸入要發送的消息的內容。</string>
     <string name="unable_get_phone_number">無法獲取電話號碼。</string>
     <string name="donate">捐助</string>
+    <string name="not_charging" >不在充電</string>
 </resources>

@@ -64,4 +64,5 @@
     <string name="enter_content">请输入要发送的消息的内容。</string>
     <string name="unable_get_phone_number">无法获取电话号码。</string>
     <string name="donate">捐助</string>
+    <string name="not_charging" >不在充电</string>
 </resources>

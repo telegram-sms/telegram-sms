@@ -257,17 +257,7 @@ public class chat_long_polling_service extends Service {
                         card_info = "\nSIM1:" + public_func.get_sim_display_name(context, 0) + "\nSIM2:" + public_func.get_sim_display_name(context, 1);
                     }
                 }
-                BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
-                assert batteryManager != null;
-                int battery_level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
-                if (battery_level > 100) {
-                    battery_level = 100;
-                }
-                String battery_level_string = battery_level + "%";
-                if (public_func.is_charging(context)) {
-                    battery_level_string += " (" + context.getString(R.string.charging) + ")";
-                }
-                request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + battery_level_string + "\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
+                request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + get_battery_info(context) + "\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
                 has_command = true;
                 break;
             case "/log":
@@ -401,6 +391,34 @@ public class chat_long_polling_service extends Service {
                 }
             }
         });
+    }
+
+    private String get_battery_info(Context context) {
+        BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
+        assert batteryManager != null;
+        int battery_level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+        if (battery_level > 100) {
+            battery_level = 100;
+        }
+        String battery_level_string = battery_level + "%";
+        IntentFilter intentfilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        Intent batteryStatus = context.registerReceiver(null, intentfilter);
+        assert batteryStatus != null;
+        int charge_status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+        switch (charge_status) {
+            case BatteryManager.BATTERY_STATUS_CHARGING:
+            case BatteryManager.BATTERY_STATUS_FULL:
+                battery_level_string += " (" + context.getString(R.string.charging) + ")";
+                break;
+            case BatteryManager.BATTERY_STATUS_DISCHARGING:
+            case BatteryManager.BATTERY_STATUS_NOT_CHARGING:
+                int plug_status = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
+                if (plug_status == BatteryManager.BATTERY_PLUGGED_AC || plug_status == BatteryManager.BATTERY_PLUGGED_USB || plug_status == BatteryManager.BATTERY_PLUGGED_WIRELESS) {
+                    battery_level_string += " (" + getString(R.string.not_charging) + ")";
+                }
+                break;
+        }
+        return battery_level_string;
     }
 
     class stop_broadcast_receiver extends BroadcastReceiver {
