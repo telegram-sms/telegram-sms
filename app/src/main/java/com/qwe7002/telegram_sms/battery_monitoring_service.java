@@ -102,16 +102,16 @@ class battery_receiver extends BroadcastReceiver {
         BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
         switch (Objects.requireNonNull(action)) {
             case Intent.ACTION_BATTERY_OKAY:
-                prebody = prebody.append(context.getString(R.string.low_battery_status_end));
+                prebody.append(context.getString(R.string.low_battery_status_end));
                 break;
             case Intent.ACTION_BATTERY_LOW:
-                prebody = prebody.append(context.getString(R.string.battery_low));
+                prebody.append(context.getString(R.string.battery_low));
                 break;
             case Intent.ACTION_POWER_CONNECTED:
-                prebody = prebody.append(context.getString(R.string.charger_connect));
+                prebody.append(context.getString(R.string.charger_connect));
                 break;
             case Intent.ACTION_POWER_DISCONNECTED:
-                prebody = prebody.append(context.getString(R.string.charger_disconnect));
+                prebody.append(context.getString(R.string.charger_disconnect));
                 break;
         }
         assert batteryManager != null;

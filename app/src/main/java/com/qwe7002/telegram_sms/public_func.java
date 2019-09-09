@@ -83,8 +83,8 @@ class public_func {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     static boolean check_network_status(Context context) {
         ConnectivityManager manager = (ConnectivityManager) context
-                .getApplicationContext().getSystemService(
-                        Context.CONNECTIVITY_SERVICE);
+                .getApplicationContext()
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
 
         assert manager != null;
         NetworkInfo networkinfo = manager.getActiveNetworkInfo();
@@ -116,7 +116,6 @@ class public_func {
             return InetAddress.getByName(host);
         } catch (UnknownHostException e) {
             e.printStackTrace();
-            // unlikely
             throw new RuntimeException(e);
         }
     }
@@ -125,7 +124,7 @@ class public_func {
         for (int i = str.length(); --i >= 0; ) {
             char c = str.charAt(i);
             if (c == '+') {
-                continue; //Allowed characters +
+                continue;
             }
             if (!Character.isDigit(c)) {
                 return false;
