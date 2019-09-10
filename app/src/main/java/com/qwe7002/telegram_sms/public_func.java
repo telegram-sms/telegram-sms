@@ -13,7 +13,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.BatteryManager;
 import android.os.Build;
 import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
