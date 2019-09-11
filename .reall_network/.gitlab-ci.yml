@@ -22,7 +22,7 @@ release_github:
     stage: deploy
     script:
         - curl https://keystore.reallserver.cn/gitlab-sshkey/telegram-sms-github_key.env -o .reall_network/telegram-sms-github_key.env -u gitlab:${key_store_passwd}
-        - source .reall_network/telegram-sms-github_key.env
+        - . .reall_network/telegram-sms-github_key.env
         - export TAG=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M")
         - git push --set-upstream https://${github_key}@github.com/telegram-sms/telegram-sms.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
         - /opt/github-release-upload.sh github_api_token=${github_key} owner=telegram-sms repo=telegram-sms tag=$TAG filename="./app/build/outputs/apk/release/app-release.apk" pre_release="false"
@@ -46,7 +46,7 @@ build:
         - export VERSION_NAME=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}
         - curl https://keystore.reallserver.cn/android/telegram-sms/keys.jks -o app/keys.jks -u gitlab:${key_store_passwd}
         - curl https://keystore.reallserver.cn/android/telegram-sms/keystore.env -o .reall_network/keystore.env -u gitlab:${key_store_passwd}
-        - source .reall_network/keystore.env
+        - . .reall_network/keystore.env
         - export GRADLE_USER_HOME=$(pwd)/.gradle
         - touch $(pwd)/.gradle/gradle.properties && echo "org.gradle.daemon=true" >> $(pwd)/.gradle/gradle.properties
         - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true\n android.enableJetifier=true\n android.useAndroidX=true" >> gradle.properties
