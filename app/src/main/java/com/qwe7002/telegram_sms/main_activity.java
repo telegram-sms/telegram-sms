@@ -138,6 +138,7 @@ public class main_activity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
             }
         });
+        battery_monitoring_switch.setOnClickListener(v -> charger_status.setEnabled(battery_monitoring_switch.isChecked()));
 
 
         get_id.setOnClickListener(v -> {
