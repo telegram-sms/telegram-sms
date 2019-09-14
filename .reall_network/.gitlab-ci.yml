@@ -57,7 +57,7 @@ build:
         - . /tmp/keystore.env
         - export GRADLE_USER_HOME=$(pwd)/.gradle
         - touch $(pwd)/.gradle/gradle.properties && echo "org.gradle.daemon=true" >> $(pwd)/.gradle/gradle.properties
-        - echo -e "systemProp.http.nonProxyHosts=dl.google.com\n systemProp.http.proxyHost=192.168.3.8\n systemProp.http.proxyPort=1080\n systemProp.https.proxyHost=192.168.3.8\n systemProp.https.proxyPort=1080\n org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true\n android.enableJetifier=true\n android.useAndroidX=true" >> gradle.properties
+        - echo -e "org.gradle.jvmargs=-Xmx1536m -DsocksProxyHost=proxy.reallserver.cn -DsocksProxyPort=1086 -DsocksNonProxyHosts=dl.google.com\n org.gradle.parallel=true\n android.enableJetifier=true\n android.useAndroidX=true" >> gradle.properties
         - chmod +x ./gradlew
         - ./gradlew assembleRelease
     artifacts:
