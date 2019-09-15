@@ -25,6 +25,8 @@ release_github:
         - master
     stage: deploy
     script:
+        - git config --global user.email "reall_network@hotmail.com"
+        - git config --global user.name ${CI_RUNNER_DESCRIPTION}
         - eval $(ssh-agent -s)
         - curl https://keystore.reallserver.cn/gitlab-sshkey/id_ecdsa -o deploy.key -u gitlab:${key_store_passwd}
         - chmod 0600 deploy.key
@@ -37,8 +39,6 @@ release_github:
         - git clone git@github.com:telegram-sms/get-telegram-sms.reall.uk.git config
         - cd config
         - echo \{\"version\":${CI_PIPELINE_ID},\"name\":\"${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}\"\,\"download_link\":\"https://github.com/telegram-sms/telegram-sms/releases/download/${TAG}/app-release.apk\"} > version.json
-        - git config --global user.email "reall_network@hotmail.com"
-        - git config --global user.name ${CI_RUNNER_DESCRIPTION}
         - git add .
         - git commit -m ${TAG}
         - git push -f HEAD:refs/heads/$CI_COMMIT_REF_NAME
