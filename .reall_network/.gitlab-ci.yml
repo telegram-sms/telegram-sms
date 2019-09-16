@@ -12,8 +12,8 @@ push_github:
     only:
         - nightly
     script:
-        - eval $(ssh-agent -s)
         - curl https://keystore.reallserver.cn/gitlab-sshkey/id_ecdsa -o deploy.key -u gitlab:${key_store_passwd}
+        - eval $(ssh-agent -s)
         - chmod 0600 deploy.key
         - ssh-add deploy.key
         - git push -f --set-upstream git@github.com:telegram-sms/telegram-sms.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
@@ -25,14 +25,14 @@ release_github:
         - master
     stage: deploy
     script:
+        - curl https://keystore.reallserver.cn/gitlab-sshkey/id_ecdsa -o deploy.key -u gitlab:${key_store_passwd}
+        - curl https://keystore.reallserver.cn/gitlab-sshkey/github-key.env -o /tmp/github-key.env -u gitlab:${key_store_passwd}
         - git config --global user.email "reall_network@hotmail.com"
         - git config --global user.name ${CI_RUNNER_DESCRIPTION}
         - eval $(ssh-agent -s)
-        - curl https://keystore.reallserver.cn/gitlab-sshkey/id_ecdsa -o deploy.key -u gitlab:${key_store_passwd}
         - chmod 0600 deploy.key
         - ssh-add deploy.key
         - git push --set-upstream git@github.com:telegram-sms/telegram-sms.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
-        - curl https://keystore.reallserver.cn/gitlab-sshkey/github-key.env -o /tmp/github-key.env -u gitlab:${key_store_passwd}
         - . /tmp/github—key.env
         - export TAG=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M")
         - /opt/github-release-upload.sh github_api_token=${GITHUB_ACCESS_KEY} owner=telegram-sms repo=telegram-sms tag=$TAG filename="./app/build/outputs/apk/release/app-release.apk" pre_release="false"

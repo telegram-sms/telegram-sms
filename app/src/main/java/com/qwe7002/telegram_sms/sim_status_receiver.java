@@ -60,8 +60,7 @@ public class sim_status_receiver extends BroadcastReceiver {
                 break;
             default:
                 Log.d("sim_status", "onReceive: " + state);
-                message += context.getString(R.string.sim_card_error);
-                break;
+                return;
         }
         message_json request_body = new message_json();
         request_body.chat_id = chat_id;
