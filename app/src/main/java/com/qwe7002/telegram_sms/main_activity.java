@@ -384,7 +384,7 @@ public class main_activity extends AppCompatActivity {
                 startActivity(logcat_intent);
                 return true;
             case R.id.donate:
-                file_name = "donate";
+                file_name = "/donate";
                 break;
         }
         assert file_name != null;
