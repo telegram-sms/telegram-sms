@@ -260,10 +260,10 @@ public class main_activity extends AppCompatActivity {
                 return;
             }
 
-            ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG}, 1);
-
-            PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG}, 1);
+
+                PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
                 assert powerManager != null;
                 boolean has_ignored = powerManager.isIgnoringBatteryOptimizations(getPackageName());
                 if (!has_ignored) {
@@ -384,7 +384,7 @@ public class main_activity extends AppCompatActivity {
                 startActivity(logcat_intent);
                 return true;
             case R.id.donate:
-                file_name = "/donate";
+                file_name = "donate";
                 break;
         }
         assert file_name != null;
