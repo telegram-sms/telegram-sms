@@ -84,12 +84,12 @@ public class sms_receiver extends BroadcastReceiver {
         for (SmsMessage item : messages) {
             message_body.append(item.getMessageBody());
         }
-        String message_address = messages[0].getOriginatingAddress();
-
-        final message_json request_body = new message_json();
-        request_body.chat_id = chat_id;
+        final String message_address = messages[0].getOriginatingAddress();
         assert message_address != null;
         final boolean trust_phone = message_address.contains(sharedPreferences.getString("trusted_phone_number", "trusted_phone_is_none"));
+        final message_json request_body = new message_json();
+        request_body.chat_id = chat_id;
+
         String message_body_html = message_body.toString();
         if (sharedPreferences.getBoolean("verification_code", false) && !trust_phone) {
             String verification = public_func.get_verification_code(message_body.toString());
