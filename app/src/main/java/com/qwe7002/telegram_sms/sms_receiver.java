@@ -88,15 +88,33 @@ public class sms_receiver extends BroadcastReceiver {
 
         final message_json request_body = new message_json();
         request_body.chat_id = chat_id;
-        request_body.text = "[" + dual_sim + context.getString(R.string.receive_sms_head) + "]" + "\n" + context.getString(R.string.from) + message_address + "\n" + context.getString(R.string.content) + message_body;
         assert message_address != null;
+        final boolean trust_phone = message_address.contains(sharedPreferences.getString("trusted_phone_number", "trusted_phone_is_none"));
+        String message_body_html = message_body.toString();
+        if (sharedPreferences.getBoolean("verification_code", false) && !trust_phone) {
+            String verification = public_func.get_verification_code(message_body.toString());
+            if (verification != null) {
+                request_body.parse_mode = "html";
+                message_body_html = message_body.toString()
+                        .replace("<", "&lt;")
+                        .replace(">", "&gt;")
+                        .replace("&", "&amp;")
+                        .replace(verification, "<code>" + verification + "</code>");
+            }
+        }
+        String message_head = "[" + dual_sim + context.getString(R.string.receive_sms_head) + "]" + "\n" + context.getString(R.string.from) + message_address + "\n" + context.getString(R.string.content);
+        String raw_request_body_text = message_head + message_body;
+        request_body.text = message_head + message_body_html;
+
         if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-            if (message_address.equals(sharedPreferences.getString("trusted_phone_number", null))) {
+            if (trust_phone) {
                 String[] msg_send_list = message_body.toString().split("\n");
                 String msg_send_to = public_func.get_send_phone_number(msg_send_list[0]);
                 if (message_body.toString().equals("restart-service")) {
-                    public_func.stop_all_service(context.getApplicationContext());
-                    public_func.start_service(context.getApplicationContext(), sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
+                    new Thread(() -> {
+                        public_func.stop_all_service(context.getApplicationContext());
+                        public_func.start_service(context.getApplicationContext(), sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
+                    });
                     request_body.text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
                 }
                 if (public_func.is_phone_number(msg_send_to) && msg_send_list.length != 1) {
@@ -117,18 +135,7 @@ public class sms_receiver extends BroadcastReceiver {
             public_func.send_fallback_sms(context, request_body.text, sub);
             return;
         }
-        String raw_request_body_text = request_body.text;
-        if (sharedPreferences.getBoolean("verification_code", false)) {
-            String verification = public_func.get_verification_code(message_body.toString());
-            if (verification != null) {
-                request_body.parse_mode = "html";
-                request_body.text = request_body.text
-                        .replace("<", "&lt;")
-                        .replace(">", "&gt;")
-                        .replace("&", "&amp;")
-                        .replace(verification, "<code>" + verification + "</code>");
-            }
-        }
+
         RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_func.JSON);
         OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
