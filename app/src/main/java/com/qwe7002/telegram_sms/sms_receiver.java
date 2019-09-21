@@ -86,7 +86,11 @@ public class sms_receiver extends BroadcastReceiver {
         }
         final String message_address = messages[0].getOriginatingAddress();
         assert message_address != null;
-        final boolean trust_phone = message_address.contains(sharedPreferences.getString("trusted_phone_number", "trusted_phone_is_none"));
+        String trusted_phone_number = sharedPreferences.getString("trusted_phone_number", null);
+        boolean trust_phone = false;
+        if (trusted_phone_number != null && trusted_phone_number.length() != 0) {
+            trust_phone = message_address.contains(trusted_phone_number);
+        }
         final message_json request_body = new message_json();
         request_body.chat_id = chat_id;
 
@@ -106,29 +110,28 @@ public class sms_receiver extends BroadcastReceiver {
         String raw_request_body_text = message_head + message_body;
         request_body.text = message_head + message_body_html;
 
-        if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-            if (trust_phone) {
-                String[] msg_send_list = message_body.toString().split("\n");
-                String msg_send_to = public_func.get_send_phone_number(msg_send_list[0]);
-                if (message_body.toString().equals("restart-service")) {
-                    new Thread(() -> {
-                        public_func.stop_all_service(context.getApplicationContext());
-                        public_func.start_service(context.getApplicationContext(), sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
-                    });
-                    request_body.text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
-                }
-                if (public_func.is_phone_number(msg_send_to) && msg_send_list.length != 1) {
-                    StringBuilder msg_send_content = new StringBuilder();
-                    for (int i = 1; i < msg_send_list.length; i++) {
-                        if (msg_send_list.length != 2 && i != 1) {
-                            msg_send_content.append("\n");
-                        }
-                        msg_send_content.append(msg_send_list[i]);
-                    }
-                    new Thread(() -> public_func.send_sms(context, msg_send_to, msg_send_content.toString(), slot, sub)).start();
-                    return;
-                }
+        if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && trust_phone) {
+            String[] msg_send_list = message_body.toString().split("\n");
+            String msg_send_to = public_func.get_send_phone_number(msg_send_list[0]);
+            if (message_body.toString().equals("restart-service")) {
+                new Thread(() -> {
+                    public_func.stop_all_service(context.getApplicationContext());
+                    public_func.start_service(context.getApplicationContext(), sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
+                });
+                request_body.text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
             }
+            if (public_func.is_phone_number(msg_send_to) && msg_send_list.length != 1) {
+                StringBuilder msg_send_content = new StringBuilder();
+                for (int i = 1; i < msg_send_list.length; i++) {
+                    if (msg_send_list.length != 2 && i != 1) {
+                        msg_send_content.append("\n");
+                    }
+                    msg_send_content.append(msg_send_list[i]);
+                }
+                new Thread(() -> public_func.send_sms(context, msg_send_to, msg_send_content.toString(), slot, sub)).start();
+                return;
+            }
+
         }
         if (!public_func.check_network_status(context)) {
             public_func.write_log(context, public_func.network_error);
