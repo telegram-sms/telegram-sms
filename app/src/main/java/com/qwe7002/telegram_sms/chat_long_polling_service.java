@@ -262,6 +262,10 @@ public class chat_long_polling_service extends Service {
                 public_func.send_sms(context, phone_number, request_msg, card_slot, sub_id);
                 return;
             }
+            if(message_type.contains("group")){
+                Log.d(public_func.log_tag, "receive_handle: The message id could not be found, ignored.");
+                return;
+            }
         }
         if (message_obj.has("entities")) {
             String temp_command;
