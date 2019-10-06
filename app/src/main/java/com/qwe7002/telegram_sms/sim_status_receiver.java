@@ -78,6 +78,7 @@ public class sim_status_receiver extends BroadcastReceiver {
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                e.printStackTrace();
                 String error_message = error_head + e.getMessage();
                 public_func.write_log(context, error_message);
             }

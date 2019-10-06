@@ -95,6 +95,7 @@ class call_state_listener extends PhoneStateListener {
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    e.printStackTrace();
                     String error_message = error_head + e.getMessage();
                     public_func.write_log(context, error_message);
                     public_func.send_fallback_sms(context, request_body.text, public_func.get_sub_id(context, slot));
@@ -116,7 +117,6 @@ class call_state_listener extends PhoneStateListener {
                 }
             });
         }
-
         lastState = state;
     }
 

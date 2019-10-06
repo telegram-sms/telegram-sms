@@ -50,7 +50,7 @@ public class battery_monitoring_service extends Service {
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
         doh_switch = sharedPreferences.getBoolean("doh_switch", true);
-        boolean charger_status = sharedPreferences.getBoolean("charger_status", false);
+        final boolean charger_status = sharedPreferences.getBoolean("charger_status", false);
         IntentFilter intentFilter = new IntentFilter(public_func.broadcast_stop_service);
         stop_broadcast_receiver = new stop_broadcast_receiver();
         battery_receiver = new battery_receiver();
@@ -137,6 +137,7 @@ class battery_receiver extends BroadcastReceiver {
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                e.printStackTrace();
                 String error_message = error_head + e.getMessage();
                 public_func.write_log(context, error_message);
                 if (action.equals(Intent.ACTION_BATTERY_LOW)) {

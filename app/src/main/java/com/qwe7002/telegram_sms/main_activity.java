@@ -13,10 +13,15 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.PowerManager;
+import android.provider.Settings;
+import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Switch;
@@ -67,8 +72,8 @@ public class main_activity extends AppCompatActivity {
         final Switch chat_command = findViewById(R.id.chat_command);
         final Switch fallback_sms = findViewById(R.id.fallback_sms);
         final Switch battery_monitoring_switch = findViewById(R.id.battery_monitoring);
-        final Switch doh_switch = findViewById(R.id.doh_switch);
         final Switch charger_status = findViewById(R.id.charger_status);
+        final Switch doh_switch = findViewById(R.id.doh_switch);
         final Switch verification_code = findViewById(R.id.verification_code_switch);
         final Button save_button = findViewById(R.id.save);
         final Button get_id = findViewById(R.id.get_id);
@@ -93,6 +98,7 @@ public class main_activity extends AppCompatActivity {
 
         trusted_phone_number.setText(sharedPreferences.getString("trusted_phone_number", ""));
         battery_monitoring_switch.setChecked(sharedPreferences.getBoolean("battery_monitoring_switch", false));
+        battery_monitoring_switch.setOnClickListener(v -> charger_status.setEnabled(battery_monitoring_switch.isChecked()));
         charger_status.setEnabled(battery_monitoring_switch.isChecked());
         charger_status.setChecked(sharedPreferences.getBoolean("charger_status", false));
 
@@ -105,8 +111,18 @@ public class main_activity extends AppCompatActivity {
         chat_command.setChecked(sharedPreferences.getBoolean("chat_command", false));
         verification_code.setChecked(sharedPreferences.getBoolean("verification_code", false));
         doh_switch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
+        int checkPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE);
+        if (checkPermission == PackageManager.PERMISSION_GRANTED) {
+            TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+            assert tm != null;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                Log.d(public_func.log_tag, "onCreate: " + tm.getPhoneCount());
+                if (tm.getPhoneCount() == 1) {
+                    display_dual_sim_display_name.setVisibility(View.GONE);
+                }
+            }
+        }
         display_dual_sim_display_name.setOnClickListener(v -> {
-            int checkPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE);
             if (checkPermission != PackageManager.PERMISSION_GRANTED) {
                 display_dual_sim_display_name.setChecked(false);
                 ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
@@ -138,7 +154,7 @@ public class main_activity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
             }
         });
-        battery_monitoring_switch.setOnClickListener(v -> charger_status.setEnabled(battery_monitoring_switch.isChecked()));
+
 
 
         get_id.setOnClickListener(v -> {
@@ -166,7 +182,7 @@ public class main_activity extends AppCompatActivity {
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
             progress_dialog.setOnKeyListener((dialogInterface, i, keyEvent) -> {
-                if (keyEvent.getKeyCode() == android.view.KeyEvent.KEYCODE_BACK) {
+                if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK) {
                     call.cancel();
                 }
                 return false;
@@ -175,6 +191,7 @@ public class main_activity extends AppCompatActivity {
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    e.printStackTrace();
                     progress_dialog.cancel();
                     String error_message = error_head + e.getMessage();
 
@@ -260,14 +277,14 @@ public class main_activity extends AppCompatActivity {
                 return;
             }
 
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG}, 1);
 
                 PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
                 assert powerManager != null;
                 boolean has_ignored = powerManager.isIgnoringBatteryOptimizations(getPackageName());
                 if (!has_ignored) {
-                    Intent intent = new Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                    Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
                     intent.setData(Uri.parse("package:" + getPackageName()));
                     if (intent.resolveActivityInfo(getPackageManager(), PackageManager.MATCH_DEFAULT_ONLY) != null) {
                         startActivity(intent);
@@ -297,6 +314,7 @@ public class main_activity extends AppCompatActivity {
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    e.printStackTrace();
                     progress_dialog.cancel();
                     String error_message = error_head + e.getMessage();
                     public_func.write_log(context, error_message);
@@ -356,6 +374,11 @@ public class main_activity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+                TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+                assert tm != null;
+                if(tm.getPhoneCount()==1){
+                    display_dual_sim_display_name.setVisibility(View.GONE);
+                }
                 if (public_func.get_active_card(context) < 2) {
                     display_dual_sim_display_name.setEnabled(false);
                     display_dual_sim_display_name.setChecked(false);
@@ -386,7 +409,7 @@ public class main_activity extends AppCompatActivity {
                 startActivity(logcat_intent);
                 return true;
             case R.id.donate:
-                file_name = "donate";
+                file_name = "/donate";
                 break;
         }
         assert file_name != null;
