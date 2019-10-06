@@ -279,7 +279,10 @@ public class chat_long_polling_service extends Service {
                     int command_at_location = temp_command.indexOf("@");
                     command = temp_command.substring(0, command_at_location);
                     command_bot_username=temp_command.substring(command_at_location+1);
+                }else{
+                    command=temp_command;
                 }
+
             }
         }
         if (message_type.contains("group")&& !command_bot_username.equals(bot_username)){
