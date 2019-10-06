@@ -275,12 +275,11 @@ public class chat_long_polling_service extends Service {
                 int command_offset = entities_obj_command.get("offset").getAsInt();
                 int command_end_offset = command_offset + entities_obj_command.get("length").getAsInt();
                 temp_command = request_msg.substring(command_offset, command_end_offset).trim().toLowerCase();
+                command=temp_command;
                 if (temp_command.contains("@")) {
                     int command_at_location = temp_command.indexOf("@");
                     command = temp_command.substring(0, command_at_location);
                     command_bot_username=temp_command.substring(command_at_location+1);
-                }else{
-                    command=temp_command;
                 }
 
             }
