@@ -326,7 +326,6 @@ public class chat_long_polling_service extends Service {
                 has_command = true;
                 String[] msg_send_list = request_msg.split("\n");
                 if (msg_send_list.length > 2) {
-                    Log.d("test", "receive_handle: ");
                     String msg_send_to = public_func.get_send_phone_number(msg_send_list[1]);
                     if (public_func.is_phone_number(msg_send_to)) {
                         StringBuilder msg_send_content = new StringBuilder();
@@ -473,8 +472,12 @@ public class chat_long_polling_service extends Service {
             case BatteryManager.BATTERY_STATUS_DISCHARGING:
             case BatteryManager.BATTERY_STATUS_NOT_CHARGING:
                 int plug_status = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
-                if (plug_status == BatteryManager.BATTERY_PLUGGED_AC || plug_status == BatteryManager.BATTERY_PLUGGED_USB || plug_status == BatteryManager.BATTERY_PLUGGED_WIRELESS) {
-                    battery_level_string += " (" + getString(R.string.not_charging) + ")";
+                switch(plug_status){
+                    case BatteryManager.BATTERY_PLUGGED_AC:
+                    case BatteryManager.BATTERY_PLUGGED_USB:
+                    case BatteryManager.BATTERY_PLUGGED_WIRELESS:
+                        battery_level_string += " (" + getString(R.string.not_charging) + ")";
+                        break;
                 }
                 break;
         }
