@@ -17,7 +17,6 @@ import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -116,7 +115,6 @@ public class main_activity extends AppCompatActivity {
             TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
             assert tm != null;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                Log.d(public_func.log_tag, "onCreate: " + tm.getPhoneCount());
                 if (tm.getPhoneCount() == 1) {
                     display_dual_sim_display_name.setVisibility(View.GONE);
                 }

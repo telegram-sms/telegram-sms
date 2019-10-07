@@ -53,7 +53,6 @@ public class chat_long_polling_service extends Service {
     private int send_sms_status = -1;
     private int send_slot_temp = -1;
     private String send_to_temp;
-    private String message_type = "";
     private String bot_username="";
 
     @Override
@@ -201,6 +200,7 @@ public class chat_long_polling_service extends Service {
     }
 
     private void receive_handle(JsonObject result_obj) {
+        String message_type = "";
         long update_id = result_obj.get("update_id").getAsLong();
         offset = update_id + 1;
         final message_json request_body = new message_json();
@@ -219,9 +219,10 @@ public class chat_long_polling_service extends Service {
             return;
         }
         JsonObject from_obj = null;
+        boolean message_type_is_group = message_type.contains("group");
         if (message_obj.has("from")) {
             from_obj = message_obj.get("from").getAsJsonObject();
-            if(message_type.contains("group")&&from_obj.get("is_bot").getAsBoolean()){
+            if (message_type_is_group && from_obj.get("is_bot").getAsBoolean()) {
                 Log.d(public_func.log_tag, "receive from bot.");
                 return;
             }
@@ -262,7 +263,7 @@ public class chat_long_polling_service extends Service {
                 public_func.send_sms(context, phone_number, request_msg, card_slot, sub_id);
                 return;
             }
-            if(message_type.contains("group")){
+            if (message_type_is_group) {
                 Log.d(public_func.log_tag, "receive_handle: The message id could not be found, ignored.");
                 return;
             }
@@ -284,11 +285,11 @@ public class chat_long_polling_service extends Service {
 
             }
         }
-        if (message_type.contains("group")&& !command_bot_username.equals(bot_username)){
+        if (message_type_is_group && !command_bot_username.equals(bot_username)) {
                 Log.i(public_func.log_tag, "This is a Group conversation, but no conversation object was found.");
                 return;
-
         }
+
         boolean has_command = false;
         switch (command) {
             case "/help":
@@ -298,6 +299,9 @@ public class chat_long_polling_service extends Service {
                     dual_card = "\n" + getString(R.string.sendsms_dual);
                 }
                 request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.available_command) + dual_card;
+                if (message_type_is_group && !bot_username.equals("")) {
+                    request_body.text = request_body.text.replace(" -", "@" + bot_username + " -");
+                }
                 has_command = true;
                 break;
             case "/ping":
@@ -319,8 +323,10 @@ public class chat_long_polling_service extends Service {
             case "/sendsms":
             case "/sendsms1":
             case "/sendsms2":
+                has_command = true;
                 String[] msg_send_list = request_msg.split("\n");
                 if (msg_send_list.length > 2) {
+                    Log.d("test", "receive_handle: ");
                     String msg_send_to = public_func.get_send_phone_number(msg_send_list[1]);
                     if (public_func.is_phone_number(msg_send_to)) {
                         StringBuilder msg_send_content = new StringBuilder();
@@ -349,25 +355,26 @@ public class chat_long_polling_service extends Service {
                             public_func.send_sms(context, msg_send_to, msg_send_content.toString(), slot, sub_id);
                             return;
                         }
-                        request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
                     }
-                    has_command = true;
                 } else {
-                    send_sms_status = 0;
-                    send_slot_temp = -1;
-                    if (public_func.get_active_card(context) > 1) {
-                        switch (command) {
-                            case "/sendsms":
-                            case "/sendsms1":
-                                send_slot_temp = 0;
-                                break;
-                            case "/sendsms2":
-                                send_slot_temp = 1;
-                                break;
+                    if (!message_type_is_group) {
+                        send_sms_status = 0;
+                        send_slot_temp = -1;
+                        if (public_func.get_active_card(context) > 1) {
+                            switch (command) {
+                                case "/sendsms":
+                                case "/sendsms1":
+                                    send_slot_temp = 0;
+                                    break;
+                                case "/sendsms2":
+                                    send_slot_temp = 1;
+                                    break;
+                            }
                         }
+                        has_command = false;
                     }
-                    has_command = false;
                 }
+                request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
                 break;
             default:
                 if (!message_obj.get("chat").getAsJsonObject().get("type").getAsString().equals("private")) {
