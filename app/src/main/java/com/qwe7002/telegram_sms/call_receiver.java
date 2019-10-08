@@ -31,7 +31,7 @@ public class call_receiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.d("call_receiver", Objects.requireNonNull(intent.getAction()));
+        Log.d("call_receiver", "Receive action: "+intent.getAction());
         switch (Objects.requireNonNull(intent.getAction())) {
             case "android.intent.action.PHONE_STATE":
                 if (intent.getStringExtra("incoming_number") != null) {
@@ -39,7 +39,7 @@ public class call_receiver extends BroadcastReceiver {
                 }
                 TelephonyManager telephony = (TelephonyManager) context
                         .getSystemService(Context.TELEPHONY_SERVICE);
-                call_state_listener custom_phone_listener = new call_state_listener(context, slot, incoming_number);
+                call_status_listener custom_phone_listener = new call_status_listener(context, slot, incoming_number);
                 assert telephony != null;
                 telephony.listen(custom_phone_listener, PhoneStateListener.LISTEN_CALL_STATE);
                 break;
@@ -51,17 +51,17 @@ public class call_receiver extends BroadcastReceiver {
     }
 }
 
-class call_state_listener extends PhoneStateListener {
+class call_status_listener extends PhoneStateListener {
     private static int lastState = TelephonyManager.CALL_STATE_IDLE;
     private static String incoming_number;
     private final Context context;
     private final int slot;
 
-    call_state_listener(Context context, int slot, String incoming_number) {
+    call_status_listener(Context context, int slot, String incoming_number) {
         super();
         this.context = context;
         this.slot = slot;
-        call_state_listener.incoming_number = incoming_number;
+        call_status_listener.incoming_number = incoming_number;
     }
 
     public void onCallStateChanged(int state, String incomingNumber) {
@@ -69,7 +69,7 @@ class call_state_listener extends PhoneStateListener {
                 && state == TelephonyManager.CALL_STATE_IDLE) {
             final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
             if (!sharedPreferences.getBoolean("initialized", false)) {
-                Log.i("battery_service", "Uninitialized, Phone receiver is deactivated.");
+                Log.i("call_status_listener", "Uninitialized, Phone receiver is deactivated.");
                 return;
             }
             String bot_token = sharedPreferences.getString("bot_token", "");

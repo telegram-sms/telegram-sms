@@ -29,7 +29,7 @@ public class sms_send_receiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, Intent intent) {
         final String log_tag = "sms_send_receiver";
-        Log.d(log_tag, Objects.requireNonNull(intent.getAction()));
+        Log.d(log_tag, "Receive action: "+intent.getAction());
         Bundle extras = intent.getExtras();
         assert extras != null;
         int sub = extras.getInt("sub_id");

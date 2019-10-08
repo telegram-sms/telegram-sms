@@ -27,7 +27,7 @@ import okhttp3.Response;
 
 import static android.content.Context.BATTERY_SERVICE;
 
-public class battery_monitoring_service extends Service {
+public class battery_service extends Service {
     static String bot_token;
     static String chat_id;
     static boolean doh_switch;
@@ -93,10 +93,10 @@ public class battery_monitoring_service extends Service {
 class battery_receiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, final Intent intent) {
-        Log.d("battery_service", "onReceive: " + intent.getAction());
-        String request_uri = public_func.get_url(battery_monitoring_service.bot_token, "sendMessage");
+        Log.d("battery_receiver", "Receive action: " + intent.getAction());
+        String request_uri = public_func.get_url(battery_service.bot_token, "sendMessage");
         final message_json request_body = new message_json();
-        request_body.chat_id = battery_monitoring_service.chat_id;
+        request_body.chat_id = battery_service.chat_id;
         StringBuilder message_body = new StringBuilder(context.getString(R.string.system_message_head) + "\n");
         final String action = intent.getAction();
         BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
@@ -128,7 +128,7 @@ class battery_receiver extends BroadcastReceiver {
             }
             return;
         }
-        OkHttpClient okhttp_client = public_func.get_okhttp_obj(battery_monitoring_service.doh_switch);
+        OkHttpClient okhttp_client = public_func.get_okhttp_obj(battery_service.doh_switch);
         String request_body_raw = new Gson().toJson(request_body);
         RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();

@@ -10,6 +10,6 @@ import java.util.Objects;
 public class wap_receiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, Intent intent) {
-        Log.d("wap_receiver", Objects.requireNonNull(intent.getAction()));
+        Log.d("wap_receiver", "Receive action: "+intent.getAction());
     }
 }

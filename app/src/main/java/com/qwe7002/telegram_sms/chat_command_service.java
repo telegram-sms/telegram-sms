@@ -39,7 +39,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 
-public class chat_long_polling_service extends Service {
+public class chat_command_service extends Service {
     private static long offset = 0;
     private static int magnification = 1;
     private static int error_magnification = 1;
@@ -54,7 +54,7 @@ public class chat_long_polling_service extends Service {
     private int send_slot_temp = -1;
     private String send_to_temp;
     private String bot_username="";
-    final String log_tag = "chat_command_service";
+    private final String log_tag = "chat_command_service";
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
@@ -223,7 +223,7 @@ public class chat_long_polling_service extends Service {
         if (message_obj.has("from")) {
             from_obj = message_obj.get("from").getAsJsonObject();
             if (message_type_is_group && from_obj.get("is_bot").getAsBoolean()) {
-                Log.d(log_tag, "receive from bot.");
+                Log.d(log_tag, "receive_handle: receive from bot.");
                 return;
             }
         }

@@ -320,8 +320,8 @@ class public_func {
     }
 
     static void start_service(Context context, Boolean battery_switch, Boolean chat_command_switch) {
-        Intent battery_service = new Intent(context, battery_monitoring_service.class);
-        Intent chat_long_polling_service = new Intent(context, chat_long_polling_service.class);
+        Intent battery_service = new Intent(context, battery_service.class);
+        Intent chat_long_polling_service = new Intent(context, chat_command_service.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (battery_switch) {
                 context.startForegroundService(battery_service);

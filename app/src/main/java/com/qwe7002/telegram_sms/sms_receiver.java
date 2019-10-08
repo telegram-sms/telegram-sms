@@ -31,7 +31,7 @@ import okhttp3.Response;
 public class sms_receiver extends BroadcastReceiver {
     public void onReceive(final Context context, Intent intent) {
         final String log_tag = "sms_receiver";
-        Log.d(log_tag, Objects.requireNonNull(intent.getAction()));
+        Log.d(log_tag, "Receive action: "+intent.getAction());
         Bundle extras = intent.getExtras();
         assert extras != null;
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
@@ -40,9 +40,10 @@ public class sms_receiver extends BroadcastReceiver {
             return;
         }
         final boolean is_default = Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName());
-        if ("android.provider.Telephony.SMS_RECEIVED".equals(intent.getAction()) && is_default) {
+        assert intent.getAction() != null;
+        if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED") && is_default) {
             //When it is the default application, it will receive two broadcasts.
-            Log.i(log_tag, "reject: android.provider.Telephony.SMS_RECEIVED");
+            Log.i(log_tag, "reject: android.provider.Telephony.SMS_RECEIVE.");
             return;
         }
         String bot_token = sharedPreferences.getString("bot_token", "");

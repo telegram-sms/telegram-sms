@@ -32,7 +32,7 @@
         </receiver>
 
         <service
-                android:name="com.qwe7002.telegram_sms.chat_long_polling_service"
+                android:name="com.qwe7002.telegram_sms.chat_command_service"
                 android:enabled="true"
                 android:exported="false"
                 android:permission="android.permission.INTERNET"
@@ -41,7 +41,7 @@
         <activity android:name=".logcat_activity" />
 
         <service
-                android:name="com.qwe7002.telegram_sms.battery_monitoring_service"
+                android:name="com.qwe7002.telegram_sms.battery_service"
                 android:enabled="true"
                 android:exported="false"
                 android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE"
