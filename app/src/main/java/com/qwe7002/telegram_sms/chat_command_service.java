@@ -234,7 +234,7 @@ public class chat_command_service extends Service {
         if (message_obj.has("from")) {
             from_obj = message_obj.get("from").getAsJsonObject();
             if (message_type_is_group && from_obj.get("is_bot").getAsBoolean()) {
-                Log.d(log_tag, "receive_handle: receive from bot.");
+                Log.i(log_tag, "receive_handle: receive from bot.");
                 return;
             }
         }
@@ -275,7 +275,7 @@ public class chat_command_service extends Service {
                 return;
             }
             if (message_type_is_group) {
-                Log.d(log_tag, "receive_handle: The message id could not be found, ignored.");
+                Log.i(log_tag, "receive_handle: The message id could not be found, ignored.");
                 return;
             }
         }
@@ -388,7 +388,7 @@ public class chat_command_service extends Service {
                 break;
             default:
                 if (!message_obj.get("chat").getAsJsonObject().get("type").getAsString().equals("private")) {
-                    Log.d(log_tag, "receive_handle: The conversation is not Private and does not prompt an error.");
+                    Log.i(log_tag, "receive_handle: The conversation is not Private and does not prompt an error.");
                     return;
                 }
                 request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
