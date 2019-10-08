@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.os.IBinder;
@@ -55,6 +56,9 @@ public class chat_command_service extends Service {
     private String send_to_temp;
     private String bot_username="";
     private final String log_tag = "chat_command_service";
+    private network_changed_receiver network_changed_receiver;
+    static Thread thread_main;
+    private boolean have_bot_username = false;
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
@@ -67,10 +71,6 @@ public class chat_command_service extends Service {
     public void onCreate() {
         super.onCreate();
         context = getApplicationContext();
-        IntentFilter intentFilter = new IntentFilter(public_func.broadcast_stop_service);
-        stop_broadcast_receiver = new stop_broadcast_receiver();
-        registerReceiver(stop_broadcast_receiver, intentFilter);
-
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
@@ -87,110 +87,121 @@ public class chat_command_service extends Service {
         if (!wakelock.isHeld()) {
             wakelock.acquire();
         }
-        int chat_int_id = 0;
-        try {
-            chat_int_id = Integer.parseInt(chat_id);
-        }catch(NumberFormatException e){
-            e.printStackTrace();
-            //Avoid errors caused by unconvertible inputs.
-        }
-        if(chat_int_id<0){
-            OkHttpClient okhttp_client_new = okhttp_client;
-            String request_uri = public_func.get_url(bot_token, "getMe");
-            Request request = new Request.Builder().url(request_uri).build();
-            Call call = okhttp_client_new.newCall(request);
-            call.enqueue(new Callback() {
-                @Override
-                public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                    e.printStackTrace();
-                    public_func.write_log(context,"Get username failed:"+e.getMessage());
-                }
+        thread_main = new Thread(new thread_handle());
+        thread_main.start();
+        IntentFilter intentFilter = new IntentFilter(public_func.broadcast_stop_service);
+        stop_broadcast_receiver = new stop_broadcast_receiver();
+        registerReceiver(stop_broadcast_receiver, intentFilter);
+        network_changed_receiver = new network_changed_receiver();
+        intentFilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(network_changed_receiver, intentFilter);
+    }
 
-                @Override
-                public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                    JsonObject result_obj = new JsonParser().parse(Objects.requireNonNull(response.body()).string()).getAsJsonObject();
+    class thread_handle implements Runnable {
+        @Override
+        public void run() {
+            Log.d(log_tag, "run: thread handle start");
+            int chat_int_id = 0;
+            try {
+                chat_int_id = Integer.parseInt(chat_id);
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+                //Avoid errors caused by unconvertible inputs.
+            }
+            if (chat_int_id < 0 && !have_bot_username) {
+                OkHttpClient okhttp_client_new = okhttp_client;
+                String request_uri = public_func.get_url(bot_token, "getMe");
+                Request request = new Request.Builder().url(request_uri).build();
+                Call call = okhttp_client_new.newCall(request);
+                call.enqueue(new Callback() {
+                    @Override
+                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                        e.printStackTrace();
+                        public_func.write_log(context, "Get username failed:" + e.getMessage());
+                    }
+
+                    @Override
+                    public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                        JsonObject result_obj = new JsonParser().parse(Objects.requireNonNull(response.body()).string()).getAsJsonObject();
+                        if (result_obj.get("ok").getAsBoolean()) {
+                            bot_username = result_obj.get("result").getAsJsonObject().get("username").getAsString();
+                            have_bot_username = true;
+                            Log.d(log_tag, "bot_username: " + bot_username);
+                        }
+                    }
+                });
+            }
+            while (true) {
+                int read_timeout = 5 * magnification;
+                OkHttpClient okhttp_client_new = okhttp_client.newBuilder()
+                        .readTimeout((read_timeout + 5), TimeUnit.SECONDS)
+                        .writeTimeout((read_timeout + 5), TimeUnit.SECONDS)
+                        .build();
+                String request_uri = public_func.get_url(bot_token, "getUpdates");
+                polling_json request_body = new polling_json();
+                request_body.offset = offset;
+                request_body.timeout = read_timeout;
+                RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_func.JSON);
+                Request request = new Request.Builder().url(request_uri).method("POST", body).build();
+                Call call = okhttp_client_new.newCall(request);
+                Response response;
+                try {
+                    response = call.execute();
+                    error_magnification = 1;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    if (!public_func.check_network_status(context)) {
+                        public_func.write_log(context, "No network connections available. ");
+                        break;
+                    }
+                    int sleep_time = 5 * error_magnification;
+                    public_func.write_log(context, "No network service,try again after " + sleep_time + " seconds.");
+                    magnification = 1;
+                    if (error_magnification <= 59) {
+                        error_magnification++;
+                    }
+                    try {
+                        Thread.sleep(sleep_time * 1000);
+                    } catch (InterruptedException e1) {
+                        e1.printStackTrace();
+                    }
+                    continue;
+
+                }
+                if (response.code() == 200) {
+                    assert response.body() != null;
+                    String result;
+                    try {
+                        result = Objects.requireNonNull(response.body()).string();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        continue;
+                    }
+                    JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
                     if (result_obj.get("ok").getAsBoolean()) {
-                        bot_username = result_obj.get("result").getAsJsonObject().get("username").getAsString();
-                        Log.d(log_tag, "bot_username: "+bot_username);
+                        JsonArray result_array = result_obj.get("result").getAsJsonArray();
+                        for (JsonElement item : result_array) {
+                            receive_handle(item.getAsJsonObject());
+                        }
+                    }
+                    if (magnification <= 11) {
+                        magnification++;
                     }
                 }
-            });
-        }
-        new Thread(() -> {
-            while (true) {
-                start_long_polling();
             }
-        }).start();
-
+        }
     }
+
+
 
     @Override
     public void onDestroy() {
         wifiLock.release();
         wakelock.release();
         unregisterReceiver(stop_broadcast_receiver);
+        unregisterReceiver(network_changed_receiver);
         stopForeground(true);
         super.onDestroy();
-    }
-
-
-    private void start_long_polling() {
-        int read_timeout = 5 * magnification;
-        OkHttpClient okhttp_client_new = okhttp_client.newBuilder()
-                .readTimeout((read_timeout + 5), TimeUnit.SECONDS)
-                .writeTimeout((read_timeout + 5), TimeUnit.SECONDS)
-                .build();
-        String request_uri = public_func.get_url(bot_token, "getUpdates");
-        polling_json request_body = new polling_json();
-        request_body.offset = offset;
-        request_body.timeout = read_timeout;
-        RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_func.JSON);
-        Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-        Call call = okhttp_client_new.newCall(request);
-        Response response;
-        try {
-            if (!public_func.check_network_status(context)) {
-                throw new IOException("Network");
-            }
-            response = call.execute();
-            error_magnification = 1;
-        } catch (IOException e) {
-            e.printStackTrace();
-            int sleep_time = 5 * error_magnification;
-            public_func.write_log(context, "No network service,try again after " + sleep_time + " seconds.");
-
-            magnification = 1;
-            if (error_magnification <= 59) {
-                error_magnification++;
-            }
-            try {
-                Thread.sleep(sleep_time * 1000);
-            } catch (InterruptedException e1) {
-                e1.printStackTrace();
-            }
-            return;
-
-        }
-        if (response.code() == 200) {
-            assert response.body() != null;
-            String result;
-            try {
-                result = Objects.requireNonNull(response.body()).string();
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
-            }
-            JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
-            if (result_obj.get("ok").getAsBoolean()) {
-                JsonArray result_array = result_obj.get("result").getAsJsonArray();
-                for (JsonElement item : result_array) {
-                    receive_handle(item.getAsJsonObject());
-                }
-            }
-            if (magnification <= 11) {
-                magnification++;
-            }
-        }
     }
 
 
@@ -490,6 +501,19 @@ public class chat_command_service extends Service {
             Log.i(log_tag, "Received stop signal, quitting now...");
             stopSelf();
             android.os.Process.killProcess(android.os.Process.myPid());
+        }
+    }
+
+    class network_changed_receiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (public_func.check_network_status(context)) {
+                if (!thread_main.isAlive()) {
+                    public_func.write_log(context, "Network connections has been restored.");
+                    thread_main = new Thread(new thread_handle());
+                    thread_main.start();
+                }
+            }
         }
     }
 }
