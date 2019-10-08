@@ -6,12 +6,13 @@
         tools:context=".main_activity">
 
     <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:alpha="@dimen/alpha"
-            android:scaleType="fitEnd"
-            android:src="@mipmap/character_set"
-            tools:ignore="ContentDescription" />
+        android:layerType="software"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:alpha="@dimen/alpha"
+        android:scaleType="fitEnd"
+        android:src="@mipmap/character_set"
+        tools:ignore="ContentDescription" />
 
     <ScrollView
             android:layout_width="match_parent"
