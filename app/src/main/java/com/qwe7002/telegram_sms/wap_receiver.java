@@ -5,10 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import java.util.Objects;
+
 public class wap_receiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, Intent intent) {
-        Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
-        public_func.write_log(context, "Received wap message.");
+        Log.d("wap_receiver", Objects.requireNonNull(intent.getAction()));
     }
 }

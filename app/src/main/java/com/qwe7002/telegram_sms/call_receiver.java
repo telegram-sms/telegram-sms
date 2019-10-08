@@ -31,7 +31,7 @@ public class call_receiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.d(public_func.log_tag, "onReceive: " + intent.getAction());
+        Log.d("call_receiver", Objects.requireNonNull(intent.getAction()));
         switch (Objects.requireNonNull(intent.getAction())) {
             case "android.intent.action.PHONE_STATE":
                 if (intent.getStringExtra("incoming_number") != null) {
@@ -69,7 +69,7 @@ class call_state_listener extends PhoneStateListener {
                 && state == TelephonyManager.CALL_STATE_IDLE) {
             final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
             if (!sharedPreferences.getBoolean("initialized", false)) {
-                Log.i(public_func.log_tag, "Uninitialized, Phone receiver is deactivated.");
+                Log.i("battery_service", "Uninitialized, Phone receiver is deactivated.");
                 return;
             }
             String bot_token = sharedPreferences.getString("bot_token", "");
