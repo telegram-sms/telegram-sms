@@ -240,7 +240,7 @@ public class chat_command_service extends Service {
         }
         JsonObject from_obj = null;
         final boolean message_type_is_group = message_type.contains("group");
-        final boolean message_type_is_private = message_type.contains("private");
+        final boolean message_type_is_private = message_type.equals("private");
         if (message_type_is_group && !have_bot_username) {
             Log.i(log_tag, "receive_handle: Did not successfully get bot_username.");
             get_me();
