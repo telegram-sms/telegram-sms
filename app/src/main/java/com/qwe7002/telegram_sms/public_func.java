@@ -283,7 +283,7 @@ class public_func {
     }
 
     static String get_message_id(String result) {
-        JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject().get("result").getAsJsonObject();
+        JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject().get("result").getAsJsonObject();
         return result_obj.get("message_id").getAsString();
     }
 
@@ -467,7 +467,7 @@ class public_func {
         if (message_list_raw.length() == 0) {
             message_list_raw = "{}";
         }
-        JsonObject message_list_obj = new JsonParser().parse(message_list_raw).getAsJsonObject();
+        JsonObject message_list_obj = JsonParser.parseString(message_list_raw).getAsJsonObject();
         JsonObject object = new JsonObject();
         object.addProperty("phone", phone);
         object.addProperty("card", slot);
