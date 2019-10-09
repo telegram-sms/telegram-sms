@@ -52,11 +52,12 @@ public class chat_command_service extends Service {
     private int send_sms_status = -1;
     private int send_slot_temp = -1;
     private String send_to_temp;
-    private String bot_username="";
+    private String bot_username = "";
     private final String log_tag = "chat_command_service";
     private network_changed_receiver network_changed_receiver;
     static Thread thread_main;
     private boolean have_bot_username = false;
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
@@ -79,7 +80,7 @@ public class chat_command_service extends Service {
         wifiLock.setReferenceCounted(false);
         wakelock.setReferenceCounted(false);
 
-        if(!wifiLock.isHeld()) {
+        if (!wifiLock.isHeld()) {
             wifiLock.acquire();
         }
         if (!wakelock.isHeld()) {
@@ -171,7 +172,6 @@ public class chat_command_service extends Service {
     }
 
 
-
     @Override
     public void onDestroy() {
         wifiLock.release();
@@ -228,10 +228,10 @@ public class chat_command_service extends Service {
         JsonObject message_obj = null;
         if (result_obj.has("message")) {
             message_obj = result_obj.get("message").getAsJsonObject();
-            message_type= message_obj.get("chat").getAsJsonObject().get("type").getAsString();
+            message_type = message_obj.get("chat").getAsJsonObject().get("type").getAsString();
         }
         if (result_obj.has("channel_post")) {
-            message_type="channel";
+            message_type = "channel";
             message_obj = result_obj.get("channel_post").getAsJsonObject();
         }
         if (message_obj == null) {
@@ -239,8 +239,9 @@ public class chat_command_service extends Service {
             return;
         }
         JsonObject from_obj = null;
-        boolean message_type_is_group = message_type.contains("group");
-        if(message_type_is_group && !have_bot_username){
+        final boolean message_type_is_group = message_type.contains("group");
+        final boolean message_type_is_private = message_type.contains("private");
+        if (message_type_is_group && !have_bot_username) {
             Log.i(log_tag, "receive_handle: Did not successfully get bot_username.");
             get_me();
         }
@@ -300,18 +301,18 @@ public class chat_command_service extends Service {
                 int command_offset = entities_obj_command.get("offset").getAsInt();
                 int command_end_offset = command_offset + entities_obj_command.get("length").getAsInt();
                 temp_command = request_msg.substring(command_offset, command_end_offset).trim().toLowerCase();
-                command=temp_command;
+                command = temp_command;
                 if (temp_command.contains("@")) {
                     int command_at_location = temp_command.indexOf("@");
                     command = temp_command.substring(0, command_at_location);
-                    command_bot_username=temp_command.substring(command_at_location+1);
+                    command_bot_username = temp_command.substring(command_at_location + 1);
                 }
 
             }
         }
         if (message_type_is_group && !command_bot_username.equals(bot_username)) {
-                Log.i(log_tag, "receive_handle: This is a Group conversation, but no conversation object was found.");
-                return;
+            Log.i(log_tag, "receive_handle: This is a Group conversation, but no conversation object was found.");
+            return;
         }
 
         boolean has_command = false;
@@ -380,7 +381,7 @@ public class chat_command_service extends Service {
                         }
                     }
                 } else {
-                    if (!message_type_is_group) {
+                    if (message_type_is_private) {
                         send_sms_status = 0;
                         send_slot_temp = -1;
                         if (public_func.get_active_card(context) > 1) {
@@ -400,7 +401,7 @@ public class chat_command_service extends Service {
                 request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
                 break;
             default:
-                if (!message_obj.get("chat").getAsJsonObject().get("type").getAsString().equals("private")) {
+                if (!message_type_is_private) {
                     Log.i(log_tag, "receive_handle: The conversation is not Private and does not prompt an error.");
                     return;
                 }
@@ -496,7 +497,7 @@ public class chat_command_service extends Service {
             case BatteryManager.BATTERY_STATUS_DISCHARGING:
             case BatteryManager.BATTERY_STATUS_NOT_CHARGING:
                 int plug_status = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
-                switch(plug_status){
+                switch (plug_status) {
                     case BatteryManager.BATTERY_PLUGGED_AC:
                     case BatteryManager.BATTERY_PLUGGED_USB:
                     case BatteryManager.BATTERY_PLUGGED_WIRELESS:
