@@ -26,8 +26,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -109,28 +107,7 @@ public class chat_command_service extends Service {
                 //Avoid errors caused by unconvertible inputs.
             }
             if (chat_int_id < 0 && !have_bot_username) {
-                OkHttpClient okhttp_client_new = okhttp_client;
-                String request_uri = public_func.get_url(bot_token, "getMe");
-                Request request = new Request.Builder().url(request_uri).build();
-                Call call = okhttp_client_new.newCall(request);
-                call.enqueue(new Callback() {
-                    @Override
-                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                        e.printStackTrace();
-                        public_func.write_log(context, "Get username failed:" + e.getMessage());
-                    }
-
-                    @Override
-                    public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                        String result = Objects.requireNonNull(response.body()).string();
-                        JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
-                        if (result_obj.get("ok").getAsBoolean()) {
-                            bot_username = result_obj.get("result").getAsJsonObject().get("username").getAsString();
-                            have_bot_username = true;
-                            Log.d(log_tag, "bot_username: " + bot_username);
-                        }
-                    }
-                });
+                new Thread(chat_command_service.this::get_me).start();
             }
             while (true) {
                 int read_timeout = 5 * magnification;
@@ -205,6 +182,37 @@ public class chat_command_service extends Service {
         super.onDestroy();
     }
 
+    private void get_me() {
+        OkHttpClient okhttp_client_new = okhttp_client;
+        String request_uri = public_func.get_url(bot_token, "getMe");
+        Request request = new Request.Builder().url(request_uri).build();
+        Call call = okhttp_client_new.newCall(request);
+        Response response;
+        try {
+            response = call.execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+            public_func.write_log(context, "Get username failed:" + e.getMessage());
+            return;
+        }
+        if (response.code() == 200) {
+            String result = null;
+            try {
+                result = Objects.requireNonNull(response.body()).string();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            assert result != null;
+            JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
+            if (result_obj.get("ok").getAsBoolean()&&!bot_username.equals(" 9,98   -0=9 ")) {
+                bot_username = result_obj.get("result").getAsJsonObject().get("username").getAsString();
+                have_bot_username = true;
+                Log.d(log_tag, "bot_username: " + bot_username);
+            }
+        }
+
+    }
+
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -232,6 +240,9 @@ public class chat_command_service extends Service {
         }
         JsonObject from_obj = null;
         boolean message_type_is_group = message_type.contains("group");
+        if(message_type_is_group && !have_bot_username){
+            get_me();
+        }
         if (message_obj.has("from")) {
             from_obj = message_obj.get("from").getAsJsonObject();
             if (message_type_is_group && from_obj.get("is_bot").getAsBoolean()) {
