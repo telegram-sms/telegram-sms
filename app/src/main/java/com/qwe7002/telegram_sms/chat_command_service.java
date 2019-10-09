@@ -122,7 +122,8 @@ public class chat_command_service extends Service {
 
                     @Override
                     public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                        JsonObject result_obj = new JsonParser().parse(Objects.requireNonNull(response.body()).string()).getAsJsonObject();
+                        String result = Objects.requireNonNull(response.body()).string();
+                        JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
                         if (result_obj.get("ok").getAsBoolean()) {
                             bot_username = result_obj.get("result").getAsJsonObject().get("username").getAsString();
                             have_bot_username = true;
@@ -177,7 +178,7 @@ public class chat_command_service extends Service {
                         e.printStackTrace();
                         continue;
                     }
-                    JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject();
+                    JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
                     if (result_obj.get("ok").getAsBoolean()) {
                         JsonArray result_array = result_obj.get("result").getAsJsonArray();
                         for (JsonElement item : result_array) {
@@ -259,7 +260,7 @@ public class chat_command_service extends Service {
             JsonObject reply_obj = message_obj.get("reply_to_message").getAsJsonObject();
             String reply_id = reply_obj.get("message_id").getAsString();
             String message_list_raw = public_func.read_file(context, "message.json");
-            JsonObject message_list = new JsonParser().parse(message_list_raw).getAsJsonObject();
+            JsonObject message_list = JsonParser.parseString(message_list_raw).getAsJsonObject();
             if (message_list.has(reply_id)) {
                 JsonObject message_item_obj = message_list.get(reply_id).getAsJsonObject();
                 String phone_number = message_item_obj.get("phone").getAsString();

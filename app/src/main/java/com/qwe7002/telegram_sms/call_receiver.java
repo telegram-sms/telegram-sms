@@ -110,7 +110,7 @@ class call_status_listener extends PhoneStateListener {
                         public_func.write_log(context, error_message);
                     } else {
                         String result = Objects.requireNonNull(response.body()).string();
-                        JsonObject result_obj = new JsonParser().parse(result).getAsJsonObject().get("result").getAsJsonObject();
+                        JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject().get("result").getAsJsonObject();
                         String message_id = result_obj.get("message_id").getAsString();
                         public_func.add_message_list(context, message_id, incoming_number, slot, public_func.get_sub_id(context, slot));
                     }

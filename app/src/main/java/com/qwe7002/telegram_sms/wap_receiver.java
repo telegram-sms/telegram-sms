@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import java.util.Objects;
-
 public class wap_receiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, Intent intent) {
