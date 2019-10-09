@@ -204,7 +204,7 @@ public class chat_command_service extends Service {
             }
             assert result != null;
             JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
-            if (result_obj.get("ok").getAsBoolean()&&!bot_username.equals(" 9,98   -0=9 ")) {
+            if (result_obj.get("ok").getAsBoolean()&&!bot_username.equals("")) {
                 bot_username = result_obj.get("result").getAsJsonObject().get("username").getAsString();
                 have_bot_username = true;
                 Log.d(log_tag, "bot_username: " + bot_username);
