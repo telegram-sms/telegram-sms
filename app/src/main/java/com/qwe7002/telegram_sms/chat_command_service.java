@@ -241,6 +241,7 @@ public class chat_command_service extends Service {
         JsonObject from_obj = null;
         boolean message_type_is_group = message_type.contains("group");
         if(message_type_is_group && !have_bot_username){
+            Log.i(log_tag, "receive_handle: Did not successfully get bot_username.");
             get_me();
         }
         if (message_obj.has("from")) {
