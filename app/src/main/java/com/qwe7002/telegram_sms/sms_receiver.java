@@ -116,7 +116,7 @@ public class sms_receiver extends BroadcastReceiver {
                 new Thread(() -> {
                     public_func.stop_all_service(context.getApplicationContext());
                     public_func.start_service(context.getApplicationContext(), sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
-                });
+                }).start();
                 request_body.text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
             }
             if (public_func.is_phone_number(msg_send_to) && msg_send_list.length != 1) {
