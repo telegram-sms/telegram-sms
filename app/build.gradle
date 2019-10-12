@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 android {
     compileSdkVersion 29
-
+    buildToolsVersion = '29.0.2'
     defaultConfig {
         applicationId "com.qwe7002.telegram_sms"
         minSdkVersion 22
@@ -33,6 +33,7 @@ android {
             signingConfig signingConfigs.release
         }
     }
+
 }
 
 dependencies {

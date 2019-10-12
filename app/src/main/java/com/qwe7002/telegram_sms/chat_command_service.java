@@ -496,8 +496,7 @@ public class chat_command_service extends Service {
                 break;
             case BatteryManager.BATTERY_STATUS_DISCHARGING:
             case BatteryManager.BATTERY_STATUS_NOT_CHARGING:
-                int plug_status = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
-                switch (plug_status) {
+                switch (batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1)) {
                     case BatteryManager.BATTERY_PLUGGED_AC:
                     case BatteryManager.BATTERY_PLUGGED_USB:
                     case BatteryManager.BATTERY_PLUGGED_WIRELESS:

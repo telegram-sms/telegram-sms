@@ -402,13 +402,13 @@ public class main_activity extends AppCompatActivity {
             case R.id.privacy_policy:
                 file_name = "/wiki/" + context.getString(R.string.privacy_policy_url);
                 break;
-            case R.id.logcat:
-                Intent logcat_intent = new Intent(main_activity.this, logcat_activity.class);
-                startActivity(logcat_intent);
-                return true;
             case R.id.donate:
                 file_name = "/donate";
                 break;
+            case R.id.logcat:
+                Intent logcat_intent = new Intent(this, logcat_activity.class);
+                startActivity(logcat_intent);
+                return true;
         }
         assert file_name != null;
         Uri uri = Uri.parse("https://get-telegram-sms.reall.uk" + file_name);
