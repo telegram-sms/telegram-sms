@@ -406,13 +406,14 @@ class public_func {
         return result;
     }
 
-
     @SuppressWarnings("WeakerAccess")
     static String read_file_last_line(Context context, @SuppressWarnings("SameParameterValue") String file, int line) {
         StringBuilder builder = new StringBuilder();
+        FileInputStream file_stream = null;
+        FileChannel channel = null;
         try {
-            FileInputStream file_stream = context.openFileInput(file);
-            FileChannel channel = file_stream.getChannel();
+            file_stream = context.openFileInput(file);
+            channel = file_stream.getChannel();
             ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
             buffer.position((int) channel.size());
             int count = 0;
@@ -426,38 +427,64 @@ class public_func {
                     count++;
                 }
             }
-            channel.close();
             return builder.toString();
         } catch (IOException e) {
             e.printStackTrace();
             return "";
+        } finally {
+            try {
+                if (file_stream != null) {
+                    file_stream.close();
+                }
+                if (channel != null) {
+                    channel.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-
     }
 
     static void write_file(Context context, String file_name, String write_string, int mode) {
+        FileOutputStream file_stream = null;
         try {
-            FileOutputStream file_stream = context.openFileOutput(file_name, mode);
+            file_stream = context.openFileOutput(file_name, mode);
             byte[] bytes = write_string.getBytes();
             file_stream.write(bytes);
-            file_stream.close();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (file_stream != null) {
+                try {
+                    file_stream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
+
     static String read_file(Context context, @SuppressWarnings("SameParameterValue") String file_name) {
         String result = "";
+        FileInputStream file_stream = null;
         try {
-            FileInputStream file_stream = context.openFileInput(file_name);
+            file_stream = context.openFileInput(file_name);
             int length = file_stream.available();
             byte[] buffer = new byte[length];
             //noinspection ResultOfMethodCallIgnored
             file_stream.read(buffer);
             result = new String(buffer, StandardCharsets.UTF_8);
-            file_stream.close();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (file_stream != null) {
+                try {
+                    file_stream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return result;
     }
