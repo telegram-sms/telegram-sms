@@ -17,6 +17,7 @@ import com.google.gson.JsonParser;
 import java.io.IOException;
 import java.util.Objects;
 
+import io.paperdb.Paper;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -31,6 +32,7 @@ public class call_receiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Paper.init(context);
         Log.d("call_receiver", "Receive action: "+intent.getAction());
         switch (Objects.requireNonNull(intent.getAction())) {
             case "android.intent.action.PHONE_STATE":
