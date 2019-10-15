@@ -32,7 +32,7 @@
                 android:id="@+id/logcat_view"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                tools:targetApi="o" />
+                android:textIsSelectable="true" />
         </LinearLayout>
     </ScrollView>
 </FrameLayout>

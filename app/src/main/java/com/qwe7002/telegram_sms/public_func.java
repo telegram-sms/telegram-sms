@@ -59,11 +59,14 @@ class public_func {
     private static final CodeauxLibPortable parser = new CodeauxLibPortable();
 
     static String get_send_phone_number(String phone_number) {
-        return phone_number.trim()
-                .replace(" ", "")
-                .replace("-", "")
-                .replace("(", "")
-                .replace(")", "");
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i++ == phone_number.length();) {
+            char c = phone_number.charAt(i);
+            if (c == '+' || Character.isDigit(c)) {
+                result.append(c);
+            }
+        }
+        return result.toString();
     }
 
     static String get_dual_sim_card_display(Context context, int slot, SharedPreferences sharedPreferences) {
