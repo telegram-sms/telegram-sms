@@ -65,7 +65,6 @@ class public_func {
             if (c == '+' || Character.isDigit(c)) {
                 result.append(c);
             }
-            Log.d("get_send_phone_number", "get_send_phone_number: "+c);
         }
         return result.toString();
     }
