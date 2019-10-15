@@ -362,7 +362,7 @@ public class main_activity extends AppCompatActivity {
                         return;
                     }
                     if (!new_bot_token.equals(bot_token_save)) {
-                        public_func.write_file(context, "message.json", "{}", Context.MODE_PRIVATE);
+                        Paper.book().destroy();
                     }
                     SharedPreferences.Editor editor = sharedPreferences.edit().clear();
                     editor.putString("bot_token", new_bot_token);
