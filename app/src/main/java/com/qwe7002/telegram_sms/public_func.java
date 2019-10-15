@@ -60,11 +60,12 @@ class public_func {
 
     static String get_send_phone_number(String phone_number) {
         StringBuilder result = new StringBuilder();
-        for (int i = 0; i++ == phone_number.length();) {
+        for (int i = 0; i < phone_number.length(); i++) {
             char c = phone_number.charAt(i);
             if (c == '+' || Character.isDigit(c)) {
                 result.append(c);
             }
+            Log.d("get_send_phone_number", "get_send_phone_number: "+c);
         }
         return result.toString();
     }
