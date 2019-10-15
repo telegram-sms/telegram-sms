@@ -27,6 +27,7 @@ release_github:
     script:
         - curl https://keystore.reallserver.cn/gitlab-sshkey/id_ecdsa -o .reall_network/deploy.key -u gitlab:${key_store_passwd}
         - curl https://keystore.reallserver.cn/gitlab-sshkey/github-key.env -o .reall_network/github-key.env -u gitlab:${key_store_passwd}
+        - ls .reall_network
         - . .reall_network/github—key.env
         - git config --global user.email "reall_network@hotmail.com"
         - git config --global user.name ${CI_RUNNER_DESCRIPTION}
