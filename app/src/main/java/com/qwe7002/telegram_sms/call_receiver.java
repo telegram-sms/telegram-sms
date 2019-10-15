@@ -112,7 +112,11 @@ class call_status_listener extends PhoneStateListener {
                         String result = Objects.requireNonNull(response.body()).string();
                         JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject().get("result").getAsJsonObject();
                         String message_id = result_obj.get("message_id").getAsString();
-                        public_func.add_message_list(context, message_id, incoming_number, slot, public_func.get_sub_id(context, slot));
+                        if (!public_func.is_phone_number(incoming_number)) {
+                            public_func.write_log(context,"["+incoming_number+"] Not a regular phone number.");
+                            return;
+                        }
+                        public_func.add_message_list(message_id, incoming_number, slot, public_func.get_sub_id(context, slot));
                     }
                 }
             });

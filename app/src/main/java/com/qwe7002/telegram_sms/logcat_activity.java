@@ -10,6 +10,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import io.paperdb.Paper;
+
 public class logcat_activity extends AppCompatActivity {
 
     private Context context;
@@ -51,7 +53,7 @@ public class logcat_activity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         public_func.write_file(context, "error.log", "", Context.MODE_PRIVATE);
-        public_func.write_file(context, "message.json", "{}", Context.MODE_PRIVATE);
+        Paper.book().destroy();
         return true;
     }
 

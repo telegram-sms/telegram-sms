@@ -95,6 +95,7 @@ This APP uses the following open source libraries:
 - [okhttp](https://github.com/square/okhttp)
 - [Gson](https://github.com/google/gson)
 - [CodeauxLib](https://gist.github.com/SumiMakito/59992fd15a865c3b9709b8e2c3bc9cf1)
+- [Paper](https://github.com/pilgr/Paper)
 
 The creation of this APP would not be possible without help from the following people:
 

@@ -43,6 +43,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+import io.paperdb.Paper;
 import okhttp3.Call;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -124,6 +125,7 @@ class public_func {
         for (int i = str.length(); --i >= 0; ) {
             char c = str.charAt(i);
             if (c == '+') {
+                Log.d("is_phone_number", "is_phone_number: found +.");
                 continue;
             }
             if (!Character.isDigit(c)) {
@@ -468,7 +470,7 @@ class public_func {
     }
 
 
-    static String read_file(Context context, @SuppressWarnings("SameParameterValue") String file_name) {
+    static String read_file(Context context,String file_name) {
         String result = "";
         FileInputStream file_stream = null;
         try {
@@ -492,18 +494,13 @@ class public_func {
         return result;
     }
 
-    static void add_message_list(Context context, String message_id, String phone, int slot, int sub_id) {
-        String message_list_raw = public_func.read_file(context, "message.json");
-        if (message_list_raw.length() == 0) {
-            message_list_raw = "{}";
-        }
-        JsonObject message_list_obj = JsonParser.parseString(message_list_raw).getAsJsonObject();
-        JsonObject object = new JsonObject();
-        object.addProperty("phone", phone);
-        object.addProperty("card", slot);
-        object.addProperty("sub_id", sub_id);
-        message_list_obj.add(message_id, object);
-        public_func.write_file(context, "message.json", new Gson().toJson(message_list_obj), Context.MODE_PRIVATE);
+    static void add_message_list(String message_id, String phone, int slot, int sub_id) {
+        message_item item = new message_item();
+        item.phone = phone;
+        item.card = slot;
+        item.sub_id = sub_id;
+        Paper.book().write(message_id,item);
+        Log.d("add_message_list", "add_message_list: "+message_id);
     }
 
     static String get_verification_code(String body) {
