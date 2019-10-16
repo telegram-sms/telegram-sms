@@ -81,10 +81,13 @@ public class sms_receiver extends BroadcastReceiver {
             public_func.write_log(context, "Message length is equal to 0.");
             return;
         }
-        StringBuilder message_body = new StringBuilder();
+
+        StringBuilder message_body_builder = new StringBuilder();
         for (SmsMessage item : messages) {
-            message_body.append(item.getMessageBody());
+            message_body_builder.append(item.getMessageBody());
         }
+        final String message_body = message_body_builder.toString();
+
         final String message_address = messages[0].getOriginatingAddress();
         assert message_address != null;
         String trusted_phone_number = sharedPreferences.getString("trusted_phone_number", null);
@@ -95,26 +98,27 @@ public class sms_receiver extends BroadcastReceiver {
         final message_json request_body = new message_json();
         request_body.chat_id = chat_id;
 
-        String message_body_html = message_body.toString();
+        String message_body_html = message_body;
+        final String message_head = "[" + dual_sim + context.getString(R.string.receive_sms_head) + "]" + "\n" + context.getString(R.string.from) + message_address + "\n" + context.getString(R.string.content);
+        final String raw_request_body_text = message_head + message_body;
+
         if (sharedPreferences.getBoolean("verification_code", false) && !trusted_phone) {
-            String verification = public_func.get_verification_code(message_body.toString());
+            String verification = public_func.get_verification_code(message_body);
             if (verification != null) {
                 request_body.parse_mode = "html";
-                message_body_html = message_body.toString()
+                message_body_html = message_body
                         .replace("<", "&lt;")
                         .replace(">", "&gt;")
                         .replace("&", "&amp;")
                         .replace(verification, "<code>" + verification + "</code>");
             }
         }
-        String message_head = "[" + dual_sim + context.getString(R.string.receive_sms_head) + "]" + "\n" + context.getString(R.string.from) + message_address + "\n" + context.getString(R.string.content);
-        final String raw_request_body_text = message_head + message_body;
         request_body.text = message_head + message_body_html;
 
         if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED && trusted_phone) {
-            String[] msg_send_list = message_body.toString().split("\n");
+            String[] msg_send_list = message_body.split("\n");
             String msg_send_to = public_func.get_send_phone_number(msg_send_list[0]);
-            if (message_body.toString().equals("restart-service")) {
+            if (message_body.equals("restart-service")) {
                 new Thread(() -> {
                     public_func.stop_all_service(context.getApplicationContext());
                     public_func.start_service(context.getApplicationContext(), sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
