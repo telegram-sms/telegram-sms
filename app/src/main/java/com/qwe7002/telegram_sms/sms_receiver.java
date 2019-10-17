@@ -116,36 +116,39 @@ public class sms_receiver extends BroadcastReceiver {
         }
         request_body.text = message_head + message_body_html;
         if (is_trusted_phone) {
-            if (message_body.equals("restart-service")) {
-                new Thread(() -> {
-                    public_func.stop_all_service(context.getApplicationContext());
-                    public_func.start_service(context.getApplicationContext(), sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
-                }).start();
-                request_body.text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
-            }
-            if (message_body.equals("scan_wifi")) {
-                WifiManager wifi_manager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-                assert wifi_manager != null;
-                if (wifi_manager.isWifiEnabled()) {
-                    wifi_manager.startScan();
-                    request_body.text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.scan_wifi);
-                }
-            }
-            if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-                String[] msg_send_list = message_body.split("\n");
-                String msg_send_to = public_func.get_send_phone_number(msg_send_list[0]);
-                if (public_func.is_phone_number(msg_send_to) && msg_send_list.length != 1) {
-                    StringBuilder msg_send_content = new StringBuilder();
-                    for (int i = 1; i < msg_send_list.length; i++) {
-                        if (msg_send_list.length != 2 && i != 1) {
-                            msg_send_content.append("\n");
-                        }
-                        msg_send_content.append(msg_send_list[i]);
+            switch (message_body) {
+                case "restart-service":
+                    new Thread(() -> {
+                        public_func.stop_all_service(context.getApplicationContext());
+                        public_func.start_service(context.getApplicationContext(), sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
+                    }).start();
+                    request_body.text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
+                    break;
+                case "scan_wifi":
+                    WifiManager wifi_manager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                    assert wifi_manager != null;
+                    if (wifi_manager.isWifiEnabled()) {
+                        wifi_manager.startScan();
+                        request_body.text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.scan_wifi);
                     }
-                    new Thread(() -> public_func.send_sms(context, msg_send_to, msg_send_content.toString(), slot, sub)).start();
-                    return;
-                }
-
+                    break;
+                default:
+                    if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                        break;
+                    }
+                    String[] msg_send_list = message_body.split("\n");
+                    String msg_send_to = public_func.get_send_phone_number(msg_send_list[0]);
+                    if (public_func.is_phone_number(msg_send_to) && msg_send_list.length != 1) {
+                        StringBuilder msg_send_content = new StringBuilder();
+                        for (int i = 1; i < msg_send_list.length; i++) {
+                            if (msg_send_list.length != 2 && i != 1) {
+                                msg_send_content.append("\n");
+                            }
+                            msg_send_content.append(msg_send_list[i]);
+                        }
+                        new Thread(() -> public_func.send_sms(context, msg_send_to, msg_send_content.toString(), slot, sub)).start();
+                        return;
+                    }
             }
         }
         if (!public_func.check_network_status(context)) {
