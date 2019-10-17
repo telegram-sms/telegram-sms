@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:alpha="@dimen/alpha"
         android:scaleType="fitEnd"
-        android:src="@mipmap/character_set"
+        android:src="@drawable/character_set"
         tools:ignore="ContentDescription" />
 
     <ScrollView
