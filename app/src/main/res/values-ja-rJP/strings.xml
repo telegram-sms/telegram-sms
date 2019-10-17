@@ -64,4 +64,5 @@
     <string name="unable_get_phone_number">電話番号を取得できません。</string>
     <string name="donate">寄付する</string>
     <string name="not_charging" >充電していません</string>
+    <string name="scan_wifi">WI-FIアクセスポイントをスキャンしています。</string>
 </resources>

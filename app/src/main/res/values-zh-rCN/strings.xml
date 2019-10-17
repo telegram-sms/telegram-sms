@@ -64,4 +64,5 @@
     <string name="unable_get_phone_number">无法获取电话号码。</string>
     <string name="donate">捐助</string>
     <string name="not_charging" >不在充电</string>
+    <string name="scan_wifi">正在扫描 WI-FI 接入点。</string>
 </resources>

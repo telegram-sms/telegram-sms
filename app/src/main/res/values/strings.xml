@@ -65,4 +65,5 @@
     <string name="unable_get_phone_number">Unable to get phone number.</string>
     <string name="donate">Donate</string>
     <string name="not_charging">Not charging</string>
+    <string name="scan_wifi" >Scanning WI-FI access point.</string>
 </resources>

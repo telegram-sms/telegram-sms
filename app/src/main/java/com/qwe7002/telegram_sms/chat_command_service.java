@@ -43,6 +43,7 @@ public class chat_command_service extends Service {
     private static long offset = 0;
     private static int magnification = 1;
     private static int error_magnification = 1;
+    private static SharedPreferences sharedPreferences;
     private String chat_id;
     private String bot_token;
     private Context context;
@@ -57,7 +58,6 @@ public class chat_command_service extends Service {
     private final String log_tag = "chat_command_service";
     private network_changed_receiver network_changed_receiver;
     static Thread thread_main;
-    private boolean have_bot_username = false;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -72,7 +72,7 @@ public class chat_command_service extends Service {
         super.onCreate();
         context = getApplicationContext();
         Paper.init(context);
-        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
         okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
@@ -88,6 +88,7 @@ public class chat_command_service extends Service {
         if (!wakelock.isHeld()) {
             wakelock.acquire();
         }
+
         thread_main = new Thread(new thread_main_runnable());
         thread_main.start();
         IntentFilter intentFilter = new IntentFilter(public_func.broadcast_stop_service);
@@ -109,8 +110,12 @@ public class chat_command_service extends Service {
                 e.printStackTrace();
                 //Avoid errors caused by unconvertible inputs.
             }
-            if (chat_int_id < 0 && !have_bot_username) {
-                new Thread(chat_command_service.this::get_me).start();
+            if (chat_int_id < 0) {
+                bot_username = sharedPreferences.getString("bot_username",null);
+                Log.d(log_tag, "Load bot_username from storage: "+bot_username);
+                if(bot_username==null) {
+                    new Thread(chat_command_service.this::get_me).start();
+                }
             }
             while (true) {
                 int read_timeout = 5 * magnification;
@@ -208,7 +213,7 @@ public class chat_command_service extends Service {
             JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
             if (result_obj.get("ok").getAsBoolean()) {
                 bot_username = result_obj.get("result").getAsJsonObject().get("username").getAsString();
-                have_bot_username = true;
+                sharedPreferences.edit().putString("bot_username",bot_username).apply();
                 Log.d(log_tag, "bot_username: " + bot_username);
             }
         }
@@ -243,9 +248,10 @@ public class chat_command_service extends Service {
         JsonObject from_obj = null;
         final boolean message_type_is_group = message_type.contains("group");
         final boolean message_type_is_private = message_type.equals("private");
-        if (message_type_is_group && !have_bot_username) {
-            Log.i(log_tag, "receive_handle: Did not successfully get bot_username.");
-            get_me();
+        if (message_type_is_group&&bot_username==null) {
+                Log.i(log_tag, "receive_handle: Did not successfully get bot_username.");
+                get_me();
+
         }
         if (message_obj.has("from")) {
             from_obj = message_obj.get("from").getAsJsonObject();
