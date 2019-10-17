@@ -66,17 +66,6 @@ public class sms_receiver extends BroadcastReceiver {
             } else {
                 messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
             }
-            if (is_default) {
-                final int final_i = i;
-                new Thread(() -> {
-                    ContentValues values = new ContentValues();
-                    values.put(Telephony.Sms.ADDRESS, messages[final_i].getOriginatingAddress());
-                    values.put(Telephony.Sms.BODY, messages[final_i].getMessageBody());
-                    values.put(Telephony.Sms.SUBSCRIPTION_ID, String.valueOf(sub));
-                    values.put(Telephony.Sms.READ, "1");
-                    context.getContentResolver().insert(Telephony.Sms.CONTENT_URI, values);
-                }).start();
-            }
         }
         if (messages.length == 0) {
             public_func.write_log(context, "Message length is equal to 0.");
@@ -91,6 +80,19 @@ public class sms_receiver extends BroadcastReceiver {
 
         final String message_address = messages[0].getOriginatingAddress();
         assert message_address != null;
+
+        if (is_default) {
+            new Thread(() -> {
+                Log.i(log_tag, "onReceive: Write to the system database.");
+                ContentValues values = new ContentValues();
+                values.put(Telephony.Sms.ADDRESS, message_body);
+                values.put(Telephony.Sms.BODY, message_address);
+                values.put(Telephony.Sms.SUBSCRIPTION_ID, String.valueOf(sub));
+                values.put(Telephony.Sms.READ, "1");
+                context.getContentResolver().insert(Telephony.Sms.CONTENT_URI, values);
+            }).start();
+        }
+
         String trusted_phone_number = sharedPreferences.getString("trusted_phone_number", null);
         boolean is_trusted_phone = false;
         if (trusted_phone_number != null && trusted_phone_number.length() != 0) {
