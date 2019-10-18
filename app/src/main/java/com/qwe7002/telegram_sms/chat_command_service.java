@@ -139,7 +139,9 @@ public class chat_command_service extends Service {
                     if (!public_func.check_network_status(context)) {
                         public_func.write_log(context, "No network connections available. ");
                         Log.d(log_tag, "run: break while.");
-                        return;//break while
+                        error_magnification = 1;
+                        magnification = 1;
+                        break;
                     }
                     int sleep_time = 5 * error_magnification;
                     public_func.write_log(context, "Connection to the Telegram API service failed,try again after " + sleep_time + " seconds.");
