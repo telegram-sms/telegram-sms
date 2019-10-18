@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="content">内容：</string>
-    <string name="from">来自：</string>
-    <string name="to">发送到：</string>
+    <string name="content">内容: </string>
+    <string name="from">来自: </string>
+    <string name="to">发送到: </string>
     <string name="send_sms_head">发送短信</string>
     <string name="system_message_head">[系统信息]</string>
     <string name="success_connect">您已成功连接到 Telegram bot 服务器。</string>

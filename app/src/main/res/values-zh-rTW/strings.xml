@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="receive_sms_head">收到簡訊</string>
-    <string name="content">內容:</string>
-    <string name="from">來自:</string>
-    <string name="to">發送到:</string>
+    <string name="content">內容: </string>
+    <string name="from">來自: </string>
+    <string name="to">發送到: </string>
     <string name="send_sms_head">發送簡訊</string>
     <string name="system_message_head">[系統訊息]</string>
     <string name="success_connect">您已成功連接到 Telegram bot 伺服器。</string>

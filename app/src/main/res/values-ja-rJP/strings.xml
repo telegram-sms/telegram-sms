@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="receive_sms_head">新着メール</string>
-    <string name="content">本文:</string>
-    <string name="from">送信元:</string>
-    <string name="to">宛先:</string>
+    <string name="content">本文: </string>
+    <string name="from">送信元: </string>
+    <string name="to">宛先: </string>
     <string name="send_sms_head">送信</string>
     <string name="system_message_head">[システム情報]</string>
     <string name="success_connect">テレグラムボットサーバーに正常に接続しました。</string>
