@@ -33,20 +33,20 @@ import okhttp3.Response;
 public class sms_receiver extends BroadcastReceiver {
     public void onReceive(final Context context, Intent intent) {
         Paper.init(context);
-        final String log_tag = "sms_receiver";
-        Log.d(log_tag, "Receive action: "+intent.getAction());
+        final String TAG = "sms_receiver";
+        Log.d(TAG, "Receive action: "+intent.getAction());
         Bundle extras = intent.getExtras();
         assert extras != null;
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
-            Log.i(log_tag, "Uninitialized, SMS receiver is deactivated.");
+            Log.i(TAG, "Uninitialized, SMS receiver is deactivated.");
             return;
         }
         final boolean is_default = Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName());
         assert intent.getAction() != null;
         if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED") && is_default) {
             //When it is the default application, it will receive two broadcasts.
-            Log.i(log_tag, "reject: android.provider.Telephony.SMS_RECEIVE.");
+            Log.i(TAG, "reject: android.provider.Telephony.SMS_RECEIVE.");
             return;
         }
         String bot_token = sharedPreferences.getString("bot_token", "");
@@ -54,7 +54,7 @@ public class sms_receiver extends BroadcastReceiver {
         String request_uri = public_func.get_url(bot_token, "sendMessage");
 
         final int slot = extras.getInt("slot", -1);
-        String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences);
+        String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
 
         final int sub = extras.getInt("subscription", -1);
         Object[] pdus = (Object[]) extras.get("pdus");
@@ -83,7 +83,7 @@ public class sms_receiver extends BroadcastReceiver {
 
         if (is_default) {
             new Thread(() -> {
-                Log.i(log_tag, "onReceive: Write to the system database.");
+                Log.i(TAG, "onReceive: Write to the system database.");
                 ContentValues values = new ContentValues();
                 values.put(Telephony.Sms.ADDRESS, message_body);
                 values.put(Telephony.Sms.BODY, message_address);

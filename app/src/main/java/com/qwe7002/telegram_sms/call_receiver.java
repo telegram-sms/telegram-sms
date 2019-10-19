@@ -79,7 +79,7 @@ class call_status_listener extends PhoneStateListener {
             String request_uri = public_func.get_url(bot_token, "sendMessage");
             final message_json request_body = new message_json();
             request_body.chat_id = chat_id;
-            String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences);
+            String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
             request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + incoming_number;
 
             if (!public_func.check_network_status(context)) {

@@ -28,15 +28,15 @@ import static android.content.Context.MODE_PRIVATE;
 public class sms_send_receiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, Intent intent) {
-        final String log_tag = "sms_send_receiver";
-        Log.d(log_tag, "Receive action: "+intent.getAction());
+        final String TAG = "sms_send_receiver";
+        Log.d(TAG, "Receive action: "+intent.getAction());
         Bundle extras = intent.getExtras();
         assert extras != null;
         int sub = extras.getInt("sub_id");
         context.getApplicationContext().unregisterReceiver(this);
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
-            Log.i(log_tag, "Uninitialized, SMS send receiver is deactivated.");
+            Log.i(TAG, "Uninitialized, SMS send receiver is deactivated.");
             return;
         }
         String bot_token = sharedPreferences.getString("bot_token", "");
@@ -46,7 +46,7 @@ public class sms_send_receiver extends BroadcastReceiver {
         String request_uri = public_func.get_url(bot_token, "sendMessage");
         long message_id = Long.parseLong(Objects.requireNonNull(extras.getString("message_id")));
         if (message_id != -1) {
-            Log.d(log_tag, "Find the message_id and switch to edit mode.");
+            Log.d(TAG, "Find the message_id and switch to edit mode.");
             request_uri = public_func.get_url(bot_token, "editMessageText");
             request_body.message_id = message_id;
         }

@@ -59,7 +59,7 @@ import okhttp3.Response;
 public class main_activity extends AppCompatActivity {
     private Context context = null;
     private Switch display_dual_sim_display_name;
-    private final String log_tag = "main_activity";
+    private final String TAG = "main_activity";
     @SuppressLint("BatteryLife")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,9 +99,9 @@ public class main_activity extends AppCompatActivity {
                         item.card = json_item.get("card").getAsInt();
                         item.sub_id = json_item.get("sub_id").getAsInt();
                         Paper.book().write(entry_set.getKey(), item);
-                        Log.d(log_tag, "add_message_list: " + entry_set.getKey());
+                        Log.d(TAG, "add_message_list: " + entry_set.getKey());
                     }
-                    Log.d(log_tag, "The conversion is complete.");
+                    Log.d(TAG, "The conversion is complete.");
                     public_func.write_file(context, "message.json", "", Context.MODE_PRIVATE);
                     sharedPreferences.edit().putBoolean("conversion_data_structure",true).apply();
                 }).start();
