@@ -12,10 +12,8 @@ push_github:
     only:
         - nightly
     script:
-        - curl https://keystore.reallserver.cn/gitlab-sshkey/id_ecdsa -o deploy.key -u gitlab:${key_store_passwd}
         - eval $(ssh-agent -s)
-        - chmod 0600 deploy.key
-        - ssh-add deploy.key
+        - curl https://keystore.reallserver.cn/gitlab-sshkey/id_ecdsa -u gitlab:${key_store_passwd} | ssh-add -
         - git push -f --set-upstream git@github.com:telegram-sms/telegram-sms.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
 
 release_github:
