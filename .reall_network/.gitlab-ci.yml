@@ -23,16 +23,18 @@ release_github:
         - master
     stage: deploy
     script:
+        - eval $(ssh-agent -s)
+        - ssh-add - <<< $(curl https://keystore.reallserver.cn/gitlab-sshkey/id_ecdsa -u gitlab:${key_store_passwd})
+        - git push --set-upstream git@github.com:telegram-sms/telegram-sms.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
+        # Release Release APK.
         - curl https://keystore.reallserver.cn/gitlab-sshkey/github-key.env -o .reall_network/github-key.env -u gitlab:${key_store_passwd}
         - . .reall_network/github-key.env
         - git config --global user.email "reall_network@hotmail.com"
         - git config --global user.name ${CI_RUNNER_DESCRIPTION}
-        - eval $(ssh-agent -s)
-        - ssh-add - <<< $(curl https://keystore.reallserver.cn/gitlab-sshkey/id_ecdsa -u gitlab:${key_store_passwd})
-        - git push --set-upstream git@github.com:telegram-sms/telegram-sms.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
         - export TAG=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M")
         - /opt/github-release-upload.sh github_api_token=${GITHUB_ACCESS_KEY} owner=telegram-sms repo=telegram-sms tag=$TAG filename="./app/build/outputs/apk/release/app-release.apk" pre_release="false"
         - export MD5=$(md5sum "./app/build/outputs/apk/release/app-release.apk" |cut -d ' ' -f1)
+        # Post upgrade information.
         - git clone git@github.com:telegram-sms/get-telegram-sms.reall.uk.git config
         - cd config
         - echo \{\"version\":${CI_PIPELINE_ID},\"name\":\"${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}\"\,\"download_link\":\"https://github.com/telegram-sms/telegram-sms/releases/download/${TAG}/app-release.apk\",\"check_sum\":\"${MD5}\"} > version.json
@@ -40,6 +42,7 @@ release_github:
         - git commit -m ${TAG}
         - git push --set-upstream git@github.com:telegram-sms/get-telegram-sms.reall.uk.git -f HEAD:refs/heads/$CI_COMMIT_REF_NAME
         - cd ..
+        # Update wiki.
         - git clone https://git.reallserver.cn/qwe7002/telegram-sms.wiki.git wiki
         - cd wiki
         - git push -f --set-upstream git@github.com:telegram-sms/telegram-sms.wiki.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
