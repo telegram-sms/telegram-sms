@@ -48,7 +48,7 @@ release_github:
         - cd wiki
         - git push -f --set-upstream git@github.com:telegram-sms/telegram-sms.wiki.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
 build:
-    image: jangrewe/gitlab-ci-android:latest
+    image: alvrme/alpine-android:android-29
     stage: build
     script:
         - export VERSION_CODE=${CI_PIPELINE_ID}
