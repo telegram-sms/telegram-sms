@@ -374,13 +374,15 @@ class public_func {
             Log.d(TAG, "No permission.");
             return result;
         }
-        if (get_active_card(context) == 1) {
-            slot = -1;
-            Log.d(TAG, "There is only one active card.");
-        }
         SubscriptionInfo info = SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(slot);
         if (info == null) {
-            Log.d(TAG, "get_sim_display_name: ");
+            Log.d(TAG, "The active card is in the second card slot.");
+            if (get_active_card(context) == 1 && slot == 0) {
+                info = SubscriptionManager.from(context).getActiveSubscriptionInfoForSimSlotIndex(1);
+            }
+            if (info == null) {
+                return result;
+            }
             return result;
         }
         result = info.getDisplayName().toString();
