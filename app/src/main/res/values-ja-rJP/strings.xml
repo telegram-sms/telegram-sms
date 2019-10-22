@@ -65,4 +65,5 @@
     <string name="donate">寄付する</string>
     <string name="not_charging" >充電していません</string>
     <string name="scan_wifi">WI-FIアクセスポイントをスキャンしています。</string>
+    <string name="using_privacy_mode">ロボットのユーザー名を含むコマンドにのみ応答する</string>
 </resources>

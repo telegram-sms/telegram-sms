@@ -66,4 +66,5 @@
     <string name="donate">Donate</string>
     <string name="not_charging">Not charging</string>
     <string name="scan_wifi" >Scanning WI-FI access point.</string>
+    <string name="using_privacy_mode">Respond only to commands containing the Bot username</string>
 </resources>

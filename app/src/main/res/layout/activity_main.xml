@@ -116,6 +116,13 @@
                     android:text="@string/display_sim_card_alias_in_dual_card_mode"
                     tools:ignore="RtlSymmetry" />
             <Switch
+                android:id="@+id/privacy_switch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="3dp"
+                android:text="@string/using_privacy_mode"
+                tools:ignore="RtlSymmetry" />
+            <Switch
                     android:id="@+id/doh_switch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

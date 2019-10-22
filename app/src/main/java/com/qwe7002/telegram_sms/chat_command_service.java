@@ -57,6 +57,7 @@ public class chat_command_service extends Service {
     private String bot_username = "";
     private final String TAG = "chat_command_service";
     private network_changed_receiver network_changed_receiver;
+    private boolean privacy_mode;
     static Thread thread_main;
 
     @Override
@@ -76,7 +77,7 @@ public class chat_command_service extends Service {
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
         okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
-
+        privacy_mode = sharedPreferences.getBoolean("privacy_mode", false);
         wifiLock = ((WifiManager) Objects.requireNonNull(context.getApplicationContext().getSystemService(Context.WIFI_SERVICE))).createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi");
         wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "bot_command_polling");
         wifiLock.setReferenceCounted(false);
@@ -103,14 +104,7 @@ public class chat_command_service extends Service {
         @Override
         public void run() {
             Log.d(TAG, "run: thread main start");
-            int chat_int_id = 0;
-            try {
-                chat_int_id = Integer.parseInt(chat_id);
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
-                //Avoid errors caused by unconvertible inputs.
-            }
-            if (chat_int_id < 0) {
+            if (public_func.parse_int(chat_id)< 0) {
                 bot_username = sharedPreferences.getString("bot_username",null);
                 Log.d(TAG, "Load bot_username from storage: "+bot_username);
                 if(bot_username==null) {
@@ -118,15 +112,17 @@ public class chat_command_service extends Service {
                 }
             }
             while (true) {
-                int read_timeout = 5 * magnification;
+                int timeout = 5 * magnification;
+                int http_timeout = timeout + 5;
                 OkHttpClient okhttp_client_new = okhttp_client.newBuilder()
-                        .readTimeout((read_timeout + 5), TimeUnit.SECONDS)
-                        .writeTimeout((read_timeout + 5), TimeUnit.SECONDS)
+                        .readTimeout(http_timeout, TimeUnit.SECONDS)
+                        .writeTimeout(http_timeout, TimeUnit.SECONDS)
                         .build();
+                Log.d(TAG, "run: Current timeout:" + timeout + "S");
                 String request_uri = public_func.get_url(bot_token, "getUpdates");
                 polling_json request_body = new polling_json();
                 request_body.offset = offset;
-                request_body.timeout = read_timeout;
+                request_body.timeout = timeout;
                 RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_func.JSON);
                 Request request = new Request.Builder().url(request_uri).method("POST", body).build();
                 Call call = okhttp_client_new.newCall(request);
@@ -280,16 +276,15 @@ public class chat_command_service extends Service {
             return;
         }
         JsonObject from_obj = null;
-        final boolean message_type_is_group = message_type.contains("group");
         final boolean message_type_is_private = message_type.equals("private");
-        if (message_type_is_group&&bot_username==null) {
+        if (!message_type_is_private&&bot_username==null) {
                 Log.i(TAG, "receive_handle: Did not successfully get bot_username.");
                 get_me();
 
         }
         if (message_obj.has("from")) {
             from_obj = message_obj.get("from").getAsJsonObject();
-            if (message_type_is_group && from_obj.get("is_bot").getAsBoolean()) {
+            if (!message_type_is_private && from_obj.get("is_bot").getAsBoolean()) {
                 Log.i(TAG, "receive_handle: receive from bot.");
                 return;
             }
@@ -323,7 +318,7 @@ public class chat_command_service extends Service {
                 public_func.send_sms(context, phone_number, request_msg, card_slot, sub_id);
                 return;
             }
-            if (message_type_is_group) {
+            if (!message_type_is_private) {
                 Log.i(TAG, "receive_handle: The message id could not be found, ignored.");
                 return;
             }
@@ -345,10 +340,11 @@ public class chat_command_service extends Service {
 
             }
         }
-        if (message_type_is_group && !command_bot_username.equals(bot_username)) {
-            Log.i(TAG, "receive_handle: This is a Group conversation, but no conversation object was found.");
+        if (!message_type_is_private && privacy_mode && !command_bot_username.equals(bot_username)) {
+            Log.i(TAG, "receive_handle: Privacy mode, no username found.");
             return;
         }
+
 
         boolean has_command = false;
         switch (command) {
@@ -359,7 +355,7 @@ public class chat_command_service extends Service {
                     dual_card = "\n" + getString(R.string.sendsms_dual);
                 }
                 request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.available_command) + dual_card;
-                if (message_type_is_group && !bot_username.equals("")) {
+                if (!message_type_is_private && privacy_mode && !bot_username.equals("")) {
                     request_body.text = request_body.text.replace(" -", "@" + bot_username + " -");
                 }
                 has_command = true;
