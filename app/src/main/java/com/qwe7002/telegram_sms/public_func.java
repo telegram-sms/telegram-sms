@@ -308,7 +308,7 @@ class public_func {
     static Notification get_notification_obj(Context context, String notification_name) {
         Notification.Builder notification;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(notification_name, "telegram_sms",
+            NotificationChannel channel = new NotificationChannel(notification_name, notification_name,
                     NotificationManager.IMPORTANCE_MIN);
             NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             assert manager != null;
