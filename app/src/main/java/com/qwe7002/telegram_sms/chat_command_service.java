@@ -172,7 +172,7 @@ public class chat_command_service extends Service {
                         magnification++;
                     }
                 }else{
-                    public_func.write_log(context,"response code:"+response.code());
+                    public_func.write_log(context,"response code: "+response.code());
                 }
             }
         }
