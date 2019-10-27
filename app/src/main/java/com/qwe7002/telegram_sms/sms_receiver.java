@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
@@ -122,8 +121,8 @@ public class sms_receiver extends BroadcastReceiver {
             switch (message_body.toLowerCase()) {
                 case "restart-service":
                     new Thread(() -> {
-                        public_func.stop_all_service(context.getApplicationContext());
-                        public_func.start_service(context.getApplicationContext(), sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
+                        public_func.stop_all_service(context);
+                        public_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
                     }).start();
                     raw_request_body_text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
                     request_body.text = raw_request_body_text;

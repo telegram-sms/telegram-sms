@@ -197,7 +197,7 @@ public class main_activity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (public_func.parse_int(chat_id.toString()) < 0){
+                if (public_func.parse_int(chat_id.getText().toString()) < 0){
                     privacy_mode_switch.setVisibility(View.VISIBLE);
                 }else{
                     privacy_mode_switch.setVisibility(View.GONE);
@@ -418,8 +418,8 @@ public class main_activity extends AppCompatActivity {
                 }
             });
         });
-    }
 
+    }
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
