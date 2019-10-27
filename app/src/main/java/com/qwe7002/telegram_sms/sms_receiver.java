@@ -118,6 +118,7 @@ public class sms_receiver extends BroadcastReceiver {
         }
         request_body.text = message_head + message_body_html;
         if (is_trusted_phone) {
+            //noinspection SwitchStatementWithTooFewBranches
             switch (message_body.toLowerCase()) {
                 case "restart-service":
                     new Thread(() -> {
@@ -126,15 +127,6 @@ public class sms_receiver extends BroadcastReceiver {
                     }).start();
                     raw_request_body_text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
                     request_body.text = raw_request_body_text;
-                    break;
-                case "scan-wifi":
-                    WifiManager wifi_manager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-                    assert wifi_manager != null;
-                    if (wifi_manager.isWifiEnabled()) {
-                        wifi_manager.startScan();
-                        raw_request_body_text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.scan_wifi);
-                        request_body.text = raw_request_body_text;
-                    }
                     break;
                 default:
                     if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {

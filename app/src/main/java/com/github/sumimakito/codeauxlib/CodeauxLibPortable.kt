@@ -57,6 +57,7 @@ class CodeauxLibPortable {
         private const val L_JA_JSON =
                 "{\"version\":1,\"defaults\":{\"min_ccl\":4,\"max_ccl\":8,\"min_csl\":3,\"max_csl\":6},\"atoms\":{\"dc\":\"\\\\d{___V:min_ccl___,___V:max_ccl___}\",\"ds\":\"\\\\d{___V:min_csl___,___V:max_csl___}\",\"anc\":\"[a-zA-Z0-9]{___V:min_ccl___,___V:max_ccl___}\",\"ans\":\"[a-zA-Z0-9]{___V:min_csl___,___V:max_csl___}\"},\"filtered\":[\"(\\\\d{1,8}(?:\\\\.\\\\d{1,3})?\\\\s*[kmgt]?b(?:ytes?)?)\"],\"components\":{\"digits\":\"(___A:dc___|___A:ds___[-\\\\s]___A:ds___[-\\\\s]___A:ds___|___A:ds___[-\\\\s]___A:ds___)\",\"modifiers\":\"(?:認証|セキュリティー?|pin\\\\s*)\",\"code\":\"(?:コード|番号)\",\"aux\":\"(?:[はが：:])\",\"actions\":\"(?:入力|貼り付け|コーピ|切り取り|ペースト)\"},\"templates\":[\".*?___C:digits___\\\\s*___C:aux___.*?___C:modifiers___\\\\s*___C:code___.*\",\".*?___C:modifiers___\\\\s*___C:code___.*?___C:aux___\\\\s*___C:digits___.*\",\".*?___C:digits___\\\\s*___C:aux___.*?___C:code___.*\",\".*?___C:code___.*?___C:aux___\\\\s*___C:digits___.*\",\".*?___C:digits___.*?___C:modifiers___\\\\s*___C:code___.*\",\".*?___C:modifiers___\\\\s*___C:code___.*?___C:digits___.*\",\".*?___C:actions___.*?[:：]?\\\\s*___C:digits___.*\"]}"
 
+        @Suppress("unused")
         fun find(@Suppress("UNUSED_PARAMETER") context: Context, input: String): String? {
             val instance = CodeauxLibPortable()
             return instance.find(input)
