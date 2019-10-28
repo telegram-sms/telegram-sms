@@ -40,6 +40,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
@@ -58,7 +59,7 @@ import okhttp3.Response;
 
 public class main_activity extends AppCompatActivity {
     private Context context = null;
-    private Switch display_dual_sim_display_name;
+
     private final String TAG = "main_activity";
     @SuppressLint("BatteryLife")
     @Override
@@ -80,7 +81,7 @@ public class main_activity extends AppCompatActivity {
         final Switch privacy_mode_switch = findViewById(R.id.privacy_switch);
         final Button save_button = findViewById(R.id.save);
         final Button get_id = findViewById(R.id.get_id);
-        display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
+        final Switch display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
 
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
@@ -95,22 +96,40 @@ public class main_activity extends AppCompatActivity {
             public_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
             if(!sharedPreferences.getBoolean("conversion_data_structure",false)) {
                 new Thread(() -> {
-                    String message_list_raw = public_func.read_file(context, "message.json");
-                    if (message_list_raw.length() == 0) {
-                        message_list_raw = "{}";
+                    String message_list_raw = null;
+                    FileInputStream file_stream = null;
+                    try {
+                        file_stream = context.openFileInput("message.json");
+                        int length = file_stream.available();
+                        byte[] buffer = new byte[length];
+                        //noinspection ResultOfMethodCallIgnored
+                        file_stream.read(buffer);
+                        message_list_raw = new String(buffer);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } finally {
+                        if (file_stream != null) {
+                            try {
+                                file_stream.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
-                    JsonObject message_list = JsonParser.parseString(message_list_raw).getAsJsonObject();
-                    for (Map.Entry<String, JsonElement> entry_set : message_list.entrySet()) {
-                        JsonObject json_item = entry_set.getValue().getAsJsonObject();
-                        message_item item = new message_item();
-                        item.phone = json_item.get("phone").getAsString();
-                        item.card = json_item.get("card").getAsInt();
-                        item.sub_id = json_item.get("sub_id").getAsInt();
-                        Paper.book().write(entry_set.getKey(), item);
-                        Log.d(TAG, "add_message_list: " + entry_set.getKey());
+                    if (message_list_raw != null) {
+                        JsonObject message_list = JsonParser.parseString(message_list_raw).getAsJsonObject();
+                        for (Map.Entry<String, JsonElement> entry_set : message_list.entrySet()) {
+                            JsonObject json_item = entry_set.getValue().getAsJsonObject();
+                            message_item item = new message_item();
+                            item.phone = json_item.get("phone").getAsString();
+                            item.card = json_item.get("card").getAsInt();
+                            item.sub_id = json_item.get("sub_id").getAsInt();
+                            Paper.book().write(entry_set.getKey(), item);
+                            Log.d(TAG, "add_message_list: " + entry_set.getKey());
+                        }
+                        Log.d(TAG, "The conversion is complete.");
+                        public_func.write_file(context, "message.json", "", Context.MODE_PRIVATE);
                     }
-                    Log.d(TAG, "The conversion is complete.");
-                    public_func.write_file(context, "message.json", "", Context.MODE_PRIVATE);
                     sharedPreferences.edit().putBoolean("conversion_data_structure",true).apply();
                 }).start();
             }
@@ -422,6 +441,7 @@ public class main_activity extends AppCompatActivity {
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        Switch display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                 TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);

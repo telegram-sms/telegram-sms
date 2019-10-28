@@ -38,8 +38,6 @@
                 android:permission="android.permission.INTERNET"
                 android:process=":command" />
 
-        <activity android:name=".logcat_activity" />
-
         <service
                 android:name="com.qwe7002.telegram_sms.battery_service"
                 android:enabled="true"
@@ -95,7 +93,7 @@
                 <action android:name="android.intent.action.SUBSCRIPTION_PHONE_STATE" />
             </intent-filter>
         </receiver>
-
+        <activity android:name=".logcat_activity" />
         <activity
                 android:name="com.qwe7002.telegram_sms.main_activity"
                 android:label="@string/app_name"

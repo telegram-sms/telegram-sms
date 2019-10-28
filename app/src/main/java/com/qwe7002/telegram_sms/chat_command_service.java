@@ -248,7 +248,7 @@ public class chat_command_service extends Service {
         }
         JsonObject from_obj = null;
         final boolean message_type_is_private = message_type.equals("private");
-        if (!message_type_is_private&&bot_username==null) {
+        if (!message_type_is_private && bot_username == null) {
                 Log.i(TAG, "receive_handle: Did not successfully get bot_username.");
                 get_me();
 

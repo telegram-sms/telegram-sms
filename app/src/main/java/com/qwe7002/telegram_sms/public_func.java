@@ -477,31 +477,6 @@ class public_func {
         }
     }
 
-
-    static String read_file(Context context, @SuppressWarnings("SameParameterValue") String file_name) {
-        String result = "";
-        FileInputStream file_stream = null;
-        try {
-            file_stream = context.openFileInput(file_name);
-            int length = file_stream.available();
-            byte[] buffer = new byte[length];
-            //noinspection ResultOfMethodCallIgnored
-            file_stream.read(buffer);
-            result = new String(buffer, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (file_stream != null) {
-                try {
-                    file_stream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return result;
-    }
-
     static void add_message_list(String message_id, String phone, int slot, int sub_id) {
         message_item item = new message_item();
         item.phone = phone;
