@@ -145,7 +145,6 @@ public class main_activity extends AppCompatActivity {
 
         bot_token.setText(bot_token_save);
         chat_id.setText(chat_id_save);
-
         trusted_phone_number.setText(sharedPreferences.getString("trusted_phone_number", ""));
         battery_monitoring_switch.setChecked(sharedPreferences.getBoolean("battery_monitoring_switch", false));
         battery_monitoring_switch.setOnClickListener(v -> charger_status.setEnabled(battery_monitoring_switch.isChecked()));
@@ -441,19 +440,33 @@ public class main_activity extends AppCompatActivity {
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        Switch display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
-                assert tm != null;
-                if(tm.getPhoneCount()==1){
-                    display_dual_sim_display_name.setVisibility(View.GONE);
+
+        switch (requestCode) {
+            case 0:
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                    Log.d(TAG, "onRequestPermissionsResult: No camera permissions.");
+                    Snackbar.make(findViewById(R.id.bot_token), R.string.no_camera_permission, Snackbar.LENGTH_LONG).show();
+                    return;
                 }
-                if (public_func.get_active_card(context) < 2) {
-                    display_dual_sim_display_name.setEnabled(false);
-                    display_dual_sim_display_name.setChecked(false);
+                Intent intent = new Intent(context, scanner_activity.class);
+                startActivityForResult(intent, 1);
+                break;
+            case 1:
+                Switch display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+                        TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+                        assert tm != null;
+                        if (tm.getPhoneCount() == 1) {
+                            display_dual_sim_display_name.setVisibility(View.GONE);
+                        }
+                        if (public_func.get_active_card(context) < 2) {
+                            display_dual_sim_display_name.setEnabled(false);
+                            display_dual_sim_display_name.setChecked(false);
+                        }
+                    }
                 }
-            }
+                break;
         }
     }
 
@@ -477,6 +490,9 @@ public class main_activity extends AppCompatActivity {
             case R.id.donate:
                 file_name = "/donate";
                 break;
+            case R.id.scan:
+                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.CAMERA}, 0);
+                return true;
             case R.id.logcat:
                 Intent logcat_intent = new Intent(this, logcat_activity.class);
                 startActivity(logcat_intent);
@@ -496,5 +512,14 @@ public class main_activity extends AppCompatActivity {
         return true;
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if (resultCode == RESULT_OK) {
+                ((EditText) findViewById(R.id.bot_token)).setText(data.getStringExtra("bot_token"));
+            }
+        }
+    }
 }
 

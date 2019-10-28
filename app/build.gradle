@@ -45,6 +45,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp-dnsoverhttps:4.2.2'
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'io.paperdb:paperdb:2.6'
+    implementation 'me.dm7.barcodescanner:zxing:1.9.13'
     implementation "androidx.core:core-ktx:1.1.0"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }

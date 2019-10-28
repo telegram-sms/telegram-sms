@@ -15,6 +15,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
             android:allowBackup="false"
@@ -25,21 +26,21 @@
             android:theme="@style/AppTheme"
             tools:ignore="GoogleAppIndexingWarning"
             android:networkSecurityConfig="@xml/network_security_config" tools:targetApi="n">
-        <receiver android:name="com.qwe7002.telegram_sms.sim_status_receiver">
+        <receiver android:name=".sim_status_receiver">
             <intent-filter>
                 <action android:name="android.intent.action.SIM_STATE_CHANGED" />
             </intent-filter>
         </receiver>
 
         <service
-                android:name="com.qwe7002.telegram_sms.chat_command_service"
+                android:name=".chat_command_service"
                 android:enabled="true"
                 android:exported="false"
                 android:permission="android.permission.INTERNET"
                 android:process=":command" />
 
         <service
-                android:name="com.qwe7002.telegram_sms.battery_service"
+                android:name=".battery_service"
                 android:enabled="true"
                 android:exported="false"
                 android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE"
@@ -54,7 +55,7 @@
             </intent-filter>
         </service>
 
-        <receiver android:name="com.qwe7002.telegram_sms.boot_receiver"
+        <receiver android:name=".boot_receiver"
                   android:directBootAware="true" tools:targetApi="n">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -65,7 +66,7 @@
         </receiver>
 
         <receiver
-                android:name="com.qwe7002.telegram_sms.sms_receiver"
+                android:name=".sms_receiver"
                 android:enabled="true"
                 android:exported="true"
                 android:permission="android.permission.BROADCAST_SMS">
@@ -76,7 +77,7 @@
         </receiver>
 
         <receiver
-                android:name="com.qwe7002.telegram_sms.wap_receiver"
+                android:name=".wap_receiver"
                 android:enabled="true"
                 android:exported="true"
                 android:permission="android.permission.BROADCAST_WAP_PUSH">
@@ -87,15 +88,16 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name="com.qwe7002.telegram_sms.call_receiver">
+        <receiver android:name=".call_receiver">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.intent.action.PHONE_STATE" />
                 <action android:name="android.intent.action.SUBSCRIPTION_PHONE_STATE" />
             </intent-filter>
         </receiver>
         <activity android:name=".logcat_activity" />
+        <activity android:name=".scanner_activity" />
         <activity
-                android:name="com.qwe7002.telegram_sms.main_activity"
+                android:name=".main_activity"
                 android:label="@string/app_name"
                 android:windowSoftInputMode="adjustPan">
             <intent-filter>
