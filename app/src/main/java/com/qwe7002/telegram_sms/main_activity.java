@@ -406,13 +406,15 @@ public class main_activity extends AppCompatActivity {
                         return;
                     }
                     if (!new_bot_token.equals(bot_token_save)) {
+                        Log.i(TAG, "onResponse: The current bot token does not match the saved bot token, clearing the message database.");
                         Paper.book().destroy();
                     }
                     SharedPreferences.Editor editor = sharedPreferences.edit().clear();
                     editor.putString("bot_token", new_bot_token);
                     editor.putString("chat_id", chat_id.getText().toString().trim());
-                    if(trusted_phone_number.getText().toString().trim().length()!=0) {
+                    if (trusted_phone_number.getText().toString().trim().length() != 0) {
                         editor.putString("trusted_phone_number", trusted_phone_number.getText().toString().trim());
+                        editor.putBoolean("fallback_sms", fallback_sms.isChecked());
                     }
                     editor.putBoolean("fallback_sms", fallback_sms.isChecked());
                     editor.putBoolean("chat_command", chat_command.isChecked());
