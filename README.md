@@ -22,11 +22,8 @@ Android 5.0 or lower? [Click here](https://github.com/telegram-sms/telegram-sms-
 ## Features
 
 - Forward SMS text messages to Telegram as a bot;
-
 - Notification regarding missed calls;
-
 - Notification regarding device battery power changes;
-
 - Remote control via chat command or SMS.
 
 ## Permission
@@ -36,6 +33,7 @@ This app requires following permissions to work properly:
 - SMS: To read and send text messages.
 - Phone: Check whether it is a dual SIM-Card phone, the SIM status and its identification digits.
 - Call log: Read incoming numbers.
+- Camera: Scan the QR code and quickly enter the Bot Token.
 
 You can set this app as the default SMS app, which will prevent SMS notifications and set all received SMS as "read".
 
