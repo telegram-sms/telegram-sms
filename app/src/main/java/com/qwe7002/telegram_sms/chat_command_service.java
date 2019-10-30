@@ -356,7 +356,7 @@ public class chat_command_service extends Service {
                     String msg_send_to = public_func.get_send_phone_number(msg_send_list[1]);
                     if (public_func.is_phone_number(msg_send_to)) {
                         StringBuilder msg_send_content = new StringBuilder();
-                        for (int i = 2; i < msg_send_list.length; i++) {
+                        for (int i = 2; i < msg_send_list.length; ++i) {
                             if (msg_send_list.length != 3 && i != 2) {
                                 msg_send_content.append("\n");
                             }

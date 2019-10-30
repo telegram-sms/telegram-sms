@@ -69,7 +69,7 @@ class public_func {
     }
     static String get_send_phone_number(String phone_number) {
         StringBuilder result = new StringBuilder();
-        for (int i = 0; i < phone_number.length(); i++) {
+        for (int i = 0; i < phone_number.length(); ++i) {
             char c = phone_number.charAt(i);
             if (c == '+' || Character.isDigit(c)) {
                 result.append(c);
@@ -432,7 +432,7 @@ class public_func {
             ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
             buffer.position((int) channel.size());
             int count = 0;
-            for (long i = channel.size() - 1; i >= 0; i--) {
+            for (long i = channel.size() - 1; i >= 0; --i) {
                 char c = (char) buffer.get((int) i);
                 builder.insert(0, c);
                 if (c == '\n') {
