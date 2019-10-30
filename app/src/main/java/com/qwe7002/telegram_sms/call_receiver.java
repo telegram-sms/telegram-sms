@@ -81,13 +81,6 @@ class call_status_listener extends PhoneStateListener {
             request_body.chat_id = chat_id;
             String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
             request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + incoming_number;
-
-            if (!public_func.check_network_status(context)) {
-                public_func.write_log(context, public_func.network_error);
-                public_func.send_fallback_sms(context, request_body.text, public_func.get_sub_id(context, slot));
-                return;
-            }
-
             String request_body_raw = new Gson().toJson(request_body);
             RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
             OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));

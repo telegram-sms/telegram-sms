@@ -50,26 +50,22 @@ public class sms_send_receiver extends BroadcastReceiver {
             request_uri = public_func.get_url(bot_token, "editMessageText");
             request_body.message_id = message_id;
         }
-        request_body.text = extras.getString("message_text") + "\n" + context.getString(R.string.status);
+        String result_status = "Unknown";
         switch (getResultCode()) {
             case Activity.RESULT_OK:
-                request_body.text += context.getString(R.string.success);
+                result_status = context.getString(R.string.success);
                 break;
             case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                request_body.text += context.getString(R.string.send_failed);
+                result_status = context.getString(R.string.send_failed);
                 break;
             case SmsManager.RESULT_ERROR_RADIO_OFF:
-                request_body.text += context.getString(R.string.airplane_mode);
+                result_status = context.getString(R.string.airplane_mode);
                 break;
             case SmsManager.RESULT_ERROR_NO_SERVICE:
-                request_body.text += context.getString(R.string.no_network);
+                result_status = context.getString(R.string.no_network);
                 break;
         }
-        if (!public_func.check_network_status(context)) {
-            public_func.write_log(context, public_func.network_error);
-            public_func.send_fallback_sms(context, request_body.text, sub);
-            return;
-        }
+        request_body.text = extras.getString("message_text") + "\n" + context.getString(R.string.status) + result_status;
         String request_body_raw = new Gson().toJson(request_body);
         RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
         OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
