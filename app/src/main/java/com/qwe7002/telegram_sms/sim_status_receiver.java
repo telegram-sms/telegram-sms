@@ -29,7 +29,6 @@ public class sim_status_receiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         final String TAG = "sim_status_receiver";
         Log.d(TAG, "Receive action: "+intent.getAction());
-        String message = context.getString(R.string.system_message_head) + "\n";
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
             Log.i(TAG, "Uninitialized, SIM status receiver is deactivated.");
@@ -46,23 +45,25 @@ public class sim_status_receiver extends BroadcastReceiver {
             return;
         }
         last_status = state;
+        String status;
         switch (state) {
             case TelephonyManager.SIM_STATE_READY:
-                message += context.getString(R.string.sim_card_insert);
+                status = context.getString(R.string.sim_card_insert);
                 break;
             case TelephonyManager.SIM_STATE_UNKNOWN:
             case TelephonyManager.SIM_STATE_ABSENT:
-                message += context.getString(R.string.sim_card_remove);
+                status = context.getString(R.string.sim_card_remove);
                 break;
             case TelephonyManager.SIM_STATE_PIN_REQUIRED:
             case TelephonyManager.SIM_STATE_PUK_REQUIRED:
             case TelephonyManager.SIM_STATE_NETWORK_LOCKED:
-                message += context.getString(R.string.sim_card_lock);
+                status = context.getString(R.string.sim_card_lock);
                 break;
             default:
-                Log.d(TAG, "Received an unknown state: " + state);
+                Log.d("sim_status", "onReceive: " + state);
                 return;
         }
+        String message = context.getString(R.string.system_message_head) + "\n" + status;
         message_json request_body = new message_json();
         request_body.chat_id = chat_id;
         request_body.text = message;
