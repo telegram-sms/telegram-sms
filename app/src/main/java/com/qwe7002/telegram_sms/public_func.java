@@ -439,7 +439,7 @@ class public_func {
                     if (count == (line - 1)) {
                         break;
                     }
-                    count++;
+                    ++count;
                 }
             }
             return builder.toString();
@@ -485,7 +485,7 @@ class public_func {
         item.card = slot;
         item.sub_id = sub_id;
         Paper.book().write(message_id,item);
-        Log.d("add_message_list", "add_message_list: "+message_id);
+        Log.d("add_message_list", "add_message_list: " + message_id);
     }
 
     static String get_verification_code(String body) {

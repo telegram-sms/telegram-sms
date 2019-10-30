@@ -106,7 +106,7 @@ public class chat_command_service extends Service {
             Log.d(TAG, "run: thread main start");
             if (public_func.parse_int(chat_id)< 0) {
                 bot_username = sharedPreferences.getString("bot_username",null);
-                Log.d(TAG, "Load bot_username from storage: "+bot_username);
+                Log.d(TAG, "Load bot_username from storage: " + bot_username);
                 if(bot_username==null) {
                     new Thread(chat_command_service.this::get_me).start();
                 }
@@ -143,7 +143,7 @@ public class chat_command_service extends Service {
                     public_func.write_log(context, "Connection to the Telegram API service failed,try again after " + sleep_time + " seconds.");
                     magnification = 1;
                     if (error_magnification <= 59) {
-                        error_magnification++;
+                        ++error_magnification;
                     }
                     try {
                         Thread.sleep(sleep_time * 1000);
@@ -169,7 +169,7 @@ public class chat_command_service extends Service {
                         }
                     }
                     if (magnification <= 11) {
-                        magnification++;
+                        ++magnification;
                     }
                 }else{
                     public_func.write_log(context,"response code: "+response.code());
