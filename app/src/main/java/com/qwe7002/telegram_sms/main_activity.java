@@ -242,7 +242,6 @@ public class main_activity extends AppCompatActivity {
                     .readTimeout(60, TimeUnit.SECONDS)
                     .build();
             polling_json request_body = new polling_json();
-            request_body.offset = 0;
             request_body.timeout = 60;
             RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_func.JSON);
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
