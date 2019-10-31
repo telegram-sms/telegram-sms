@@ -259,11 +259,10 @@ public class main_activity extends AppCompatActivity {
                     e.printStackTrace();
                     progress_dialog.cancel();
                     String error_message = error_head + e.getMessage();
-
+                    public_func.write_log(context, error_message);
                     Looper.prepare();
                     Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
                     Looper.loop();
-                    public_func.write_log(context, error_message);
                 }
 
                 @Override
