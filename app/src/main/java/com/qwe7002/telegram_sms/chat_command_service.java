@@ -48,7 +48,7 @@ public class chat_command_service extends Service {
     private String bot_token;
     private Context context;
     private OkHttpClient okhttp_client;
-    private stop_broadcast_receiver stop_broadcast_receiver;
+    private broadcast_receiver broadcast_receiver;
     private PowerManager.WakeLock wakelock;
     private WifiManager.WifiLock wifiLock;
     private int send_sms_status = -1;
@@ -56,7 +56,6 @@ public class chat_command_service extends Service {
     private String send_to_temp;
     private String bot_username = "";
     private final String TAG = "chat_command_service";
-    private network_changed_receiver network_changed_receiver;
     private boolean privacy_mode;
     static Thread thread_main;
 
@@ -92,12 +91,11 @@ public class chat_command_service extends Service {
 
         thread_main = new Thread(new thread_main_runnable());
         thread_main.start();
-        IntentFilter intentFilter = new IntentFilter(public_func.broadcast_stop_service);
-        stop_broadcast_receiver = new stop_broadcast_receiver();
-        registerReceiver(stop_broadcast_receiver, intentFilter);
-        network_changed_receiver = new network_changed_receiver();
-        intentFilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-        registerReceiver(network_changed_receiver, intentFilter);
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(public_func.broadcast_stop_service);
+        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        broadcast_receiver = new broadcast_receiver();
+        registerReceiver(broadcast_receiver, intentFilter);
     }
 
     class thread_main_runnable implements Runnable {
@@ -184,8 +182,7 @@ public class chat_command_service extends Service {
     public void onDestroy() {
         wifiLock.release();
         wakelock.release();
-        unregisterReceiver(stop_broadcast_receiver);
-        unregisterReceiver(network_changed_receiver);
+        unregisterReceiver(broadcast_receiver);
         stopForeground(true);
         super.onDestroy();
     }
@@ -510,26 +507,29 @@ public class chat_command_service extends Service {
         return battery_level_string;
     }
 
-    class stop_broadcast_receiver extends BroadcastReceiver {
+    private class broadcast_receiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.i(TAG, "Received stop signal, quitting now...");
-            stopSelf();
-            android.os.Process.killProcess(android.os.Process.myPid());
-        }
-    }
+            Log.d(TAG, "onReceive: "+intent.getAction());
+            switch (Objects.requireNonNull(intent.getAction())) {
+                case public_func.broadcast_stop_service:
+                    Log.i(TAG, "Received stop signal, quitting now...");
+                    stopSelf();
+                    android.os.Process.killProcess(android.os.Process.myPid());
+                    break;
+                case ConnectivityManager.CONNECTIVITY_ACTION:
+                    if (public_func.check_network_status(context)) {
+                        if (!thread_main.isAlive()) {
+                            public_func.write_log(context, "Network connections has been restored.");
+                            thread_main = new Thread(new thread_main_runnable());
+                            thread_main.start();
+                        }
+                    }
+                    break;
 
-    class network_changed_receiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (public_func.check_network_status(context)) {
-                if (!thread_main.isAlive()) {
-                    public_func.write_log(context, "Network connections has been restored.");
-                    thread_main = new Thread(new thread_main_runnable());
-                    thread_main.start();
-                }
             }
         }
     }
+
 }
 

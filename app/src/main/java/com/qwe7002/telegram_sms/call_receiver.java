@@ -51,72 +51,72 @@ public class call_receiver extends BroadcastReceiver {
 
         }
     }
-}
+    static class call_status_listener extends PhoneStateListener {
+        private static int lastState = TelephonyManager.CALL_STATE_IDLE;
+        private static String incoming_number;
+        private final Context context;
+        private final int slot;
 
-class call_status_listener extends PhoneStateListener {
-    private static int lastState = TelephonyManager.CALL_STATE_IDLE;
-    private static String incoming_number;
-    private final Context context;
-    private final int slot;
-
-    call_status_listener(Context context, int slot, String incoming_number) {
-        super();
-        this.context = context;
-        this.slot = slot;
-        call_status_listener.incoming_number = incoming_number;
-    }
-
-    public void onCallStateChanged(int state, String incomingNumber) {
-        if (lastState == TelephonyManager.CALL_STATE_RINGING
-                && state == TelephonyManager.CALL_STATE_IDLE) {
-            final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
-            if (!sharedPreferences.getBoolean("initialized", false)) {
-                Log.i("call_status_listener", "Uninitialized, Phone receiver is deactivated.");
-                return;
-            }
-            String bot_token = sharedPreferences.getString("bot_token", "");
-            String chat_id = sharedPreferences.getString("chat_id", "");
-            String request_uri = public_func.get_url(bot_token, "sendMessage");
-            final message_json request_body = new message_json();
-            request_body.chat_id = chat_id;
-            String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
-            request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + incoming_number;
-            String request_body_raw = new Gson().toJson(request_body);
-            RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
-            OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
-            Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-            Call call = okhttp_client.newCall(request);
-            final String error_head = "Send missed call error:";
-            call.enqueue(new Callback() {
-                @Override
-                public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    e.printStackTrace();
-                    String error_message = error_head + e.getMessage();
-                    public_func.write_log(context, error_message);
-                    public_func.send_fallback_sms(context, request_body.text, public_func.get_sub_id(context, slot));
-
-                }
-
-                @Override
-                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                    assert response.body() != null;
-                    if (response.code() != 200) {
-                        String error_message = error_head + response.code() + " " + Objects.requireNonNull(response.body()).string();
-                        public_func.write_log(context, error_message);
-                    } else {
-                        String result = Objects.requireNonNull(response.body()).string();
-                        JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject().get("result").getAsJsonObject();
-                        String message_id = result_obj.get("message_id").getAsString();
-                        if (!public_func.is_phone_number(incoming_number)) {
-                            public_func.write_log(context,"["+incoming_number+"] Not a regular phone number.");
-                            return;
-                        }
-                        public_func.add_message_list(message_id, incoming_number, slot, public_func.get_sub_id(context, slot));
-                    }
-                }
-            });
+        call_status_listener(Context context, int slot, String incoming_number) {
+            super();
+            this.context = context;
+            this.slot = slot;
+            call_status_listener.incoming_number = incoming_number;
         }
-        lastState = state;
-    }
 
+        public void onCallStateChanged(int state, String incomingNumber) {
+            if (lastState == TelephonyManager.CALL_STATE_RINGING
+                    && state == TelephonyManager.CALL_STATE_IDLE) {
+                final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
+                if (!sharedPreferences.getBoolean("initialized", false)) {
+                    Log.i("call_status_listener", "Uninitialized, Phone receiver is deactivated.");
+                    return;
+                }
+                String bot_token = sharedPreferences.getString("bot_token", "");
+                String chat_id = sharedPreferences.getString("chat_id", "");
+                String request_uri = public_func.get_url(bot_token, "sendMessage");
+                final message_json request_body = new message_json();
+                request_body.chat_id = chat_id;
+                String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
+                request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + incoming_number;
+                String request_body_raw = new Gson().toJson(request_body);
+                RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
+                OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
+                Request request = new Request.Builder().url(request_uri).method("POST", body).build();
+                Call call = okhttp_client.newCall(request);
+                final String error_head = "Send missed call error:";
+                call.enqueue(new Callback() {
+                    @Override
+                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                        e.printStackTrace();
+                        String error_message = error_head + e.getMessage();
+                        public_func.write_log(context, error_message);
+                        public_func.send_fallback_sms(context, request_body.text, public_func.get_sub_id(context, slot));
+
+                    }
+
+                    @Override
+                    public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                        assert response.body() != null;
+                        if (response.code() != 200) {
+                            String error_message = error_head + response.code() + " " + Objects.requireNonNull(response.body()).string();
+                            public_func.write_log(context, error_message);
+                        } else {
+                            String result = Objects.requireNonNull(response.body()).string();
+                            JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject().get("result").getAsJsonObject();
+                            String message_id = result_obj.get("message_id").getAsString();
+                            if (!public_func.is_phone_number(incoming_number)) {
+                                public_func.write_log(context,"["+incoming_number+"] Not a regular phone number.");
+                                return;
+                            }
+                            public_func.add_message_list(message_id, incoming_number, slot, public_func.get_sub_id(context, slot));
+                        }
+                    }
+                });
+            }
+            lastState = state;
+        }
+    }
 }
+
+
