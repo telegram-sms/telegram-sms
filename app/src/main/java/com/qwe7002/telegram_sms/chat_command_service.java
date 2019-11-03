@@ -171,6 +171,19 @@ public class chat_command_service extends Service {
                     }
                 }else{
                     public_func.write_log(context,"response code: "+response.code());
+                    if (response.code() == 409) {
+                        message_json error_request_body = new message_json();
+                        error_request_body.chat_id = chat_id;
+                        error_request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.error_message_head) + getString(R.string.conflict_error);
+                        RequestBody error_request = RequestBody.create(new Gson().toJson(error_request_body), public_func.JSON);
+                        Request send_request = new Request.Builder().url(public_func.get_url(bot_token, "sendMessage")).method("POST", error_request).build();
+                        Call error_call = okhttp_client.newCall(send_request);
+                        try {
+                            error_call.execute();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }
         }

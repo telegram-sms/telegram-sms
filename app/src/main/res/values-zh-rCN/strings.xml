@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="content">内容: </string>
-    <string name="from">来自: </string>
-    <string name="to">发送到: </string>
+    <string name="content">"内容: "</string>
+    <string name="from">"来自: "</string>
+    <string name="to">"发送到: "</string>
     <string name="send_sms_head">发送短信</string>
     <string name="system_message_head">[系统信息]</string>
     <string name="success_connect">您已成功连接到 Telegram bot 服务器。</string>
-    <string name="connect_wait_title">连接到服务器......</string>
-    <string name="connect_wait_message">请耐心等待......</string>
+    <string name="connect_wait_title">连接到服务器…</string>
+    <string name="connect_wait_message">请耐心等待…</string>
     <string name="select_chat">选择对话</string>
     <string name="missed_call_head">未接来电</string>
-    <string name="Incoming_number">来电号码：</string>
+    <string name="Incoming_number">"来电号码: "</string>
     <string name="battery_low">设备电池电量低。</string>
     <string name="charger_connect">交流充电器已连接。</string>
     <string name="charger_disconnect">交流充电器已断开。</string>
@@ -20,7 +20,7 @@
     <string name="get_recent_chat_id">获取最近的对话ID</string>
     <string name="test_and_save">测试并保存</string>
     <string name="network_error_falls_back_to_sms">网络错误回退到SMS</string>
-    <string name="current_battery_level">电池电量：</string>
+    <string name="current_battery_level">"电池电量: "</string>
     <string name="low_battery_status_end">电池电量不足状态已结束。</string>
     <string name="logcat">查看日志</string>
     <string name="token_not_configure">请先配置机器人令牌。</string>
@@ -28,17 +28,17 @@
     <string name="unable_get_recent">无法获取最近的聊天记录</string>
     <string name="chat_command">获取聊天命令</string>
     <string name="unknown_command">未知的命令，输入 /help 获取可用命令列表。</string>
-    <string name="current_network_connection_status">网络状态：</string>
+    <string name="current_network_connection_status">"网络状态: "</string>
     <string name="battery_monitoring">监控电池状态变动</string>
     <string name="trusted_phone_number_empty">可信电话号码不能为空。</string>
-    <string name="service_is_running">服务正在运行......</string>
+    <string name="service_is_running">服务正在运行…</string>
     <string name="battery_monitoring_notify">电池监控</string>
     <string name="chat_command_service_name">聊天命令</string>
     <string name="success">成功</string>
     <string name="receive_sms_head">收到短信</string>
-    <string name="available_command">可用命令：\n/getinfo - 获取系统信息\n/log - 输出最后10条日志记录</string>
+    <string name="available_command">可用命令:\n/getinfo - 获取系统信息\n/log - 输出最后10条日志记录</string>
     <string name="restart_service">后台服务已成功重新启动。</string>
-    <string name="status">状态：</string>
+    <string name="status">"状态: "</string>
     <string name="send_failed">失败</string>
     <string name="airplane_mode">当前设备处于飞行模式</string>
     <string name="no_network">无服务</string>
@@ -48,7 +48,7 @@
     <string name="sendsms">/sendsms - 发送短信</string>
     <string name="sending">正在发送</string>
     <string name="get_recent_chat_message">请发送一些消息到Bot。</string>
-    <string name="get_recent_chat_title">获取最近的对话......</string>
+    <string name="get_recent_chat_title">获取最近的对话…</string>
     <string name="using_doh">使用DNS over HTTPS</string>
     <string name="sim_card_insert">SIM卡被插入。</string>
     <string name="sim_card_remove">SIM卡被移除。</string>
@@ -68,4 +68,6 @@
     <string name="using_privacy_mode">仅响应包含机器人用户名的命令</string>
     <string name="scan_title">扫描二维码</string>
     <string name="no_camera_permission">请允许相机访问以进行二维码扫描。</string>
+    <string name="conflict_error">当前请求因其他请求而终止；请确保只有一个机器人实例正在运行。</string>
+    <string name="error_message_head">"错误信息: "</string>
 </resources>

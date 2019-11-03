@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <string name="app_name" translatable="false">Telegram SMS</string>
-    <string name="content">Content: </string>
-    <string name="from">From: </string>
-    <string name="to">To: </string>
+    <string name="content">"Content: "</string>
+    <string name="from">"From: "</string>
+    <string name="to">"To: "</string>
     <string name="send_sms_head">Send SMS</string>
     <string name="system_message_head">[System information]</string>
     <string name="success_connect">Connected to the Telegram API Server.</string>
-    <string name="connect_wait_title" tools:ignore="TypographyEllipsis">Connecting to the Telegram API server...</string>
-    <string name="connect_wait_message" tools:ignore="TypographyEllipsis">Please wait...</string>
+    <string name="connect_wait_title">Connecting to the Telegram API server…</string>
+    <string name="connect_wait_message">Please wait…</string>
     <string name="select_chat">Select Chat</string>
     <string name="missed_call_head">Missed Call</string>
-    <string name="Incoming_number">Calling From: </string>
+    <string name="Incoming_number">"Calling From: "</string>
     <string name="battery_low">Battery level is low.</string>
     <string name="charger_connect">Phone charger connected.</string>
     <string name="charger_disconnect">Phone charger disconnected.</string>
@@ -21,7 +21,7 @@
     <string name="get_recent_chat_id">Get recent chat ID</string>
     <string name="test_and_save">Test and save</string>
     <string name="network_error_falls_back_to_sms">Resend using SMS when network error occurs</string>
-    <string name="current_battery_level">Battery level:</string>
+    <string name="current_battery_level">"Battery level: "</string>
     <string name="low_battery_status_end">Battery has been charged to a safe level.</string>
     <string name="logcat">View log</string>
     <string name="token_not_configure">Please configure the bot token first.</string>
@@ -29,17 +29,17 @@
     <string name="unable_get_recent">Failed to get recent chat history</string>
     <string name="chat_command">Get chat command</string>
     <string name="unknown_command">Unknown command,type /help to get a list of available commands.</string>
-    <string name="current_network_connection_status">Network status:</string>
+    <string name="current_network_connection_status">"Network status: "</string>
     <string name="battery_monitoring">Monitor battery level change</string>
     <string name="trusted_phone_number_empty">Trusted phone number cannot be empty.</string>
-    <string name="service_is_running" tools:ignore="TypographyEllipsis">Service is running...</string>
+    <string name="service_is_running">Service is running…</string>
     <string name="battery_monitoring_notify">"Battery monitor "</string>
     <string name="chat_command_service_name">"Chat command "</string>
     <string name="success">Success</string>
     <string name="receive_sms_head">Receive SMS</string>
     <string name="available_command">Available Commands:\n/getinfo - Get system information\n/log - Output the last 10 log records</string>
     <string name="restart_service">Background service has been restarted.</string>
-    <string name="status">Status:</string>
+    <string name="status">"Status: "</string>
     <string name="send_failed">Failed</string>
     <string name="airplane_mode">Device is in Airplane mode</string>
     <string name="no_network">No service</string>
@@ -49,7 +49,7 @@
     <string name="sendsms">/sendsms - Send SMS</string>
     <string name="sending">Sending</string>
     <string name="get_recent_chat_title">Please send some messages to the bot</string>
-    <string name="get_recent_chat_message" tools:ignore="TypographyEllipsis">The bot need your chat ID to know whom to forward...</string>
+    <string name="get_recent_chat_message">The bot need your chat ID to know whom to forward…</string>
     <string name="using_doh">Using DNS over HTTPS</string>
     <string name="sim_card_insert">SIM card inserted.</string>
     <string name="sim_card_remove">SIM card removed.</string>
@@ -69,4 +69,6 @@
     <string name="using_privacy_mode">Respond only to commands containing the Bot username</string>
     <string name="scan_title">Scan QR code</string>
     <string name="no_camera_permission">Please allow camera access for QR code scanning.</string>
+    <string name="conflict_error">terminated by other request; make sure that only one bot instance is running.</string>
+    <string name="error_message_head">"Error message: "</string>
 </resources>
