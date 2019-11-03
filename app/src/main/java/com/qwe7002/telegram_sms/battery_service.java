@@ -25,8 +25,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import static android.content.Context.BATTERY_SERVICE;
-
 public class battery_service extends Service {
     static String bot_token;
     static String chat_id;
@@ -79,8 +77,9 @@ public class battery_service extends Service {
         @Override
         public void onReceive(final Context context, final Intent intent) {
             String TAG = "battery_receiver";
+            assert intent.getAction() !=null;
             Log.d(TAG, "Receive action: " + intent.getAction());
-            if(Objects.equals(intent.getAction(), public_func.broadcast_stop_service)){
+            if(intent.getAction().equals(public_func.broadcast_stop_service)){
                 Log.i(TAG, "Received stop signal, quitting now...");
                 stopSelf();
                 android.os.Process.killProcess(android.os.Process.myPid());
@@ -109,6 +108,7 @@ public class battery_service extends Service {
             assert batteryManager != null;
             int battery_level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
             if (battery_level > 100) {
+                Log.d(TAG, "The previous battery is over 100%, and the correction is 100%.");
                 battery_level = 100;
             }
             request_body.text = message_body.append("\n").append(context.getString(R.string.current_battery_level)).append(battery_level).append("%").toString();
