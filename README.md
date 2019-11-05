@@ -13,6 +13,8 @@ Please visit [https://reall.uk](https://reall.uk) to submit and discuss issues r
 
 You can follow the Telegram channel [Telegram SMS 更新日志 (tg_sms_changelog)](https://t.me/tg_sms_changelog) for the latest news. (Simplified Chinese only)
 
+[XDA Labs](https://labs.xda-developers.com/store/app/com.qwe7002.telegram_sms)
+
 [Release Download](https://github.com/telegram-sms/telegram-sms/releases)
 
 Android 5.0 or lower? [Click here](https://github.com/telegram-sms/telegram-sms-compat) to download the latest and greatest.
