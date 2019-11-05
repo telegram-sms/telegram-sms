@@ -122,8 +122,7 @@ public class battery_service extends Service {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
                     e.printStackTrace();
-                    String error_message = error_head + e.getMessage();
-                    public_func.write_log(context, error_message);
+                    public_func.write_log(context, error_head + e.getMessage());
                     if (action.equals(Intent.ACTION_BATTERY_LOW)) {
                         public_func.send_fallback_sms(context, request_body.text, -1);
                     }

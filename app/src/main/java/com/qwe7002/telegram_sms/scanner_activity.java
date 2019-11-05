@@ -46,8 +46,7 @@ public class scanner_activity extends Activity implements ZXingScannerView.Resul
     @Override
     public void handleResult(Result rawResult) {
         String TAG = "scanner_activity";
-        Log.d(TAG, rawResult.getText());
-        Log.d(TAG, rawResult.getBarcodeFormat().toString());
+        Log.d(TAG, "format: " + rawResult.getBarcodeFormat().toString() + " content: " + rawResult.getText());
         Intent intent = new Intent().putExtra("bot_token", rawResult.getText());
         setResult(Activity.RESULT_OK, intent);
         finish();

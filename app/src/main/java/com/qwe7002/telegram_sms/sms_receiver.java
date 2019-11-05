@@ -156,8 +156,7 @@ public class sms_receiver extends BroadcastReceiver {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
-                String error_message = error_head + e.getMessage();
-                public_func.write_log(context, error_message);
+                public_func.write_log(context, error_head + e.getMessage());
                 public_func.send_fallback_sms(context, final_raw_request_body_text, sub);
             }
 
@@ -166,8 +165,7 @@ public class sms_receiver extends BroadcastReceiver {
                 assert response.body() != null;
                 String result = Objects.requireNonNull(response.body()).string();
                 if (response.code() != 200) {
-                    String error_message = error_head + response.code() + " " + result ;
-                    public_func.write_log(context, error_message);
+                    public_func.write_log(context, error_head + response.code() + " " + result);
                     public_func.send_fallback_sms(context, final_raw_request_body_text, sub);
                 } else {
                     if (!public_func.is_phone_number(message_address)) {

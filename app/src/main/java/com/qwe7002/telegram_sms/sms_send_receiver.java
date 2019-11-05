@@ -76,8 +76,7 @@ public class sms_send_receiver extends BroadcastReceiver {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
-                String error_message = error_head + e.getMessage();
-                public_func.write_log(context, error_message);
+                public_func.write_log(context,error_head + e.getMessage());
                 public_func.send_fallback_sms(context, request_body.text, sub);
             }
 
@@ -85,8 +84,7 @@ public class sms_send_receiver extends BroadcastReceiver {
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
                     assert response.body() != null;
-                    String error_message = error_head + response.code() + " " + Objects.requireNonNull(response.body()).string();
-                    public_func.write_log(context, error_message);
+                    public_func.write_log(context, error_head + response.code() + " " + Objects.requireNonNull(response.body()).string());
                 }
             }
         });

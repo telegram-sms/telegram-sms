@@ -474,16 +474,14 @@ public class chat_command_service extends Service {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
-                String error_message = error_head + e.getMessage();
-                public_func.write_log(context, error_message);
+                public_func.write_log(context, error_head + e.getMessage());
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
                     assert response.body() != null;
-                    String error_message = error_head + response.code() + " " + Objects.requireNonNull(response.body()).string();
-                    public_func.write_log(context, error_message);
+                    public_func.write_log(context, error_head + response.code() + " " + Objects.requireNonNull(response.body()).string());
                 }
             }
         });
