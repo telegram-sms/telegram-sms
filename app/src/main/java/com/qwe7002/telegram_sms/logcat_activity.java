@@ -10,8 +10,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import io.paperdb.Paper;
-
 public class logcat_activity extends AppCompatActivity {
 
     private Context context;
