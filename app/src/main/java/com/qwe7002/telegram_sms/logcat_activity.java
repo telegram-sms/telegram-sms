@@ -71,7 +71,6 @@ public class logcat_activity extends AppCompatActivity {
             }
         }
     }
-
 }
 
 

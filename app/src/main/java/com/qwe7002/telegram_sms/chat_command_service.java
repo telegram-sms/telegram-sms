@@ -392,8 +392,7 @@ public class chat_command_service extends Service {
                             return;
                         }
                     }
-                } else {
-                    if (message_type_is_private) {
+                } else if (message_type_is_private) {
                         send_sms_status = 0;
                         send_slot_temp = -1;
                         if (public_func.get_active_card(context) > 1) {
@@ -408,7 +407,7 @@ public class chat_command_service extends Service {
                             }
                         }
                         has_command = false;
-                    }
+
                 }
                 request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
                 break;
@@ -421,29 +420,40 @@ public class chat_command_service extends Service {
                 break;
         }
 
+        if (has_command) {
+            send_sms_status = -1;
+            send_slot_temp = -1;
+            send_to_temp = null;
+        }
         if (!has_command) {
+            Log.i(TAG, "receive_handle: Enter the interactive SMS sending mode.");
+            String dual_sim = "";
+            if (send_slot_temp != -1) {
+                dual_sim = "SIM" + (send_slot_temp + 1) + " ";
+            }
+            String head = "[" + dual_sim + context.getString(R.string.send_sms_head) + "]";
+            String result_send = getString(R.string.failed_to_get_information);
+            Log.d(TAG, "Sending mode status: " + send_sms_status);
             switch (send_sms_status) {
                 case 0:
                     send_sms_status = 1;
-                    request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.enter_number);
-                    Log.i(TAG, "receive_handle: Enter the interactive SMS sending mode.");
+                    result_send = getString(R.string.enter_number);
                     break;
                 case 1:
                     String temp_to = public_func.get_send_phone_number(request_msg);
                     Log.d(TAG, "receive_handle: " + temp_to);
                     if (public_func.is_phone_number(temp_to)) {
                         send_to_temp = temp_to;
-                        request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.enter_content);
+                        result_send = getString(R.string.enter_content);
                         send_sms_status = 2;
                     } else {
                         send_sms_status = -1;
                         send_slot_temp = -1;
                         send_to_temp = null;
-                        request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.unable_get_phone_number);
+                        result_send = getString(R.string.unable_get_phone_number);
                     }
                     break;
                 case 2:
-                    assert send_to_temp != null;
                     if (public_func.get_active_card(context) == 1) {
                         public_func.send_sms(context, send_to_temp, request_msg, -1, -1);
                         return;
@@ -456,13 +466,9 @@ public class chat_command_service extends Service {
                         send_to_temp = null;
                         return;
                     }
-                    request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
                     break;
             }
-        } else {
-            send_sms_status = -1;
-            send_slot_temp = -1;
-            send_to_temp = null;
+            request_body.text = head + "\n" + result_send;
         }
 
         String request_uri = public_func.get_url(bot_token, "sendMessage");
