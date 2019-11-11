@@ -8,6 +8,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.6.0-beta03'
+        //Use the stable version of the kotlin plugin
         //noinspection DifferentKotlinGradleVersion
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
@@ -17,9 +18,6 @@ allprojects {
     repositories {
         google()
         jcenter()
-        maven {
-            url "http://dl.bintray.com/kotlin/kotlin-eap"
-        }
     }
 }
 

@@ -15,6 +15,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.github.sumimakito.codeauxlib.CodeauxLibStatic;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -105,7 +106,7 @@ public class sms_receiver extends BroadcastReceiver {
         String raw_request_body_text = message_head + message_body;
 
         if (sharedPreferences.getBoolean("verification_code", false) && !is_trusted_phone) {
-            String verification = public_func.get_verification_code(message_body);
+            String verification = CodeauxLibStatic.parsecode(message_body);
             if (verification != null) {
                 request_body.parse_mode = "html";
                 message_body_html = message_body
