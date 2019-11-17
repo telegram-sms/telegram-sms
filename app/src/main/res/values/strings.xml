@@ -71,4 +71,5 @@
     <string name="no_camera_permission">Please allow camera access for QR code scanning.</string>
     <string name="conflict_error">terminated by other request; make sure that only one bot instance is running.</string>
     <string name="error_message_head">"Error message: "</string>
+    <string name="error_stop_message">A fatal error has occurred, the program has stopped.</string>
 </resources>

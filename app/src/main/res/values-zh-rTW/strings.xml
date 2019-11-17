@@ -70,4 +70,5 @@
     <string name="no_camera_permission">請允許相機訪問以進行QR碼掃描。</string>
     <string name="conflict_error">當前請求因其他請求而終止；請確保只有一個機器人實例正在運行。</string>
     <string name="error_message_head">"錯誤信息: "</string>
+    <string name="error_stop_message">發生致命錯誤，程序已停止。</string>
 </resources>

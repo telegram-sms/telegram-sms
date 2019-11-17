@@ -70,4 +70,5 @@
     <string name="no_camera_permission">QRコードスキャン用のカメラアクセスを許可してください。</string>
     <string name="conflict_error">他の要求により終了しました。 1つのボットインスタンスのみが実行されていることを確認してください。</string>
     <string name="error_message_head">"エラーメッセージ: "</string>
+    <string name="error_stop_message">致命的なエラーが発生し、プログラムが停止しました。</string>
 </resources>
