@@ -374,7 +374,6 @@ public class chat_command_service extends Service {
             case "/sendsms":
             case "/sendsms1":
             case "/sendsms2":
-                has_command = true;
                 String[] msg_send_list = request_msg.split("\n");
                 if (msg_send_list.length > 2) {
                     String msg_send_to = public_func.get_send_phone_number(msg_send_list[1]);
@@ -420,8 +419,6 @@ public class chat_command_service extends Service {
                                     break;
                             }
                         }
-                        has_command = false;
-
                 }
                 request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
                 break;
@@ -439,7 +436,7 @@ public class chat_command_service extends Service {
             send_slot_temp = -1;
             send_to_temp = null;
         }
-        if (!has_command) {
+        if (!has_command && send_sms_status != -1) {
             Log.i(TAG, "receive_handle: Enter the interactive SMS sending mode.");
             String dual_sim = "";
             if (send_slot_temp != -1) {
