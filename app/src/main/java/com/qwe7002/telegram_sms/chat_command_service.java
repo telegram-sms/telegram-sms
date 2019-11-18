@@ -374,6 +374,7 @@ public class chat_command_service extends Service {
             case "/sendsms":
             case "/sendsms1":
             case "/sendsms2":
+                has_command = true;
                 String[] msg_send_list = request_msg.split("\n");
                 if (msg_send_list.length > 2) {
                     String msg_send_to = public_func.get_send_phone_number(msg_send_list[1]);
@@ -406,19 +407,20 @@ public class chat_command_service extends Service {
                         }
                     }
                 } else if (message_type_is_private) {
-                        send_sms_status = 0;
-                        send_slot_temp = -1;
-                        if (public_func.get_active_card(context) > 1) {
-                            switch (command) {
-                                case "/sendsms":
-                                case "/sendsms1":
-                                    send_slot_temp = 0;
-                                    break;
-                                case "/sendsms2":
-                                    send_slot_temp = 1;
-                                    break;
-                            }
+                    has_command = false;
+                    send_sms_status = 0;
+                    send_slot_temp = -1;
+                    if (public_func.get_active_card(context) > 1) {
+                        switch (command) {
+                            case "/sendsms":
+                            case "/sendsms1":
+                                send_slot_temp = 0;
+                                break;
+                            case "/sendsms2":
+                                send_slot_temp = 1;
+                                break;
                         }
+                    }
                 }
                 request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
                 break;
