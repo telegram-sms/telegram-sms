@@ -59,7 +59,7 @@ import okhttp3.Response;
 
 public class main_activity extends AppCompatActivity {
     private Context context = null;
-
+    private static boolean set_permission_back = false;
     private final String TAG = "main_activity";
     @SuppressLint("BatteryLife")
     @Override
@@ -82,6 +82,7 @@ public class main_activity extends AppCompatActivity {
         final Button save_button = findViewById(R.id.save);
         final Button get_id = findViewById(R.id.get_id);
         final Switch display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
+        final Button notify_app_set = findViewById(R.id.notify_app_set);
 
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
@@ -162,10 +163,10 @@ public class main_activity extends AppCompatActivity {
         doh_switch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
         int checkPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE);
         if (checkPermission == PackageManager.PERMISSION_GRANTED) {
-            TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
-            assert tm != null;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (tm.getPhoneCount() == 1) {
+                TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+                assert tm != null;
+                if (tm.getPhoneCount() >= 1) {
                     display_dual_sim_display_name.setVisibility(View.GONE);
                 }
             }
@@ -437,10 +438,32 @@ public class main_activity extends AppCompatActivity {
             });
         });
 
+        notify_app_set.setOnClickListener(v -> {
+            if (!public_func.is_notify_listener(context)) {
+                Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                set_permission_back = true;
+                return;
+            }
+            startActivity(new Intent(main_activity.this, notify_apps_list_activity.class));
+        });
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        boolean back_status = set_permission_back;
+        set_permission_back = false;
+        if (back_status) {
+            if (public_func.is_notify_listener(context)) {
+                startActivity(new Intent(main_activity.this, notify_apps_list_activity.class));
+            }
+        }
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-
         switch (requestCode) {
             case 0:
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -457,7 +480,7 @@ public class main_activity extends AppCompatActivity {
                     if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                         TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
                         assert tm != null;
-                        if (tm.getPhoneCount() == 1) {
+                        if (tm.getPhoneCount() >= 1) {
                             display_dual_sim_display_name.setVisibility(View.GONE);
                         }
                         if (public_func.get_active_card(context) < 2) {

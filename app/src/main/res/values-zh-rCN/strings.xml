@@ -71,4 +71,10 @@
     <string name="conflict_error">当前请求因其他请求而终止；请确保只有一个机器人实例正在运行。</string>
     <string name="error_message_head">"错误信息: "</string>
     <string name="error_stop_message">发生致命错误，程序已停止。</string>
+    <string name="set_up_apps_that_need_to_listen_for_notifications">设置需要监听通知的应用</string>
+    <string name="app_list">应用列表</string>
+    <string name="receive_notification_title">[收到通知]</string>
+    <string name="app_name_title">"应用名称: "</string>
+    <string name="title">"标题: "</string>
+    <string name="Notification_Listener_title">"通知侦听器 "</string>
 </resources>
