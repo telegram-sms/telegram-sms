@@ -409,7 +409,6 @@ public class main_activity extends AppCompatActivity {
                         Log.i(TAG, "onResponse: The current bot token does not match the saved bot token, clearing the message database.");
                         List<String> notify_listen_list = Paper.book().read("notify_listen_list", new ArrayList<>());
                         Paper.book().destroy();
-                        Log.d(TAG, "notify_listen_list: " + notify_listen_list);
                         Paper.book().write("notify_listen_list", notify_listen_list);
                     }
                     SharedPreferences.Editor editor = sharedPreferences.edit().clear();
