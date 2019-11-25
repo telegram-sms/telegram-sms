@@ -359,7 +359,7 @@ public class chat_command_service extends Service {
             case "/getinfo":
                 String card_info = "";
                 if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                    card_info = "\nSIM:" + public_func.get_sim_display_name(context, 0);
+                    card_info = "\nSIM: " + public_func.get_sim_display_name(context, 0);
                     if (public_func.get_active_card(context) == 2) {
                         card_info = "\nSIM1: " + public_func.get_sim_display_name(context, 0) + "\nSIM2: " + public_func.get_sim_display_name(context, 1);
                     }
