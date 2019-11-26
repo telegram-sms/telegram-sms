@@ -68,7 +68,6 @@
     <string name="using_privacy_mode">仅响应包含机器人用户名的命令</string>
     <string name="scan_title">扫描二维码</string>
     <string name="no_camera_permission">请允许相机访问以进行二维码扫描。</string>
-    <string name="conflict_error">当前请求因其他请求而终止；请确保只有一个机器人实例正在运行。</string>
     <string name="error_message_head">"错误信息: "</string>
     <string name="error_stop_message">发生致命错误，程序已停止。</string>
     <string name="set_up_apps_that_need_to_listen_for_notifications">设置需要监听通知的应用</string>

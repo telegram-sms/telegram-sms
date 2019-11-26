@@ -68,7 +68,6 @@
     <string name="using_privacy_mode">僅響應包含機器人用戶名的命令</string>
     <string name="scan_title">掃描QR碼</string>
     <string name="no_camera_permission">請允許相機訪問以進行QR碼掃描。</string>
-    <string name="conflict_error">當前請求因其他請求而終止；請確保只有一個機器人實例正在運行。</string>
     <string name="error_message_head">"錯誤信息: "</string>
     <string name="error_stop_message">發生致命錯誤，程序已停止。</string>
     <string name="set_up_apps_that_need_to_listen_for_notifications">設置需要監聽通知的應用</string>

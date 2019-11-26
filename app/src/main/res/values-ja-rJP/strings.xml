@@ -68,7 +68,6 @@
     <string name="using_privacy_mode">ロボットのユーザー名を含むコマンドにのみ応答する</string>
     <string name="scan_title">QRコードをスキャン</string>
     <string name="no_camera_permission">QRコードスキャン用のカメラアクセスを許可してください。</string>
-    <string name="conflict_error">他の要求により終了しました。 1つのボットインスタンスのみが実行されていることを確認してください。</string>
     <string name="error_message_head">"エラーメッセージ: "</string>
     <string name="error_stop_message">致命的なエラーが発生し、プログラムが停止しました。</string>
     <string name="set_up_apps_that_need_to_listen_for_notifications">通知をリッスンする必要があるアプリをセットアップする</string>
