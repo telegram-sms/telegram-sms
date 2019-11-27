@@ -14,6 +14,8 @@ You can follow the Telegram channel [Telegram SMS 更新日志 (tg_sms_changelog
 
 [XDA Labs](https://labs.xda-developers.com/store/app/com.qwe7002.telegram_sms)
 
+The app provided from xda-labs are the latest stable version. Revenues generated will be used to help the author to improve its future stability and user experience. You can still download the latest version from GitHub release page.
+
 [Release Download](https://github.com/telegram-sms/telegram-sms/releases)
 
 Android 5.0 or lower? [Click here](https://github.com/telegram-sms/telegram-sms-compat) to download the latest and greatest.
