@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        tools:ignore="UselessParent">
+
+        <ImageView
+            android:id="@+id/app_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="12dp"
+            android:src="@mipmap/ic_launcher_round"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:id="@+id/app_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="12dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginRight="12dp"
+            android:layout_toEndOf="@id/app_icon"
+            android:singleLine="true"
+            android:text="@string/app_name"
+            tools:ignore="RelativeOverlap" />
+
+        <TextView
+            android:id="@+id/package_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="12dp"
+            android:layout_marginTop="34dp"
+            android:layout_marginRight="12dp"
+            android:layout_toEndOf="@id/app_icon"
+            android:singleLine="true"
+            android:text="com.example.apps"
+            tools:ignore="HardcodedText,RelativeOverlap" />
+
+        <CheckBox
+            android:id="@+id/select_checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:gravity="center_vertical" />
+
+    </RelativeLayout>
+</LinearLayout>

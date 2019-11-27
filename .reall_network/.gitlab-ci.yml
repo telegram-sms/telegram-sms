@@ -42,7 +42,7 @@ release_github:
         - git push --set-upstream git@github.com:telegram-sms/get-telegram-sms.reall.uk.git -f HEAD:refs/heads/$CI_COMMIT_REF_NAME
         - cd ..
         # Update wiki.
-        - git clone https://git.reallserver.cn/qwe7002/telegram-sms.wiki.git wiki
+        - git clone https://git.reallserver.cn/telegram-sms/telegram-sms.wiki.git wiki
         - cd wiki
         - git push -f --set-upstream git@github.com:telegram-sms/telegram-sms.wiki.git HEAD:refs/heads/$CI_COMMIT_REF_NAME
 build:

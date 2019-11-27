@@ -171,25 +171,25 @@ public class chat_command_service extends Service {
                     }
                 }else{
                     public_func.write_log(context,"response code: "+response.code());
-                    if (response.code() == 409) {
-                        message_json error_request_body = new message_json();
-                        error_request_body.chat_id = chat_id;
-                        error_request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.error_message_head) + getString(R.string.conflict_error);
-                        RequestBody error_request = RequestBody.create(new Gson().toJson(error_request_body), public_func.JSON);
-                        Request send_request = new Request.Builder().url(public_func.get_url(bot_token, "sendMessage")).method("POST", error_request).build();
-                        Call error_call = okhttp_client.newCall(send_request);
+                    if (response.code() == 401) {
+                        assert response.body() != null;
+                        String result;
                         try {
-                            error_call.execute();
+                            result = Objects.requireNonNull(response.body()).string();
                         } catch (IOException e) {
                             e.printStackTrace();
+                            continue;
                         }
+                        JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
+                        String result_message = getString(R.string.system_message_head) + "\n" + getString(R.string.error_stop_message) + "\n" + getString(R.string.error_message_head) + result_obj.get("description").getAsString() + "\n" + "Code: " + response.code();
+                        public_func.send_fallback_sms(context, result_message, -1);
+                        public_func.stop_all_service(context);
+                        break;
                     }
                 }
             }
         }
     }
-
-
 
     @Override
     public void onDestroy() {
@@ -345,9 +345,9 @@ public class chat_command_service extends Service {
             case "/getinfo":
                 String card_info = "";
                 if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                    card_info = "\nSIM:" + public_func.get_sim_display_name(context, 0);
+                    card_info = "\nSIM: " + public_func.get_sim_display_name(context, 0);
                     if (public_func.get_active_card(context) == 2) {
-                        card_info = "\nSIM1:" + public_func.get_sim_display_name(context, 0) + "\nSIM2:" + public_func.get_sim_display_name(context, 1);
+                        card_info = "\nSIM1: " + public_func.get_sim_display_name(context, 0) + "\nSIM2: " + public_func.get_sim_display_name(context, 1);
                     }
                 }
                 request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + get_battery_info(context) + "\n" + getString(R.string.current_network_connection_status) + public_func.get_network_type(context) + card_info;
@@ -392,22 +392,20 @@ public class chat_command_service extends Service {
                             return;
                         }
                     }
-                } else {
-                    if (message_type_is_private) {
-                        send_sms_status = 0;
-                        send_slot_temp = -1;
-                        if (public_func.get_active_card(context) > 1) {
-                            switch (command) {
-                                case "/sendsms":
-                                case "/sendsms1":
-                                    send_slot_temp = 0;
-                                    break;
-                                case "/sendsms2":
-                                    send_slot_temp = 1;
-                                    break;
-                            }
+                } else if (message_type_is_private) {
+                    has_command = false;
+                    send_sms_status = 0;
+                    send_slot_temp = -1;
+                    if (public_func.get_active_card(context) > 1) {
+                        switch (command) {
+                            case "/sendsms":
+                            case "/sendsms1":
+                                send_slot_temp = 0;
+                                break;
+                            case "/sendsms2":
+                                send_slot_temp = 1;
+                                break;
                         }
-                        has_command = false;
                     }
                 }
                 request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
@@ -421,29 +419,40 @@ public class chat_command_service extends Service {
                 break;
         }
 
-        if (!has_command) {
+        if (has_command) {
+            send_sms_status = -1;
+            send_slot_temp = -1;
+            send_to_temp = null;
+        }
+        if (!has_command && send_sms_status != -1) {
+            Log.i(TAG, "receive_handle: Enter the interactive SMS sending mode.");
+            String dual_sim = "";
+            if (send_slot_temp != -1) {
+                dual_sim = "SIM" + (send_slot_temp + 1) + " ";
+            }
+            String head = "[" + dual_sim + context.getString(R.string.send_sms_head) + "]";
+            String result_send = getString(R.string.failed_to_get_information);
+            Log.d(TAG, "Sending mode status: " + send_sms_status);
             switch (send_sms_status) {
                 case 0:
                     send_sms_status = 1;
-                    request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.enter_number);
-                    Log.i(TAG, "receive_handle: Enter the interactive SMS sending mode.");
+                    result_send = getString(R.string.enter_number);
                     break;
                 case 1:
                     String temp_to = public_func.get_send_phone_number(request_msg);
                     Log.d(TAG, "receive_handle: " + temp_to);
                     if (public_func.is_phone_number(temp_to)) {
                         send_to_temp = temp_to;
-                        request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.enter_content);
+                        result_send = getString(R.string.enter_content);
                         send_sms_status = 2;
                     } else {
                         send_sms_status = -1;
                         send_slot_temp = -1;
                         send_to_temp = null;
-                        request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.unable_get_phone_number);
+                        result_send = getString(R.string.unable_get_phone_number);
                     }
                     break;
                 case 2:
-                    assert send_to_temp != null;
                     if (public_func.get_active_card(context) == 1) {
                         public_func.send_sms(context, send_to_temp, request_msg, -1, -1);
                         return;
@@ -456,13 +465,9 @@ public class chat_command_service extends Service {
                         send_to_temp = null;
                         return;
                     }
-                    request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
                     break;
             }
-        } else {
-            send_sms_status = -1;
-            send_slot_temp = -1;
-            send_to_temp = null;
+            request_body.text = head + "\n" + result_send;
         }
 
         String request_uri = public_func.get_url(bot_token, "sendMessage");

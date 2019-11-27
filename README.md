@@ -14,6 +14,8 @@ You can follow the Telegram channel [Telegram SMS 更新日志 (tg_sms_changelog
 
 [XDA Labs](https://labs.xda-developers.com/store/app/com.qwe7002.telegram_sms)
 
+The app provided from xda-labs are the latest stable version. Revenues generated will be used to help the author to improve its future stability and user experience. You can still download the latest version from GitHub release page.
+
 [Release Download](https://github.com/telegram-sms/telegram-sms/releases)
 
 Android 5.0 or lower? [Click here](https://github.com/telegram-sms/telegram-sms-compat) to download the latest and greatest.
@@ -35,6 +37,7 @@ This app requires following permissions to work properly:
 - Phone: Check whether it is a dual SIM-Card phone, the SIM status and its identification digits.
 - Call log: Read incoming numbers.
 - Camera: Scan the QR code and quickly enter the Bot Token.
+- Notification access: Listen for notification messages.
 
 You can set this app as the default SMS app, which will prevent SMS notifications and set all received SMS as "read".
 

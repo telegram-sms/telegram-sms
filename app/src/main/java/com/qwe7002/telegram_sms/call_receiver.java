@@ -92,7 +92,6 @@ public class call_receiver extends BroadcastReceiver {
                         public_func.write_log(context, error_head + e.getMessage());
                         public_func.send_fallback_sms(context, request_body.text, public_func.get_sub_id(context, slot));
                     }
-
                     @Override
                     public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                         assert response.body() != null;

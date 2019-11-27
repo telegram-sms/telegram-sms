@@ -21,9 +21,9 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.PermissionChecker;
 
-import com.github.sumimakito.codeauxlib.CodeauxLibPortable;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import io.paperdb.Paper;
@@ -55,7 +56,6 @@ import okhttp3.dnsoverhttps.DnsOverHttps;
 class public_func {
     static final String broadcast_stop_service = "com.qwe7002.telegram_sms.stop_all";
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-    private static final CodeauxLibPortable parser = new CodeauxLibPortable();
     static int parse_int(String int_str){
         int result = 0;
         try {
@@ -479,7 +479,8 @@ class public_func {
         Log.d("add_message_list", "add_message_list: " + message_id);
     }
 
-    static String get_verification_code(String body) {
-        return parser.find(body);
+    static boolean is_notify_listener(Context context) {
+        Set<String> packageNames = NotificationManagerCompat.getEnabledListenerPackages(context);
+        return packageNames.contains(context.getPackageName());
     }
 }

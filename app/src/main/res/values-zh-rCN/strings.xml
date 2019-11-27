@@ -64,10 +64,15 @@
     <string name="unable_get_phone_number">无法获取电话号码。</string>
     <string name="donate">捐助</string>
     <string name="not_charging" >不在充电</string>
-    <string name="scan_wifi">正在扫描 WI-FI 接入点。</string>
     <string name="using_privacy_mode">仅响应包含机器人用户名的命令</string>
     <string name="scan_title">扫描二维码</string>
     <string name="no_camera_permission">请允许相机访问以进行二维码扫描。</string>
-    <string name="conflict_error">当前请求因其他请求而终止；请确保只有一个机器人实例正在运行。</string>
     <string name="error_message_head">"错误信息: "</string>
+    <string name="error_stop_message">发生致命错误，程序已停止。</string>
+    <string name="set_up_apps_that_need_to_listen_for_notifications">设置需要监听通知的应用</string>
+    <string name="app_list">应用列表</string>
+    <string name="receive_notification_title">[收到通知]</string>
+    <string name="app_name_title">"应用名称: "</string>
+    <string name="title">"标题: "</string>
+    <string name="Notification_Listener_title">"通知侦听器 "</string>
 </resources>

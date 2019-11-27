@@ -1,3 +1,4 @@
 <resources>
     <dimen name="alpha">0.15</dimen>
+    <dimen name="button_alpha">0.8</dimen>
 </resources>

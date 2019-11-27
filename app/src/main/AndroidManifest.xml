@@ -24,14 +24,30 @@
             android:label="@string/app_name"
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
-            tools:ignore="GoogleAppIndexingWarning"
+        tools:ignore="GoogleAppIndexingWarning,RtlEnabled"
             android:networkSecurityConfig="@xml/network_security_config" tools:targetApi="n">
+
         <receiver android:name=".sim_status_receiver">
             <intent-filter>
                 <action android:name="android.intent.action.SIM_STATE_CHANGED" />
             </intent-filter>
         </receiver>
 
+        <activity
+            android:name=".notify_apps_list_activity"
+            android:windowSoftInputMode="adjustPan" />
+
+        <service
+            android:name=".notification_listener_service"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:process=":notification">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <service android:name=".notification_listener_monitor_service" />
         <service
                 android:name=".chat_command_service"
                 android:enabled="true"
