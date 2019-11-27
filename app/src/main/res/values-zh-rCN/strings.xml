@@ -64,7 +64,6 @@
     <string name="unable_get_phone_number">无法获取电话号码。</string>
     <string name="donate">捐助</string>
     <string name="not_charging" >不在充电</string>
-    <string name="scan_wifi">正在扫描 WI-FI 接入点。</string>
     <string name="using_privacy_mode">仅响应包含机器人用户名的命令</string>
     <string name="scan_title">扫描二维码</string>
     <string name="no_camera_permission">请允许相机访问以进行二维码扫描。</string>
