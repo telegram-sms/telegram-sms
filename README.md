@@ -37,6 +37,7 @@ This app requires following permissions to work properly:
 - Phone: Check whether it is a dual SIM-Card phone, the SIM status and its identification digits.
 - Call log: Read incoming numbers.
 - Camera: Scan the QR code and quickly enter the Bot Token.
+- Notification access: Listen for notification messages.
 
 You can set this app as the default SMS app, which will prevent SMS notifications and set all received SMS as "read".
 
