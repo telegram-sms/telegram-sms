@@ -47,7 +47,6 @@
             </intent-filter>
         </service>
 
-        <service android:name=".notification_listener_monitor_service" />
         <service
                 android:name=".chat_command_service"
                 android:enabled="true"
