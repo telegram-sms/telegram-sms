@@ -36,7 +36,6 @@
             android:paddingBottom="8dp"
             android:singleLine="true" />
 
-
         <ListView
             android:id="@+id/app_list_view"
             android:layout_width="match_parent"
