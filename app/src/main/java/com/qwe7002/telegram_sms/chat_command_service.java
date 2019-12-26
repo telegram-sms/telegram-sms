@@ -102,7 +102,7 @@ public class chat_command_service extends Service {
         @Override
         public void run() {
             Log.d(TAG, "run: thread main start");
-            if (public_func.parse_int(chat_id)< 0) {
+            if (public_func.parse_long(chat_id) < 0) {
                 bot_username = sharedPreferences.getString("bot_username",null);
                 Log.d(TAG, "Load bot_username from storage: " + bot_username);
                 if(bot_username==null) {

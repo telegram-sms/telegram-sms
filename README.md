@@ -43,14 +43,14 @@ You can set this app as the default SMS app, which will prevent SMS notification
 
 ## User manual
 
-- [English](https://get-telegram-sms.reall.uk/wiki/User_manual)
-- [简体中文](https://get-telegram-sms.reall.uk/wiki/用户手册)
-- [繁體中文](https://get-telegram-sms.reall.uk/wiki/用戶手冊)
-- [日本語](https://get-telegram-sms.reall.uk/wiki/マニュアル)
+- [English](https://get.telegram-sms.com/wiki/User_manual)
+- [简体中文](https://get.telegram-sms.com/wiki/用户手册)
+- [繁體中文](https://get.telegram-sms.com/wiki/用戶手冊)
+- [日本語](https://get.telegram-sms.com/wiki/マニュアル)
 
 ## License
 
-Telegram-SMS is licensed under [BSD 3-Clause License](https://github.com/telegram-sms/telegram-sms/blob/master/LICENSE).
+Telegram-SMS is licensed under [BSD 3-Clause License](https://get.telegram-sms.com/license).
 
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_large)
 
@@ -62,10 +62,12 @@ Download resource file: [mega.nz](https://mega.nz/#F!TmwQSYjD!XN-uVfciajwy3okjId
 
 Character set：
 
-- Name: Fay (菲)
+- Name: Fay (菲,フェイ)
 - Birthday: 1st October,2018
 - Birth sign: Libra
-- Like: Eat sweets and read the newspaper.
+- Habits: Eat sweets, Maid dress
+
+Designed by Reall with Love in Fujian, China
 
 ## Acknowledgements
 
@@ -73,7 +75,7 @@ This APP uses the following open source libraries:
 
 - [okhttp](https://github.com/square/okhttp)
 - [Gson](https://github.com/google/gson)
-- [CodeauxLib](https://gist.github.com/SumiMakito/59992fd15a865c3b9709b8e2c3bc9cf1)
+- [CodeauxLib](https://github.com/telegram-sms/CodeauxLibPortable)
 - [Paper](https://github.com/pilgr/Paper)
 
 The creation of this APP would not be possible without help from the following people:
