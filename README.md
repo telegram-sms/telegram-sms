@@ -10,7 +10,7 @@ The primary language used for commit messages is Simplified Chinese. However, yo
 
 Please visit [https://reall.uk](https://reall.uk) to submit and discuss issues regarding this project.
 
-You can follow the Telegram channel [Telegram SMS 更新日志 (tg_sms_changelog)](https://t.me/tg_sms_changelog) for the latest news. (Simplified Chinese only)
+You can follow the Telegram channel [Telegram SMS 更新日志](https://t.me/tg_sms_changelog) for the latest news. (Simplified Chinese only)
 
 [XDA Labs](https://labs.xda-developers.com/store/app/com.qwe7002.telegram_sms)
 
@@ -65,7 +65,7 @@ Character set：
 - Name: Fay (菲,フェイ)
 - Birthday: 1st October,2018
 - Birth sign: Libra
-- Habits: Eat sweets, Maid dress
+- Habits: Eat sweets, Maid dress，Listening heavy metal music
 
 Designed by Reall with Love in Fujian, China
 
@@ -106,7 +106,7 @@ And finally, [sm.ms](https://sm.ms) for hosting images used in this page.
 - [via Patreon](https://www.patreon.com/user?u=16899295)
 - [via Paypal](https://paypal.me/nicoranshi)
 - [via Bitcoin](bitcoin:17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae) (**17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae**)
-- [via UnionPay(中国银联云闪付)](https://get-telegram-sms.reall.uk/donate/unionpay)
-- [via Alipay(支付宝)](https://get-telegram-sms.reall.uk/donate/alipay)
+- [via UnionPay(中国银联云闪付)](https://get.telegram-sms.com/donate/unionpay)
+- [via Alipay(支付宝)](https://get.telegram-sms.com/donate/alipay)
 
 Your donation will make me work better for this project.

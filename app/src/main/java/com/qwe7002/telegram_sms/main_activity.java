@@ -69,7 +69,6 @@ public class main_activity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         context = getApplicationContext();
         Paper.init(context);
-        Log.d(TAG, "onCreate: " + public_func.get_network_type(context));
         final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         final EditText chat_id = findViewById(R.id.chat_id);
         final EditText bot_token = findViewById(R.id.bot_token);
