@@ -68,9 +68,8 @@ public class main_activity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         context = getApplicationContext();
-        Paper.init(context);
         Log.i(TAG, "Current API address: " + public_func.get_url("", ""));
-        final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
+
         final EditText chat_id = findViewById(R.id.chat_id);
         final EditText bot_token = findViewById(R.id.bot_token);
         final EditText trusted_phone_number = findViewById(R.id.trusted_phone_number);
@@ -85,6 +84,10 @@ public class main_activity extends AppCompatActivity {
         final Button get_id = findViewById(R.id.get_id);
         final Switch display_dual_sim_display_name = findViewById(R.id.display_dual_sim);
         final Button notify_app_set = findViewById(R.id.notify_app_set);
+
+        //load config
+        Paper.init(context);
+        final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
 
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
