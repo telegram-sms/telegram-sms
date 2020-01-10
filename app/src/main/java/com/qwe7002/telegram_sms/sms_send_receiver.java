@@ -29,7 +29,7 @@ public class sms_send_receiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, Intent intent) {
         final String TAG = "sms_send_receiver";
-        Log.d(TAG, "Receive action: "+intent.getAction());
+        Log.d(TAG, "Receive action: " + intent.getAction());
         Bundle extras = intent.getExtras();
         assert extras != null;
         int sub = extras.getInt("sub_id");
@@ -76,7 +76,7 @@ public class sms_send_receiver extends BroadcastReceiver {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
-                public_func.write_log(context,error_head + e.getMessage());
+                public_func.write_log(context, error_head + e.getMessage());
                 public_func.send_fallback_sms(context, request_body.text, sub);
             }
 

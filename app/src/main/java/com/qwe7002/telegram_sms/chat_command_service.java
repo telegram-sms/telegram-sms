@@ -17,7 +17,9 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.PowerManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -126,8 +128,8 @@ public class chat_command_service extends Service {
         JsonObject from_obj = null;
         final boolean message_type_is_private = message_type.equals("private");
         if (!message_type_is_private && bot_username == null) {
-                Log.i(TAG, "receive_handle: Did not successfully get bot_username.");
-                get_me();
+            Log.i(TAG, "receive_handle: Did not successfully get bot_username.");
+            get_me();
 
         }
         if (message_obj.has("from")) {
@@ -182,7 +184,7 @@ public class chat_command_service extends Service {
                 command = temp_command;
                 if (temp_command.contains("@")) {
                     int command_at_location = temp_command.indexOf("@");
-                    command = temp_command.substring(0, command_at_location);
+                    command = temp_command.substring(0, command_at_location).replace("_", "");
                     command_bot_username = temp_command.substring(command_at_location + 1);
                 }
 
@@ -198,14 +200,27 @@ public class chat_command_service extends Service {
         switch (command) {
             case "/help":
             case "/start":
-                String dual_card = "\n" + getString(R.string.sendsms);
+            case "/commandlist":
+                String sms_command = getString(R.string.sendsms);
+                String ussd_command = "";
                 if (public_func.get_active_card(context) == 2) {
-                    dual_card = "\n" + getString(R.string.sendsms_dual);
+                    sms_command = getString(R.string.sendsms_dual);
                 }
-                request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.available_command) + dual_card;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    ussd_command = "\n" + getString(R.string.send_ussd_command);
+                }
+
+                if (command.equals("/commandlist")) {
+                    request_body.text = (getString(R.string.available_command) + "\n" + sms_command + ussd_command).replace("/", "");
+                    break;
+                }
+
+                String result = getString(R.string.system_message_head) + "\n" + getString(R.string.available_command) + "\n" + sms_command + ussd_command;
+
                 if (!message_type_is_private && privacy_mode && !bot_username.equals("")) {
-                    request_body.text = request_body.text.replace(" -", "@" + bot_username + " -");
+                    result = result.replace(" -", "@" + bot_username + " -");
                 }
+                request_body.text = result;
                 has_command = true;
                 break;
             case "/ping":
@@ -223,6 +238,24 @@ public class chat_command_service extends Service {
             case "/log":
                 request_body.text = getString(R.string.system_message_head) + public_func.read_log(context, 10);
                 has_command = true;
+                break;
+            case "/sendussd":
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+                        String[] command_list = request_msg.split(" ");
+                        if (command_list.length == 2) {
+                            TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+                            Looper.prepare();
+                            Handler handler = new Handler();
+                            assert telephonyManager != null;
+                            telephonyManager.sendUssdRequest(command_list[1], new ussd_request_callback(context, bot_token, chat_id, sharedPreferences.getBoolean("doh_switch", true)), handler);
+                            Looper.loop();
+                        }
+                    } else {
+                        Log.i(TAG, "send_ussd: No permission.");
+                    }
+                }
+                request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
                 break;
             case "/sendsms":
             case "/sendsms1":
@@ -457,6 +490,9 @@ public class chat_command_service extends Service {
                             net_type = "WIFI";
                         }
                         if (network_capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                            if (network_capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_IMS)) {
+                                continue;
+                            }
                             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
                                 Log.d("get_network_type", "No permission.");
                             }
@@ -666,7 +702,7 @@ public class chat_command_service extends Service {
     private class broadcast_receiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "onReceive: "+intent.getAction());
+            Log.d(TAG, "onReceive: " + intent.getAction());
             assert intent.getAction() != null;
             switch (intent.getAction()) {
                 case public_func.broadcast_stop_service:

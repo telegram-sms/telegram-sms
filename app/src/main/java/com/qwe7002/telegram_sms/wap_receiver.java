@@ -8,6 +8,6 @@ import android.util.Log;
 public class wap_receiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, Intent intent) {
-        Log.d("wap_receiver", "Receive action: "+intent.getAction());
+        Log.d("wap_receiver", "Receive action: " + intent.getAction());
     }
 }

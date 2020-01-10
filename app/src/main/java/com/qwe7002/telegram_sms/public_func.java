@@ -155,7 +155,7 @@ class public_func {
         } else {
             sms_manager = SmsManager.getSmsManagerForSubscriptionId(sub_id);
         }
-        String dual_sim = get_dual_sim_card_display(context, slot,sharedPreferences.getBoolean("display_dual_sim_display_name", false));
+        String dual_sim = get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
         String send_content = "[" + dual_sim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + send_to + "\n" + context.getString(R.string.content) + content;
         String message_id = "-1";
         request_body.text = send_content + "\n" + context.getString(R.string.status) + context.getString(R.string.sending);
@@ -197,7 +197,7 @@ class public_func {
         }
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         String trust_number = sharedPreferences.getString("trusted_phone_number", null);
-        if(trust_number==null){
+        if (trust_number == null) {
             Log.i(TAG, "The trusted number is empty.");
             return;
         }
@@ -410,7 +410,7 @@ class public_func {
         item.phone = phone;
         item.card = slot;
         item.sub_id = sub_id;
-        Paper.book().write(message_id,item);
+        Paper.book().write(message_id, item);
         Log.d("add_message_list", "add_message_list: " + message_id);
     }
 

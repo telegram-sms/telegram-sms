@@ -33,7 +33,7 @@ public class call_receiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Paper.init(context);
-        Log.d("call_receiver", "Receive action: "+intent.getAction());
+        Log.d("call_receiver", "Receive action: " + intent.getAction());
         switch (Objects.requireNonNull(intent.getAction())) {
             case "android.intent.action.PHONE_STATE":
                 if (intent.getStringExtra("incoming_number") != null) {
@@ -51,6 +51,7 @@ public class call_receiver extends BroadcastReceiver {
 
         }
     }
+
     static class call_status_listener extends PhoneStateListener {
         private static int lastState = TelephonyManager.CALL_STATE_IDLE;
         private static String incoming_number;
@@ -92,6 +93,7 @@ public class call_receiver extends BroadcastReceiver {
                         public_func.write_log(context, error_head + e.getMessage());
                         public_func.send_fallback_sms(context, request_body.text, public_func.get_sub_id(context, slot));
                     }
+
                     @Override
                     public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                         assert response.body() != null;
@@ -103,7 +105,7 @@ public class call_receiver extends BroadcastReceiver {
                             JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject().get("result").getAsJsonObject();
                             String message_id = result_obj.get("message_id").getAsString();
                             if (!public_func.is_phone_number(incoming_number)) {
-                                public_func.write_log(context,"["+incoming_number+"] Not a regular phone number.");
+                                public_func.write_log(context, "[" + incoming_number + "] Not a regular phone number.");
                                 return;
                             }
                             public_func.add_message_list(message_id, incoming_number, slot, public_func.get_sub_id(context, slot));

@@ -34,7 +34,7 @@ public class sms_receiver extends BroadcastReceiver {
     public void onReceive(final Context context, Intent intent) {
         Paper.init(context);
         final String TAG = "sms_receiver";
-        Log.d(TAG, "Receive action: "+intent.getAction());
+        Log.d(TAG, "Receive action: " + intent.getAction());
         Bundle extras = intent.getExtras();
         assert extras != null;
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
@@ -60,7 +60,7 @@ public class sms_receiver extends BroadcastReceiver {
         Object[] pdus = (Object[]) extras.get("pdus");
         assert pdus != null;
         final SmsMessage[] messages = new SmsMessage[pdus.length];
-        for (int i = 0; i < pdus.length;++i) {
+        for (int i = 0; i < pdus.length; ++i) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i], extras.getString("format"));
             } else {
@@ -171,7 +171,7 @@ public class sms_receiver extends BroadcastReceiver {
                     public_func.send_fallback_sms(context, final_raw_request_body_text, sub);
                 } else {
                     if (!public_func.is_phone_number(message_address)) {
-                        public_func.write_log(context,"["+message_address+"] Not a regular phone number.");
+                        public_func.write_log(context, "[" + message_address + "] Not a regular phone number.");
                         return;
                     }
                     public_func.add_message_list(public_func.get_message_id(result), message_address, slot, sub);

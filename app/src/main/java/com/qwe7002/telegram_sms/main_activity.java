@@ -57,11 +57,11 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 
-
 public class main_activity extends AppCompatActivity {
     private Context context = null;
     private static boolean set_permission_back = false;
     private final String TAG = "main_activity";
+
     @SuppressLint("BatteryLife")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,13 +94,13 @@ public class main_activity extends AppCompatActivity {
 
         if (public_func.parse_long(chat_id_save) < 0) {
             privacy_mode_switch.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             privacy_mode_switch.setVisibility(View.GONE);
         }
 
         if (sharedPreferences.getBoolean("initialized", false)) {
             public_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
-            if(!sharedPreferences.getBoolean("conversion_data_structure",false)) {
+            if (!sharedPreferences.getBoolean("conversion_data_structure", false)) {
                 new Thread(() -> convert_data(sharedPreferences)).start();
             }
         }
@@ -187,7 +187,7 @@ public class main_activity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
                 if (public_func.parse_long(chat_id.getText().toString()) < 0) {
                     privacy_mode_switch.setVisibility(View.VISIBLE);
-                }else{
+                } else {
                     privacy_mode_switch.setVisibility(View.GONE);
                 }
             }
@@ -393,9 +393,9 @@ public class main_activity extends AppCompatActivity {
                     editor.putBoolean("display_dual_sim_display_name", display_dual_sim_display_name.isChecked());
                     editor.putBoolean("verification_code", verification_code.isChecked());
                     editor.putBoolean("doh_switch", doh_switch.isChecked());
-                    editor.putBoolean("privacy_mode",privacy_mode_switch.isChecked());
+                    editor.putBoolean("privacy_mode", privacy_mode_switch.isChecked());
                     editor.putBoolean("initialized", true);
-                    editor.putBoolean("conversion_data_structure",true);
+                    editor.putBoolean("conversion_data_structure", true);
                     editor.apply();
                     new Thread(() -> {
                         public_func.stop_all_service(context);
@@ -433,6 +433,7 @@ public class main_activity extends AppCompatActivity {
             }
         }
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {

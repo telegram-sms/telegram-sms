@@ -20,7 +20,7 @@
     <string name="trusted_phone_number">可信的電話號碼</string>
     <string name="get_recent_chat_id">獲取最近的對話ID</string>
     <string name="test_and_save">測試並保存</string>
-    <string name="network_error_falls_back_to_sms">網路錯誤回退到SMS</string>
+    <string name="network_error_falls_back_to_sms">網路錯誤回退到簡訊</string>
     <string name="current_battery_level">"電池電量: "</string>
     <string name="low_battery_status_end">電池電量不足狀態已結束。</string>
     <string name="logcat">查看日誌</string>
@@ -47,7 +47,7 @@
     <string name="failed_to_get_information">無法獲取信息。</string>
     <string name="sendsms">/sendsms - 發送簡訊</string>
     <string name="sending">正在發送</string>
-    <string name="get_recent_chat_message">請發送一些消息到Bot。</string>
+    <string name="get_recent_chat_message">請發送一些消息到機器人。</string>
     <string name="get_recent_chat_title">獲取最近的對話…</string>
     <string name="using_doh">使用DNS over HTTPS</string>
     <string name="sim_card_insert">SIM卡被插入。</string>
@@ -74,5 +74,5 @@
     <string name="receive_notification_title">[收到通知]</string>
     <string name="app_name_title">"應用名稱: "</string>
     <string name="title">"標題: "</string>
-    <string name="Notification_Listener_title">"通知偵聽器 "</string>
+    <string name="Notification_Listener_title">通知偵聽器</string>
 </resources>

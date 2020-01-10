@@ -74,5 +74,9 @@
     <string name="receive_notification_title">[受信した通知]</string>
     <string name="app_name_title">"アプリケーション名: "</string>
     <string name="title">"標題: "</string>
-    <string name="Notification_Listener_title">"通知リスナー "</string>
+    <string name="Notification_Listener_title">通知リスナー</string>
+    <string name="received_ussd_title">[USSD応答を受信しました]</string>
+    <string name="request">"請求: "</string>
+    <string name="error_message">"エラーメッセージ: "</string>
+    <string name="send_ussd_command">/sendussd - USSDリクエストを送信</string>
 </resources>

@@ -25,10 +25,11 @@ import okhttp3.Response;
 
 public class sim_status_receiver extends BroadcastReceiver {
     private static int last_status;
+
     @Override
     public void onReceive(Context context, Intent intent) {
         final String TAG = "sim_status_receiver";
-        Log.d(TAG, "Receive action: "+intent.getAction());
+        Log.d(TAG, "Receive action: " + intent.getAction());
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("initialized", false)) {
             Log.i(TAG, "Uninitialized, SIM status receiver is deactivated.");
