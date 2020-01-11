@@ -207,7 +207,9 @@ public class chat_command_service extends Service {
                     sms_command = getString(R.string.sendsms_dual);
                 }
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                    ussd_command = "\n" + getString(R.string.send_ussd_command);
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+                        ussd_command = "\n" + getString(R.string.send_ussd_command);
+                    }
                 }
 
                 if (command.equals("/commandlist")) {
