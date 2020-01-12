@@ -79,4 +79,5 @@
     <string name="request">"Request: "</string>
     <string name="error_message">"Error message: "</string>
     <string name="send_ussd_command">/sendussd - Send USSD request</string>
+    <string name="ussd_code_running">USSD code running…</string>
 </resources>

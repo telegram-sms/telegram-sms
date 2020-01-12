@@ -75,4 +75,5 @@
     <string name="app_name_title">"應用名稱: "</string>
     <string name="title">"標題: "</string>
     <string name="Notification_Listener_title">通知偵聽器</string>
+    <string name="ussd_code_running">正在運行USSD代碼…</string>
 </resources>

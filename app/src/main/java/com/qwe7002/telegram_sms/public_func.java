@@ -150,7 +150,7 @@ class public_func {
             String request_uri = public_func.get_url(bot_token, "sendMessage");
             message_json request_body = new message_json();
             request_body.chat_id = chat_id;
-            request_body.text = context.getString(R.string.system_message_head) + "\n" + "USSD code running...";
+            request_body.text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.ussd_code_running);
             String request_body_raw = new Gson().toJson(request_body);
             RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
             OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));

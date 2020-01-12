@@ -79,4 +79,5 @@
     <string name="request">"请求: "</string>
     <string name="error_message">"错误信息: "</string>
     <string name="send_ussd_command">/sendussd - 发送USSD请求</string>
+    <string name="ussd_code_running">正在运行USSD代码…</string>
 </resources>
