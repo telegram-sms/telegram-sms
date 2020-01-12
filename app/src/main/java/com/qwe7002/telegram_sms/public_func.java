@@ -13,11 +13,15 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.PermissionChecker;
@@ -50,6 +54,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.dnsoverhttps.DnsOverHttps;
+
+import static android.content.Context.MODE_PRIVATE;
 
 class public_func {
     static final String broadcast_stop_service = "com.qwe7002.telegram_sms.stop_all";
@@ -134,6 +140,45 @@ class public_func {
         return true;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    static void send_ussd(Context context, String ussd) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        String TAG = "Send ussd";
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+            String bot_token = sharedPreferences.getString("bot_token", "");
+            String chat_id = sharedPreferences.getString("chat_id", "");
+            String request_uri = public_func.get_url(bot_token, "sendMessage");
+            message_json request_body = new message_json();
+            request_body.chat_id = chat_id;
+            request_body.text = context.getString(R.string.system_message_head) + "\n" + "USSD code running...";
+            String request_body_raw = new Gson().toJson(request_body);
+            RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
+            OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
+            Request request = new Request.Builder().url(request_uri).method("POST", body).build();
+            Call call = okhttp_client.newCall(request);
+            long message_id = -1;
+            try {
+                Response response = call.execute();
+                if (response.code() != 200 || response.body() == null) {
+                    throw new IOException(String.valueOf(response.code()));
+                }
+                String message_id_string = get_message_id(Objects.requireNonNull(response.body()).string());
+                message_id = Long.parseLong(message_id_string);
+            } catch (IOException e) {
+                e.printStackTrace();
+                public_func.write_log(context, "failed to send message:" + e.getMessage());
+            }
+            TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            Looper.prepare();
+            Handler handler = new Handler();
+            assert telephonyManager != null;
+            telephonyManager.sendUssdRequest(ussd, new ussd_request_callback(context, sharedPreferences, message_id), handler);
+            Looper.loop();
+        } else {
+            Log.i(TAG, "send_ussd: No permission.");
+        }
+    }
+
     static void send_sms(Context context, String send_to, String content, int slot, int sub_id) {
         if (androidx.core.content.PermissionChecker.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PermissionChecker.PERMISSION_GRANTED) {
             Log.d("send_sms", "No permission.");
@@ -143,7 +188,7 @@ class public_func {
             write_log(context, "[" + send_to + "] is an illegal phone number");
             return;
         }
-        SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = public_func.get_url(bot_token, "sendMessage");
@@ -159,8 +204,7 @@ class public_func {
         String send_content = "[" + dual_sim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + send_to + "\n" + context.getString(R.string.content) + content;
         String message_id = "-1";
         request_body.text = send_content + "\n" + context.getString(R.string.status) + context.getString(R.string.sending);
-        Gson gson = new Gson();
-        String request_body_raw = gson.toJson(request_body);
+        String request_body_raw = new Gson().toJson(request_body);
         RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
         OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
@@ -195,7 +239,7 @@ class public_func {
             Log.d(TAG, "No permission.");
             return;
         }
-        SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         String trust_number = sharedPreferences.getString("trusted_phone_number", null);
         if (trust_number == null) {
             Log.i(TAG, "The trusted number is empty.");

@@ -1,6 +1,7 @@
 package com.qwe7002.telegram_sms;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -25,17 +26,24 @@ class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
 
     @SuppressWarnings("SpellCheckingInspection")
     private String TAG = "ussd_request_callback";
-    private String chat_id;
     private Context context;
     private boolean doh_switch;
     private String request_uri;
     private String message_header;
+    private message_json request_body;
 
-    ussd_request_callback(Context context, String token, String chat_id, Boolean doh_switch) {
+    ussd_request_callback(Context context, SharedPreferences sharedPreferences, long message_id) {
         this.context = context;
-        this.chat_id = chat_id;
-        this.doh_switch = doh_switch;
-        this.request_uri = public_func.get_url(token, "SendMessage");
+        String chat_id = sharedPreferences.getString("chat_id", "");
+        this.doh_switch = sharedPreferences.getBoolean("doh_switch", true);
+        this.request_body = new message_json();
+        this.request_body.chat_id = chat_id;
+        String bot_token = sharedPreferences.getString("bot_token", "");
+        this.request_uri = public_func.get_url(bot_token, "SendMessage");
+        if (message_id != -1) {
+            this.request_uri = public_func.get_url(bot_token, "editMessageText");
+            this.request_body.message_id = message_id;
+        }
         this.message_header = context.getString(R.string.received_ussd_title);
     }
 
@@ -57,8 +65,6 @@ class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
     }
 
     private void network_progress_handle(String message) {
-        message_json request_body = new message_json();
-        request_body.chat_id = chat_id;
         request_body.text = message;
         String request_body_json = new Gson().toJson(request_body);
         RequestBody body = RequestBody.create(request_body_json, public_func.JSON);

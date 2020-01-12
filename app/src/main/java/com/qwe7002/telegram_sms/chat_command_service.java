@@ -17,9 +17,7 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.os.Build;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.os.PowerManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -243,18 +241,12 @@ public class chat_command_service extends Service {
                 break;
             case "/sendussd":
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
                         String[] command_list = request_msg.split(" ");
                         if (command_list.length == 2) {
-                            TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-                            Looper.prepare();
-                            Handler handler = new Handler();
-                            assert telephonyManager != null;
-                            telephonyManager.sendUssdRequest(command_list[1], new ussd_request_callback(context, bot_token, chat_id, sharedPreferences.getBoolean("doh_switch", true)), handler);
-                            Looper.loop();
+                            public_func.send_ussd(context, command_list[1]);
+                            return;
                         }
-                    } else {
-                        Log.i(TAG, "send_ussd: No permission.");
                     }
                 }
                 request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
