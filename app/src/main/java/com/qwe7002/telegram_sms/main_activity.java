@@ -407,6 +407,7 @@ public class main_activity extends AppCompatActivity {
                     editor.putBoolean("privacy_mode", privacy_mode_switch.isChecked());
                     editor.putBoolean("initialized", true);
                     editor.putBoolean("conversion_data_structure", true);
+                    editor.putBoolean("privacy_dialog_agree", true);
                     editor.apply();
                     new Thread(() -> {
                         public_func.stop_all_service(context);
