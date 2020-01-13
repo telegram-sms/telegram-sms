@@ -135,12 +135,13 @@ public class main_activity extends AppCompatActivity {
         chat_command.setChecked(sharedPreferences.getBoolean("chat_command", false));
         verification_code.setChecked(sharedPreferences.getBoolean("verification_code", false));
         doh_switch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
+        privacy_mode_switch.setChecked(sharedPreferences.getBoolean("privacy_mode", false));
         int checkPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE);
         if (checkPermission == PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
                 assert tm != null;
-                if (tm.getPhoneCount() >= 1) {
+                if (tm.getPhoneCount() <= 1) {
                     display_dual_sim_display_name.setVisibility(View.GONE);
                 }
             }
@@ -323,7 +324,7 @@ public class main_activity extends AppCompatActivity {
                 return;
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG}, 1);
+                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.CALL_PHONE, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG}, 1);
 
                 PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
                 assert powerManager != null;
