@@ -46,7 +46,7 @@ public class sms_receiver extends BroadcastReceiver {
         assert intent.getAction() != null;
         if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED") && is_default) {
             //When it is the default application, it will receive two broadcasts.
-            Log.i(TAG, "reject: android.provider.Telephony.SMS_RECEIVE.");
+            Log.i(TAG, "reject: android.provider.Telephony.SMS_RECEIVED.");
             return;
         }
         String bot_token = sharedPreferences.getString("bot_token", "");
@@ -118,34 +118,48 @@ public class sms_receiver extends BroadcastReceiver {
         }
         request_body.text = message_head + message_body_html;
         if (is_trusted_phone) {
-            //noinspection SwitchStatementWithTooFewBranches
-            switch (message_body.toLowerCase()) {
-                case "restart-service":
-                    new Thread(() -> {
-                        public_func.stop_all_service(context);
-                        public_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
-                    }).start();
-                    raw_request_body_text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
-                    request_body.text = raw_request_body_text;
-                    break;
-                default:
-                    if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
-                        Log.i(TAG, "No SMS permission.");
+            String[] command_list = message_body.toLowerCase().split("\n");
+            if (command_list.length > 0) {
+                switch (command_list[0].replace("-", "")) {
+                    case "/restartservice":
+                        new Thread(() -> {
+                            public_func.stop_all_service(context);
+                            public_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
+                        }).start();
+                        raw_request_body_text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
+                        request_body.text = raw_request_body_text;
                         break;
-                    }
-                    String[] msg_send_list = message_body.split("\n");
-                    String msg_send_to = public_func.get_send_phone_number(msg_send_list[0]);
-                    if (public_func.is_phone_number(msg_send_to) && msg_send_list.length != 1) {
-                        StringBuilder msg_send_content = new StringBuilder();
-                        for (int i = 1; i < msg_send_list.length; ++i) {
-                            if (msg_send_list.length != 2 && i != 1) {
-                                msg_send_content.append("\n");
-                            }
-                            msg_send_content.append(msg_send_list[i]);
+                    case "/sendsms":
+                        if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                            Log.i(TAG, "No SMS permission.");
+                            break;
                         }
-                        new Thread(() -> public_func.send_sms(context, msg_send_to, msg_send_content.toString(), slot, sub)).start();
-                        return;
-                    }
+                        String msg_send_to = public_func.get_send_phone_number(command_list[1]);
+                        if (public_func.is_phone_number(msg_send_to) && command_list.length > 2) {
+                            StringBuilder msg_send_content = new StringBuilder();
+                            for (int i = 2; i < command_list.length; ++i) {
+                                if (i != 2) {
+                                    msg_send_content.append("\n");
+                                }
+                                msg_send_content.append(command_list[i]);
+                            }
+                            new Thread(() -> public_func.send_sms(context, msg_send_to, msg_send_content.toString(), slot, sub)).start();
+                            return;
+                        }
+                        break;
+                    case "/sendussd":
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                            if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+                                if (command_list.length == 2) {
+                                    public_func.send_ussd(context, command_list[1]);
+                                    return;
+                                }
+                            }
+                        } else {
+                            Log.i(TAG, "send_ussd: No permission.");
+                        }
+                        break;
+                }
             }
         }
         RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_func.JSON);

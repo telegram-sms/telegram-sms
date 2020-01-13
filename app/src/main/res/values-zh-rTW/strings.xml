@@ -76,4 +76,9 @@
     <string name="title">"標題: "</string>
     <string name="Notification_Listener_title">通知偵聽器</string>
     <string name="ussd_code_running">正在運行USSD代碼…</string>
+    <string name="privacy_reminder_information">您使用Telegram SMS服務，即表示您信賴我們對您的信息的處理方式。我們深知這項責任事關重大，因此一直致力於保護您的隱私，並讓您擁有控制權。請在使用前仔細閱讀我們的隱私條款，以便您更好的行使個人權利及保護個人隱私安全。</string>
+    <string name="privacy_reminder_title">隱私權和條款</string>
+    <string name="agree">同意</string>
+    <string name="decline">我稍后再決定</string>
+    <string name="visit_page">訪問“隱私條款”頁面</string>
 </resources>

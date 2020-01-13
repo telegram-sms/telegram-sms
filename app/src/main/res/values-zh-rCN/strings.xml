@@ -80,4 +80,9 @@
     <string name="error_message">"错误信息: "</string>
     <string name="send_ussd_command">/sendussd - 发送USSD请求</string>
     <string name="ussd_code_running">正在运行USSD代码…</string>
+    <string name="privacy_reminder_information">您使用Telegram SMS服务，即表示您信赖我们对您的信息的处理方式。我们深知这项责任事关重大，因此一直致力于保护您的隐私，并让您拥有控制权。请在使用前仔细阅读我们的隐私条款，以便您更好的行使个人权利及保护个人隐私安全。</string>
+    <string name="privacy_reminder_title">隐私权和条款</string>
+    <string name="agree">同意</string>
+    <string name="decline">"我稍后再决定"</string>
+    <string name="visit_page">访问“隐私条款”页面</string>
 </resources>

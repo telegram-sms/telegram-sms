@@ -61,7 +61,7 @@ public class main_activity extends AppCompatActivity {
     private Context context = null;
     private static boolean set_permission_back = false;
     private final String TAG = "main_activity";
-
+    private SharedPreferences sharedPreferences;
     @SuppressLint("BatteryLife")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,7 +87,12 @@ public class main_activity extends AppCompatActivity {
 
         //load config
         Paper.init(context);
-        final SharedPreferences sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
+
+        if (!sharedPreferences.getBoolean("privacy_dialog_agree", false)) {
+            show_privacy_dialog();
+        }
+
 
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
@@ -101,7 +106,7 @@ public class main_activity extends AppCompatActivity {
         if (sharedPreferences.getBoolean("initialized", false)) {
             public_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
             if (!sharedPreferences.getBoolean("conversion_data_structure", false)) {
-                new Thread(() -> convert_data(sharedPreferences)).start();
+                new Thread(this::convert_data).start();
             }
         }
         boolean display_dual_sim_display_name_config = sharedPreferences.getBoolean("display_dual_sim_display_name", false);
@@ -153,12 +158,19 @@ public class main_activity extends AppCompatActivity {
         });
 
         trusted_phone_number.addTextChangedListener(new TextWatcher() {
+
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                //ignore
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+                //ignore
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
                 if (trusted_phone_number.length() != 0) {
                     fallback_sms.setEnabled(true);
                 }
@@ -167,20 +179,17 @@ public class main_activity extends AppCompatActivity {
                     fallback_sms.setChecked(false);
                 }
             }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
         });
 
         chat_id.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                //ignore
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-
+                //ignore
             }
 
             @Override
@@ -301,7 +310,6 @@ public class main_activity extends AppCompatActivity {
         });
 
         save_button.setOnClickListener(v -> {
-
             if (bot_token.getText().toString().isEmpty() || chat_id.getText().toString().isEmpty()) {
                 Snackbar.make(v, R.string.chat_id_or_token_not_config, Snackbar.LENGTH_LONG).show();
                 return;
@@ -310,7 +318,10 @@ public class main_activity extends AppCompatActivity {
                 Snackbar.make(v, R.string.trusted_phone_number_empty, Snackbar.LENGTH_LONG).show();
                 return;
             }
-
+            if (!sharedPreferences.getBoolean("privacy_dialog_agree", false)) {
+                show_privacy_dialog();
+                return;
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG}, 1);
 
@@ -422,6 +433,33 @@ public class main_activity extends AppCompatActivity {
 
     }
 
+    private void show_privacy_dialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.privacy_reminder_title);
+        builder.setMessage(R.string.privacy_reminder_information);
+        builder.setCancelable(false);
+        builder.setPositiveButton(R.string.agree, (dialog, which) -> sharedPreferences.edit().putBoolean("privacy_dialog_agree", true).apply());
+        builder.setNegativeButton(R.string.decline, null);
+        builder.setNeutralButton(R.string.visit_page, (dialog, which) -> {
+            Uri uri = Uri.parse("https://get.telegram-sms.com/wiki/" + context.getString(R.string.privacy_policy_url));
+            CustomTabsIntent.Builder privacy_builder = new CustomTabsIntent.Builder();
+            privacy_builder.setToolbarColor(ContextCompat.getColor(context, R.color.colorPrimary));
+            CustomTabsIntent customTabsIntent = privacy_builder.build();
+            customTabsIntent.intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            try {
+                customTabsIntent.launchUrl(context, uri);
+            } catch (ActivityNotFoundException e) {
+                e.printStackTrace();
+                Snackbar.make(findViewById(R.id.bot_token), "Browser not found.", Snackbar.LENGTH_LONG).show();
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setAllCaps(false);
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setAllCaps(false);
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setAllCaps(false);
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -517,7 +555,7 @@ public class main_activity extends AppCompatActivity {
         }
     }
 
-    private void convert_data(SharedPreferences sharedPreferences) {
+    private void convert_data() {
         String message_list_raw = null;
         FileInputStream file_stream = null;
         try {

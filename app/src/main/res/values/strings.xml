@@ -80,4 +80,9 @@
     <string name="error_message">"Error message: "</string>
     <string name="send_ussd_command">/sendussd - Send USSD request</string>
     <string name="ussd_code_running">USSD code running…</string>
+    <string name="privacy_reminder_information">When you use Telegram SMS, you’re trusting us with your information. We are deeply aware the importance of privacy control and put our utmost effort to keep your personal data secure. You have full control over your privacy. Please refer to our privacy policy to understand your rights and better protect your privacy.</string>
+    <string name="privacy_reminder_title">Privacy and terms</string>
+    <string name="agree">Agree</string>
+    <string name="decline">"I'll decide later"</string>
+    <string name="visit_page">Visit the Privacy Terms page</string>
 </resources>
