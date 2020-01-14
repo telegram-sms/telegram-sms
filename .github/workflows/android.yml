@@ -13,14 +13,14 @@ jobs:
                 uses: actions/setup-java@v1
                 with:
                     java-version: 1.8
-            -   name: Set version number
-                run: export VERSION_CODE=${GITHUB_ACTION} && export export VERSION_NAME=GITHUB-${GITHUB_SHA}
             -   name: Setting up the system environment
-                run: cp ./.github/workflows/github-action-only.jks ./app/keys.jks && export KEYSTORE_PASS=000000000 && export ALIAS_NAME=key0 && export ALIAS_PASS=111111111
+                run: cp ./.github/workflows/github-action-only.jks ./app/keys.jks
             -   name: Build with Gradle
-                run: ./gradlew assembleRelease
+                run: export KEYSTORE_PASS=000000000 && export ALIAS_NAME="key0" && export ALIAS_PASS=111111111 && export VERSION_CODE=1 && export VERSION_NAME="GITHUB-${GITHUB_SHA}" && ./gradlew assembleRelease
             -   name: Upload artifact
                 uses: actions/upload-artifact@master
                 with:
                     name: telegram-sms
                     path: app/build/outputs/apk/release/app-release.apk
+
+
