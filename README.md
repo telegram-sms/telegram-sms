@@ -10,7 +10,7 @@ The primary language used for commit messages is Simplified Chinese. However, yo
 
 **Please visit [https://reall.uk](https://reall.uk) to submit and discuss issues regarding this project.**
 
-**请访问[https://reall.uk]（https://reall.uk）提交并讨论有关此项目的问题。**
+**请访问 [https://reall.uk](https://reall.uk) 提交并讨论有关此项目的问题。**
 
 You can follow the Telegram channel [Telegram SMS 更新日志](https://t.me/tg_sms_changelog) for the latest news. (Simplified Chinese only)
 
