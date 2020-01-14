@@ -1,6 +1,7 @@
 stages:
     - build
-    - deploy
+    - push
+    - release
 cache:
     key: ${CI_PROJECT_ID}
     paths:
@@ -13,12 +14,13 @@ variables:
     KEYSTORE_SERVER: keystore.reallserver.cn
 
 release_github:
-    stage: deploy
+    stage: push
     script:
         - eval $(ssh-agent -s)
         - ssh-add - <<< $(curl https://${KEYSTORE_SERVER}/gitlab-sshkey/id_ecdsa -u gitlab:${key_store_passwd})
         - git push --set-upstream git@github.com:${OWNER}/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
 release_apk:
+    stage: release
     dependencies:
         - build
     only:
@@ -30,6 +32,7 @@ release_apk:
         - /opt/github-release-upload.sh github_api_token=${GITHUB_ACCESS_KEY} owner=${OWNER} repo=${REPO} tag=$TAG filename="./app/build/outputs/apk/release/app-release.apk" pre_release="false"
 
 pre_release_apk:
+    stage: release
     dependencies:
         - build
     only:
