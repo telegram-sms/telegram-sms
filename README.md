@@ -65,8 +65,8 @@ Download resource file: [mega.nz](https://mega.nz/#F!TmwQSYjD!XN-uVfciajwy3okjId
 
 Character set：
 
-- Name: Fay (菲,フェイ)
-- Birthday: 1st October,2018
+- Name: Fay (菲, フェイ)
+- Birthday: 1st October, 2018
 - Birth sign: Libra
 - Habits: Eat sweets, Maid dress，Listening heavy metal music
 
