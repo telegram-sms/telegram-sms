@@ -37,6 +37,7 @@ This app requires following permissions to work properly:
 
 - SMS: To read and send text messages.
 - Phone: Check whether it is a dual SIM-Card phone, the SIM status and its identification digits.
+- Call phone: Execute the USSD code.
 - Call log: Read incoming numbers.
 - Camera: Scan the QR code and quickly enter the Bot Token.
 - Notification access: Listen for notification messages.
@@ -105,8 +106,8 @@ And finally, [sm.ms](https://sm.ms) for hosting images used in this page.
 
 ## Buy me a cup of coffee to help maintain this project further?
 
-- [via Patreon](https://www.patreon.com/user?u=16899295)
-- [via Paypal](https://paypal.me/nicoranshi)
+- [via Patreon](https://get.telegram-sms.com/donate/patreon)
+- [via Paypal](https://get.telegram-sms.com/donate/paypal)
 - [via Bitcoin](bitcoin:17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae) (**17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae**)
 - [via UnionPay(中国银联云闪付)](https://get.telegram-sms.com/donate/unionpay)
 - [via Alipay(支付宝)](https://get.telegram-sms.com/donate/alipay)
