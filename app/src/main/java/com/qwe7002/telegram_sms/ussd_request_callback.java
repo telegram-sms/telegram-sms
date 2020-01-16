@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -24,8 +23,6 @@ import okhttp3.Response;
 @RequiresApi(api = Build.VERSION_CODES.O)
 class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
 
-    @SuppressWarnings("SpellCheckingInspection")
-    private String TAG = "ussd_request_callback";
     private Context context;
     private boolean doh_switch;
     private String request_uri;
@@ -50,8 +47,6 @@ class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
     @Override
     public void onReceiveUssdResponse(TelephonyManager telephonyManager, String request, CharSequence response) {
         super.onReceiveUssdResponse(telephonyManager, request, response);
-        Log.d(TAG, "onReceiveUssdResponse: " + request);
-        Log.d(TAG, "onReceiveUssdResponse: " + response.toString());
         String message = message_header + "\n" + context.getString(R.string.request) + request + "\n" + context.getString(R.string.content) + response.toString();
         network_progress_handle(message);
     }
@@ -59,7 +54,6 @@ class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
     @Override
     public void onReceiveUssdResponseFailed(TelephonyManager telephonyManager, String request, int failureCode) {
         super.onReceiveUssdResponseFailed(telephonyManager, request, failureCode);
-        Log.d(TAG, "onReceiveUssdResponseFailed: " + get_error_code_string(failureCode));
         String message = message_header + "\n" + context.getString(R.string.request) + request + "\n" + context.getString(R.string.error_message) + get_error_code_string(failureCode);
         network_progress_handle(message);
     }
@@ -95,13 +89,14 @@ class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
         String result;
         switch (error_code) {
             case -1:
-                result = "Connection Problem Or Invalid MMI Code.";
+                result = "Connection problem or invalid MMI code.";
                 break;
             case -2:
                 result = "No service.";
                 break;
             default:
-                result = "failed with code " + error_code;
+                result = "An unknown error occurred (" + error_code + ")";
+                break;
         }
         return result;
     }
