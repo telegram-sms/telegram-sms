@@ -22,7 +22,6 @@ import okhttp3.Response;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
-
     private Context context;
     private boolean doh_switch;
     private String request_uri;
@@ -41,7 +40,7 @@ class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
             this.request_uri = public_func.get_url(bot_token, "editMessageText");
             this.request_body.message_id = message_id;
         }
-        this.message_header = context.getString(R.string.received_ussd_title);
+        this.message_header = context.getString(R.string.send_ussd_head);
     }
 
     @Override

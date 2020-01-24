@@ -65,6 +65,7 @@
     <string name="donate">寄付する</string>
     <string name="not_charging" >充電していません</string>
     <string name="using_privacy_mode">ロボットのユーザー名を含むコマンドにのみ応答する</string>
+    <string name="request">"請求: "</string>
     <string name="scan_title">QRコードをスキャン</string>
     <string name="no_camera_permission">QRコードスキャン用のカメラアクセスを許可してください。</string>
     <string name="error_message_head">"エラーメッセージ: "</string>
@@ -75,8 +76,7 @@
     <string name="app_name_title">"アプリケーション名: "</string>
     <string name="title">"標題: "</string>
     <string name="Notification_Listener_title">通知リスナー</string>
-    <string name="received_ussd_title">[USSD応答を受信しました]</string>
-    <string name="request">"請求: "</string>
+    <string name="send_ussd_head">[USSDを送信]</string>
     <string name="error_message">"エラーメッセージ: "</string>
     <string name="send_ussd_command">/sendussd - USSDリクエストを送信</string>
     <string name="ussd_code_running">実行中のUSSDコード…</string>

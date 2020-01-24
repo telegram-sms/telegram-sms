@@ -46,7 +46,7 @@ public class notification_listener_service extends NotificationListenerService {
         Paper.init(context);
         sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         receiver = new stop_receiver();
-        registerReceiver(receiver, new IntentFilter(public_func.broadcast_stop_service));
+        registerReceiver(receiver, new IntentFilter(public_func.BROADCAST_STOP_SERVICE));
         Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.Notification_Listener_title));
         startForeground(3, notification);
         if (!sharedPreferences.getBoolean("initialized", false)) {

@@ -75,7 +75,7 @@
     <string name="app_name_title">"应用名称: "</string>
     <string name="title">"标题: "</string>
     <string name="Notification_Listener_title">通知侦听器</string>
-    <string name="received_ussd_title">[收到USSD回应]</string>
+    <string name="send_ussd_head">[发送USSD]</string>
     <string name="request">"请求: "</string>
     <string name="error_message">"错误信息: "</string>
     <string name="send_ussd_command">/sendussd - 发送USSD请求</string>

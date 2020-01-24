@@ -52,7 +52,7 @@ public class battery_service extends Service {
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_OKAY);
         filter.addAction(Intent.ACTION_BATTERY_LOW);
-        filter.addAction(public_func.broadcast_stop_service);
+        filter.addAction(public_func.BROADCAST_STOP_SERVICE);
         if (charger_status) {
             filter.addAction(Intent.ACTION_POWER_CONNECTED);
             filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
@@ -79,7 +79,7 @@ public class battery_service extends Service {
             String TAG = "battery_receiver";
             assert intent.getAction() != null;
             Log.d(TAG, "Receive action: " + intent.getAction());
-            if (intent.getAction().equals(public_func.broadcast_stop_service)) {
+            if (intent.getAction().equals(public_func.BROADCAST_STOP_SERVICE)) {
                 Log.i(TAG, "Received stop signal, quitting now...");
                 stopSelf();
                 android.os.Process.killProcess(android.os.Process.myPid());

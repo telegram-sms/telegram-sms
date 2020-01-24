@@ -75,7 +75,7 @@
     <string name="app_name_title">"應用名稱: "</string>
     <string name="title">"標題: "</string>
     <string name="Notification_Listener_title">通知偵聽器</string>
-    <string name="received_ussd_title">[收到 USSD 回應]</string>
+    <string name="send_ussd_head">[發送USSD]</string>
     <string name="request">"請求: "</string>
     <string name="error_message">"錯誤信息: "</string>
     <string name="send_ussd_command">/sendussd - 發送USSD請求</string>

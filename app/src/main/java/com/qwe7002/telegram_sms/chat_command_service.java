@@ -97,7 +97,7 @@ public class chat_command_service extends Service {
         thread_main = new Thread(new thread_main_runnable());
         thread_main.start();
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(public_func.broadcast_stop_service);
+        intentFilter.addAction(public_func.BROADCAST_STOP_SERVICE);
         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         broadcast_receiver = new broadcast_receiver();
         registerReceiver(broadcast_receiver, intentFilter);
@@ -699,7 +699,7 @@ public class chat_command_service extends Service {
             Log.d(TAG, "onReceive: " + intent.getAction());
             assert intent.getAction() != null;
             switch (intent.getAction()) {
-                case public_func.broadcast_stop_service:
+                case public_func.BROADCAST_STOP_SERVICE:
                     Log.i(TAG, "Received stop signal, quitting now...");
                     stopSelf();
                     android.os.Process.killProcess(android.os.Process.myPid());
