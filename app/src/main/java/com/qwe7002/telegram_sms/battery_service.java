@@ -135,6 +135,7 @@ public class battery_service extends Service {
                         assert response.body() != null;
                         String error_message = error_head + response.code() + " " + Objects.requireNonNull(response.body()).string();
                         public_func.write_log(context, error_message);
+                        public_func.add_resend_loop(context, request_body.text);
                     }
                 }
             });
