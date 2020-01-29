@@ -85,4 +85,5 @@
     <string name="agree">同意</string>
     <string name="decline">"我稍后再决定"</string>
     <string name="visit_page">访问“隐私条款”页面</string>
+    <string name="failed_resend">重新发送</string>
 </resources>

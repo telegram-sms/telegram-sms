@@ -78,6 +78,7 @@ public class sms_send_receiver extends BroadcastReceiver {
                 e.printStackTrace();
                 public_func.write_log(context, error_head + e.getMessage());
                 public_func.send_fallback_sms(context, request_body.text, sub);
+                public_func.add_resend_loop(context, request_body.text);
             }
 
             @Override
@@ -85,6 +86,7 @@ public class sms_send_receiver extends BroadcastReceiver {
                 if (response.code() != 200) {
                     assert response.body() != null;
                     public_func.write_log(context, error_head + response.code() + " " + Objects.requireNonNull(response.body()).string());
+                    public_func.add_resend_loop(context, request_body.text);
                 }
             }
         });

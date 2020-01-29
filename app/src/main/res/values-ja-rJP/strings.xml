@@ -85,4 +85,5 @@
     <string name="agree">同意する</string>
     <string name="decline">後で決めます</string>
     <string name="visit_page">プライバシー規約ページにアクセス</string>
+    <string name="failed_resend">失敗したメッセージの再送信</string>
 </resources>

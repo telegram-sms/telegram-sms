@@ -29,6 +29,7 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning,RtlEnabled"
         tools:targetApi="n">
+        <service android:name=".resend_service" />
         <service android:name=".send_ussd_service" />
         <receiver android:name=".sim_status_receiver">
             <intent-filter>

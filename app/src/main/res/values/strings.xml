@@ -85,4 +85,5 @@
     <string name="agree">Agree</string>
     <string name="decline">"I'll decide later"</string>
     <string name="visit_page">Visit the Privacy Terms page</string>
+    <string name="failed_resend">"Failed message resend "</string>
 </resources>

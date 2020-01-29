@@ -12,6 +12,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.os.Build;
 import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
@@ -68,6 +71,22 @@ class public_func {
         return result;
     }
 
+    static boolean check_network_status(Context context) {
+        ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        assert manager != null;
+        boolean network_status = false;
+        Network[] networks = manager.getAllNetworks();
+        if (networks.length != 0) {
+            for (Network network : networks) {
+                NetworkCapabilities network_capabilities = manager.getNetworkCapabilities(network);
+                assert network_capabilities != null;
+                if (network_capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)) {
+                    network_status = true;
+                }
+            }
+        }
+        return network_status;
+    }
     static String get_send_phone_number(String phone_number) {
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < phone_number.length(); ++i) {
@@ -142,6 +161,25 @@ class public_func {
         Intent send_ussd_service = new Intent(context, send_ussd_service.class);
         send_ussd_service.putExtra("ussd", ussd);
         context.startService(send_ussd_service);
+    }
+
+
+    static void add_resend_loop(Context context, String message) {
+        ArrayList<String> resend_list;
+        Paper.init(context);
+        resend_list = Paper.book().read("resend_list", new ArrayList<>());
+        resend_list.add(message);
+        Paper.book().write("resend_list", resend_list);
+        start_resend(context);
+    }
+
+    static void start_resend(Context context) {
+        Intent intent = new Intent(context, resend_service.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent);
+        } else {
+            context.startService(intent);
+        }
     }
 
     static void send_sms(Context context, String send_to, String content, int slot, int sub_id) {

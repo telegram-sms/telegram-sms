@@ -79,6 +79,7 @@ public class sim_status_receiver extends BroadcastReceiver {
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
                 public_func.write_log(context, error_head + e.getMessage());
+                public_func.add_resend_loop(context, request_body.text);
             }
 
             @Override
@@ -86,6 +87,7 @@ public class sim_status_receiver extends BroadcastReceiver {
                 if (response.code() != 200) {
                     assert response.body() != null;
                     public_func.write_log(context, error_head + response.code() + " " + Objects.requireNonNull(response.body()).string());
+                    public_func.add_resend_loop(context, request_body.text);
                 }
             }
         });

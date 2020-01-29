@@ -376,6 +376,7 @@ public class chat_command_service extends Service {
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
                 public_func.write_log(context, error_head + e.getMessage());
+                public_func.add_resend_loop(context, request_body.text);
             }
 
             @Override
@@ -383,6 +384,7 @@ public class chat_command_service extends Service {
                 if (response.code() != 200) {
                     assert response.body() != null;
                     public_func.write_log(context, error_head + response.code() + " " + Objects.requireNonNull(response.body()).string());
+                    public_func.add_resend_loop(context, request_body.text);
                 }
             }
         });
@@ -583,22 +585,7 @@ public class chat_command_service extends Service {
         return net_type;
     }
 
-    boolean check_network_status(Context context) {
-        ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        assert manager != null;
-        boolean network_status = false;
-        Network[] networks = manager.getAllNetworks();
-        if (networks.length != 0) {
-            for (Network network : networks) {
-                NetworkCapabilities network_capabilities = manager.getNetworkCapabilities(network);
-                assert network_capabilities != null;
-                if (network_capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)) {
-                    network_status = true;
-                }
-            }
-        }
-        return network_status;
-    }
+
 
     class thread_main_runnable implements Runnable {
         @Override
@@ -632,7 +619,7 @@ public class chat_command_service extends Service {
                     error_magnification = 1;
                 } catch (IOException e) {
                     e.printStackTrace();
-                    if (!check_network_status(context)) {
+                    if (!public_func.check_network_status(context)) {
                         public_func.write_log(context, "No network connections available. ");
                         error_magnification = 1;
                         magnification = 1;
@@ -705,7 +692,7 @@ public class chat_command_service extends Service {
                     android.os.Process.killProcess(android.os.Process.myPid());
                     break;
                 case ConnectivityManager.CONNECTIVITY_ACTION:
-                    if (check_network_status(context)) {
+                    if (public_func.check_network_status(context)) {
                         if (!thread_main.isAlive()) {
                             public_func.write_log(context, "Network connections has been restored.");
                             thread_main = new Thread(new thread_main_runnable());

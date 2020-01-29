@@ -108,6 +108,7 @@ public class notification_listener_service extends NotificationListenerService {
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
                 public_func.write_log(context, error_head + e.getMessage());
+                public_func.add_resend_loop(context, request_body.text);
             }
 
             @Override
@@ -116,6 +117,7 @@ public class notification_listener_service extends NotificationListenerService {
                 String result = Objects.requireNonNull(response.body()).string();
                 if (response.code() != 200) {
                     public_func.write_log(context, error_head + response.code() + " " + result);
+                    public_func.add_resend_loop(context, request_body.text);
                 }
             }
         });

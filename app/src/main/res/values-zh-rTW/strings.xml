@@ -85,4 +85,5 @@
     <string name="agree">同意</string>
     <string name="decline">我稍后再決定</string>
     <string name="visit_page">訪問“隱私條款”頁面</string>
+    <string name="failed_resend">重新發送</string>
 </resources>
