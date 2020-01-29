@@ -122,44 +122,27 @@ public class main_activity extends AppCompatActivity {
         chat_id.setText(chat_id_save);
         trusted_phone_number.setText(sharedPreferences.getString("trusted_phone_number", ""));
         battery_monitoring_switch.setChecked(sharedPreferences.getBoolean("battery_monitoring_switch", false));
-        battery_monitoring_switch.setOnClickListener(v -> charger_status.setEnabled(battery_monitoring_switch.isChecked()));
-        charger_status.setEnabled(battery_monitoring_switch.isChecked());
         charger_status.setChecked(sharedPreferences.getBoolean("charger_status", false));
 
-        fallback_sms.setChecked(sharedPreferences.getBoolean("fallback_sms", false));
-        if (trusted_phone_number.length() == 0) {
-            fallback_sms.setEnabled(false);
-            fallback_sms.setChecked(false);
+        if (!battery_monitoring_switch.isChecked()) {
+            charger_status.setChecked(false);
+            charger_status.setVisibility(View.GONE);
         }
 
-        chat_command.setChecked(sharedPreferences.getBoolean("chat_command", false));
-        verification_code.setChecked(sharedPreferences.getBoolean("verification_code", false));
-        doh_switch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
-        privacy_mode_switch.setChecked(sharedPreferences.getBoolean("privacy_mode", false));
-        int checkPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE);
-        if (checkPermission == PackageManager.PERMISSION_GRANTED) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
-                assert tm != null;
-                if (tm.getPhoneCount() <= 1) {
-                    display_dual_sim_display_name.setVisibility(View.GONE);
-                }
-            }
-        }
-        display_dual_sim_display_name.setOnClickListener(v -> {
-            if (checkPermission != PackageManager.PERMISSION_GRANTED) {
-                display_dual_sim_display_name.setChecked(false);
-                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
+        battery_monitoring_switch.setOnClickListener(v -> {
+            if (battery_monitoring_switch.isChecked()) {
+                charger_status.setVisibility(View.VISIBLE);
             } else {
-                if (public_func.get_active_card(context) < 2) {
-                    display_dual_sim_display_name.setEnabled(false);
-                    display_dual_sim_display_name.setChecked(false);
-                }
+                charger_status.setVisibility(View.GONE);
             }
         });
 
+        fallback_sms.setChecked(sharedPreferences.getBoolean("fallback_sms", false));
+        if (trusted_phone_number.length() == 0) {
+            fallback_sms.setVisibility(View.GONE);
+            fallback_sms.setChecked(false);
+        }
         trusted_phone_number.addTextChangedListener(new TextWatcher() {
-
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 //ignore
@@ -173,14 +156,41 @@ public class main_activity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 if (trusted_phone_number.length() != 0) {
-                    fallback_sms.setEnabled(true);
-                }
-                if (trusted_phone_number.length() == 0) {
-                    fallback_sms.setEnabled(false);
+                    fallback_sms.setVisibility(View.VISIBLE);
+                } else {
+                    fallback_sms.setVisibility(View.GONE);
                     fallback_sms.setChecked(false);
                 }
             }
         });
+
+        chat_command.setChecked(sharedPreferences.getBoolean("chat_command", false));
+        verification_code.setChecked(sharedPreferences.getBoolean("verification_code", false));
+        doh_switch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
+        privacy_mode_switch.setChecked(sharedPreferences.getBoolean("privacy_mode", false));
+
+        int check_phone_state_permission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE);
+        if (check_phone_state_permission == PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+                assert tm != null;
+                if (tm.getPhoneCount() <= 1) {
+                    display_dual_sim_display_name.setVisibility(View.GONE);
+                }
+            }
+        }
+        display_dual_sim_display_name.setOnClickListener(v -> {
+            if (check_phone_state_permission != PackageManager.PERMISSION_GRANTED) {
+                display_dual_sim_display_name.setChecked(false);
+                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
+            } else {
+                if (public_func.get_active_card(context) < 2) {
+                    display_dual_sim_display_name.setEnabled(false);
+                    display_dual_sim_display_name.setChecked(false);
+                }
+            }
+        });
+
 
         chat_id.addTextChangedListener(new TextWatcher() {
             @Override
