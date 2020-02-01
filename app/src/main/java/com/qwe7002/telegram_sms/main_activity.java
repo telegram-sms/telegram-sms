@@ -204,7 +204,6 @@ public class main_activity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 set_privacy_mode_checkbox(chat_id, chat_command, privacy_mode_switch);
-
             }
 
             @Override
@@ -458,8 +457,8 @@ public class main_activity extends AppCompatActivity {
             privacy_mode_switch.setVisibility(View.GONE);
             privacy_mode_switch.setChecked(false);
         }
-
     }
+
     private void show_privacy_dialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.privacy_reminder_title);
