@@ -84,6 +84,7 @@ public class resend_service extends Service {
                     e.printStackTrace();
                 }
             }
+            public_func.write_log(context, "The automatic resend task is complete.");
             stopSelf();
         }).start();
     }
