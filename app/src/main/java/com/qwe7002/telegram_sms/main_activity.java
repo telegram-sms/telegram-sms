@@ -209,6 +209,7 @@ public class main_activity extends AppCompatActivity {
                     privacy_mode_switch.setVisibility(View.VISIBLE);
                 } else {
                     privacy_mode_switch.setVisibility(View.GONE);
+                    privacy_mode_switch.setChecked(false);
                 }
             }
         });
