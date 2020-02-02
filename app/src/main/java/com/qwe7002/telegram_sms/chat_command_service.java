@@ -173,16 +173,18 @@ public class chat_command_service extends Service {
         }
         if (message_obj.has("entities")) {
             String temp_command;
+            String temp_command_lowercase;
             JsonArray entities_arr = message_obj.get("entities").getAsJsonArray();
             JsonObject entities_obj_command = entities_arr.get(0).getAsJsonObject();
             if (entities_obj_command.get("type").getAsString().equals("bot_command")) {
                 int command_offset = entities_obj_command.get("offset").getAsInt();
                 int command_end_offset = command_offset + entities_obj_command.get("length").getAsInt();
-                temp_command = request_msg.substring(command_offset, command_end_offset).trim().toLowerCase();
-                command = temp_command;
-                if (temp_command.contains("@")) {
-                    int command_at_location = temp_command.indexOf("@");
-                    command = temp_command.substring(0, command_at_location).replace("_", "");
+                temp_command = request_msg.substring(command_offset, command_end_offset).trim();
+                temp_command_lowercase = temp_command.toLowerCase();
+                command = temp_command_lowercase;
+                if (temp_command_lowercase.contains("@")) {
+                    int command_at_location = temp_command_lowercase.indexOf("@");
+                    command = temp_command_lowercase.substring(0, command_at_location).replace("_", "");
                     command_bot_username = temp_command.substring(command_at_location + 1);
                 }
 
