@@ -195,7 +195,7 @@ public class chat_command_service extends Service {
             return;
         }
 
-
+        Log.d(TAG, "receive_handle: " + command);
         boolean has_command = false;
         switch (command) {
             case "/help":
