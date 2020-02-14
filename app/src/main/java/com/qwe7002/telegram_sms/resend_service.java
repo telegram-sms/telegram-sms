@@ -39,6 +39,9 @@ public class resend_service extends Service {
 
     private void network_progress_handle(String message, OkHttpClient okhttp_client, message_json request_body) {
         request_body.text = message;
+        if (message.contains("<code>") && message.contains("</code>")) {
+            request_body.parse_mode = "html";
+        }
         String request_body_json = new Gson().toJson(request_body);
         RequestBody body = RequestBody.create(request_body_json, public_func.JSON);
         Request request_obj = new Request.Builder().url(request_uri).method("POST", body).build();
