@@ -37,7 +37,9 @@ public class resend_service extends Service {
         return START_NOT_STICKY;
     }
 
-    private void network_progress_handle(String message, OkHttpClient okhttp_client, message_json request_body) {
+    private void network_progress_handle(String message, String chat_id, OkHttpClient okhttp_client) {
+        message_json request_body = new message_json();
+        request_body.chat_id = chat_id;
         request_body.text = message;
         if (message.contains("<code>") && message.contains("</code>")) {
             request_body.parse_mode = "html";
@@ -69,8 +71,6 @@ public class resend_service extends Service {
         registerReceiver(receiver, filter);
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         request_uri = public_func.get_url(sharedPreferences.getString("bot_token", ""), "SendMessage");
-        message_json request_body = new message_json();
-        request_body.chat_id = sharedPreferences.getString("chat_id", "");
         new Thread(() -> {
             ArrayList<String> resend_list = Paper.book().read("resend_list", new ArrayList<>());
             while (resend_list.size() != 0) {
@@ -78,7 +78,7 @@ public class resend_service extends Service {
                     resend_list = Paper.book().read("resend_list", new ArrayList<>());
                     OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
                     for (String item : resend_list) {
-                        network_progress_handle(item, okhttp_client, request_body);
+                        network_progress_handle(item, sharedPreferences.getString("chat_id", ""), okhttp_client);
                     }
                 }
                 try {
