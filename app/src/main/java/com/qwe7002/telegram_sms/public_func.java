@@ -303,6 +303,7 @@ class public_func {
         Intent battery_service = new Intent(context, battery_service.class);
         Intent chat_long_polling_service = new Intent(context, chat_command_service.class);
         if (is_notify_listener(context)) {
+            Log.d("start_service", "start_service: ");
             ComponentName thisComponent = new ComponentName(context, notification_listener_service.class);
             PackageManager pm = context.getPackageManager();
             pm.setComponentEnabledSetting(thisComponent, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
