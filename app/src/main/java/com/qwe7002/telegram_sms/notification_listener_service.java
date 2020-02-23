@@ -124,10 +124,6 @@ public class notification_listener_service extends NotificationListenerService {
         });
     }
 
-    @Override
-    public void onNotificationRemoved(StatusBarNotification sbn) {
-        Log.d(TAG, "onNotificationRemoved: " + sbn.getPackageName());
-    }
 
     @Override
     public IBinder onBind(Intent intent) {
