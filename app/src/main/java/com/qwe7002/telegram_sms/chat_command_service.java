@@ -31,7 +31,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -252,6 +255,52 @@ public class chat_command_service extends Service {
                     }
                 }
                 request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
+                break;
+            case "/getspamsms":
+                ArrayList<String> spam_sms_list = Paper.book().read("spam_sms_list");
+                if (spam_sms_list.size() != 0) {
+                    new Thread(() -> {
+                        if (public_func.check_network_status(context)) {
+                            ArrayList<String> resend_list = Paper.book().read("spam_sms_list", new ArrayList<>());
+                            OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
+                            for (String item : resend_list) {
+                                message_json send_sms_request_body = new message_json();
+                                send_sms_request_body.chat_id = chat_id;
+                                send_sms_request_body.text = item;
+                                if (item.contains("<code>") && item.contains("</code>")) {
+                                    send_sms_request_body.parse_mode = "html";
+                                }
+                                String request_uri = public_func.get_url(bot_token, "sendMessage");
+                                String request_body_json = new Gson().toJson(send_sms_request_body);
+                                RequestBody body = RequestBody.create(request_body_json, public_func.JSON);
+                                Request request_obj = new Request.Builder().url(request_uri).method("POST", body).build();
+                                Call call = okhttp_client.newCall(request_obj);
+                                call.enqueue(new Callback() {
+                                    @Override
+                                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                                        Log.d(TAG, "onFailure: ");
+                                    }
+
+                                    @Override
+                                    public void onResponse(@NotNull Call call, @NotNull Response response) {
+
+                                    }
+                                });
+                                ArrayList<String> resend_list_local = Paper.book().read("spam_sms_list", new ArrayList<>());
+                                resend_list_local.remove(item);
+                                Paper.book().write("spam_sms_list", resend_list_local);
+                            }
+                        }
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        public_func.write_log(context, "Send spam message is complete.");
+                    }).start();
+                    return;
+                }
+                request_body.text = context.getString(R.string.system_message_head) + "\n" + "No spam history";
                 break;
             case "/sendsms":
             case "/sendsms1":

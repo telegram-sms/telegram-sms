@@ -69,7 +69,6 @@
     <string name="no_camera_permission">請允許相機訪問以進行QR碼掃描。</string>
     <string name="error_message_head">"錯誤信息: "</string>
     <string name="error_stop_message">發生致命錯誤，程序已停止。</string>
-    <string name="set_up_apps_that_need_to_listen_for_notifications">設置需要監聽通知的應用</string>
     <string name="app_list">應用列表</string>
     <string name="receive_notification_title">[收到通知]</string>
     <string name="app_name_title">"應用名稱: "</string>
@@ -86,4 +85,16 @@
     <string name="decline">我稍后再決定</string>
     <string name="visit_page">訪問“隱私條款”頁面</string>
     <string name="failed_resend">重新發送</string>
+    <string name="proxy_enable">啟用</string>
+    <string name="proxy_host">伺服器</string>
+    <string name="proxy_port">埠口</string>
+    <string name="proxy_username">用戶名</string>
+    <string name="proxy_password">密碼</string>
+    <string name="keywords">關鍵詞</string>
+    <string name="spam_sms_keyword_title">簡訊黑名單</string>
+    <string name="proxy_title">代理</string>
+    <string name="spam_keyword_dialog_title">請使用\"; \"分割關鍵字。</string>
+    <string name="proxy_dialog_title">Socks5代理設置</string>
+    <string name="set_notification_listener">通知偵聽器</string>
+    <string name="time">"時間: "</string>
 </resources>

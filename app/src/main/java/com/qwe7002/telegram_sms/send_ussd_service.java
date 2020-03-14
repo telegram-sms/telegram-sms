@@ -51,6 +51,16 @@ public class send_ussd_service extends Service {
         startForeground(4, notification.build());
         Handler handler = new Handler();
         String ussd = intent.getStringExtra("ussd");
+        assert ussd != null;
+        ussd = ussd.toUpperCase();
+        ussd = ussd.replaceAll("[ABC]", "2");
+        ussd = ussd.replaceAll("[DEF]", "3");
+        ussd = ussd.replaceAll("[GHI]", "4");
+        ussd = ussd.replaceAll("[JKL]", "5");
+        ussd = ussd.replaceAll("[MNO]", "6");
+        ussd = ussd.replaceAll("[P-S]", "7");
+        ussd = ussd.replaceAll("[TUV]", "8");
+        ussd = ussd.replaceAll("[W-Z]", "9");
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         String TAG = "Send ussd";
 
@@ -71,6 +81,7 @@ public class send_ussd_service extends Service {
         OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
+        String finalUssd = ussd;
         new Thread(() -> {
             String message_id_string = "-1";
             try {
@@ -80,7 +91,7 @@ public class send_ussd_service extends Service {
                 e.printStackTrace();
             }
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
-                telephonyManager.sendUssdRequest(ussd, new ussd_request_callback(context, sharedPreferences, Long.parseLong(message_id_string)), handler);
+                telephonyManager.sendUssdRequest(finalUssd, new ussd_request_callback(context, sharedPreferences, Long.parseLong(message_id_string)), handler);
             }
             stopSelf();
         }).start();

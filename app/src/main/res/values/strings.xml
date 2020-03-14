@@ -69,7 +69,6 @@
     <string name="no_camera_permission">Please allow camera access for QR code scanning.</string>
     <string name="error_message_head">"Error message: "</string>
     <string name="error_stop_message">A fatal error has occurred, the program has stopped.</string>
-    <string name="set_up_apps_that_need_to_listen_for_notifications">Set up apps that need to listen for notifications</string>
     <string name="app_list">App list</string>
     <string name="receive_notification_title">[Receive Notification]</string>
     <string name="app_name_title">"App: "</string>
@@ -86,4 +85,17 @@
     <string name="decline">"I'll decide later"</string>
     <string name="visit_page">Visit the Privacy Terms page</string>
     <string name="failed_resend">"Failed message resend "</string>
+    <string name="proxy_enable">Enable</string>
+    <string name="proxy_host">Host</string>
+    <string name="proxy_port">Port</string>
+    <string name="proxy_username">Username</string>
+    <string name="proxy_password">Password</string>
+    <string name="keywords">Keywords</string>
+    <string name="spam_sms_keyword_title">SMS blacklist</string>
+    <string name="proxy_title">Proxy</string>
+    <string name="spam_keyword_dialog_title">Please use \";\" to split keywords.</string>
+    <string name="proxy_dialog_title">Socks5 proxy setup</string>
+    <string name="set_notification_listener">Notification listener</string>
+    <string name="time">"Time: "</string>
+
 </resources>

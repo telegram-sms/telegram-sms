@@ -33,7 +33,11 @@ import com.google.gson.JsonParser;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.Authenticator;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.PasswordAuthentication;
+import java.net.Proxy;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -123,8 +127,27 @@ class public_func {
                 .readTimeout(15, TimeUnit.SECONDS)
                 .writeTimeout(15, TimeUnit.SECONDS)
                 .retryOnConnectionFailure(true);
+
+        proxy_config proxy_item = Paper.book().read("proxy_config", new proxy_config());
+        if (proxy_item.enable) {
+            InetSocketAddress proxyAddr = new InetSocketAddress(proxy_item.proxy_host, proxy_item.proxy_port);
+            Proxy proxy = new Proxy(Proxy.Type.SOCKS, proxyAddr);
+            Authenticator.setDefault(new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    if (getRequestingHost().equalsIgnoreCase(proxy_item.proxy_host)) {
+                        if (proxy_item.proxy_port == getRequestingPort()) {
+                            return new PasswordAuthentication(proxy_item.username, proxy_item.password.toCharArray());
+                        }
+                    }
+                    return null;
+                }
+            });
+            okhttp.proxy(proxy);
+            doh_switch = true;
+        }
         if (doh_switch) {
-            okhttp.dns(new DnsOverHttps.Builder().client(okhttp.build())
+            okhttp.dns(new DnsOverHttps.Builder().client(new OkHttpClient.Builder().retryOnConnectionFailure(true).build())
                     .url(HttpUrl.get("https://cloudflare-dns.com/dns-query"))
                     .bootstrapDnsHosts(get_by_ip("1.0.0.1"), get_by_ip("9.9.9.9"), get_by_ip("185.222.222.222"), get_by_ip("2606:4700:4700::1001"), get_by_ip("2620:fe::fe"), get_by_ip("2a09::"))
                     .includeIPv6(true)

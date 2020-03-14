@@ -46,11 +46,6 @@ public class notification_listener_service extends NotificationListenerService {
         sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.Notification_Listener_title));
         startForeground(3, notification);
-        if (!sharedPreferences.getBoolean("initialized", false)) {
-            Log.i(TAG, "Uninitialized, Notification receiver is deactivated.");
-            stopSelf();
-            android.os.Process.killProcess(android.os.Process.myPid());
-        }
     }
 
     @Override
@@ -68,6 +63,11 @@ public class notification_listener_service extends NotificationListenerService {
     public void onNotificationPosted(StatusBarNotification sbn) {
         final String package_name = sbn.getPackageName();
         Log.d(TAG, "onNotificationPosted: " + package_name);
+
+        if (!sharedPreferences.getBoolean("initialized", false)) {
+            Log.i(TAG, "Uninitialized, Notification receiver is deactivated.");
+            return;
+        }
 
         List<String> listen_list = Paper.book().read("notify_listen_list", new ArrayList<>());
         if (!listen_list.contains(package_name)) {

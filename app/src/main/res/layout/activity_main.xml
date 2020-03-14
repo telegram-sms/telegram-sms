@@ -139,12 +139,6 @@
                     android:text="@string/get_recent_chat_id" />
 
             <Button
-                android:id="@+id/notify_app_set"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:alpha="@dimen/button_alpha"
-                android:text="@string/set_up_apps_that_need_to_listen_for_notifications" />
-            <Button
                     android:id="@+id/save"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

@@ -70,7 +70,6 @@
     <string name="no_camera_permission">QRコードスキャン用のカメラアクセスを許可してください。</string>
     <string name="error_message_head">"エラーメッセージ: "</string>
     <string name="error_stop_message">致命的なエラーが発生し、プログラムが停止しました。</string>
-    <string name="set_up_apps_that_need_to_listen_for_notifications">通知をリッスンする必要があるアプリをセットアップする</string>
     <string name="app_list">アプリケーションリスト</string>
     <string name="receive_notification_title">[受信した通知]</string>
     <string name="app_name_title">"アプリケーション名: "</string>
@@ -86,4 +85,16 @@
     <string name="decline">後で決めます</string>
     <string name="visit_page">プライバシー規約ページにアクセス</string>
     <string name="failed_resend">失敗したメッセージの再送信</string>
+    <string name="proxy_enable">有効化</string>
+    <string name="proxy_host">サーバー</string>
+    <string name="proxy_port">ポート</string>
+    <string name="proxy_username">ユーザー名</string>
+    <string name="proxy_password">パスワード</string>
+    <string name="keywords">キーワード</string>
+    <string name="spam_sms_keyword_title">SMSブラックリスト</string>
+    <string name="proxy_title">プロキシ</string>
+    <string name="spam_keyword_dialog_title">キーワードを分割するには「;」(半角字符)を使用してください。</string>
+    <string name="proxy_dialog_title">Socks5プロキシのセットアップ</string>
+    <string name="set_notification_listener">通知リスナー</string>
+    <string name="time">"時間: "</string>
 </resources>

@@ -6,19 +6,31 @@
         android:title="@string/scan_title"
         app:showAsAction="ifRoom" />
     <item
-            android:id="@+id/user_manual"
-            android:title="@string/user_manual"
-            app:showAsAction="never"/>
+        android:id="@+id/user_manual"
+        android:title="@string/user_manual"
+        app:showAsAction="never" />
     <item
-            android:id="@+id/privacy_policy"
-            android:title="@string/privacy_policy"
-            app:showAsAction="never" />
+        android:id="@+id/privacy_policy"
+        android:title="@string/privacy_policy"
+        app:showAsAction="never" />
     <item
-            android:id="@+id/logcat"
-            android:title="@string/logcat"
-            app:showAsAction="never"/>
+        android:id="@+id/set_notify"
+        android:title="@string/set_notification_listener"
+        app:showAsAction="never" />
     <item
-            android:id="@+id/donate"
-            android:title="@string/donate"
-            app:showAsAction="never" />
+        android:id="@+id/spam_sms_keyword"
+        android:title="@string/spam_sms_keyword_title"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/set_proxy"
+        android:title="@string/proxy_title"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/logcat"
+        android:title="@string/logcat"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/donate"
+        android:title="@string/donate"
+        app:showAsAction="never" />
 </menu>
