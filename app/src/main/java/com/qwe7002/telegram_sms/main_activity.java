@@ -65,6 +65,7 @@ public class main_activity extends AppCompatActivity {
     private static boolean set_permission_back = false;
     private final String TAG = "main_activity";
     private SharedPreferences sharedPreferences;
+
     @SuppressLint("BatteryLife")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,7 +95,6 @@ public class main_activity extends AppCompatActivity {
         if (!sharedPreferences.getBoolean("privacy_dialog_agree", false)) {
             show_privacy_dialog();
         }
-
 
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
@@ -403,8 +403,10 @@ public class main_activity extends AppCompatActivity {
                     if (!new_bot_token.equals(bot_token_save)) {
                         Log.i(TAG, "onResponse: The current bot token does not match the saved bot token, clearing the message database.");
                         List<String> notify_listen_list = Paper.book().read("notify_listen_list", new ArrayList<>());
+                        ArrayList<String> black_keyword_list = Paper.book().read("black_keyword_list", new ArrayList<>());
+                        proxy_config proxy_item = Paper.book().read("proxy_config", new proxy_config());
                         Paper.book().destroy();
-                        Paper.book().write("notify_listen_list", notify_listen_list);
+                        Paper.book().write("notify_listen_list", notify_listen_list).write("black_keyword_list", black_keyword_list).write("proxy_config", proxy_item);
                     }
                     SharedPreferences.Editor editor = sharedPreferences.edit().clear();
                     editor.putString("bot_token", new_bot_token);

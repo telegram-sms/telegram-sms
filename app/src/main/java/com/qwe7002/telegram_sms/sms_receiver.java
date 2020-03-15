@@ -108,7 +108,7 @@ public class sms_receiver extends BroadcastReceiver {
         String message_body_html = message_body;
         final String message_head = "[" + dual_sim + context.getString(R.string.receive_sms_head) + "]" + "\n" + context.getString(R.string.from) + message_address + "\n" + context.getString(R.string.content);
         String raw_request_body_text = message_head + message_body;
-
+        boolean is_verification_code = false;
         if (sharedPreferences.getBoolean("verification_code", false) && !is_trusted_phone) {
             String verification = CodeauxLibStatic.parsecode(message_body);
             if (verification != null) {
@@ -119,6 +119,7 @@ public class sms_receiver extends BroadcastReceiver {
                         .replace("&", "&amp;")
                         .replace(verification, "<code>" + verification + "</code>");
             }
+            is_verification_code = true;
         }
         request_body.text = message_head + message_body_html;
         if (is_trusted_phone) {
@@ -167,21 +168,23 @@ public class sms_receiver extends BroadcastReceiver {
             }
         }
 
-        ArrayList<String> black_list_array = Paper.book().read("black_keyword_list");
-        for (String black_list_item : black_list_array) {
-            if (message_body.contains(black_list_item)) {
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z", Locale.UK);
-                String write_message = request_body.text + "\n" + context.getString(R.string.time) + simpleDateFormat.format(new Date(System.currentTimeMillis()));
-                ArrayList<String> spam_sms_list;
-                Paper.init(context);
-                spam_sms_list = Paper.book().read("spam_sms_list", new ArrayList<>());
-                if (spam_sms_list.size() >= 5) {
-                    spam_sms_list.remove(0);
+        if (!is_verification_code && !is_trusted_phone) {
+            ArrayList<String> black_list_array = Paper.book().read("black_keyword_list");
+            for (String black_list_item : black_list_array) {
+                if (message_body.contains(black_list_item)) {
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z", Locale.UK);
+                    String write_message = request_body.text + "\n" + context.getString(R.string.time) + simpleDateFormat.format(new Date(System.currentTimeMillis()));
+                    ArrayList<String> spam_sms_list;
+                    Paper.init(context);
+                    spam_sms_list = Paper.book().read("spam_sms_list", new ArrayList<>());
+                    if (spam_sms_list.size() >= 5) {
+                        spam_sms_list.remove(0);
+                    }
+                    spam_sms_list.add(write_message);
+                    Paper.book().write("spam_sms_list", spam_sms_list);
+                    Log.i(TAG, "Detected message contains blacklist keywords, add spam list");
+                    return;
                 }
-                spam_sms_list.add(write_message);
-                Paper.book().write("spam_sms_list", spam_sms_list);
-                Log.i(TAG, "Detected message contains blacklist keywords, add spam list");
-                return;
             }
         }
 

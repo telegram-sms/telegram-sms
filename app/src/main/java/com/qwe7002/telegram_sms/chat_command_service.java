@@ -267,9 +267,6 @@ public class chat_command_service extends Service {
                                 message_json send_sms_request_body = new message_json();
                                 send_sms_request_body.chat_id = chat_id;
                                 send_sms_request_body.text = item;
-                                if (item.contains("<code>") && item.contains("</code>")) {
-                                    send_sms_request_body.parse_mode = "html";
-                                }
                                 String request_uri = public_func.get_url(bot_token, "sendMessage");
                                 String request_body_json = new Gson().toJson(send_sms_request_body);
                                 RequestBody body = RequestBody.create(request_body_json, public_func.JSON);
