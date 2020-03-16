@@ -268,9 +268,8 @@ public class chat_command_service extends Service {
                 if (spam_sms_list.size() != 0) {
                     new Thread(() -> {
                         if (public_func.check_network_status(context)) {
-                            ArrayList<String> send_list = Paper.book().read("spam_sms_list", new ArrayList<>());
                             OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
-                            for (String item : send_list) {
+                            for (String item : spam_sms_list) {
                                 message_json send_sms_request_body = new message_json();
                                 send_sms_request_body.chat_id = chat_id;
                                 send_sms_request_body.text = item;
