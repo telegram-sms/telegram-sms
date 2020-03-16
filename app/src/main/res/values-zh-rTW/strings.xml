@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="time_format">yyyy-MM-dd HH:mm:ss z</string>
     <string name="receive_sms_head">收到簡訊</string>
     <string name="content">"內容: "</string>
     <string name="from">"來自: "</string>

@@ -172,7 +172,7 @@ public class sms_receiver extends BroadcastReceiver {
             ArrayList<String> black_list_array = Paper.book().read("black_keyword_list");
             for (String black_list_item : black_list_array) {
                 if (message_body.contains(black_list_item)) {
-                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z", Locale.UK);
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(context.getString(R.string.time_format), Locale.UK);
                     String write_message = request_body.text + "\n" + context.getString(R.string.time) + simpleDateFormat.format(new Date(System.currentTimeMillis()));
                     ArrayList<String> spam_sms_list;
                     Paper.init(context);

@@ -409,7 +409,7 @@ class public_func {
 
     static void write_log(Context context, String log) {
         Log.i("write_log", log);
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z", Locale.UK);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(context.getString(R.string.time_format), Locale.UK);
         Date ts = new Date(System.currentTimeMillis());
         String write_string = "\n" + simpleDateFormat.format(ts) + " " + log;
         write_file(context, "error.log", write_string, Context.MODE_APPEND);

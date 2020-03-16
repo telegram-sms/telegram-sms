@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="time_format">yyyy-MM-dd HH:mm:ss z</string>
     <string name="content">"内容: "</string>
     <string name="from">"来自: "</string>
     <string name="to">"发送到: "</string>

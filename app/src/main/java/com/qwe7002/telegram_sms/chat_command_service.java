@@ -233,13 +233,13 @@ public class chat_command_service extends Service {
             case "/ping":
             case "/getinfo":
                 String card_info = "";
-                String spam_count = "";
                 if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                     card_info = "\nSIM: " + public_func.get_sim_display_name(context, 0);
                     if (public_func.get_active_card(context) == 2) {
                         card_info = "\nSIM1: " + public_func.get_sim_display_name(context, 0) + "\nSIM2: " + public_func.get_sim_display_name(context, 1);
                     }
                 }
+                String spam_count = "";
                 ArrayList<String> spam_list = Paper.book().read("spam_sms_list", new ArrayList<>());
                 if (spam_list.size() != 0) {
                     spam_count = "\n" + getString(R.string.spam_count_title) + spam_list.size();
