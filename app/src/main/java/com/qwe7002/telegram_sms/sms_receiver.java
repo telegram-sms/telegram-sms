@@ -118,8 +118,9 @@ public class sms_receiver extends BroadcastReceiver {
                         .replace(">", "&gt;")
                         .replace("&", "&amp;")
                         .replace(verification, "<code>" + verification + "</code>");
+                is_verification_code = true;
             }
-            is_verification_code = true;
+
         }
         request_body.text = message_head + message_body_html;
         if (is_trusted_phone) {
