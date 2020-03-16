@@ -98,4 +98,7 @@
     <string name="set_notification_listener">通知偵聽器</string>
     <string name="time">"時間: "</string>
     <string name="doh_over_socks5">通過 Socks5 傳輸 DNS over HTTPS 請求</string>
+    <string name="get_spam_sms">/getspamsms - 獲取被過濾的垃圾簡訊</string>
+    <string name="spam_count_title">"過濾的垃圾簡訊: "</string>
+    <string name="no_spam_history">没有垃圾簡訊历史</string>
 </resources>

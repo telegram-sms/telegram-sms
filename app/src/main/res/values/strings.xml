@@ -98,5 +98,8 @@
     <string name="set_notification_listener">Notification listener</string>
     <string name="time">"Time: "</string>
     <string name="doh_over_socks5">DNS over HTTPS requests over Socks5</string>
+    <string name="get_spam_sms">/getspamsms - Get filtered spam messages</string>
+    <string name="spam_count_title">"Filtered spam: "</string>
+    <string name="no_spam_history">No spam history</string>
 
 </resources>
