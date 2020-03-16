@@ -265,41 +265,41 @@ public class chat_command_service extends Service {
                 break;
             case "/getspamsms":
                 ArrayList<String> spam_sms_list = Paper.book().read("spam_sms_list", new ArrayList<>());
-                if (spam_sms_list.size() != 0) {
-                    new Thread(() -> {
-                        if (public_func.check_network_status(context)) {
-                            OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
-                            for (String item : spam_sms_list) {
-                                message_json send_sms_request_body = new message_json();
-                                send_sms_request_body.chat_id = chat_id;
-                                send_sms_request_body.text = item;
-                                String request_uri = public_func.get_url(bot_token, "sendMessage");
-                                String request_body_json = new Gson().toJson(send_sms_request_body);
-                                RequestBody body = RequestBody.create(request_body_json, public_func.JSON);
-                                Request request_obj = new Request.Builder().url(request_uri).method("POST", body).build();
-                                Call call = okhttp_client.newCall(request_obj);
-                                call.enqueue(new Callback() {
-                                    @Override
-                                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                                        Log.d(TAG, "onFailure: ");
-                                    }
-
-                                    @Override
-                                    public void onResponse(@NotNull Call call, @NotNull Response response) {
-
-                                    }
-                                });
-                                ArrayList<String> resend_list_local = Paper.book().read("spam_sms_list", new ArrayList<>());
-                                resend_list_local.remove(item);
-                                Paper.book().write("spam_sms_list", resend_list_local);
-                            }
-                        }
-                        public_func.write_log(context, "Send spam message is complete.");
-                    }).start();
-                    return;
+                if (spam_sms_list.size() == 0) {
+                    request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.no_spam_history);
+                    break;
                 }
-                request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.no_spam_history);
-                break;
+                new Thread(() -> {
+                    if (public_func.check_network_status(context)) {
+                        OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
+                        for (String item : spam_sms_list) {
+                            message_json send_sms_request_body = new message_json();
+                            send_sms_request_body.chat_id = chat_id;
+                            send_sms_request_body.text = item;
+                            String request_uri = public_func.get_url(bot_token, "sendMessage");
+                            String request_body_json = new Gson().toJson(send_sms_request_body);
+                            RequestBody body = RequestBody.create(request_body_json, public_func.JSON);
+                            Request request_obj = new Request.Builder().url(request_uri).method("POST", body).build();
+                            Call call = okhttp_client.newCall(request_obj);
+                            call.enqueue(new Callback() {
+                                @Override
+                                public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                                    Log.d(TAG, "onFailure: ");
+                                }
+
+                                @Override
+                                public void onResponse(@NotNull Call call, @NotNull Response response) {
+
+                                }
+                            });
+                            ArrayList<String> resend_list_local = Paper.book().read("spam_sms_list", new ArrayList<>());
+                            resend_list_local.remove(item);
+                            Paper.book().write("spam_sms_list", resend_list_local);
+                        }
+                    }
+                    public_func.write_log(context, "Send spam message is complete.");
+                }).start();
+                return;
             case "/sendsms":
             case "/sendsms1":
             case "/sendsms2":
