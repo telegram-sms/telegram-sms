@@ -6,4 +6,5 @@ public class proxy_config {
     String username = "";
     String password = "";
     boolean enable = false;
+    boolean dns_over_socks5 = true;
 }

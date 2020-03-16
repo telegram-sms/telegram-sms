@@ -97,4 +97,5 @@
     <string name="proxy_dialog_title">Socks5代理设置</string>
     <string name="set_notification_listener">通知侦听器</string>
     <string name="time">"时间: "</string>
+    <string name="doh_over_socks5">通过 Socks5 传输 DNS over HTTPS 请求</string>
 </resources>

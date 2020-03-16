@@ -17,6 +17,16 @@
         android:text="@string/proxy_enable"
         tools:ignore="ExtraText,RtlSymmetry" />
 
+    <Switch
+        android:id="@+id/doh_over_socks5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:paddingStart="5dp"
+        android:text="@string/doh_over_socks5"
+        tools:ignore="ExtraText,RtlSymmetry" />
+
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">

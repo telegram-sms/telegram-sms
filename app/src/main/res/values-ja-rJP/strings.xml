@@ -97,4 +97,5 @@
     <string name="proxy_dialog_title">Socks5プロキシのセットアップ</string>
     <string name="set_notification_listener">通知リスナー</string>
     <string name="time">"時間: "</string>
+    <string name="doh_over_socks5">Socks5を介したDNS over HTTPS要求</string>
 </resources>

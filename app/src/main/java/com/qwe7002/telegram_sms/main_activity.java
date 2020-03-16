@@ -589,12 +589,14 @@ public class main_activity extends AppCompatActivity {
                 View proxy_dialog_view = inflater.inflate(R.layout.set_proxy_layout, null);
                 final Switch doh_switch = findViewById(R.id.doh_switch);
                 final Switch proxy_enable = proxy_dialog_view.findViewById(R.id.proxy_enable);
+                final Switch proxy_doh_socks5 = proxy_dialog_view.findViewById(R.id.doh_over_socks5);
                 final EditText proxy_host = proxy_dialog_view.findViewById(R.id.proxy_host);
                 final EditText proxy_port = proxy_dialog_view.findViewById(R.id.proxy_port);
                 final EditText proxy_username = proxy_dialog_view.findViewById(R.id.proxy_username);
                 final EditText proxy_password = proxy_dialog_view.findViewById(R.id.proxy_password);
                 proxy_config proxy_item = Paper.book().read("proxy_config", new proxy_config());
                 proxy_enable.setChecked(proxy_item.enable);
+                proxy_doh_socks5.setChecked(proxy_item.dns_over_socks5);
                 proxy_host.setText(proxy_item.proxy_host);
                 proxy_port.setText(String.valueOf(proxy_item.proxy_port));
                 proxy_username.setText(proxy_item.username);
@@ -607,6 +609,7 @@ public class main_activity extends AppCompatActivity {
                             }
                             doh_switch.setEnabled(!proxy_enable.isChecked());
                             proxy_item.enable = proxy_enable.isChecked();
+                            proxy_item.dns_over_socks5 = proxy_doh_socks5.isChecked();
                             proxy_item.proxy_host = proxy_host.getText().toString();
                             proxy_item.proxy_port = Integer.parseInt(proxy_port.getText().toString());
                             proxy_item.username = proxy_username.getText().toString();

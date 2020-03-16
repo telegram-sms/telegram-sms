@@ -97,5 +97,6 @@
     <string name="proxy_dialog_title">Socks5 proxy setup</string>
     <string name="set_notification_listener">Notification listener</string>
     <string name="time">"Time: "</string>
+    <string name="doh_over_socks5">DNS over HTTPS requests over Socks5</string>
 
 </resources>

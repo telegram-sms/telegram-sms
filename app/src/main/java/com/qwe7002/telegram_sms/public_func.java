@@ -129,9 +129,10 @@ class public_func {
                 .retryOnConnectionFailure(true);
 
         proxy_config proxy_item = Paper.book().read("proxy_config", new proxy_config());
+        Proxy proxy = null;
         if (proxy_item.enable) {
             InetSocketAddress proxyAddr = new InetSocketAddress(proxy_item.proxy_host, proxy_item.proxy_port);
-            Proxy proxy = new Proxy(Proxy.Type.SOCKS, proxyAddr);
+            proxy = new Proxy(Proxy.Type.SOCKS, proxyAddr);
             Authenticator.setDefault(new Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
@@ -147,7 +148,11 @@ class public_func {
             doh_switch = true;
         }
         if (doh_switch) {
-            okhttp.dns(new DnsOverHttps.Builder().client(new OkHttpClient.Builder().retryOnConnectionFailure(true).build())
+            OkHttpClient.Builder doh_http_client = new OkHttpClient.Builder().retryOnConnectionFailure(true);
+            if (proxy_item.dns_over_socks5) {
+                doh_http_client.proxy(proxy);
+            }
+            okhttp.dns(new DnsOverHttps.Builder().client(doh_http_client.build())
                     .url(HttpUrl.get("https://cloudflare-dns.com/dns-query"))
                     .bootstrapDnsHosts(get_by_ip("1.0.0.1"), get_by_ip("9.9.9.9"), get_by_ip("185.222.222.222"), get_by_ip("2606:4700:4700::1001"), get_by_ip("2620:fe::fe"), get_by_ip("2a09::"))
                     .includeIPv6(true)
