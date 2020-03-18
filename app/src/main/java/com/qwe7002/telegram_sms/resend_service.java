@@ -25,13 +25,17 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+
 public class resend_service extends Service {
     Context context;
     String request_uri;
     stop_notify_receiver receiver;
+    static ArrayList<String> resend_list;
+    final String table_name = "resend_list";
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        resend_list = Paper.book().read(table_name, new ArrayList<>());
         Notification notification = public_func.get_notification_obj(context, getString(R.string.failed_resend));
         startForeground(5, notification);
         return START_NOT_STICKY;
@@ -51,9 +55,9 @@ public class resend_service extends Service {
         try {
             Response response = call.execute();
             if (response.code() == 200) {
-                ArrayList<String> resend_list_local = Paper.book().read("resend_list", new ArrayList<>());
+                ArrayList<String> resend_list_local = Paper.book().read(table_name, new ArrayList<>());
                 resend_list_local.remove(message);
-                Paper.book().write("resend_list", resend_list_local);
+                Paper.book().write(table_name, resend_list_local);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -72,17 +76,20 @@ public class resend_service extends Service {
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         request_uri = public_func.get_url(sharedPreferences.getString("bot_token", ""), "SendMessage");
         new Thread(() -> {
-            ArrayList<String> resend_list = Paper.book().read("resend_list", new ArrayList<>());
-            while (resend_list.size() != 0) {
+            resend_list = Paper.book().read(table_name, new ArrayList<>());
+            while (true) {
                 if (public_func.check_network_status(context)) {
-                    resend_list = Paper.book().read("resend_list", new ArrayList<>());
+                    ArrayList<String> send_list = resend_list;
                     OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
-                    for (String item : resend_list) {
+                    for (String item : send_list) {
                         network_progress_handle(item, sharedPreferences.getString("chat_id", ""), okhttp_client);
+                    }
+                    if (resend_list == send_list) {
+                        break;
                     }
                 }
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
