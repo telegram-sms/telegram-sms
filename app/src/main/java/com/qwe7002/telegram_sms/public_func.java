@@ -149,7 +149,7 @@ class public_func {
         }
         if (doh_switch) {
             OkHttpClient.Builder doh_http_client = new OkHttpClient.Builder().retryOnConnectionFailure(true);
-            if (proxy_item.dns_over_socks5) {
+            if (proxy_item.enable && proxy_item.dns_over_socks5) {
                 assert proxy != null;
                 doh_http_client.proxy(proxy);
             }
