@@ -209,9 +209,7 @@ public class chat_command_service extends Service {
                 if (public_func.get_active_card(context) == 2) {
                     sms_command = getString(R.string.sendsms_dual);
                 }
-                if (Paper.book().read("black_keyword_list", new ArrayList<>()).size() != 0) {
-                    sms_command += "\n" + getString(R.string.get_spam_sms);
-                }
+                sms_command += "\n" + getString(R.string.get_spam_sms);
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                     if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
                         ussd_command = "\n" + getString(R.string.send_ussd_command);
