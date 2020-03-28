@@ -50,10 +50,10 @@ You can set this app as the default SMS app, which will prevent SMS notification
 
 ## User manual
 
-- [English](https://get.telegram-sms.com/wiki/en_gb)
-- [简体中文](https://get.telegram-sms.com/wiki/zh_cn)
-- [繁體中文](https://get.telegram-sms.com/wiki/zh_tw)
-- [日本語](https://get.telegram-sms.com/wiki/ja_jp)
+- [English](https://get.telegram-sms.com/wiki/en_gb/user-manual.html)
+- [简体中文](https://get.telegram-sms.com/wiki/zh_cn/user-manual.html)
+- [繁體中文](https://get.telegram-sms.com/wiki/zh_tw/user-manual.html)
+- [日本語](https://get.telegram-sms.com/wiki/ja_jp/user-manual.html)
 
 ## License
 
