@@ -24,8 +24,6 @@ The app provided from xda-labs are the latest stable version. Revenues generated
 
 [Release Download](https://github.com/telegram-sms/telegram-sms/releases)
 
-Android 5.0 or lower? [Click here](https://github.com/telegram-sms/telegram-sms-compat) to download the latest and greatest.
-
 **No warranty expressed or implied. Use at your own risk. You have been warned.**
 
 ## Features
