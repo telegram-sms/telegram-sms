@@ -1,5 +1,9 @@
 # Telegram SMS
 
+# We're in this together
+
+Fight COVID-19. Stay at home. Save lives.
+
 ![Min Android Version](https://img.shields.io/badge/Min%20Android%20Version-5.1-orange.svg)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/telegram-sms/telegram-sms/blob/master/LICENSE)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_shield)
