@@ -282,7 +282,7 @@ public class chat_command_service extends Service {
 
                                 @Override
                                 public void onResponse(@NotNull Call call, @NotNull Response response) {
-
+                                    Log.d(TAG, "onResponse: " + response.code());
                                 }
                             });
                             ArrayList<String> resend_list_local = Paper.book().read("spam_sms_list", new ArrayList<>());
@@ -639,7 +639,7 @@ public class chat_command_service extends Service {
                 bot_username = Paper.book().read("bot_username", null);
                 if (bot_username == null) {
                     while (!get_me()) {
-                        Log.i(TAG, "Wait 5 seconds and try again.");
+                        public_func.write_log(context, "Failed to get bot Username, Wait 5 seconds and try again.");
                         try {
                             Thread.sleep(5000);
                         } catch (InterruptedException e) {
