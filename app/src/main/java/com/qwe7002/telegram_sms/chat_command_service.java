@@ -465,9 +465,9 @@ public class chat_command_service extends Service {
             JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
             if (result_obj.get("ok").getAsBoolean()) {
                 bot_username = result_obj.get("result").getAsJsonObject().get("username").getAsString();
-                //sharedPreferences.edit().putString("bot_username", bot_username).apply();
                 Paper.book().write("bot_username", bot_username);
                 Log.d(TAG, "bot_username: " + bot_username);
+                public_func.write_log(context, "Get the bot username: " + bot_username);
             }
             return true;
         }
