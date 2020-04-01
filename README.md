@@ -4,8 +4,6 @@
 
 > Fight COVID-19. Stay at home. Save lives.
 
-***
-
 ![Min Android Version](https://img.shields.io/badge/Min%20Android%20Version-5.1-orange.svg)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/telegram-sms/telegram-sms/blob/master/LICENSE)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_shield)
@@ -25,8 +23,6 @@ You can follow the Telegram channel [Telegram SMS 更新日志](https://t.me/tg_
 The app provided from xda-labs are the latest stable version. Revenues generated will be used to help the author to improve its future stability and user experience. You can still download the latest version from GitHub release page.
 
 [Release Download](https://github.com/telegram-sms/telegram-sms/releases)
-
-Android 5.0 or lower? [Click here](https://github.com/telegram-sms/telegram-sms-compat) to download the latest and greatest.
 
 **No warranty expressed or implied. Use at your own risk. You have been warned.**
 
@@ -52,10 +48,10 @@ You can set this app as the default SMS app, which will prevent SMS notification
 
 ## User manual
 
-- [English](https://get.telegram-sms.com/wiki/en_gb)
-- [简体中文](https://get.telegram-sms.com/wiki/zh_cn)
-- [繁體中文](https://get.telegram-sms.com/wiki/zh_tw)
-- [日本語](https://get.telegram-sms.com/wiki/ja_jp)
+- [English](https://get.telegram-sms.com/wiki/User_manual)
+- [简体中文](https://get.telegram-sms.com/wiki/用户手册)
+- [繁體中文](https://get.telegram-sms.com/wiki/用戶手冊)
+- [日本語](https://get.telegram-sms.com/wiki/マニュアル)
 
 ## License
 
