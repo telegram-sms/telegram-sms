@@ -23,7 +23,7 @@ release_github:
 release_apk:
     stage: release
     dependencies:
-        - build
+        - build_release
     only:
         - master
     script:
@@ -35,7 +35,7 @@ release_apk:
 pre_release_apk:
     stage: release
     dependencies:
-        - build
+        - build_nightly
     only:
         - nightly
     script:
@@ -45,9 +45,11 @@ pre_release_apk:
         - /opt/github-release-upload.sh github_api_token=${GITHUB_ACCESS_KEY} owner=${OWNER} repo=${REPO} tag=$TAG filename="./app/build/outputs/apk/release/app-release.apk" pre_release="true"
 
 
-build:
+build_release:
     image: alvrme/alpine-android:android-29
     stage: build
+    only:
+        - master
     script:
         - export VERSION_CODE=${CI_PIPELINE_ID}
         - export VERSION_NAME=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}
@@ -63,3 +65,25 @@ build:
             - app/build/outputs/apk/release/app-release.apk
         expire_in: 1 week
 
+build_nightly:
+    image: alvrme/alpine-android:android-29
+    stage: build
+    only:
+        - master
+    script:
+        - export VERSION_CODE=${CI_PIPELINE_ID}
+        - export VERSION_NAME=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}
+        - cp ./.github/workflows/github-action-only.jks ./app/keys.jks
+        - export KEYSTORE_PASS=000000000
+        - export ALIAS_NAME="key0"
+        - export ALIAS_PASS=111111111
+        - export VERSION_CODE=1
+        - export VERSION_NAME="GITHUB-${GITHUB_SHA}"
+        - export GRADLE_USER_HOME=$(pwd)/.gradle && mkdir -p ${GRADLE_USER_HOME}
+        - echo -e "org.gradle.jvmargs=-Xmx1536m -DsocksProxyHost=proxy.reallserver.cn -DsocksProxyPort=1086 -DsocksNonProxyHosts=dl.google.com\n org.gradle.parallel=true" >> ${GRADLE_USER_HOME}/gradle.properties
+        - chmod +x ./gradlew
+        - ./gradlew assembleRelease
+    artifacts:
+        paths:
+            - app/build/outputs/apk/release/app-release.apk
+        expire_in: 3 days
