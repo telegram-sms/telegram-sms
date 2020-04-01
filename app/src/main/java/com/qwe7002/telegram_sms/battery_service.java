@@ -18,6 +18,7 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.util.Objects;
 
+import io.paperdb.Paper;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -43,6 +44,7 @@ public class battery_service extends Service {
     public void onCreate() {
         super.onCreate();
         context = getApplicationContext();
+        Paper.init(context);
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");

@@ -636,7 +636,7 @@ public class chat_command_service extends Service {
         public void run() {
             Log.d(TAG, "run: thread main start");
             if (public_func.parse_long(chat_id) < 0) {
-                Paper.book().read("bot_username", null);
+                bot_username = Paper.book().read("bot_username", null);
                 if (bot_username == null) {
                     while (!get_me()) {
                         Log.i(TAG, "Wait 5 seconds and try again.");
