@@ -167,7 +167,7 @@ public class main_activity extends AppCompatActivity {
         verification_code.setChecked(sharedPreferences.getBoolean("verification_code", false));
 
         doh_switch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             doh_switch.setEnabled(!Paper.book().read("proxy_config", new proxy_config()).enable);
         }
 
@@ -524,9 +524,8 @@ public class main_activity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
-            MenuItem mItem;
-            mItem = menu.getItem(R.id.set_proxy);
-            mItem.setVisible(true);
+            MenuItem mItem = menu.findItem(R.id.set_proxy);
+            mItem.setVisible(false);
         }
         return true;
     }
