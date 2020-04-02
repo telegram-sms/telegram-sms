@@ -13,6 +13,7 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.util.Objects;
 
+import io.paperdb.Paper;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -30,6 +31,7 @@ class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
 
     ussd_request_callback(Context context, SharedPreferences sharedPreferences, long message_id) {
         this.context = context;
+        Paper.init(context);
         String chat_id = sharedPreferences.getString("chat_id", "");
         this.doh_switch = sharedPreferences.getBoolean("doh_switch", true);
         this.request_body = new message_json();
@@ -61,7 +63,7 @@ class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
         request_body.text = message;
         String request_body_json = new Gson().toJson(request_body);
         RequestBody body = RequestBody.create(request_body_json, public_func.JSON);
-        OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch);
+        OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch, Paper.book().read("proxy_config", new proxy_config()));
         Request request_obj = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request_obj);
         final String error_head = "Send USSD failed:";

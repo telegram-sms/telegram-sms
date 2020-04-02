@@ -167,8 +167,9 @@ public class main_activity extends AppCompatActivity {
         verification_code.setChecked(sharedPreferences.getBoolean("verification_code", false));
 
         doh_switch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
-        proxy_config proxy_item = Paper.book().read("proxy_config", new proxy_config());
-        doh_switch.setEnabled(!proxy_item.enable);
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
+            doh_switch.setEnabled(!Paper.book().read("proxy_config", new proxy_config()).enable);
+        }
 
         privacy_mode_switch.setChecked(sharedPreferences.getBoolean("privacy_mode", false));
 
@@ -227,7 +228,7 @@ public class main_activity extends AppCompatActivity {
             progress_dialog.setCancelable(false);
             progress_dialog.show();
             String request_uri = public_func.get_url(bot_token.getText().toString().trim(), "getUpdates");
-            OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked());
+            OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked(), Paper.book().read("proxy_config", new proxy_config()));
             okhttp_client = okhttp_client.newBuilder()
                     .readTimeout(60, TimeUnit.SECONDS)
                     .build();
@@ -363,7 +364,7 @@ public class main_activity extends AppCompatActivity {
             Gson gson = new Gson();
             String request_body_raw = gson.toJson(request_body);
             RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
-            OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked());
+            OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked(), Paper.book().read("proxy_config", new proxy_config()));
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
             final String error_head = "Send message failed:";
@@ -522,6 +523,11 @@ public class main_activity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
+            MenuItem mItem;
+            mItem = menu.getItem(R.id.set_proxy);
+            mItem.setVisible(true);
+        }
         return true;
     }
 

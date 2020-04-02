@@ -24,6 +24,7 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.util.Objects;
 
+import io.paperdb.Paper;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -35,6 +36,7 @@ public class send_ussd_service extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Context context = getApplicationContext();
+        Paper.init(context);
         String notification_name = context.getString(R.string.ussd_code_running);
         Notification.Builder notification;
         NotificationChannel channel = new NotificationChannel(notification_name, notification_name,
@@ -78,7 +80,7 @@ public class send_ussd_service extends Service {
         assert telephonyManager != null;
         String request_body_raw = new Gson().toJson(request_body);
         RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
-        OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
+        OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book().read("proxy_config", new proxy_config()));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
         String finalUssd = ussd;

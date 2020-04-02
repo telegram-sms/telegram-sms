@@ -59,7 +59,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.dnsoverhttps.DnsOverHttps;
 
-import static android.content.Context.MODE_PRIVATE;
+
 
 class public_func {
     static final String BROADCAST_STOP_SERVICE = "com.qwe7002.telegram_sms.stop_all";
@@ -121,41 +121,42 @@ class public_func {
         return "https://api.telegram.org/bot" + token + "/" + func;
     }
 
-    static OkHttpClient get_okhttp_obj(boolean doh_switch) {
+    static OkHttpClient get_okhttp_obj(boolean doh_switch, proxy_config proxy_item) {
         OkHttpClient.Builder okhttp = new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .readTimeout(15, TimeUnit.SECONDS)
                 .writeTimeout(15, TimeUnit.SECONDS)
                 .retryOnConnectionFailure(true);
-
-        proxy_config proxy_item = Paper.book().read("proxy_config", new proxy_config());
         Proxy proxy = null;
-        if (proxy_item.enable) {
-            InetSocketAddress proxyAddr = new InetSocketAddress(proxy_item.proxy_host, proxy_item.proxy_port);
-            proxy = new Proxy(Proxy.Type.SOCKS, proxyAddr);
-            Authenticator.setDefault(new Authenticator() {
-                @Override
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    if (getRequestingHost().equalsIgnoreCase(proxy_item.proxy_host)) {
-                        if (proxy_item.proxy_port == getRequestingPort()) {
-                            return new PasswordAuthentication(proxy_item.username, proxy_item.password.toCharArray());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            if (proxy_item.enable) {
+                InetSocketAddress proxyAddr = new InetSocketAddress(proxy_item.proxy_host, proxy_item.proxy_port);
+                proxy = new Proxy(Proxy.Type.SOCKS, proxyAddr);
+                Authenticator.setDefault(new Authenticator() {
+                    @Override
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        if (getRequestingHost().equalsIgnoreCase(proxy_item.proxy_host)) {
+                            if (proxy_item.proxy_port == getRequestingPort()) {
+                                return new PasswordAuthentication(proxy_item.username, proxy_item.password.toCharArray());
+                            }
                         }
+                        return null;
                     }
-                    return null;
-                }
-            });
-            okhttp.proxy(proxy);
-            doh_switch = true;
+                });
+                okhttp.proxy(proxy);
+                doh_switch = true;
+            }
         }
         if (doh_switch) {
             OkHttpClient.Builder doh_http_client = new OkHttpClient.Builder().retryOnConnectionFailure(true);
-            if (proxy_item.enable && proxy_item.dns_over_socks5) {
-                assert proxy != null;
-                doh_http_client.proxy(proxy);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                if (proxy_item.enable && proxy_item.dns_over_socks5) {
+                    doh_http_client.proxy(proxy);
+                }
             }
             okhttp.dns(new DnsOverHttps.Builder().client(doh_http_client.build())
                     .url(HttpUrl.get("https://cloudflare-dns.com/dns-query"))
-                    .bootstrapDnsHosts(get_by_ip("1.0.0.1"), get_by_ip("9.9.9.9"), get_by_ip("185.222.222.222"), get_by_ip("2606:4700:4700::1001"), get_by_ip("2620:fe::fe"), get_by_ip("2a09::"))
+                    .bootstrapDnsHosts(get_by_ip("2606:4700:4700::1001"), get_by_ip("2606:4700:4700::1111"), get_by_ip("1.0.0.1"), get_by_ip("1.1.1.1"))
                     .includeIPv6(true)
                     .build());
         }
@@ -220,7 +221,7 @@ class public_func {
             write_log(context, "[" + send_to + "] is an illegal phone number");
             return;
         }
-        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = public_func.get_url(bot_token, "sendMessage");
@@ -238,7 +239,7 @@ class public_func {
         request_body.text = send_content + "\n" + context.getString(R.string.status) + context.getString(R.string.sending);
         String request_body_raw = new Gson().toJson(request_body);
         RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
-        OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true));
+        OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book().read("proxy_config", new proxy_config()));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
         try {
@@ -271,7 +272,7 @@ class public_func {
             Log.d(TAG, "No permission.");
             return;
         }
-        SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         String trust_number = sharedPreferences.getString("trusted_phone_number", null);
         if (trust_number == null) {
             Log.i(TAG, "The trusted number is empty.");
@@ -409,46 +410,43 @@ class public_func {
 
     static void write_log(Context context, String log) {
         Log.i("write_log", log);
+        int new_file_mode = Context.MODE_APPEND;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(context.getString(R.string.time_format), Locale.UK);
-        Date ts = new Date(System.currentTimeMillis());
-        String write_string = "\n" + simpleDateFormat.format(ts) + " " + log;
-        write_file(context, "error.log", write_string, Context.MODE_APPEND);
+        String write_string = "\n" + simpleDateFormat.format(new Date(System.currentTimeMillis())) + " " + log;
+        write_log_file(context, write_string, new_file_mode);
     }
 
     static String read_log(Context context, int line) {
-        String result = "\n" + context.getString(R.string.no_logs);
-        String log_content = public_func.read_file(context, "error.log", line);
-        if (!log_content.isEmpty()) {
-            result = log_content;
-        }
-        return result;
-    }
-
-    @SuppressWarnings("WeakerAccess")
-    static String read_file(Context context, @SuppressWarnings("SameParameterValue") String file, int line) {
+        String result = context.getString(R.string.no_logs);
+        String TAG = "read_file_last_line";
         StringBuilder builder = new StringBuilder();
         FileInputStream file_stream = null;
         FileChannel channel = null;
         try {
-            file_stream = context.openFileInput(file);
+            file_stream = context.openFileInput("error.log");
             channel = file_stream.getChannel();
             ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
             buffer.position((int) channel.size());
             int count = 0;
-            for (long i = channel.size() - 1; i >= 0; --i) {
+            for (long i = channel.size() - 1; i >= 0; i--) {
                 char c = (char) buffer.get((int) i);
                 builder.insert(0, c);
                 if (c == '\n') {
-                    if (line != -1 && count == (line - 1)) {
+                    if (count == (line - 1)) {
                         break;
                     }
                     ++count;
                 }
             }
-            return builder.toString();
+            if (!builder.toString().isEmpty()) {
+                return builder.toString();
+            } else {
+                return result;
+            }
         } catch (IOException e) {
             e.printStackTrace();
-            return "";
+            Log.d(TAG, "Unable to read the file.");
+            return result;
         } finally {
             try {
                 if (file_stream != null) {
@@ -463,10 +461,14 @@ class public_func {
         }
     }
 
-    static void write_file(Context context, String file_name, String write_string, int mode) {
+    static void reset_log_file(Context context) {
+        write_log_file(context, "", Context.MODE_PRIVATE);
+    }
+
+    private static void write_log_file(Context context, String write_string, int mode) {
         FileOutputStream file_stream = null;
         try {
-            file_stream = context.openFileOutput(file_name, mode);
+            file_stream = context.openFileOutput("error.log", mode);
             byte[] bytes = write_string.getBytes();
             file_stream.write(bytes);
         } catch (IOException e) {
