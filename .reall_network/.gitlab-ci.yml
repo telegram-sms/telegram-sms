@@ -77,8 +77,8 @@ build_nightly:
         - export KEYSTORE_PASS=000000000
         - export ALIAS_NAME="key0"
         - export ALIAS_PASS=111111111
-        - export VERSION_CODE=1
-        - export VERSION_NAME="GITHUB-${GITHUB_SHA}"
+        - export VERSION_CODE=${CI_PIPELINE_ID}
+        - export VERSION_NAME=GITLAB-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}
         - export GRADLE_USER_HOME=$(pwd)/.gradle && mkdir -p ${GRADLE_USER_HOME}
         - echo -e "org.gradle.jvmargs=-Xmx1536m -DsocksProxyHost=proxy.reallserver.cn -DsocksProxyPort=1086 -DsocksNonProxyHosts=dl.google.com\n org.gradle.parallel=true" >> ${GRADLE_USER_HOME}/gradle.properties
         - chmod +x ./gradlew
