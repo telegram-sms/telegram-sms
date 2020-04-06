@@ -524,8 +524,8 @@ public class main_activity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
-            MenuItem mItem = menu.findItem(R.id.set_proxy);
-            mItem.setVisible(false);
+            MenuItem set_proxy_item = menu.findItem(R.id.set_proxy);
+            set_proxy_item.setVisible(false);
         }
         return true;
     }
