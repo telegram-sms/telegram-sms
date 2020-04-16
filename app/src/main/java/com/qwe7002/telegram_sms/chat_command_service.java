@@ -70,7 +70,7 @@ public class chat_command_service extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
-        startForeground(2, notification);
+        startForeground(public_func.chat_command_notify_id, notification);
         return START_STICKY;
     }
 

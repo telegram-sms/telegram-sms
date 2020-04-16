@@ -37,7 +37,7 @@ public class resend_service extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         resend_list = Paper.book().read(table_name, new ArrayList<>());
         Notification notification = public_func.get_notification_obj(context, getString(R.string.failed_resend));
-        startForeground(5, notification);
+        startForeground(public_func.resend_service_notify_id, notification);
         return START_NOT_STICKY;
     }
 

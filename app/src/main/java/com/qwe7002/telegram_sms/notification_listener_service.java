@@ -40,12 +40,11 @@ public class notification_listener_service extends NotificationListenerService {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(TAG, "onCreate: ");
         context = getApplicationContext();
         Paper.init(context);
         sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.Notification_Listener_title));
-        startForeground(3, notification);
+        startForeground(public_func.notification_listener_service_notify_id, notification);
     }
 
     @Override

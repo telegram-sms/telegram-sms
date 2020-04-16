@@ -86,8 +86,8 @@ public class sms_receiver extends BroadcastReceiver {
         assert message_address != null;
 
         if (is_default) {
+            Log.i(TAG, "onReceive: Write to the system database.");
             new Thread(() -> {
-                Log.i(TAG, "onReceive: Write to the system database.");
                 ContentValues values = new ContentValues();
                 values.put(Telephony.Sms.ADDRESS, message_body);
                 values.put(Telephony.Sms.BODY, message_address);

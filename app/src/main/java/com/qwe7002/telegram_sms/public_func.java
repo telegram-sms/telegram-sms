@@ -30,6 +30,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -60,10 +63,14 @@ import okhttp3.Response;
 import okhttp3.dnsoverhttps.DnsOverHttps;
 
 
-
 class public_func {
     static final String BROADCAST_STOP_SERVICE = "com.qwe7002.telegram_sms.stop_all";
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    static final int battery_notify_id = 1;
+    static final int chat_command_notify_id = 2;
+    static final int notification_listener_service_notify_id = 3;
+    static final int send_ussd_servce_notify_id = 4;
+    static final int resend_service_notify_id = 5;
 
     static long parse_long(String int_str) {
         long result = 0;
@@ -75,7 +82,7 @@ class public_func {
         return result;
     }
 
-    static boolean check_network_status(Context context) {
+    static boolean check_network_status(@NotNull Context context) {
         ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         assert manager != null;
         boolean network_status = false;
@@ -91,7 +98,9 @@ class public_func {
         }
         return network_status;
     }
-    static String get_send_phone_number(String phone_number) {
+
+    @NotNull
+    static String get_send_phone_number(@NotNull String phone_number) {
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < phone_number.length(); ++i) {
             char c = phone_number.charAt(i);
@@ -117,10 +126,13 @@ class public_func {
         return dual_sim;
     }
 
+    @NotNull
+    @Contract(pure = true)
     static String get_url(String token, String func) {
         return "https://api.telegram.org/bot" + token + "/" + func;
     }
 
+    @NotNull
     static OkHttpClient get_okhttp_obj(boolean doh_switch, proxy_config proxy_item) {
         OkHttpClient.Builder okhttp = new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
@@ -172,7 +184,7 @@ class public_func {
         }
     }
 
-    static boolean is_phone_number(String str) {
+    static boolean is_phone_number(@NotNull String str) {
         for (int i = str.length(); --i >= 0; ) {
             char c = str.charAt(i);
             if (c == '+') {
@@ -298,6 +310,7 @@ class public_func {
         return result_obj.get("message_id").getAsString();
     }
 
+    @NotNull
     static Notification get_notification_obj(Context context, String notification_name) {
         Notification.Builder notification;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -408,7 +421,7 @@ class public_func {
     }
 
 
-    static void write_log(Context context, String log) {
+    static void write_log(@NotNull Context context, String log) {
         Log.i("write_log", log);
         int new_file_mode = Context.MODE_APPEND;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(context.getString(R.string.time_format), Locale.UK);
@@ -416,7 +429,7 @@ class public_func {
         write_log_file(context, write_string, new_file_mode);
     }
 
-    static String read_log(Context context, int line) {
+    static String read_log(@NotNull Context context, int line) {
         String result = context.getString(R.string.no_logs);
         String TAG = "read_file_last_line";
         StringBuilder builder = new StringBuilder();
@@ -465,7 +478,7 @@ class public_func {
         write_log_file(context, "", Context.MODE_PRIVATE);
     }
 
-    private static void write_log_file(Context context, String write_string, int mode) {
+    private static void write_log_file(@NotNull Context context, @NotNull String write_string, int mode) {
         FileOutputStream file_stream = null;
         try {
             file_stream = context.openFileOutput("error.log", mode);
