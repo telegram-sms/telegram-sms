@@ -120,7 +120,6 @@ public class notify_apps_list_activity extends AppCompatActivity {
             protected void publishResults(CharSequence constraint, FilterResults results) {
                 view_app_info_list = (ArrayList<app_info>) results.values;
                 notifyDataSetChanged();
-
             }
         };
 

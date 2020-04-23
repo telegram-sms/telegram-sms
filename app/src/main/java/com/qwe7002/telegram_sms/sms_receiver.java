@@ -172,6 +172,10 @@ public class sms_receiver extends BroadcastReceiver {
         if (!is_verification_code && !is_trusted_phone) {
             ArrayList<String> black_list_array = Paper.book().read("black_keyword_list", new ArrayList<>());
             for (String black_list_item : black_list_array) {
+                if (black_list_item.isEmpty()) {
+                    continue;
+                }
+
                 if (message_body.contains(black_list_item)) {
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat(context.getString(R.string.time_format), Locale.UK);
                     String write_message = request_body.text + "\n" + context.getString(R.string.time) + simpleDateFormat.format(new Date(System.currentTimeMillis()));
