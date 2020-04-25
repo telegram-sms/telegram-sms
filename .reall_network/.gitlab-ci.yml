@@ -69,7 +69,7 @@ build_nightly:
     image: alvrme/alpine-android:android-29
     stage: build
     only:
-        - master
+        - nightly
     script:
         - export VERSION_CODE=${CI_PIPELINE_ID}
         - export VERSION_NAME=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}

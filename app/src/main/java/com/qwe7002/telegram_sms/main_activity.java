@@ -578,8 +578,10 @@ public class main_activity extends AppCompatActivity {
                         .setView(spam_dialog_view)
                         .setPositiveButton("OK", (dialog, which) -> {
                             String input = editText.getText().toString();
-                            String[] black_keyword_list = input.split(";");
-                            Paper.book().write("black_keyword_list", new ArrayList<>(Arrays.asList(black_keyword_list)));
+                            if (input.length() != 0) {
+                                String[] black_keyword_list = input.split(";");
+                                Paper.book().write("black_keyword_list", new ArrayList<>(Arrays.asList(black_keyword_list)));
+                            }
                         })
                         .show();
                 return true;
