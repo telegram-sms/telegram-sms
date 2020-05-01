@@ -29,6 +29,7 @@ public class sim_status_receiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Paper.init(context);
         final String TAG = "sim_status_receiver";
         Log.d(TAG, "Receive action: " + intent.getAction());
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
