@@ -505,10 +505,8 @@ public class main_activity extends AppCompatActivity {
                     if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                         TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
                         assert tm != null;
-                        if (tm.getPhoneCount() <= 1) {
-                            display_dual_sim_display_name.setVisibility(View.GONE);
-                        }
-                        if (public_func.get_active_card(context) < 2) {
+                        if (tm.getPhoneCount() <= 1 || public_func.get_active_card(context) < 2) {
+                            //display_dual_sim_display_name.setVisibility(View.GONE);
                             display_dual_sim_display_name.setEnabled(false);
                             display_dual_sim_display_name.setChecked(false);
                         }
