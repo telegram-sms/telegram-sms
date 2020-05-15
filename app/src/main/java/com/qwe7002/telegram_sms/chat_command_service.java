@@ -455,13 +455,13 @@ public class chat_command_service extends Service {
             return false;
         }
         if (response.code() == 200) {
-            String result = null;
+            String result;
             try {
                 result = Objects.requireNonNull(response.body()).string();
             } catch (IOException e) {
                 e.printStackTrace();
+                return false;
             }
-            assert result != null;
             JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
             if (result_obj.get("ok").getAsBoolean()) {
                 bot_username = result_obj.get("result").getAsJsonObject().get("username").getAsString();

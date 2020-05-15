@@ -44,7 +44,7 @@
     <string name="airplane_mode">Device is in Airplane mode</string>
     <string name="no_network">No service</string>
     <string name="sendsms_dual">/sendsms1 - Send SMS using SIM slot 1\n/sendsms2 - Send SMS using SIM slot 2</string>
-    <string name="display_sim_card_alias_in_dual_card_mode">Display SIM card alias in dual SIM mode</string>
+    <string name="display_sim_card_alias_in_dual_card_mode">Display SIM card alias</string>
     <string name="failed_to_get_information">Failed to get information.</string>
     <string name="sendsms">/sendsms - Send SMS</string>
     <string name="sending">Sending</string>
