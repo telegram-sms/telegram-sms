@@ -73,7 +73,7 @@
             </intent-filter>
         </service>
 
-        <receiver
+        <!--receiver
             android:name=".boot_receiver"
             android:directBootAware="true"
             tools:targetApi="n">
@@ -84,8 +84,16 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </receiver>
+        </receiver-->
+        <!--Fix the problem that the configuration file cannot be loaded normally at startup.-->
+        <receiver android:name=".boot_receiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
 
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </receiver>
         <receiver
             android:name=".sms_receiver"
             android:enabled="true"
@@ -104,7 +112,6 @@
             android:permission="android.permission.BROADCAST_WAP_PUSH">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.provider.Telephony.WAP_PUSH_DELIVER" />
-
                 <data android:mimeType="application/vnd.wap.mms-message" />
             </intent-filter>
         </receiver>

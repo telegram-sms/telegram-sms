@@ -9,7 +9,7 @@ android {
         minSdkVersion 22
         targetSdkVersion 29
         versionCode System.getenv("VERSION_CODE") == null ? 1 : System.getenv("VERSION_CODE").toInteger()
-        versionName System.getenv("VERSION_NAME") == null ? "debug-Do_not_leak" : System.getenv("VERSION_NAME").toString()
+        versionName System.getenv("VERSION_NAME") == null ? "Debug-Do_not_leak" : System.getenv("VERSION_NAME").toString()
     }
 
     compileOptions {
@@ -33,7 +33,6 @@ android {
             signingConfig signingConfigs.release
         }
     }
-
 }
 
 dependencies {
