@@ -40,7 +40,8 @@ release_apk:
         - curl https://${KEYSTORE_SERVER}/gitlab-sshkey/github-key.env -o .reall_network/github-key.env -u gitlab:${key_store_passwd}
         - . .reall_network/github-key.env
         - export TAG=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M")
-        - /opt/github-release-upload.sh github_api_token=${GITHUB_ACCESS_KEY} owner=${OWNER} repo=${REPO} tag=$TAG filename="./app/build/outputs/apk/release/app-release.apk" pre_release="false"
+        - export CHANGELOG=`cat .reall_network/changelog.txt`
+        - /opt/github-release-upload.sh github_api_token=${GITHUB_ACCESS_KEY} owner=${OWNER} repo=${REPO} tag=$TAG body="${CHANGELOG}" filename="./app/build/outputs/apk/release/app-release.apk" pre_release="false"
 
 build_release:
     image: alvrme/alpine-android:android-29

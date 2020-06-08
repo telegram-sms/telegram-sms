@@ -1,0 +1,7 @@
+- Add QR Code configuration file transfer function
+
+- Fix unstable battery management issues
+
+- Fix translation issues
+
+-
