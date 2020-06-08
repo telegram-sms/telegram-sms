@@ -89,7 +89,7 @@ public class main_activity extends AppCompatActivity {
         //load config
         Paper.init(context);
         sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
-
+        startActivity(new Intent(this, qrcode_show_activity.class));
         if (!sharedPreferences.getBoolean("privacy_dialog_agree", false)) {
             show_privacy_dialog();
         }
@@ -408,7 +408,6 @@ public class main_activity extends AppCompatActivity {
                     editor.putString("chat_id", chat_id.getText().toString().trim());
                     if (trusted_phone_number.getText().toString().trim().length() != 0) {
                         editor.putString("trusted_phone_number", trusted_phone_number.getText().toString().trim());
-                        editor.putBoolean("fallback_sms", fallback_sms.isChecked());
                     }
                     editor.putBoolean("fallback_sms", fallback_sms.isChecked());
                     editor.putBoolean("chat_command", chat_command.isChecked());
@@ -641,8 +640,22 @@ public class main_activity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
-            if (resultCode == RESULT_OK) {
-                ((EditText) findViewById(R.id.bot_token)).setText(data.getStringExtra("bot_token"));
+            switch (resultCode) {
+                case RESULT_OK:
+                    JsonObject json_config = JsonParser.parseString(Objects.requireNonNull(data.getStringExtra("config_json"))).getAsJsonObject();
+                    ((EditText) findViewById(R.id.bot_token)).setText(json_config.get("bot_token").getAsString());
+                    ((EditText) findViewById(R.id.chat_id)).setText(json_config.get("chat_id").getAsString());
+                    ((EditText) findViewById(R.id.trusted_phone_number)).setText(json_config.get("trusted_phone_number").getAsString());
+                    ((Switch) findViewById(R.id.fallback_sms)).setChecked(json_config.get("fallback_sms").getAsBoolean());
+                    ((Switch) findViewById(R.id.chat_command)).setChecked(json_config.get("chat_command").getAsBoolean());
+                    ((Switch) findViewById(R.id.battery_monitoring)).setChecked(json_config.get("battery_monitoring_switch").getAsBoolean());
+                    ((Switch) findViewById(R.id.charger_status)).setChecked(json_config.get("charger_status").getAsBoolean());
+                    ((Switch) findViewById(R.id.verification_code_switch)).setChecked(json_config.get("verification_code").getAsBoolean());
+                    ((Switch) findViewById(R.id.privacy_switch)).setChecked(json_config.get("privacy_mode").getAsBoolean());
+                    break;
+                case RESULT_FIRST_USER:
+                    ((EditText) findViewById(R.id.bot_token)).setText(data.getStringExtra("bot_token"));
+                    break;
             }
         }
     }

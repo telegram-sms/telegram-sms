@@ -84,6 +84,7 @@ This APP uses the following open source libraries:
 - [Gson](https://github.com/google/gson)
 - [CodeauxLib](https://github.com/telegram-sms/CodeauxLibPortable)
 - [Paper](https://github.com/pilgr/Paper)
+- [AwesomeQRCode](https://github.com/SumiMakito/AwesomeQRCode)
 
 The creation of this APP would not be possible without help from the following people:
 

@@ -15,8 +15,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <!--Required permissions to send USSD-->
+    <uses-permission android:name="android.permission.CAMERA" /> <!-- Required permissions to send USSD -->
     <uses-permission-sdk-23 android:name="android.permission.CALL_PHONE" />
 
     <application
@@ -31,6 +30,7 @@
         tools:targetApi="n">
         <service android:name=".resend_service" />
         <service android:name=".send_ussd_service" />
+
         <receiver android:name=".sim_status_receiver">
             <intent-filter>
                 <action android:name="android.intent.action.SIM_STATE_CHANGED" />
@@ -55,7 +55,6 @@
             android:exported="false"
             android:permission="android.permission.INTERNET"
             android:process=":command" />
-
         <service
             android:name=".battery_service"
             android:enabled="true"
@@ -64,6 +63,7 @@
             android:process=":battery">
             <intent-filter>
                 <action android:name="android.intent.action.RESPOND_VIA_MESSAGE" />
+
                 <category android:name="android.intent.category.DEFAULT" />
 
                 <data android:scheme="sms" />
@@ -72,8 +72,8 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </service>
-
-        <!--receiver
+        <!--
+receiver
             android:name=".boot_receiver"
             android:directBootAware="true"
             tools:targetApi="n">
@@ -84,8 +84,9 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </receiver-->
-        <!--Fix the problem that the configuration file cannot be loaded normally at startup.-->
+        </receiver
+        -->
+        <!-- Fix the problem that the configuration file cannot be loaded normally at startup. -->
         <receiver android:name=".boot_receiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -104,7 +105,6 @@
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>
-
         <receiver
             android:name=".wap_receiver"
             android:enabled="true"
@@ -112,10 +112,10 @@
             android:permission="android.permission.BROADCAST_WAP_PUSH">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.provider.Telephony.WAP_PUSH_DELIVER" />
+
                 <data android:mimeType="application/vnd.wap.mms-message" />
             </intent-filter>
         </receiver>
-
         <receiver android:name=".call_receiver">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.intent.action.PHONE_STATE" />
@@ -123,6 +123,9 @@
             </intent-filter>
         </receiver>
 
+        <activity
+            android:name=".qrcode_show_activity"
+            android:label="" />
         <activity android:name=".logcat_activity" />
         <activity android:name=".scanner_activity" />
         <activity
@@ -131,6 +134,7 @@
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>

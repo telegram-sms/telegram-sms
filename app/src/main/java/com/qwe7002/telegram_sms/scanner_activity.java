@@ -10,6 +10,8 @@ import android.view.ViewGroup;
 
 import androidx.appcompat.widget.Toolbar;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.google.zxing.Result;
 
 import me.dm7.barcodescanner.zxing.ZXingScannerView;
@@ -20,7 +22,7 @@ public class scanner_activity extends Activity implements ZXingScannerView.Resul
     @Override
     public void onCreate(Bundle state) {
         super.onCreate(state);
-        setContentView(R.layout.scanner_activity);
+        setContentView(R.layout.activity_scanner);
         Toolbar toolbar = findViewById(R.id.scan_toolbar);
         toolbar.setTitle(R.string.scan_title);
         toolbar.setTitleTextColor(Color.WHITE);
@@ -45,10 +47,30 @@ public class scanner_activity extends Activity implements ZXingScannerView.Resul
 
     @Override
     public void handleResult(Result rawResult) {
-        String TAG = "scanner_activity";
+        String TAG = "activity_scanner";
         Log.d(TAG, "format: " + rawResult.getBarcodeFormat().toString() + " content: " + rawResult.getText());
-        Intent intent = new Intent().putExtra("bot_token", rawResult.getText());
-        setResult(Activity.RESULT_OK, intent);
+        if (!json_validate(rawResult.getText())) {
+            Intent intent = new Intent().putExtra("bot_token", rawResult.getText());
+            setResult(Activity.RESULT_FIRST_USER, intent);
+        } else {
+            Intent intent = new Intent().putExtra("config_json", rawResult.getText());
+            setResult(Activity.RESULT_OK, intent);
+        }
+
         finish();
     }
+
+    boolean json_validate(String jsonStr) {
+        JsonElement jsonElement;
+        try {
+            jsonElement = JsonParser.parseString(jsonStr);
+        } catch (Exception e) {
+            return false;
+        }
+        if (jsonElement == null) {
+            return false;
+        }
+        return jsonElement.isJsonObject();
+    }
+
 }
