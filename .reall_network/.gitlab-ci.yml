@@ -62,26 +62,3 @@ build_release:
         paths:
             - app/build/outputs/apk/release/app-release.apk
         expire_in: 1 week
-
-build_nightly:
-    image: alvrme/alpine-android:android-29
-    stage: build
-    only:
-        - nightly
-    script:
-        - export VERSION_CODE=${CI_PIPELINE_ID}
-        - export VERSION_NAME=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}
-        - cp ./.github/workflows/github-action-only.jks ./app/keys.jks
-        - export KEYSTORE_PASS=000000000
-        - export ALIAS_NAME="key0"
-        - export ALIAS_PASS=111111111
-        - export VERSION_CODE=${CI_PIPELINE_ID}
-        - export VERSION_NAME=GITLAB-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}
-        - export GRADLE_USER_HOME=$(pwd)/.gradle && mkdir -p ${GRADLE_USER_HOME}
-        - echo -e "org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true" >> ${GRADLE_USER_HOME}/gradle.properties
-        - chmod +x ./gradlew
-        - ./gradlew assembleRelease
-    artifacts:
-        paths:
-            - app/build/outputs/apk/release/app-release.apk
-        expire_in: 3 days
