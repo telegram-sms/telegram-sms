@@ -26,6 +26,8 @@ The app provided from xda-labs are the latest stable version. Revenues generated
 
 [Release Download](https://github.com/telegram-sms/telegram-sms/releases)
 
+[pre-release Verison](https://github.com/qwe7002/telegram-sms) [Download](https://github.com/qwe7002/telegram-sms/actions?query=actor%3Areall-network+branch%3Anightly+is%3Asuccess+event%3Apush)
+
 **No warranty expressed or implied. Use at your own risk. You have been warned.**
 
 ## Features
