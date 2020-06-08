@@ -26,7 +26,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Switch;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -164,7 +163,7 @@ public class main_activity extends AppCompatActivity {
         });
 
         chat_command.setChecked(sharedPreferences.getBoolean("chat_command", false));
-        chat_command.setOnClickListener(v -> set_privacy_mode_checkbox(chat_id, chat_command, privacy_mode_switch));
+        chat_command.setOnClickListener(v -> set_privacy_mode_checkbox(chat_id.getText().toString(), chat_command, privacy_mode_switch));
         verification_code.setChecked(sharedPreferences.getBoolean("verification_code", false));
 
         doh_switch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
@@ -204,7 +203,7 @@ public class main_activity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                set_privacy_mode_checkbox(chat_id, chat_command, privacy_mode_switch);
+                set_privacy_mode_checkbox(chat_id.getText().toString(), chat_command, privacy_mode_switch);
             }
 
             @Override
@@ -434,13 +433,13 @@ public class main_activity extends AppCompatActivity {
         });
     }
 
-    private void set_privacy_mode_checkbox(TextView chat_id, Switch chat_command, Switch privacy_mode_switch) {
+    private void set_privacy_mode_checkbox(String chat_id, Switch chat_command, Switch privacy_mode_switch) {
         if (!chat_command.isChecked()) {
             privacy_mode_switch.setVisibility(View.GONE);
             privacy_mode_switch.setChecked(false);
             return;
         }
-        if (public_func.parse_long(chat_id.getText().toString()) < 0) {
+        if (public_func.parse_long(chat_id) < 0) {
             privacy_mode_switch.setVisibility(View.VISIBLE);
         } else {
             privacy_mode_switch.setVisibility(View.GONE);
@@ -653,13 +652,35 @@ public class main_activity extends AppCompatActivity {
                     JsonObject json_config = JsonParser.parseString(Objects.requireNonNull(data.getStringExtra("config_json"))).getAsJsonObject();
                     ((EditText) findViewById(R.id.bot_token)).setText(json_config.get("bot_token").getAsString());
                     ((EditText) findViewById(R.id.chat_id)).setText(json_config.get("chat_id").getAsString());
-                    ((EditText) findViewById(R.id.trusted_phone_number)).setText(json_config.get("trusted_phone_number").getAsString());
-                    ((Switch) findViewById(R.id.fallback_sms)).setChecked(json_config.get("fallback_sms").getAsBoolean());
-                    ((Switch) findViewById(R.id.chat_command)).setChecked(json_config.get("chat_command").getAsBoolean());
                     ((Switch) findViewById(R.id.battery_monitoring)).setChecked(json_config.get("battery_monitoring_switch").getAsBoolean());
-                    ((Switch) findViewById(R.id.charger_status)).setChecked(json_config.get("charger_status").getAsBoolean());
                     ((Switch) findViewById(R.id.verification_code_switch)).setChecked(json_config.get("verification_code").getAsBoolean());
-                    ((Switch) findViewById(R.id.privacy_switch)).setChecked(json_config.get("privacy_mode").getAsBoolean());
+
+                    Switch charger_status = findViewById(R.id.charger_status);
+                    if (json_config.get("battery_monitoring_switch").getAsBoolean()) {
+                        charger_status.setChecked(json_config.get("charger_status").getAsBoolean());
+                        charger_status.setVisibility(View.VISIBLE);
+                    } else {
+                        charger_status.setChecked(false);
+                        charger_status.setVisibility(View.GONE);
+                    }
+
+                    Switch chat_command = findViewById(R.id.chat_command);
+                    chat_command.setChecked(json_config.get("chat_command").getAsBoolean());
+                    Switch privacy_mode_switch = findViewById(R.id.privacy_switch);
+                    privacy_mode_switch.setChecked(json_config.get("privacy_mode").getAsBoolean());
+
+                    set_privacy_mode_checkbox(json_config.get("chat_id").getAsString(), chat_command, privacy_mode_switch);
+
+                    EditText trusted_phone_number = findViewById(R.id.trusted_phone_number);
+                    trusted_phone_number.setText(json_config.get("trusted_phone_number").getAsString());
+                    Switch fallback_sms = findViewById(R.id.fallback_sms);
+                    fallback_sms.setChecked(json_config.get("fallback_sms").getAsBoolean());
+                    if (trusted_phone_number.length() != 0) {
+                        fallback_sms.setVisibility(View.VISIBLE);
+                    } else {
+                        fallback_sms.setVisibility(View.GONE);
+                        fallback_sms.setChecked(false);
+                    }
                     break;
                 case RESULT_FIRST_USER:
                     ((EditText) findViewById(R.id.bot_token)).setText(data.getStringExtra("bot_token"));
