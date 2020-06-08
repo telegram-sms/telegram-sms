@@ -89,7 +89,7 @@ public class main_activity extends AppCompatActivity {
         //load config
         Paper.init(context);
         sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
-        startActivity(new Intent(this, qrcode_show_activity.class));
+
         if (!sharedPreferences.getBoolean("privacy_dialog_agree", false)) {
             show_privacy_dialog();
         }
@@ -105,6 +105,7 @@ public class main_activity extends AppCompatActivity {
 
         if (sharedPreferences.getBoolean("initialized", false)) {
             public_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
+
         }
         boolean display_dual_sim_display_name_config = sharedPreferences.getBoolean("display_dual_sim_display_name", false);
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
@@ -546,6 +547,13 @@ public class main_activity extends AppCompatActivity {
             case R.id.logcat:
                 Intent logcat_intent = new Intent(this, logcat_activity.class);
                 startActivity(logcat_intent);
+                return true;
+            case R.id.config_qrcode:
+                if (sharedPreferences.getBoolean("initialized", false)) {
+                    startActivity(new Intent(this, qrcode_show_activity.class));
+                } else {
+                    Snackbar.make(findViewById(R.id.bot_token), "Uninitialized.", Snackbar.LENGTH_LONG).show();
+                }
                 return true;
             case R.id.set_notify:
                 if (!public_func.is_notify_listener(context)) {

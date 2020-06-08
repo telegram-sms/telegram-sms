@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/scan"
         android:icon="@drawable/ic_scan_code"
@@ -24,6 +25,10 @@
     <item
         android:id="@+id/set_proxy"
         android:title="@string/proxy_title"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/config_qrcode"
+        android:title="Configure QR code"
         app:showAsAction="never" />
     <item
         android:id="@+id/logcat"

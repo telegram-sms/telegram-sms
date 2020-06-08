@@ -27,9 +27,9 @@ public class qrcode_show_activity extends AppCompatActivity {
         Context context = getApplicationContext();
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         config_list config = new config_list();
-        config.bot_token = sharedPreferences.getString("bot_token", null);
-        config.chat_id = sharedPreferences.getString("chat_id", null);
-        config.trusted_phone_number = sharedPreferences.getString("trusted_phone_number", null);
+        config.bot_token = sharedPreferences.getString("bot_token", "");
+        config.chat_id = sharedPreferences.getString("chat_id", "");
+        config.trusted_phone_number = sharedPreferences.getString("trusted_phone_number", "");
         config.fallback_sms = sharedPreferences.getBoolean("fallback_sms", false);
         config.chat_command = sharedPreferences.getBoolean("chat_command", false);
         config.battery_monitoring_switch = sharedPreferences.getBoolean("battery_monitoring_switch", false);

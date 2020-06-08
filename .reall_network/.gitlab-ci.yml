@@ -7,7 +7,6 @@ cache:
     paths:
         - .gradle/
 
-
 variables:
     OWNER: telegram-sms
     REPO: telegram-sms
