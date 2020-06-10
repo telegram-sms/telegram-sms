@@ -1,7 +1,8 @@
-- Add QR Code configuration file transfer function
+
+- Add the function of transmitting configuration through QR code
 
 - Fix unstable battery management issues
 
 - Fix translation issues
 
--
+- Fix the bug that some messages are sent incorrectly
