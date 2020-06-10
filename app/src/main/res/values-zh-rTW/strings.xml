@@ -102,4 +102,5 @@
     <string name="get_spam_sms">/getspamsms - 獲取被過濾的垃圾簡訊</string>
     <string name="spam_count_title">"過濾的垃圾簡訊: "</string>
     <string name="no_spam_history">没有垃圾簡訊历史</string>
+    <string name="transfer_configuration">傳輸配置</string>
 </resources>

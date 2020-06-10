@@ -102,4 +102,5 @@
     <string name="get_spam_sms">/getspamsms - フィルタリングされたスパムメッセージを取得する</string>
     <string name="spam_count_title">"フィルタリングされたスパム: "</string>
     <string name="no_spam_history">スパム履歴なし</string>
+    <string name="transfer_configuration">転送構成</string>
 </resources>

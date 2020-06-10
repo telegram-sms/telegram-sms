@@ -125,7 +125,7 @@ receiver
 
         <activity
             android:name=".qrcode_show_activity"
-            android:label="" />
+            android:label="@string/transfer_configuration" />
         <activity android:name=".logcat_activity" />
         <activity android:name=".scanner_activity" />
         <activity

@@ -28,7 +28,7 @@
         app:showAsAction="never" />
     <item
         android:id="@+id/config_qrcode"
-        android:title="Configure QR code"
+        android:title="@string/transfer_configuration"
         app:showAsAction="never" />
     <item
         android:id="@+id/logcat"

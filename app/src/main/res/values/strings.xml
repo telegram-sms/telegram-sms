@@ -102,5 +102,6 @@
     <string name="get_spam_sms">/getspamsms - Get filtered spam messages</string>
     <string name="spam_count_title">"Filtered spam: "</string>
     <string name="no_spam_history">No spam history</string>
+    <string name="transfer_configuration">Transfer Configuration</string>
 
 </resources>
