@@ -79,6 +79,7 @@
     <string name="request">"Request: "</string>
     <string name="error_message">"Error message: "</string>
     <string name="send_ussd_command">/sendussd - Send USSD request</string>
+
     <string name="ussd_code_running">USSD code running…</string>
     <string name="privacy_reminder_information">You should be aware that using Telegram-SMS means you trust the way we handle your information. We fully understand that it is a significant responsibility, thus we work hard to protect your information and make sure you can take everything under control. Please refer to our privacy policy to understand your rights and better protect your privacy.</string>
     <string name="privacy_reminder_title">Privacy and terms</string>
@@ -103,5 +104,8 @@
     <string name="spam_count_title">"Filtered spam: "</string>
     <string name="no_spam_history">No spam history</string>
     <string name="transfer_configuration">Transfer Configuration</string>
-
+    <string name="ok_button">OK</string>
+    <string name="about_title">About</string>
+    <string name="about_content">"Developer: qwe7002\nEnglish translation: @tangbao @jixunmoe\nCurrent version: "</string>
+    <string name="send_ussd_dual_command">"/sendussd1 - Send USSD request using SIM slot 1\n/sendussd2 - Send USSD request using SIM slot 2"</string>
 </resources>

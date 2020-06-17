@@ -38,4 +38,8 @@
         android:id="@+id/donate"
         android:title="@string/donate"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/about"
+        android:title="@string/about_title"
+        app:showAsAction="never" />
 </menu>

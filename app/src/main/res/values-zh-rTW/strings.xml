@@ -7,7 +7,7 @@
     <string name="to">"發送到: "</string>
     <string name="send_sms_head">發送簡訊</string>
     <string name="system_message_head">[系統訊息]</string>
-    <string name="success_connect">您已成功連接到 Telegram bot 伺服器。</string>
+    <string name="success_connect">您已成功連接到 Telegram 伺服器。</string>
     <string name="connect_wait_title">連接到伺服器…</string>
     <string name="connect_wait_message">請耐心等待…</string>
     <string name="select_chat">選擇對話</string>
@@ -43,7 +43,7 @@
     <string name="send_failed">失敗</string>
     <string name="airplane_mode">當前設備處於飛行模式</string>
     <string name="no_network">無服務</string>
-    <string name="sendsms_dual">/sendsms1 - 使用第一个卡槽發送簡訊\n/sendsms2 - 使用第二个卡槽發送簡訊</string>
+    <string name="sendsms_dual">/sendsms1 - 使用SIM卡插槽1發送簡訊\n/sendsms2 - 使用SIM卡插槽2發送簡訊</string>
     <string name="display_sim_card_alias_in_dual_card_mode">顯示SIM卡別名</string>
     <string name="failed_to_get_information">無法獲取信息。</string>
     <string name="sendsms">/sendsms - 發送簡訊</string>
@@ -64,17 +64,17 @@
     <string name="enter_content">請輸入要發送的消息的內容。</string>
     <string name="unable_get_phone_number">無法獲取電話號碼。</string>
     <string name="donate">捐助</string>
-    <string name="not_charging" >不在充電</string>
+    <string name="not_charging">不在充電</string>
     <string name="using_privacy_mode">僅響應包含機器人用戶名的命令</string>
     <string name="scan_title">掃描QR碼</string>
     <string name="no_camera_permission">請允許相機訪問以進行QR碼掃描。</string>
     <string name="error_message_head">"錯誤信息: "</string>
-    <string name="error_stop_message">發生致命錯誤，程序已停止。</string>
     <string name="app_list">應用列表</string>
     <string name="receive_notification_title">[收到通知]</string>
     <string name="app_name_title">"應用名稱: "</string>
     <string name="title">"標題: "</string>
     <string name="Notification_Listener_title">通知偵聽器</string>
+    <string name="error_stop_message">發生致命錯誤，程序已停止。</string>
     <string name="send_ussd_head">[發送USSD]</string>
     <string name="request">"請求: "</string>
     <string name="error_message">"錯誤信息: "</string>
@@ -103,4 +103,8 @@
     <string name="spam_count_title">"過濾的垃圾簡訊: "</string>
     <string name="no_spam_history">没有垃圾簡訊历史</string>
     <string name="transfer_configuration">傳輸配置</string>
+    <string name="ok_button">好</string>
+    <string name="about_title">關於</string>
+    <string name="about_content">"開發者: qwe7002\n\n當前版本: "</string>
+    <string name="send_ussd_dual_command">"/sendussd1 - 使用SIM卡插槽1發送USSD請求\n/sendussd2 - 使用SIM卡插槽2發送USSD請求"</string>
 </resources>

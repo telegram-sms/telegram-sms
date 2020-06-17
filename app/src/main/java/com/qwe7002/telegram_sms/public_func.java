@@ -199,9 +199,10 @@ class public_func {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    static void send_ussd(Context context, String ussd) {
+    static void send_ussd(Context context, String ussd, int sub_id) {
         Intent send_ussd_service = new Intent(context, send_ussd_service.class);
         send_ussd_service.putExtra("ussd", ussd);
+        send_ussd_service.putExtra("sub_id", sub_id);
         context.startService(send_ussd_service);
     }
 

@@ -200,16 +200,21 @@ public class chat_command_service extends Service {
             case "/start":
             case "/commandlist":
                 String sms_command = getString(R.string.sendsms);
-                String ussd_command = "";
                 if (public_func.get_active_card(context) == 2) {
                     sms_command = getString(R.string.sendsms_dual);
                 }
                 sms_command += "\n" + getString(R.string.get_spam_sms);
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+
+                String ussd_command = "";
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                         ussd_command = "\n" + getString(R.string.send_ussd_command);
+                        if (public_func.get_active_card(context) == 2) {
+                            ussd_command = "\n" + getString(R.string.send_ussd_dual_command);
+                        }
                     }
                 }
+
                 if (command.equals("/commandlist")) {
                     request_body.text = (getString(R.string.available_command) + "\n" + sms_command + ussd_command).replace("/", "");
                     break;
@@ -245,11 +250,19 @@ public class chat_command_service extends Service {
                 has_command = true;
                 break;
             case "/sendussd":
+            case "/sendussd1":
+            case "/sendussd2":
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                     if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
                         String[] command_list = request_msg.split(" ");
+                        int sub_id = -1;
+                        if (public_func.get_active_card(context) == 2) {
+                            if (command.equals("/sendussd2")) {
+                                sub_id = public_func.get_sub_id(context, 1);
+                            }
+                        }
                         if (command_list.length == 2) {
-                            public_func.send_ussd(context, command_list[1]);
+                            public_func.send_ussd(context, command_list[1], sub_id);
                             return;
                         }
                     }
@@ -629,7 +642,7 @@ public class chat_command_service extends Service {
     }
 
 
-
+    @SuppressWarnings("BusyWait")
     class thread_main_runnable implements Runnable {
         @Override
         public void run() {

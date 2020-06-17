@@ -7,6 +7,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -505,7 +506,6 @@ public class main_activity extends AppCompatActivity {
                         TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
                         assert tm != null;
                         if (tm.getPhoneCount() <= 1 || public_func.get_active_card(context) < 2) {
-                            //display_dual_sim_display_name.setVisibility(View.GONE);
                             display_dual_sim_display_name.setEnabled(false);
                             display_dual_sim_display_name.setChecked(false);
                         }
@@ -526,20 +526,29 @@ public class main_activity extends AppCompatActivity {
         return true;
     }
 
+    @SuppressLint("NonConstantResourceId")
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         LayoutInflater inflater = this.getLayoutInflater();
         String file_name = null;
         switch (item.getItemId()) {
-            case R.id.user_manual:
-                file_name = "/wiki/" + context.getString(R.string.user_manual_url);
-                break;
-            case R.id.privacy_policy:
-                file_name = "/wiki/" + context.getString(R.string.privacy_policy_url);
-                break;
-            case R.id.donate:
-                file_name = "/donate";
-                break;
+            case R.id.about:
+                PackageManager packageManager = context.getPackageManager();
+                PackageInfo packageInfo;
+                String versionName = "";
+                try {
+                    packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
+                    versionName = packageInfo.versionName;
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                }
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle(R.string.about_title);
+                builder.setMessage(getString(R.string.about_content) + versionName);
+                builder.setCancelable(false);
+                builder.setPositiveButton(R.string.ok_button, null);
+                builder.show();
+                return true;
             case R.id.scan:
                 ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.CAMERA}, 0);
                 return true;
@@ -628,6 +637,15 @@ public class main_activity extends AppCompatActivity {
                         })
                         .show();
                 return true;
+            case R.id.user_manual:
+                file_name = "/wiki/" + context.getString(R.string.user_manual_url);
+                break;
+            case R.id.privacy_policy:
+                file_name = "/wiki/" + context.getString(R.string.privacy_policy_url);
+                break;
+            case R.id.donate:
+                file_name = "/donate";
+                break;
         }
         assert file_name != null;
         Uri uri = Uri.parse("https://get.telegram-sms.com" + file_name);

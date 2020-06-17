@@ -64,19 +64,19 @@
     <string name="enter_content">送信するメッセージの内容を入力してください。</string>
     <string name="unable_get_phone_number">電話番号を取得できません。</string>
     <string name="donate">寄付する</string>
-    <string name="not_charging" >充電していません</string>
+    <string name="not_charging">充電していません</string>
     <string name="using_privacy_mode">ロボットのユーザー名を含むコマンドにのみ応答する</string>
-    <string name="request">"請求: "</string>
     <string name="scan_title">QRコードをスキャン</string>
     <string name="no_camera_permission">QRコードスキャン用のカメラアクセスを許可してください。</string>
     <string name="error_message_head">"エラーメッセージ: "</string>
-    <string name="error_stop_message">致命的なエラーが発生し、プログラムが停止しました。</string>
     <string name="app_list">アプリケーションリスト</string>
     <string name="receive_notification_title">[受信した通知]</string>
     <string name="app_name_title">"アプリケーション名: "</string>
     <string name="title">"標題: "</string>
     <string name="Notification_Listener_title">通知リスナー</string>
+    <string name="error_stop_message">致命的なエラーが発生し、プログラムが停止しました。</string>
     <string name="send_ussd_head">[USSDを送信]</string>
+    <string name="request">"請求: "</string>
     <string name="error_message">"エラーメッセージ: "</string>
     <string name="send_ussd_command">/sendussd - USSDリクエストを送信</string>
     <string name="ussd_code_running">実行中のUSSDコード…</string>
@@ -103,4 +103,8 @@
     <string name="spam_count_title">"フィルタリングされたスパム: "</string>
     <string name="no_spam_history">スパム履歴なし</string>
     <string name="transfer_configuration">転送構成</string>
+    <string name="ok_button">OK</string>
+    <string name="about_title">About</string>
+    <string name="about_content">"開発者: qwe7002\n日本語訳: @Lollycc @AisakaMk2\n現行版: "</string>
+    <string name="send_ussd_dual_command">"/sendussd1 - SIMスロット1を使用してUSSDリクエストを送信します\n/sendussd2 - SIMスロット2を使用してUSSDリクエストを送信する"</string>
 </resources>
