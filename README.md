@@ -20,13 +20,15 @@ The primary language used for commit messages is Simplified Chinese. However, yo
 
 You can follow the Telegram channel [Telegram SMS 更新日志](https://t.me/tg_sms_changelog) for the latest news. (Simplified Chinese only)
 
+**Warning**: All versions are not compatible (not signed by the same key)! You will have to uninstall one to install the other, which will delete all your data.
+
 [XDA Labs](https://labs.xda-developers.com/store/app/com.qwe7002.telegram_sms)
 
 The app provided from xda-labs are the latest stable version. Revenues generated will be used to help the author to improve its future stability and user experience. You can still download the latest version from GitHub release page.
 
 [Release Download](https://github.com/telegram-sms/telegram-sms/releases)
 
-[pre-release Verison](https://github.com/qwe7002/telegram-sms) [Download](https://github.com/qwe7002/telegram-sms/actions?query=actor%3Areall-network+branch%3Anightly+is%3Asuccess+event%3Apush)
+[Pre-release Verison](https://github.com/qwe7002/telegram-sms) [Download](https://github.com/qwe7002/telegram-sms/actions?query=actor%3Areall-network+branch%3Anightly+is%3Asuccess+event%3Apush)
 
 **No warranty expressed or implied. Use at your own risk. You have been warned.**
 

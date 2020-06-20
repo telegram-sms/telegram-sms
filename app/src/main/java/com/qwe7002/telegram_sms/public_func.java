@@ -172,6 +172,11 @@ class public_func {
                     .includeIPv6(true)
                     .build());
         }
+        if (BuildConfig.DEBUG) {
+            okhttp3.logging.HttpLoggingInterceptor interceptor = new okhttp3.logging.HttpLoggingInterceptor();
+            interceptor.setLevel(okhttp3.logging.HttpLoggingInterceptor.Level.HEADERS);
+            okhttp.addInterceptor(interceptor);
+        }
         return okhttp.build();
     }
 
