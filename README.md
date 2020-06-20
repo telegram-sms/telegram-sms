@@ -71,6 +71,8 @@ Copyright of the artwork belongs to [@walliant](https://www.pixiv.net/member.php
 
 Download resource file: [mega.nz](https://mega.nz/#F!TmwQSYjD!XN-uVfciajwy3okjIdpCAQ)
 
+Artwork Use free fonts licensed by the whole society: [站酷庆科黄油体](https://www.zcool.com.cn/work/ZMTg5MDEyMDQ=.html)
+
 Character set：
 
 - Name: Fay (菲, フェイ)
