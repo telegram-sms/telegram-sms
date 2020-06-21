@@ -108,4 +108,5 @@
     <string name="about_title">About</string>
     <string name="about_content">"Developer: qwe7002\nEnglish translation: @tangbao @jixunmoe\nCurrent version: "</string>
     <string name="send_ussd_dual_command">"/sendussd1 - Send USSD request using SIM slot 1\n/sendussd2 - Send USSD request using SIM slot 2"</string>
+    <string name="qrcode_notice">Keep this QR code safe!\nPlease don\'t share it with others.</string>
 </resources>

@@ -13,7 +13,13 @@
 
         android:gravity="center"
         android:orientation="vertical"
-        tools:ignore="UselessParent">
+        tools:ignore="UseCompoundDrawables,UselessParent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/qrcode_notice"
+            android:textAlignment="center" />
 
         <ImageView
             android:id="@+id/qr_image"

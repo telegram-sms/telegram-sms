@@ -107,4 +107,5 @@
     <string name="about_title">About</string>
     <string name="about_content">"開発者: qwe7002\n日本語訳: @Lollycc @AisakaMk2\n現行版: "</string>
     <string name="send_ussd_dual_command">"/sendussd1 - SIMスロット1を使用してUSSDリクエストを送信します\n/sendussd2 - SIMスロット2を使用してUSSDリクエストを送信する"</string>
+    <string name="qrcode_notice">このQRコードを安全に保管してください！\ n他の人と共有しないでください。</string>
 </resources>

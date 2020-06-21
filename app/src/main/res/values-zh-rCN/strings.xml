@@ -107,4 +107,5 @@
     <string name="about_title">关于</string>
     <string name="about_content">"开发者: qwe7002\n\n当前版本: "</string>
     <string name="send_ussd_dual_command">"/sendussd1 - 使用SIM卡插槽1发送USSD请求\n/sendussd2 - 使用SIM卡插槽2发送USSD请求"</string>
+    <string name="qrcode_notice">请确保此QR码安全！\ n请不要与他人共享。</string>
 </resources>
