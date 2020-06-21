@@ -73,4 +73,4 @@ app/.settings/
 
 play-service-key.json
 strings.xml
-
+!app/src/main/res/values/strings.xml
