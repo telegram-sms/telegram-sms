@@ -1,0 +1,3 @@
+[submodule "app/language_pack"]
+	path = app/language_pack
+	url = git@github.com:telegram-sms/language_pack.git

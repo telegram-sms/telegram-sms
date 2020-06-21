@@ -49,6 +49,7 @@ build_release:
     only:
         - master
     script:
+        - git submodule update --init --recursive
         - export VERSION_CODE=${CI_PIPELINE_ID}
         - export VERSION_NAME=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}
         - wget https://${KEYSTORE_SERVER}/android/telegram-sms/keys.jks -O app/keys.jks --http-user=gitlab --http-passwd=${key_store_passwd}
@@ -57,7 +58,7 @@ build_release:
         - export GRADLE_USER_HOME=$(pwd)/.gradle && mkdir -p ${GRADLE_USER_HOME}
         - echo -e "org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true" >> ${GRADLE_USER_HOME}/gradle.properties
         - chmod +x ./gradlew
-        - ./gradlew assembleRelease
+        - ./gradlew app:copy_language_pack && ./gradlew assembleRelease
     artifacts:
         paths:
             - app/build/outputs/apk/release/app-release.apk

@@ -22,8 +22,4 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
-task copy_language_pack(type: Copy) {
-    from 'language/'
-    into 'src/main/res/'
-    include '**/*'
-}
+
