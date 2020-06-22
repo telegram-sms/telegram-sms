@@ -56,6 +56,7 @@ dependencies {
 repositories {
     mavenCentral()
 }
+
 task copy_language_pack(type: Copy) {
     from 'language_pack/'
     into 'src/main/res/'
