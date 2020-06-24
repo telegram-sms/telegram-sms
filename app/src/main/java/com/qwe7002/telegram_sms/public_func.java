@@ -339,7 +339,7 @@ class public_func {
         return notification.build();
     }
 
-    static void stop_all_service(Context context) {
+    static void stop_all_service(@NotNull Context context) {
         Intent intent = new Intent(BROADCAST_STOP_SERVICE);
         context.sendBroadcast(intent);
         try {
