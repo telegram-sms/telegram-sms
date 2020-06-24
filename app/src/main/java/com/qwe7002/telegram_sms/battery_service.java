@@ -15,6 +15,8 @@ import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.util.Objects;
 
@@ -77,7 +79,7 @@ public class battery_service extends Service {
 
     private class battery_receiver extends BroadcastReceiver {
         @Override
-        public void onReceive(final Context context, final Intent intent) {
+        public void onReceive(final Context context, @NotNull final Intent intent) {
             String TAG = "battery_receiver";
             assert intent.getAction() != null;
             Log.d(TAG, "Receive action: " + intent.getAction());

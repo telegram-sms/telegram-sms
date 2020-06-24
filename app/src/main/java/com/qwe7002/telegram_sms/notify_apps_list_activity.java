@@ -22,6 +22,8 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +33,7 @@ public class notify_apps_list_activity extends AppCompatActivity {
     private app_adapter app_adapter;
     private Context context;
 
+    @NotNull
     private List<app_info> scan_app_list(PackageManager packageManager) {
         List<app_info> app_info_list = new ArrayList<>();
         try {
@@ -99,8 +102,9 @@ public class notify_apps_list_activity extends AppCompatActivity {
         List<String> listen_list;
         List<app_info> app_info_list = new ArrayList<>();
         List<app_info> view_app_info_list = new ArrayList<>();
-        private Context context;
-        private Filter filter = new Filter() {
+        private final Context context;
+        private final Filter filter = new Filter() {
+            @NotNull
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
                 FilterResults results = new FilterResults();
@@ -117,7 +121,7 @@ public class notify_apps_list_activity extends AppCompatActivity {
 
             @SuppressWarnings("unchecked")
             @Override
-            protected void publishResults(CharSequence constraint, FilterResults results) {
+            protected void publishResults(CharSequence constraint, @NotNull FilterResults results) {
                 view_app_info_list = (ArrayList<app_info>) results.values;
                 notifyDataSetChanged();
             }

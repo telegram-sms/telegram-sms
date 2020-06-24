@@ -12,6 +12,8 @@ import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.util.Objects;
 
@@ -28,7 +30,7 @@ public class sim_status_receiver extends BroadcastReceiver {
     private static int last_status;
 
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive(Context context, @NotNull Intent intent) {
         Paper.init(context);
         final String TAG = "sim_status_receiver";
         Log.d(TAG, "Receive action: " + intent.getAction());

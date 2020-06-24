@@ -42,6 +42,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -434,7 +436,7 @@ public class main_activity extends AppCompatActivity {
         });
     }
 
-    private void set_privacy_mode_checkbox(String chat_id, Switch chat_command, Switch privacy_mode_switch) {
+    private void set_privacy_mode_checkbox(String chat_id, @NotNull Switch chat_command, Switch privacy_mode_switch) {
         if (!chat_command.isChecked()) {
             privacy_mode_switch.setVisibility(View.GONE);
             privacy_mode_switch.setChecked(false);

@@ -21,6 +21,8 @@ import androidx.core.app.ActivityCompat;
 
 import com.google.gson.Gson;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.util.Objects;
 
@@ -34,7 +36,7 @@ import okhttp3.Response;
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class send_ussd_service extends Service {
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    public int onStartCommand(@NotNull Intent intent, int flags, int startId) {
         Context context = getApplicationContext();
         Paper.init(context);
         String notification_name = context.getString(R.string.ussd_code_running);

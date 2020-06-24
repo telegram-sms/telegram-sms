@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 
 import io.paperdb.Paper;
@@ -13,7 +15,7 @@ import io.paperdb.Paper;
 public class boot_receiver extends BroadcastReceiver {
 
     @Override
-    public void onReceive(final Context context, Intent intent) {
+    public void onReceive(@NotNull final Context context, @NotNull Intent intent) {
         final String TAG = "boot_receiver";
         Log.d(TAG, "Receive action: " + intent.getAction());
         final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);

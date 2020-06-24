@@ -106,8 +106,7 @@ public class chat_command_service extends Service {
         registerReceiver(broadcast_receiver, intentFilter);
     }
 
-    @SuppressWarnings("SpellCheckingInspection")
-    private void receive_handle(JsonObject result_obj) {
+    private void receive_handle(@NotNull JsonObject result_obj) {
         String message_type = "";
         long update_id = result_obj.get("update_id").getAsLong();
         offset = update_id + 1;
@@ -493,6 +492,7 @@ public class chat_command_service extends Service {
         return null;
     }
 
+    @NotNull
     private String get_battery_info() {
         BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
         assert batteryManager != null;
@@ -745,7 +745,7 @@ public class chat_command_service extends Service {
 
     private class broadcast_receiver extends BroadcastReceiver {
         @Override
-        public void onReceive(Context context, Intent intent) {
+        public void onReceive(Context context, @NotNull Intent intent) {
             Log.d(TAG, "onReceive: " + intent.getAction());
             assert intent.getAction() != null;
             switch (intent.getAction()) {

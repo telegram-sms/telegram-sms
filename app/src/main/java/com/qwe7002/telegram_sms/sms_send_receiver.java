@@ -13,6 +13,8 @@ import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.util.Objects;
 
@@ -28,7 +30,7 @@ import static android.content.Context.MODE_PRIVATE;
 
 public class sms_send_receiver extends BroadcastReceiver {
     @Override
-    public void onReceive(final Context context, Intent intent) {
+    public void onReceive(final Context context, @NotNull Intent intent) {
         Paper.init(context);
         final String TAG = "sms_send_receiver";
         Log.d(TAG, "Receive action: " + intent.getAction());

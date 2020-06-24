@@ -10,6 +10,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.jetbrains.annotations.NotNull;
+
 public class logcat_activity extends AppCompatActivity {
 
     private Context context;
@@ -54,11 +56,11 @@ public class logcat_activity extends AppCompatActivity {
         return true;
     }
 
-    class file_observer extends FileObserver {
+    private class file_observer extends FileObserver {
         private final Context context;
         private final TextView logcat;
 
-        file_observer(Context context, TextView logcat) {
+        file_observer(@NotNull Context context, TextView logcat) {
             super(context.getFilesDir().getAbsolutePath());
             this.context = context;
             this.logcat = logcat;
