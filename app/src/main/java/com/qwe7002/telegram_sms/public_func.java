@@ -73,10 +73,10 @@ class public_func {
     static final int send_ussd_servce_notify_id = 4;
     static final int resend_service_notify_id = 5;
 
-    static long parse_long(String int_str) {
+    static long parse_long(String content) {
         long result = 0;
         try {
-            result = Long.parseLong(int_str);
+            result = Long.parseLong(content);
         } catch (NumberFormatException e) {
             e.printStackTrace();
         }
