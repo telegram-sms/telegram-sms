@@ -115,8 +115,7 @@ And finally, [sm.ms](https://sm.ms) for hosting images used in this page.
 
 ## Buy me a cup of coffee to help maintain this project further?
 
-<iframe src="https://github.com/sponsors/qwe7002/card" title="Sponsor qwe7002" height="225" width="600" style="border: 0;"></iframe>
-
+- [via Github](https://get.telegram-sms.com/donate/github)
 - [via Paypal](https://get.telegram-sms.com/donate/paypal)
 - [via Bitcoin](bitcoin:17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae) (**17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae**)
 - [via UnionPay(中国银联云闪付)](https://get.telegram-sms.com/donate/unionpay)
