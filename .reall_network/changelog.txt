@@ -1,11 +1,11 @@
-- Add the function of transmitting configuration through QR code
+* Add the function of transmitting configuration through QR code
 
-- Fix unstable battery management issues
+* Fix unstable battery management issues
 
-- Fix translation issues
+* Fix translation issues
 
-- Fix the bug that some messages are sent incorrectly
+* Fix the bug that some messages are sent incorrectly
 
-- Add about page
+* Add about page
 
-- Implement dual card ussd
+* Implement dual card ussd
