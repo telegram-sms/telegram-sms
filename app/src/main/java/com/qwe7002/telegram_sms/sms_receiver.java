@@ -164,6 +164,7 @@ public class sms_receiver extends BroadcastReceiver {
                             }
                         } else {
                             Log.i(TAG, "send_ussd: No permission.");
+                            return;
                         }
                         break;
                 }
