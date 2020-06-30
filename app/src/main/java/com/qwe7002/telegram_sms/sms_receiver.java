@@ -110,18 +110,21 @@ public class sms_receiver extends BroadcastReceiver {
         String raw_request_body_text = message_head + message_body;
         boolean is_verification_code = false;
         if (sharedPreferences.getBoolean("verification_code", false) && !is_trusted_phone) {
-            CodeauxLibPortable code_aux_lib = new CodeauxLibPortable();
-            String verification = code_aux_lib.find(message_body);
-            if (verification != null) {
-                request_body.parse_mode = "html";
-                message_body_html = message_body
-                        .replace("<", "&lt;")
-                        .replace(">", "&gt;")
-                        .replace("&", "&amp;")
-                        .replace(verification, "<code>" + verification + "</code>");
-                is_verification_code = true;
+            if (message_body.length() <= 140) {
+                CodeauxLibPortable code_aux_lib = new CodeauxLibPortable();
+                String verification = code_aux_lib.find(message_body);
+                if (verification != null) {
+                    request_body.parse_mode = "html";
+                    message_body_html = message_body
+                            .replace("<", "&lt;")
+                            .replace(">", "&gt;")
+                            .replace("&", "&amp;")
+                            .replace(verification, "<code>" + verification + "</code>");
+                    is_verification_code = true;
+                }
+            } else {
+                public_func.write_log(context, "SMS exceeds 140 characters, no verification code is recognized.");
             }
-
         }
         request_body.text = message_head + message_body_html;
         if (is_trusted_phone) {
