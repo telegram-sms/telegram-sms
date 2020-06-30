@@ -77,7 +77,8 @@ public class send_ussd_service extends Service {
         assert telephonyManager != null;
 
         if (sub_id != -1) {
-            telephonyManager.createForSubscriptionId(sub_id);
+            telephonyManager = telephonyManager.createForSubscriptionId(sub_id);
+            Log.d(TAG, "onStartCommand: " + sub_id);
         }
 
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
@@ -97,6 +98,7 @@ public class send_ussd_service extends Service {
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
         String finalUssd = ussd;
+        TelephonyManager finalTelephonyManager = telephonyManager;
         new Thread(() -> {
             String message_id_string = "-1";
             try {
@@ -106,7 +108,7 @@ public class send_ussd_service extends Service {
                 e.printStackTrace();
             }
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
-                telephonyManager.sendUssdRequest(finalUssd, new ussd_request_callback(context, sharedPreferences, Long.parseLong(message_id_string)), handler);
+                finalTelephonyManager.sendUssdRequest(finalUssd, new ussd_request_callback(context, sharedPreferences, Long.parseLong(message_id_string)), handler);
             }
             stopSelf();
         }).start();
