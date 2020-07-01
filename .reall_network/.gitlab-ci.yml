@@ -40,6 +40,7 @@ release_apk:
         - curl https://${KEYSTORE_SERVER}/gitlab-sshkey/github-key.env -o .reall_network/github-key.env -u gitlab:${key_store_passwd}
         - . .reall_network/github-key.env
         - ghr -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -b "$(cat .reall_network/changelog.txt)" "${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M")" "./app/build/outputs/apk/release/app-release.apk"
+
 build_release:
     image: alvrme/alpine-android:android-30
     stage: build
