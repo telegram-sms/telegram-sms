@@ -1,4 +1,4 @@
-- Fix ANR caused by analyzing SMS verification code
+- Fix ANR caused by analyzing SMS verification code(Limit the analysis of text messages larger than 140 words)
 
 - Add the function of transmitting configuration through QR code
 
