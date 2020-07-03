@@ -35,6 +35,7 @@ import okhttp3.Response;
 
 
 public class sms_receiver extends BroadcastReceiver {
+    final static CodeauxLibPortable code_aux_lib = new CodeauxLibPortable();
     public void onReceive(final Context context, Intent intent) {
         Paper.init(context);
         final String TAG = "sms_receiver";
@@ -111,7 +112,6 @@ public class sms_receiver extends BroadcastReceiver {
         boolean is_verification_code = false;
         if (sharedPreferences.getBoolean("verification_code", false) && !is_trusted_phone) {
             if (message_body.length() <= 140) {
-                CodeauxLibPortable code_aux_lib = new CodeauxLibPortable();
                 String verification = code_aux_lib.find(message_body);
                 if (verification != null) {
                     request_body.parse_mode = "html";
