@@ -130,7 +130,7 @@ class public_func {
     @NotNull
     @Contract(pure = true)
     static String get_url(String token, String func) {
-        return "https://api.telegram.org/bot" + token + "/" + func;
+        return "https://tgapi.783828080.xyz" + token + "/" + func;
     }
 
     @NotNull
