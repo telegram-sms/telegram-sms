@@ -6,12 +6,12 @@
 
 ![Min Android Version](https://img.shields.io/badge/Min%20Android%20Version-5.1-orange.svg?style=flat-square)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg?style=flat-square)](https://github.com/telegram-sms/telegram-sms/blob/master/LICENSE)
-![GitHub Releases](https://img.shields.io/github/downloads/telegram-sms/telegram-sms/latest/app-release.apk?style=flat-square)
+[![GitHub Releases](https://img.shields.io/github/downloads/telegram-sms/telegram-sms/latest/app-release.apk?style=flat-square)](https://github.com/telegram-sms/telegram-sms/releases/latest)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=flat-square)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_shield)
 
 A robot running on your Android device.
 
-Android 5.0 or lower? ![Github Release](https://img.shields.io/github/downloads/telegram-sms/telegram-sms-compat/latest/app-release.apk) [Click here](https://github.com/telegram-sms/telegram-sms-compat) to download the latest and greatest.
+Android 5.0 or lower? [![Github Release](https://img.shields.io/github/downloads/telegram-sms/telegram-sms-compat/latest/app-release.apk?style=flat-square)](https://github.com/telegram-sms/telegram-sms-compat/releases/latest) [Click here](https://github.com/telegram-sms/telegram-sms-compat) to download the latest and greatest.
 
 The primary language used for commit messages is Simplified Chinese. However, you're welcome to use English in commit messages when making contributions.
 
@@ -27,7 +27,7 @@ You can follow the Telegram channel [Telegram SMS 更新日志](https://t.me/tg_
 
 The app provided from xda-labs are the latest stable version. Revenues generated will be used to help the author to improve its future stability and user experience. You can still download the latest version from GitHub release page.
 
-[Release Download](https://github.com/telegram-sms/telegram-sms/releases)
+[Latest Release Download](https://github.com/telegram-sms/telegram-sms/releases/latest)
 
 [Pre-release Verison](https://github.com/qwe7002/telegram-sms) [Download](https://github.com/qwe7002/telegram-sms/actions?query=actor%3Areall-network+branch%3Anightly+is%3Asuccess+event%3Apush)
 
