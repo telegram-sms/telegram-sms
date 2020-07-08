@@ -79,7 +79,6 @@
     <string name="request">"Request: "</string>
     <string name="error_message">"Error message: "</string>
     <string name="send_ussd_command">/sendussd - Send USSD request</string>
-
     <string name="ussd_code_running">USSD code running…</string>
     <string name="privacy_reminder_information">You should be aware that using Telegram-SMS means you trust the way we handle your information. We fully understand that it is a significant responsibility, thus we work hard to protect your information and make sure you can take everything under control. Please refer to our privacy policy to understand your rights and better protect your privacy.</string>
     <string name="privacy_reminder_title">Privacy and terms</string>
@@ -93,7 +92,7 @@
     <string name="proxy_username">Username</string>
     <string name="proxy_password">Password</string>
     <string name="keywords">Keywords</string>
-    <string name="spam_sms_keyword_title">SMS blacklist</string>
+    <string name="spam_sms_keyword_title">SMS blocklist</string>
     <string name="proxy_title">Proxy</string>
     <string name="spam_keyword_dialog_title">Please use \";\" to split keywords.</string>
     <string name="proxy_dialog_title">Socks5 proxy setup</string>
