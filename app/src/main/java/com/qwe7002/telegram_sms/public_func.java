@@ -65,13 +65,15 @@ import okhttp3.logging.HttpLoggingInterceptor;
 
 
 class public_func {
+    static final int BATTERY_NOTIFY_ID = 1;
+    static final int CHAT_COMMAND_NOTIFY_ID = 2;
     static final String BROADCAST_STOP_SERVICE = "com.qwe7002.telegram_sms.stop_all";
     static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-    static final int battery_notify_id = 1;
-    static final int chat_command_notify_id = 2;
-    static final int notification_listener_service_notify_id = 3;
-    static final int send_ussd_servce_notify_id = 4;
-    static final int resend_service_notify_id = 5;
+    static final int NOTIFICATION_LISTENER_SERVICE_NOTIFY_ID = 3;
+    static final int SEND_USSD_SERVCE_NOTIFY_ID = 4;
+    static final int RESEND_SERVICE_NOTIFY_ID = 5;
+    private static final String TELEGRAM_API_DOMAIN = "api.telegram.org";
+    private static final String DNS_OVER_HTTP_ADDRSS = "https://cloudflare-dns.com/dns-query";
 
     static long parse_long(String content) {
         long result = 0;
@@ -130,7 +132,7 @@ class public_func {
     @NotNull
     @Contract(pure = true)
     static String get_url(String token, String func) {
-        return "https://api.telegram.org/bot" + token + "/" + func;
+        return "https://" + TELEGRAM_API_DOMAIN + "/bot" + token + "/" + func;
     }
 
     @NotNull
@@ -168,7 +170,7 @@ class public_func {
                 }
             }
             okhttp.dns(new DnsOverHttps.Builder().client(doh_http_client.build())
-                    .url(HttpUrl.get("https://cloudflare-dns.com/dns-query"))
+                    .url(HttpUrl.get(DNS_OVER_HTTP_ADDRSS))
                     .bootstrapDnsHosts(get_by_ip("2606:4700:4700::1001"), get_by_ip("2606:4700:4700::1111"), get_by_ip("1.0.0.1"), get_by_ip("1.1.1.1"))
                     .includeIPv6(true)
                     .build());

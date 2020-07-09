@@ -38,7 +38,7 @@ public class battery_service extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = public_func.get_notification_obj(context, getString(R.string.battery_monitoring_notify));
-        startForeground(public_func.battery_notify_id, notification);
+        startForeground(public_func.BATTERY_NOTIFY_ID, notification);
         return START_STICKY;
     }
 

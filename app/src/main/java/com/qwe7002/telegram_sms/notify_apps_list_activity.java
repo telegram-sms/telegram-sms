@@ -84,17 +84,14 @@ public class notify_apps_list_activity extends AppCompatActivity {
         });
 
         app_list.setAdapter(app_adapter);
-        new Thread() {
-            @Override
-            public void run() {
-                final List<app_info> app_info_list = scan_app_list(notify_apps_list_activity.this.getPackageManager());
-                runOnUiThread(() -> {
-                    ProgressBar scan_label = findViewById(R.id.progress_view);
-                    scan_label.setVisibility(View.GONE);
-                    app_adapter.setData(app_info_list);
-                });
-            }
-        }.start();
+        new Thread(() -> {
+            final List<app_info> app_info_list = scan_app_list(notify_apps_list_activity.this.getPackageManager());
+            runOnUiThread(() -> {
+                ProgressBar scan_label = findViewById(R.id.progress_view);
+                scan_label.setVisibility(View.GONE);
+                app_adapter.setData(app_info_list);
+            });
+        }).start();
     }
 
     static class app_adapter extends BaseAdapter implements Filterable {
