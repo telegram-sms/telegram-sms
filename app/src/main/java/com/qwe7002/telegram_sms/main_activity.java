@@ -551,7 +551,7 @@ public class main_activity extends AppCompatActivity {
                 builder.setPositiveButton(R.string.ok_button, null);
                 builder.show();
                 return true;
-            case R.id.scan:
+            case R.id.scan_menu_item:
                 ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.CAMERA}, 0);
                 return true;
             case R.id.logcat_menu_item:

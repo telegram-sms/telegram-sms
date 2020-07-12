@@ -78,6 +78,7 @@ Character set：
 
 - Name: Fay (菲, フェイ)
 - Birthday: 1st October, 2018
+- Place of birth: Fujian, China
 - Birth sign: Libra
 - Habits: Eat sweets, Maid dress，Listening heavy metal music
 
