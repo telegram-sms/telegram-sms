@@ -65,8 +65,8 @@ public class notify_apps_list_activity extends AppCompatActivity {
         Paper.init(context);
         this.setTitle(getString(R.string.app_list));
         setContentView(R.layout.activity_notify_apps_list);
-        final ListView app_list = findViewById(R.id.app_list_view);
-        final SearchView filter_edit = findViewById(R.id.filter_editor);
+        final ListView app_list = findViewById(R.id.app_listview);
+        final SearchView filter_edit = findViewById(R.id.filter_searchview);
         filter_edit.setIconifiedByDefault(false);
         app_list.setTextFilterEnabled(true);
         app_adapter = new app_adapter(context);
@@ -167,9 +167,9 @@ public class notify_apps_list_activity extends AppCompatActivity {
             if (convert_view == null) {
                 view_holder_object = new view_holder();
                 convert_view = LayoutInflater.from(context).inflate(R.layout.item_app_info, parent, false);
-                view_holder_object.app_icon = convert_view.findViewById(R.id.app_icon);
-                view_holder_object.package_name = convert_view.findViewById(R.id.package_name);
-                view_holder_object.app_name = convert_view.findViewById(R.id.app_name);
+                view_holder_object.app_icon = convert_view.findViewById(R.id.app_icon_imageview);
+                view_holder_object.package_name = convert_view.findViewById(R.id.package_name_textview);
+                view_holder_object.app_name = convert_view.findViewById(R.id.app_name_textview);
                 view_holder_object.app_checkbox = convert_view.findViewById(R.id.select_checkbox);
                 convert_view.setTag(view_holder_object);
             } else {

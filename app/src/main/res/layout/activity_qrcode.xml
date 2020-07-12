@@ -22,7 +22,7 @@
             android:textAlignment="center" />
 
         <ImageView
-            android:id="@+id/qr_image"
+            android:id="@+id/qr_image_imageview"
             android:layout_width="300dp"
             android:layout_height="300dp"
             tools:ignore="ContentDescription" />

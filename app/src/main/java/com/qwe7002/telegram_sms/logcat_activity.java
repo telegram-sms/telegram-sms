@@ -24,7 +24,7 @@ public class logcat_activity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         context = getApplicationContext();
         setContentView(R.layout.activity_logcat);
-        logcat = findViewById(R.id.logcat_view);
+        logcat = findViewById(R.id.logcat_textview);
         this.setTitle(R.string.logcat);
         logcat.setText(public_func.read_log(context, line));
         observer = new file_observer(context, logcat);

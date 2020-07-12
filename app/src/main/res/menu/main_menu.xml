@@ -3,43 +3,43 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/scan"
-        android:icon="@drawable/ic_scan_code"
+        android:icon="@drawable/ic_scan_code_menu_item"
         android:title="@string/scan_title"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/user_manual"
+        android:id="@+id/user_manual_menu_item"
         android:title="@string/user_manual"
         app:showAsAction="never" />
     <item
-        android:id="@+id/privacy_policy"
+        android:id="@+id/privacy_policy_menu_item"
         android:title="@string/privacy_policy"
         app:showAsAction="never" />
     <item
-        android:id="@+id/set_notify"
+        android:id="@+id/set_notify_menu_item"
         android:title="@string/set_notification_listener"
         app:showAsAction="never" />
     <item
-        android:id="@+id/spam_sms_keyword"
+        android:id="@+id/spam_sms_keyword_menu_item"
         android:title="@string/spam_sms_keyword_title"
         app:showAsAction="never" />
     <item
-        android:id="@+id/set_proxy"
+        android:id="@+id/set_proxy_menu_item"
         android:title="@string/proxy_title"
         app:showAsAction="never" />
     <item
-        android:id="@+id/config_qrcode"
+        android:id="@+id/config_qrcode_menu_item"
         android:title="@string/transfer_configuration"
         app:showAsAction="never" />
     <item
-        android:id="@+id/logcat"
+        android:id="@+id/logcat_menu_item"
         android:title="@string/logcat"
         app:showAsAction="never" />
     <item
-        android:id="@+id/donate"
+        android:id="@+id/donate_menu_item"
         android:title="@string/donate"
         app:showAsAction="never" />
     <item
-        android:id="@+id/about"
+        android:id="@+id/about_menu_item"
         android:title="@string/about_title"
         app:showAsAction="never" />
 </menu>

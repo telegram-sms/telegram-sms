@@ -13,7 +13,7 @@
         android:paddingRight="20dp">
 
         <EditText
-            android:id="@+id/spam_sms_keyword"
+            android:id="@+id/spam_sms_keyword_menu_item"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/keywords"

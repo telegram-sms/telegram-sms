@@ -30,8 +30,8 @@
                 android:layout_height="wrap_content">
 
                 <EditText
-                        android:id="@+id/bot_token"
-                        android:layout_width="match_parent"
+                        android:id="@+id/bot_token_editview"
+                    android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/bot_token"
                         android:importantForAutofill="no"
@@ -46,8 +46,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
                 <EditText
-                        android:id="@+id/chat_id"
-                        android:layout_width="match_parent"
+                    android:id="@+id/chat_id_editview"
+                    android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/chat_id"
                         android:importantForAutofill="no"
@@ -61,8 +61,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
                 <EditText
-                        android:id="@+id/trusted_phone_number"
-                        android:layout_width="match_parent"
+                    android:id="@+id/trusted_phone_number_editview"
+                    android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/trusted_phone_number"
                         android:importantForAutofill="no"
@@ -73,31 +73,31 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <Switch
-                    android:id="@+id/fallback_sms"
-                    android:layout_width="match_parent"
+                android:id="@+id/fallback_sms_switch"
+                android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingStart="3dp"
                     android:text="@string/network_error_falls_back_to_sms"
                     tools:ignore="RtlSymmetry" />
 
             <Switch
-                    android:id="@+id/battery_monitoring"
-                    android:layout_width="match_parent"
+                android:id="@+id/battery_monitoring_switch"
+                android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingStart="3dp"
                     android:text="@string/battery_monitoring"
                     tools:ignore="RtlSymmetry" />
 
             <Switch
-                    android:id="@+id/charger_status"
-                    android:layout_width="match_parent"
+                android:id="@+id/charger_status_switch"
+                android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingStart="3dp"
                     android:text="@string/charger_status"
                     tools:ignore="RtlSymmetry" />
             <Switch
-                    android:id="@+id/chat_command"
-                    android:layout_width="match_parent"
+                android:id="@+id/chat_command_switch"
+                android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingStart="3dp"
                     android:text="@string/chat_command"
@@ -110,8 +110,8 @@
                     android:text="@string/using_verification_code_identification"
                     tools:ignore="RtlSymmetry" />
             <Switch
-                    android:id="@+id/display_dual_sim"
-                    android:layout_width="match_parent"
+                android:id="@+id/display_dual_sim_switch"
+                android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingStart="3dp"
                     android:text="@string/display_sim_card_alias_in_dual_card_mode"
@@ -132,15 +132,15 @@
                     tools:ignore="RtlSymmetry" />
 
             <Button
-                    android:id="@+id/get_id"
-                    android:layout_width="match_parent"
+                android:id="@+id/get_id_button"
+                android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                 android:alpha="@dimen/button_alpha"
                     android:text="@string/get_recent_chat_id" />
 
             <Button
-                    android:id="@+id/save"
-                    android:layout_width="match_parent"
+                android:id="@+id/save_button"
+                android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                 android:alpha="@dimen/button_alpha"
                     android:text="@string/test_and_save" />

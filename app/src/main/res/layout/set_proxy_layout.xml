@@ -8,7 +8,7 @@
     android:paddingEnd="20dp">
 
     <Switch
-        android:id="@+id/proxy_enable"
+        android:id="@+id/proxy_enable_switch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
@@ -18,7 +18,7 @@
         tools:ignore="ExtraText,RtlSymmetry" />
 
     <Switch
-        android:id="@+id/doh_over_socks5"
+        android:id="@+id/doh_over_socks5_switch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
@@ -32,7 +32,7 @@
         android:layout_height="wrap_content">
 
         <EditText
-            android:id="@+id/proxy_host"
+            android:id="@+id/proxy_host_editview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/proxy_host"
@@ -48,7 +48,7 @@
         android:layout_height="wrap_content">
 
         <EditText
-            android:id="@+id/proxy_port"
+            android:id="@+id/proxy_port_editview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/proxy_port"
@@ -64,7 +64,7 @@
         android:layout_height="wrap_content">
 
         <EditText
-            android:id="@+id/proxy_username"
+            android:id="@+id/proxy_username_editview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/proxy_username"
@@ -80,7 +80,7 @@
         android:layout_height="wrap_content">
 
         <EditText
-            android:id="@+id/proxy_password"
+            android:id="@+id/proxy_password_editview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/proxy_password"
