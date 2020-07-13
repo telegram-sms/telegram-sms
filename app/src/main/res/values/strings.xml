@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="Lang">en_gb</string>
     <string name="time_format">dd/MMM/yyyy HH:mm:ss z</string>
     <string name="content">"Content: "</string>
     <string name="from">"From: "</string>
