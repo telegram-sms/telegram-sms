@@ -67,7 +67,7 @@ public class call_receiver extends BroadcastReceiver {
             call_status_listener.incoming_number = incoming_number;
         }
 
-        public void onCallStateChanged(int now_state, String incoming_number) {
+        public void onCallStateChanged(int now_state, String now_incoming_number) {
             if (last_receive_status == TelephonyManager.CALL_STATE_RINGING
                     && now_state == TelephonyManager.CALL_STATE_IDLE) {
                 final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
