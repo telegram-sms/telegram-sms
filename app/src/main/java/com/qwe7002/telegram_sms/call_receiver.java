@@ -55,7 +55,7 @@ public class call_receiver extends BroadcastReceiver {
     }
 
     static class call_status_listener extends PhoneStateListener {
-        private static int lastState = TelephonyManager.CALL_STATE_IDLE;
+        private static int last_receive_status = TelephonyManager.CALL_STATE_IDLE;
         private static String incoming_number;
         private final Context context;
         private final int slot;
@@ -67,9 +67,9 @@ public class call_receiver extends BroadcastReceiver {
             call_status_listener.incoming_number = incoming_number;
         }
 
-        public void onCallStateChanged(int state, String incomingNumber) {
-            if (lastState == TelephonyManager.CALL_STATE_RINGING
-                    && state == TelephonyManager.CALL_STATE_IDLE) {
+        public void onCallStateChanged(int now_state, String incoming_number) {
+            if (last_receive_status == TelephonyManager.CALL_STATE_RINGING
+                    && now_state == TelephonyManager.CALL_STATE_IDLE) {
                 final SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
                 if (!sharedPreferences.getBoolean("initialized", false)) {
                     Log.i("call_status_listener", "Uninitialized, Phone receiver is deactivated.");
@@ -81,7 +81,7 @@ public class call_receiver extends BroadcastReceiver {
                 final message_json request_body = new message_json();
                 request_body.chat_id = chat_id;
                 String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
-                request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + incoming_number;
+                request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + call_status_listener.incoming_number;
                 String request_body_raw = new Gson().toJson(request_body);
                 RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
                 OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book().read("proxy_config", new proxy_config()));
@@ -108,16 +108,16 @@ public class call_receiver extends BroadcastReceiver {
                             String result = Objects.requireNonNull(response.body()).string();
                             JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject().get("result").getAsJsonObject();
                             String message_id = result_obj.get("message_id").getAsString();
-                            if (!public_func.is_phone_number(incoming_number)) {
-                                public_func.write_log(context, "[" + incoming_number + "] Not a regular phone number.");
+                            if (!public_func.is_phone_number(call_status_listener.incoming_number)) {
+                                public_func.write_log(context, "[" + call_status_listener.incoming_number + "] Not a regular phone number.");
                                 return;
                             }
-                            public_func.add_message_list(message_id, incoming_number, slot, public_func.get_sub_id(context, slot));
+                            public_func.add_message_list(message_id, call_status_listener.incoming_number, slot, public_func.get_sub_id(context, slot));
                         }
                     }
                 });
             }
-            lastState = state;
+            last_receive_status = now_state;
         }
     }
 }
