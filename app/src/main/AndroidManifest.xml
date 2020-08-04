@@ -73,7 +73,7 @@
             </intent-filter>
         </service>
         <!--
-receiver
+        <receiver
             android:name=".boot_receiver"
             android:directBootAware="true"
             tools:targetApi="n">
@@ -84,7 +84,7 @@ receiver
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </receiver
+        </receiver>
         -->
         <!-- Fix the problem that the configuration file cannot be loaded normally at startup. -->
         <receiver android:name=".boot_receiver">

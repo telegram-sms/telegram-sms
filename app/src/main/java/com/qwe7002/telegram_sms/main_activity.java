@@ -65,14 +65,14 @@ public class main_activity extends AppCompatActivity {
     private static boolean set_permission_back = false;
     private final String TAG = "main_activity";
     private SharedPreferences sharedPreferences;
-    private final String privacy_police = "/guide/" + context.getString(R.string.Lang) + "privacy-policy";
+    private String privacy_police;
     @SuppressLint("BatteryLife")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         context = getApplicationContext();
-
+        privacy_police = "/guide/" + context.getString(R.string.Lang) + "privacy-policy";
         final EditText chat_id_editview = findViewById(R.id.chat_id_editview);
         final EditText bot_token_editview = findViewById(R.id.bot_token_editview);
         final EditText trusted_phone_number_editview = findViewById(R.id.trusted_phone_number_editview);
@@ -84,7 +84,7 @@ public class main_activity extends AppCompatActivity {
         final Switch verification_code_switch = findViewById(R.id.verification_code_switch);
         final Switch privacy_mode_switch = findViewById(R.id.privacy_switch);
         final Switch display_dual_sim_display_name_switch = findViewById(R.id.display_dual_sim_switch);
-        final Button save_button_button = findViewById(R.id.save_button);
+        final Button save_button = findViewById(R.id.save_button);
         final Button get_id_button = findViewById(R.id.get_id_button);
 
 
@@ -323,7 +323,7 @@ public class main_activity extends AppCompatActivity {
             });
         });
 
-        save_button_button.setOnClickListener(v -> {
+        save_button.setOnClickListener(v -> {
             if (bot_token_editview.getText().toString().isEmpty() || chat_id_editview.getText().toString().isEmpty()) {
                 Snackbar.make(v, R.string.chat_id_or_token_not_config, Snackbar.LENGTH_LONG).show();
                 return;

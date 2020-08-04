@@ -59,52 +59,13 @@ public class chat_command_service extends Service {
     private broadcast_receiver broadcast_receiver;
     private PowerManager.WakeLock wakelock;
     private WifiManager.WifiLock wifiLock;
-    private int send_sms_status = -1;
+    private int send_sms_next_status = -1;
     private int send_slot_temp = -1;
     private String send_to_temp;
     private String bot_username = "";
     private final String TAG = "chat_command_service";
     private boolean privacy_mode;
     static Thread thread_main;
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
-        startForeground(public_func.CHAT_COMMAND_NOTIFY_ID, notification);
-        return START_STICKY;
-    }
-
-    @SuppressLint({"InvalidWakeLockTag", "WakelockTimeout"})
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        context = getApplicationContext();
-        Paper.init(context);
-        sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-        chat_id = sharedPreferences.getString("chat_id", "");
-        bot_token = sharedPreferences.getString("bot_token", "");
-        okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book().read("proxy_config", new proxy_config()));
-        privacy_mode = sharedPreferences.getBoolean("privacy_mode", false);
-        wifiLock = ((WifiManager) Objects.requireNonNull(context.getApplicationContext().getSystemService(Context.WIFI_SERVICE))).createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi");
-        wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "bot_command_polling");
-        wifiLock.setReferenceCounted(false);
-        wakelock.setReferenceCounted(false);
-
-        if (!wifiLock.isHeld()) {
-            wifiLock.acquire();
-        }
-        if (!wakelock.isHeld()) {
-            wakelock.acquire();
-        }
-
-        thread_main = new Thread(new thread_main_runnable());
-        thread_main.start();
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(public_func.BROADCAST_STOP_SERVICE);
-        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        broadcast_receiver = new broadcast_receiver();
-        registerReceiver(broadcast_receiver, intentFilter);
-    }
 
     private void receive_handle(@NotNull JsonObject result_obj) {
         String message_type = "";
@@ -343,7 +304,7 @@ public class chat_command_service extends Service {
                 } else {
                     if (message_type_is_private) {
                         has_command = false;
-                        send_sms_status = 0;
+                        send_sms_next_status = SEND_SMS_STATUS.PHONE_INPUT_STATUS;
                         send_slot_temp = -1;
                         if (public_func.get_active_card(context) > 1) {
                             switch (command) {
@@ -370,11 +331,11 @@ public class chat_command_service extends Service {
         }
 
         if (has_command) {
-            send_sms_status = -1;
+            send_sms_next_status = SEND_SMS_STATUS.STANDBY_STATUS;
             send_slot_temp = -1;
             send_to_temp = null;
         }
-        if (!has_command && send_sms_status != -1) {
+        if (!has_command && send_sms_next_status != -1) {
             Log.i(TAG, "receive_handle: Enter the interactive SMS sending mode.");
             String dual_sim = "";
             if (send_slot_temp != -1) {
@@ -382,27 +343,27 @@ public class chat_command_service extends Service {
             }
             String head = "[" + dual_sim + context.getString(R.string.send_sms_head) + "]";
             String result_send = getString(R.string.failed_to_get_information);
-            Log.d(TAG, "Sending mode status: " + send_sms_status);
-            switch (send_sms_status) {
-                case 0:
-                    send_sms_status = 1;
+            Log.d(TAG, "Sending mode status: " + send_sms_next_status);
+            switch (send_sms_next_status) {
+                case SEND_SMS_STATUS.PHONE_INPUT_STATUS:
+                    send_sms_next_status = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS;
                     result_send = getString(R.string.enter_number);
                     break;
-                case 1:
+                case SEND_SMS_STATUS.MESSAGE_INPUT_STATUS:
                     String temp_to = public_func.get_send_phone_number(request_msg);
                     Log.d(TAG, "receive_handle: " + temp_to);
                     if (public_func.is_phone_number(temp_to)) {
                         send_to_temp = temp_to;
                         result_send = getString(R.string.enter_content);
-                        send_sms_status = 2;
+                        send_sms_next_status = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS;
                     } else {
-                        send_sms_status = -1;
+                        send_sms_next_status = SEND_SMS_STATUS.STANDBY_STATUS;
                         send_slot_temp = -1;
                         send_to_temp = null;
                         result_send = getString(R.string.unable_get_phone_number);
                     }
                     break;
-                case 2:
+                case SEND_SMS_STATUS.WAITING_TO_SEND_STATUS:
                     if (public_func.get_active_card(context) == 1) {
                         public_func.send_sms(context, send_to_temp, request_msg, -1, -1);
                         return;
@@ -410,7 +371,7 @@ public class chat_command_service extends Service {
                     int sub_id = public_func.get_sub_id(context, send_slot_temp);
                     if (sub_id != -1) {
                         public_func.send_sms(context, send_to_temp, request_msg, send_slot_temp, sub_id);
-                        send_sms_status = -1;
+                        send_sms_next_status = SEND_SMS_STATUS.STANDBY_STATUS;
                         send_slot_temp = -1;
                         send_to_temp = null;
                         return;
@@ -442,6 +403,52 @@ public class chat_command_service extends Service {
                 }
             }
         });
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
+        startForeground(public_func.CHAT_COMMAND_NOTIFY_ID, notification);
+        return START_STICKY;
+    }
+
+    @SuppressLint({"InvalidWakeLockTag", "WakelockTimeout"})
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        context = getApplicationContext();
+        Paper.init(context);
+        sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        chat_id = sharedPreferences.getString("chat_id", "");
+        bot_token = sharedPreferences.getString("bot_token", "");
+        okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book().read("proxy_config", new proxy_config()));
+        privacy_mode = sharedPreferences.getBoolean("privacy_mode", false);
+        wifiLock = ((WifiManager) Objects.requireNonNull(context.getApplicationContext().getSystemService(Context.WIFI_SERVICE))).createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi");
+        wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "bot_command_polling");
+        wifiLock.setReferenceCounted(false);
+        wakelock.setReferenceCounted(false);
+
+        if (!wifiLock.isHeld()) {
+            wifiLock.acquire();
+        }
+        if (!wakelock.isHeld()) {
+            wakelock.acquire();
+        }
+
+        thread_main = new Thread(new thread_main_runnable());
+        thread_main.start();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(public_func.BROADCAST_STOP_SERVICE);
+        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        broadcast_receiver = new broadcast_receiver();
+        registerReceiver(broadcast_receiver, intentFilter);
+    }
+
+    private static class SEND_SMS_STATUS {
+        public static final int STANDBY_STATUS = -1;
+        public static final int PHONE_INPUT_STATUS = 0;
+        public static final int MESSAGE_INPUT_STATUS = 1;
+        public static final int WAITING_TO_SEND_STATUS = 2;
     }
 
     @Override
