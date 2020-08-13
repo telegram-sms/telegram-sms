@@ -250,7 +250,9 @@ public class chat_command_service extends Service {
                             call.enqueue(new Callback() {
                                 @Override
                                 public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                                    Log.d(TAG, "onFailure: "+e.getMessage());
+                                    Log.d(TAG, "onFailure: " + e.getMessage());
+                                    e.printStackTrace();
+                                    public_func.write_log(context, e.getMessage());
                                 }
 
                                 @Override
