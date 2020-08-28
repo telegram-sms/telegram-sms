@@ -61,6 +61,7 @@ task copy_language_pack(type: Copy) {
     from 'language_pack/'
     into 'src/main/res/'
     exclude '**/README.md'
+    exclude '**/crowdin.yml'
     include '**/*'
 }
 task language_pack_pull(type: Exec) {
