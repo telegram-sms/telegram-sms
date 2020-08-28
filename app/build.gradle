@@ -37,7 +37,7 @@ android {
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
     implementation 'com.google.android.material:material:1.2.0'
     implementation 'androidx.browser:browser:1.2.0'
     implementation 'com.squareup.okio:okio:2.8.0'
@@ -62,4 +62,9 @@ task copy_language_pack(type: Copy) {
     into 'src/main/res/'
     exclude '**/README.md'
     include '**/*'
+}
+task language_pack_pull(type: Exec) {
+    description 'Pulls git.'
+    workingDir 'language_pack/'
+    commandLine "git", "pull"
 }
