@@ -38,7 +38,7 @@
     <string name="chat_command_service_name">"Chat command "</string>
     <string name="success">Success</string>
     <string name="receive_sms_head">Receive SMS</string>
-    <string name="available_command">Available Commands:\n/getinfo - Get system information\n/log - Output the last 10 log records</string>
+    <string name="available_command">Available Commands:\n/help - Display help information\n/getinfo - Get system information\n/log - Output the last 10 log records</string>
     <string name="restart_service">Background service has been restarted.</string>
     <string name="status">"Status: "</string>
     <string name="send_failed">Failed</string>
