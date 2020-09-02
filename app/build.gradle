@@ -58,6 +58,7 @@ repositories {
 }
 
 task copy_language_pack(type: Copy) {
+    description 'Copy the language pack to the source directory, replace the placeholder file'
     from 'language_pack/'
     into 'src/main/res/'
     exclude '**/README.md'
@@ -65,7 +66,7 @@ task copy_language_pack(type: Copy) {
     include '**/*'
 }
 task pull_language_pack(type: Exec) {
-    description 'Pulls git.'
+    description 'Pull remote language pack'
     workingDir 'language_pack/'
     commandLine "git", "pull"
 }
