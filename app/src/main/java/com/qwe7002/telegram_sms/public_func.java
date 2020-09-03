@@ -61,7 +61,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.dnsoverhttps.DnsOverHttps;
-import okhttp3.logging.HttpLoggingInterceptor;
 
 
 class public_func {
@@ -176,11 +175,6 @@ class public_func {
                     .bootstrapDnsHosts(get_by_ip("2606:4700:4700::1001"), get_by_ip("2606:4700:4700::1111"), get_by_ip("1.0.0.1"), get_by_ip("1.1.1.1"))
                     .includeIPv6(true)
                     .build());
-        }
-        if (BuildConfig.DEBUG) {
-            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-            interceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);
-            okhttp.addInterceptor(interceptor);
         }
         return okhttp.build();
     }
