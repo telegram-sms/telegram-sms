@@ -59,14 +59,15 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-
+@SuppressLint("UseSwitchCompatOrMaterialCode")
 public class main_activity extends AppCompatActivity {
     private Context context = null;
     private static boolean set_permission_back = false;
     private final String TAG = "main_activity";
     private SharedPreferences sharedPreferences;
     private String privacy_police;
-    @SuppressLint("BatteryLife")
+
+    @SuppressLint({"BatteryLife", "QueryPermissionsNeeded"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -671,7 +672,7 @@ public class main_activity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
             switch (resultCode) {
-                case RESULT_OK:
+                case public_func.RESULT_CONFIG_JSON:
                     JsonObject json_config = JsonParser.parseString(Objects.requireNonNull(data.getStringExtra("config_json"))).getAsJsonObject();
                     ((EditText) findViewById(R.id.bot_token_editview)).setText(json_config.get("bot_token").getAsString());
                     ((EditText) findViewById(R.id.chat_id_editview)).setText(json_config.get("chat_id").getAsString());
@@ -705,7 +706,7 @@ public class main_activity extends AppCompatActivity {
                         fallback_sms.setChecked(false);
                     }
                     break;
-                case RESULT_FIRST_USER:
+                case public_func.RESULT_BOT_TOKEN:
                     ((EditText) findViewById(R.id.bot_token_editview)).setText(data.getStringExtra("bot_token"));
                     break;
             }

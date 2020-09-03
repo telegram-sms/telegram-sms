@@ -53,10 +53,10 @@ public class scanner_activity extends Activity implements ZXingScannerView.Resul
         Log.d(TAG, "format: " + rawResult.getBarcodeFormat().toString() + " content: " + rawResult.getText());
         if (!json_validate(rawResult.getText())) {
             Intent intent = new Intent().putExtra("bot_token", rawResult.getText());
-            setResult(Activity.RESULT_FIRST_USER, intent);
+            setResult(public_func.RESULT_BOT_TOKEN, intent);
         } else {
             Intent intent = new Intent().putExtra("config_json", rawResult.getText());
-            setResult(Activity.RESULT_OK, intent);
+            setResult(public_func.RESULT_CONFIG_JSON, intent);
         }
 
         finish();
