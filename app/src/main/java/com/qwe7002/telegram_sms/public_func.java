@@ -30,7 +30,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.FileInputStream;
@@ -131,7 +130,6 @@ class public_func {
     }
 
     @NotNull
-    @Contract(pure = true)
     static String get_url(String token, String func) {
         return "https://" + TELEGRAM_API_DOMAIN + "/bot" + token + "/" + func;
     }
