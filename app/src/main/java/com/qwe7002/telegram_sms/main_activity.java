@@ -337,6 +337,13 @@ public class main_activity extends AppCompatActivity {
                 show_privacy_dialog();
                 return;
             }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                //Cancel the bug of automatic revoke permission
+                final PackageManager pm = getApplicationContext().getPackageManager();
+                if (!pm.isAutoRevokeWhitelisted()) {
+                    startActivity(new Intent(Intent.ACTION_AUTO_REVOKE_PERMISSIONS));
+                }
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.CALL_PHONE, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG}, 1);
 
