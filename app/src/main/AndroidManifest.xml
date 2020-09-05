@@ -78,21 +78,7 @@
                 <data android:scheme="mmsto" />
             </intent-filter>
         </service>
-        <!--
-        <receiver
-            android:name=".boot_receiver"
-            android:directBootAware="true"
-            tools:targetApi="n">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </receiver>
-        -->
-        <!-- Fix the problem that the configuration file cannot be loaded normally at startup. -->
         <receiver android:name=".boot_receiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
