@@ -73,7 +73,7 @@ public class main_activity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         context = getApplicationContext();
-        privacy_police = "/guide/" + context.getString(R.string.Lang) + "privacy-policy";
+        privacy_police = "/guide/" + context.getString(R.string.Lang) + "/privacy-policy";
         final EditText chat_id_editview = findViewById(R.id.chat_id_editview);
         final EditText bot_token_editview = findViewById(R.id.bot_token_editview);
         final EditText trusted_phone_number_editview = findViewById(R.id.trusted_phone_number_editview);
