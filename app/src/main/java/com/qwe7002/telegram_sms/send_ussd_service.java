@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import io.paperdb.Paper;
@@ -36,6 +37,45 @@ import okhttp3.Response;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class send_ussd_service extends Service {
+    private static Map<Character, Integer> getNineKeyMap() {
+        return new HashMap<Character, Integer>() {
+            {
+                put('A', 2);
+                put('B', 2);
+                put('C', 2);
+                put('D', 3);
+                put('E', 3);
+                put('F', 3);
+                put('G', 4);
+                put('H', 4);
+                put('I', 4);
+                put('J', 5);
+                put('K', 5);
+                put('L', 5);
+                put('M', 6);
+                put('N', 6);
+                put('O', 6);
+                put('P', 7);
+                put('Q', 7);
+                put('R', 7);
+                put('S', 7);
+                put('T', 8);
+                put('U', 8);
+                put('V', 8);
+                put('W', 9);
+                put('X', 9);
+                put('Y', 9);
+                put('Z', 9);
+            }
+        };
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
     @Override
     public int onStartCommand(@NotNull Intent intent, int flags, int startId) {
         Context context = getApplicationContext();
@@ -63,7 +103,7 @@ public class send_ussd_service extends Service {
         ussd = ussd.toUpperCase();
         //Convert to digital command.
         StringBuilder ussd_sb = new StringBuilder();
-        HashMap<Character, Integer> nine_key_map = getNineKeyMap();
+        final Map<Character, Integer> nine_key_map = getNineKeyMap();
         char[] ussd_char_array = ussd.toCharArray();
         for (char c : ussd_char_array) {
             if (Character.isUpperCase(c)) {
@@ -117,43 +157,6 @@ public class send_ussd_service extends Service {
             stopSelf();
         }).start();
         return START_NOT_STICKY;
-    }
-
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-    private HashMap<Character, Integer> getNineKeyMap() {
-        HashMap<Character, Integer> nine_key_map = new HashMap<>();
-        nine_key_map.put('A', 2);
-        nine_key_map.put('B', 2);
-        nine_key_map.put('C', 2);
-        nine_key_map.put('D', 3);
-        nine_key_map.put('E', 3);
-        nine_key_map.put('F', 3);
-        nine_key_map.put('G', 4);
-        nine_key_map.put('H', 4);
-        nine_key_map.put('I', 4);
-        nine_key_map.put('J', 5);
-        nine_key_map.put('K', 5);
-        nine_key_map.put('L', 5);
-        nine_key_map.put('M', 6);
-        nine_key_map.put('N', 6);
-        nine_key_map.put('O', 6);
-        nine_key_map.put('P', 7);
-        nine_key_map.put('Q', 7);
-        nine_key_map.put('R', 7);
-        nine_key_map.put('S', 7);
-        nine_key_map.put('T', 8);
-        nine_key_map.put('U', 8);
-        nine_key_map.put('V', 8);
-        nine_key_map.put('W', 9);
-        nine_key_map.put('X', 9);
-        nine_key_map.put('Y', 9);
-        nine_key_map.put('Z', 9);
-        return nine_key_map;
     }
 
 }
