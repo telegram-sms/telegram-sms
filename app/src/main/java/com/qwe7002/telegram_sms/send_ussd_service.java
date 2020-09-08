@@ -24,6 +24,7 @@ import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Objects;
 
 import io.paperdb.Paper;
@@ -61,14 +62,17 @@ public class send_ussd_service extends Service {
         assert ussd != null;
         ussd = ussd.toUpperCase();
         //Convert to digital command.
-        ussd = ussd.replaceAll("[ABC]", "2");
-        ussd = ussd.replaceAll("[DEF]", "3");
-        ussd = ussd.replaceAll("[GHI]", "4");
-        ussd = ussd.replaceAll("[JKL]", "5");
-        ussd = ussd.replaceAll("[MNO]", "6");
-        ussd = ussd.replaceAll("[P-S]", "7");
-        ussd = ussd.replaceAll("[TUV]", "8");
-        ussd = ussd.replaceAll("[W-Z]", "9");
+        StringBuilder ussd_sb = new StringBuilder();
+        HashMap<Character, Integer> nine_key_map = getNineKeyMap();
+        char[] ussd_char_array = ussd.toCharArray();
+        for (char c : ussd_char_array) {
+            if (Character.isUpperCase(c)) {
+                ussd_sb.append(nine_key_map.get(c));
+            } else {
+                ussd_sb.append(c);
+            }
+        }
+        ussd = ussd_sb.toString();
 
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         String TAG = "Send ussd";
@@ -121,5 +125,35 @@ public class send_ussd_service extends Service {
         return null;
     }
 
+    private HashMap<Character, Integer> getNineKeyMap() {
+        HashMap<Character, Integer> nine_key_map = new HashMap<>();
+        nine_key_map.put('A', 2);
+        nine_key_map.put('B', 2);
+        nine_key_map.put('C', 2);
+        nine_key_map.put('D', 3);
+        nine_key_map.put('E', 3);
+        nine_key_map.put('F', 3);
+        nine_key_map.put('G', 4);
+        nine_key_map.put('H', 4);
+        nine_key_map.put('I', 4);
+        nine_key_map.put('J', 5);
+        nine_key_map.put('K', 5);
+        nine_key_map.put('L', 5);
+        nine_key_map.put('M', 6);
+        nine_key_map.put('N', 6);
+        nine_key_map.put('O', 6);
+        nine_key_map.put('P', 7);
+        nine_key_map.put('Q', 7);
+        nine_key_map.put('R', 7);
+        nine_key_map.put('S', 7);
+        nine_key_map.put('T', 8);
+        nine_key_map.put('U', 8);
+        nine_key_map.put('V', 8);
+        nine_key_map.put('W', 9);
+        nine_key_map.put('X', 9);
+        nine_key_map.put('Y', 9);
+        nine_key_map.put('Z', 9);
+        return nine_key_map;
+    }
 
 }
