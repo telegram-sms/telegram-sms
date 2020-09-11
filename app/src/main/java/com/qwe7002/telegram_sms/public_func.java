@@ -46,7 +46,9 @@ import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -75,7 +77,50 @@ class public_func {
     private static final String TELEGRAM_API_DOMAIN = "api.telegram.org";
     private static final String DNS_OVER_HTTP_ADDRSS = "https://cloudflare-dns.com/dns-query";
 
-    static long parse_long(String content) {
+    static String get_nine_key_map_convert(String input) {
+        final Map<Character, Integer> nine_key_map = new HashMap<Character, Integer>() {
+            {
+                put('A', 2);
+                put('B', 2);
+                put('C', 2);
+                put('D', 3);
+                put('E', 3);
+                put('F', 3);
+                put('G', 4);
+                put('H', 4);
+                put('I', 4);
+                put('J', 5);
+                put('K', 5);
+                put('L', 5);
+                put('M', 6);
+                put('N', 6);
+                put('O', 6);
+                put('P', 7);
+                put('Q', 7);
+                put('R', 7);
+                put('S', 7);
+                put('T', 8);
+                put('U', 8);
+                put('V', 8);
+                put('W', 9);
+                put('X', 9);
+                put('Y', 9);
+                put('Z', 9);
+            }
+        };
+        StringBuilder result_stringbuilder = new StringBuilder();
+        char[] ussd_char_array = input.toUpperCase().toCharArray();
+        for (char c : ussd_char_array) {
+            if (Character.isUpperCase(c)) {
+                result_stringbuilder.append(nine_key_map.get(c));
+            } else {
+                result_stringbuilder.append(c);
+            }
+        }
+        return result_stringbuilder.toString();
+    }
+
+    static long parse_string_to_long(String content) {
         long result = 0;
         try {
             result = Long.parseLong(content);
@@ -104,6 +149,7 @@ class public_func {
 
     @NotNull
     static String get_send_phone_number(@NotNull String phone_number) {
+        phone_number = get_nine_key_map_convert(phone_number);
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < phone_number.length(); ++i) {
             char c = phone_number.charAt(i);

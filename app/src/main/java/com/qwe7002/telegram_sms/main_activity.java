@@ -100,7 +100,7 @@ public class main_activity extends AppCompatActivity {
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
 
-        if (public_func.parse_long(chat_id_save) < 0) {
+        if (public_func.parse_string_to_long(chat_id_save) < 0) {
             privacy_mode_switch.setVisibility(View.VISIBLE);
         } else {
             privacy_mode_switch.setVisibility(View.GONE);
@@ -351,8 +351,7 @@ public class main_activity extends AppCompatActivity {
                 assert powerManager != null;
                 boolean has_ignored = powerManager.isIgnoringBatteryOptimizations(getPackageName());
                 if (!has_ignored) {
-                    Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).setData(Uri.parse("package:" + getPackageName()));
                     if (intent.resolveActivityInfo(getPackageManager(), PackageManager.MATCH_DEFAULT_ONLY) != null) {
                         startActivity(intent);
                     }
@@ -450,7 +449,7 @@ public class main_activity extends AppCompatActivity {
             privacy_mode_switch.setChecked(false);
             return;
         }
-        if (public_func.parse_long(chat_id) < 0) {
+        if (public_func.parse_string_to_long(chat_id) < 0) {
             privacy_mode_switch.setVisibility(View.VISIBLE);
         } else {
             privacy_mode_switch.setVisibility(View.GONE);
