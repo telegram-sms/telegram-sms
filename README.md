@@ -108,6 +108,8 @@ I would also like to thank the following people for their hard work to localise 
 - Japanese
   - [@Lollycc](https://github.com/lollycc)
   - [@AisakaMk2](https://github.com/AisakaMk2)
+- Spanish
+  - [@David Alonso](https://github.com/lpdavidgc)
 
 This APP uses the following public DNS service:
 
