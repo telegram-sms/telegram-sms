@@ -52,6 +52,8 @@ public class chat_command_service extends Service {
     private static int magnification = 1;
     private static int error_magnification = 1;
     private static SharedPreferences sharedPreferences;
+    private static int send_sms_next_status = SEND_SMS_STATUS.STANDBY_STATUS;
+
     private String chat_id;
     private String bot_token;
     private Context context;
@@ -59,7 +61,6 @@ public class chat_command_service extends Service {
     private broadcast_receiver broadcast_receiver;
     private PowerManager.WakeLock wakelock;
     private WifiManager.WifiLock wifiLock;
-    private int send_sms_next_status = -1;
     private int send_slot_temp = -1;
     private String send_to_temp;
     private String bot_username = "";

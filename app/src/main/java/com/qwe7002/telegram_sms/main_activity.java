@@ -67,7 +67,7 @@ public class main_activity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private String privacy_police;
 
-    @SuppressLint({"BatteryLife", "QueryPermissionsNeeded"})
+    @SuppressLint({"BatteryLife"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -647,13 +647,13 @@ public class main_activity extends AppCompatActivity {
                         .show();
                 return true;
             case R.id.user_manual_menu_item:
-                file_name = "/guide/" + context.getString(R.string.Lang) + "user-manual";
+                file_name = "/guide/" + context.getString(R.string.Lang) + "/user-manual";
                 break;
             case R.id.privacy_policy_menu_item:
                 file_name = privacy_police;
                 break;
             case R.id.question_and_answer_menu_item:
-                file_name = "/guide/" + context.getString(R.string.Lang) + "Q&A";
+                file_name = "/guide/" + context.getString(R.string.Lang) + "/Q&A";
                 break;
             case R.id.donate_menu_item:
                 file_name = "/donate";
