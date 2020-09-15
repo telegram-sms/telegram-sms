@@ -189,7 +189,7 @@ public class main_activity extends AppCompatActivity {
         display_dual_sim_display_name_switch.setOnClickListener(v -> {
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
                 display_dual_sim_display_name_switch.setChecked(false);
-                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
             } else {
                 if (public_func.get_active_card(context) < 2) {
                     display_dual_sim_display_name_switch.setEnabled(false);
@@ -559,7 +559,7 @@ public class main_activity extends AppCompatActivity {
                 builder.show();
                 return true;
             case R.id.scan_menu_item:
-                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.CAMERA}, 0);
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 0);
                 return true;
             case R.id.logcat_menu_item:
                 Intent logcat_intent = new Intent(this, logcat_activity.class);
@@ -580,7 +580,7 @@ public class main_activity extends AppCompatActivity {
                     set_permission_back = true;
                     return false;
                 }
-                startActivity(new Intent(main_activity.this, notify_apps_list_activity.class));
+                startActivity(new Intent(this, notify_apps_list_activity.class));
                 return true;
             case R.id.spam_sms_keyword_menu_item:
                 View spam_dialog_view = inflater.inflate(R.layout.set_keyword_layout, null);

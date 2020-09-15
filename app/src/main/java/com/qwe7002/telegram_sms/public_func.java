@@ -109,8 +109,8 @@ class public_func {
             }
         };
         StringBuilder result_stringbuilder = new StringBuilder();
-        char[] ussd_char_array = input.toUpperCase().toCharArray();
-        for (char c : ussd_char_array) {
+        char[] phone_number_char_array = input.toUpperCase().toCharArray();
+        for (char c : phone_number_char_array) {
             if (Character.isUpperCase(c)) {
                 result_stringbuilder.append(nine_key_map.get(c));
             } else {

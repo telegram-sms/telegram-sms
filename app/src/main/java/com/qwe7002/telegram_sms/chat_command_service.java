@@ -338,7 +338,7 @@ public class chat_command_service extends Service {
             send_slot_temp = -1;
             send_to_temp = null;
         }
-        if (!has_command && send_sms_next_status != -1) {
+        if (!has_command && send_sms_next_status != SEND_SMS_STATUS.STANDBY_STATUS) {
             Log.i(TAG, "receive_handle: Enter the interactive SMS sending mode.");
             String dual_sim = "";
             if (send_slot_temp != -1) {
