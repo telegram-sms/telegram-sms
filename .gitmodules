@@ -4,3 +4,6 @@
 [submodule "app/src/main/java/com/github/sumimakito/awesomeqrcode"]
 	path = app/src/main/java/com/github/sumimakito/awesomeqrcode
 	url = https://github.com/telegram-sms/AwesomeQrRenderer.git
+[submodule "app/src/main/java/com/github/sumimakito/codeauxlib"]
+	path = app/src/main/java/com/github/sumimakito/codeauxlib
+	url = https://github.com/telegram-sms/CodeauxLibPortable.git
