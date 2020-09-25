@@ -1,6 +1,6 @@
 # Telegram SMS
 
-## An SMS-forwarding robot running on your Android device.
+## An SMS-forwarding Robot Running on Your Android Device.
 
 ![Min Android Version](https://img.shields.io/badge/Min%20Android%20Version-5.1-orange.svg?style=flat-square)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg?style=flat-square)](https://github.com/telegram-sms/telegram-sms/blob/master/LICENSE)
@@ -11,7 +11,7 @@
 
 > Fight COVID-19. Stay at home. Save lives.
 
-## News, Qustions and Contributions
+## News, Questions and Contributions
 
 You can follow the Telegram channel [Telegram SMS 更新日志](https://t.me/tg_sms_changelog) for the latest news. (Simplified Chinese only)
 
