@@ -15,11 +15,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.CAMERA" />
-
-    <!-- Required permissions to send USSD -->
+    <uses-permission android:name="android.permission.CAMERA" /> <!-- Required permissions to send USSD -->
     <uses-permission android:name="android.permission.CALL_PHONE" />
-
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
@@ -34,6 +31,12 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning,RtlEnabled"
         tools:targetApi="n">
+
+        <activity android:name=".spam_list_activity"
+            android:label="@string/spam_sms_keyword_title"
+        />
+
+
         <service android:name=".resend_service" />
         <service android:name=".send_ussd_service" />
 
@@ -61,7 +64,6 @@
             android:exported="false"
             android:permission="android.permission.INTERNET"
             android:process=":command" />
-
         <service
             android:name=".battery_service"
             android:enabled="true"

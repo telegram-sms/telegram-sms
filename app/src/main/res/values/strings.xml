@@ -92,10 +92,11 @@
     <string name="proxy_port">Port</string>
     <string name="proxy_username">Username</string>
     <string name="proxy_password">Password</string>
-    <string name="keywords">Keywords</string>
-    <string name="spam_sms_keyword_title">SMS blocklist</string>
+    <string name="keywords">Keyword</string>
+    <string name="spam_sms_keyword_title">SMS Blocklist</string>
     <string name="proxy_title">Proxy</string>
-    <string name="spam_keyword_dialog_title">Please use \";\" to split keywords.</string>
+    <string name="spam_keyword_edit_title">Edit Keyword</string>
+    <string name="spam_keyword_add_title">Add Keyword</string>
     <string name="proxy_dialog_title">Socks5 proxy setup</string>
     <string name="set_notification_listener">Notification listener</string>
     <string name="time">"Time: "</string>
