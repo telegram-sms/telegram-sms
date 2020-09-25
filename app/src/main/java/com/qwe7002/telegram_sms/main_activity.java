@@ -46,7 +46,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -584,29 +583,6 @@ public class main_activity extends AppCompatActivity {
                 return true;
             case R.id.spam_sms_keyword_menu_item:
                 startActivity(new Intent(this, spam_list_activity.class));
-//                View spam_dialog_view = inflater.inflate(R.layout.set_keyword_layout, null);
-//                final EditText editText = spam_dialog_view.findViewById(R.id.spam_sms_keyword_menu_item);
-//                ArrayList<String> black_keyword_list_old = Paper.book().read("black_keyword_list", new ArrayList<>());
-//                StringBuilder black_keyword_list_old_string = new StringBuilder();
-//                int count = 0;
-//                for (String list_item : black_keyword_list_old) {
-//                    if (count != 0) {
-//                        black_keyword_list_old_string.append(";");
-//                    }
-//                    ++count;
-//                    black_keyword_list_old_string.append(list_item);
-//                }
-//                editText.setText(black_keyword_list_old_string);
-//                new AlertDialog.Builder(this).setTitle(R.string.spam_keyword_dialog_title)
-//                        .setView(spam_dialog_view)
-//                        .setPositiveButton("OK", (dialog, which) -> {
-//                            String input = editText.getText().toString();
-//                            if (input.length() != 0) {
-//                                String[] black_keyword_list = input.split(";");
-//                                Paper.book().write("black_keyword_list", new ArrayList<>(Arrays.asList(black_keyword_list)));
-//                            }
-//                        })
-//                        .show();
                 return true;
             case R.id.set_proxy_menu_item:
                 View proxy_dialog_view = inflater.inflate(R.layout.set_proxy_layout, null);

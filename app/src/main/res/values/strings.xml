@@ -92,11 +92,11 @@
     <string name="proxy_port">Port</string>
     <string name="proxy_username">Username</string>
     <string name="proxy_password">Password</string>
-    <string name="keywords">Keyword</string>
-    <string name="spam_sms_keyword_title">SMS Blocklist</string>
-    <string name="proxy_title">Proxy</string>
+    <string name="keywords">Keywords</string>
+    <string name="spam_sms_keyword_title">SMS blocklist</string>
     <string name="spam_keyword_edit_title">Edit Keyword</string>
     <string name="spam_keyword_add_title">Add Keyword</string>
+    <string name="proxy_title">Proxy</string>
     <string name="proxy_dialog_title">Socks5 proxy setup</string>
     <string name="set_notification_listener">Notification listener</string>
     <string name="time">"Time: "</string>
@@ -110,4 +110,6 @@
     <string name="about_content">"Developer: qwe7002\nEnglish translation: @tangbao @jixunmoe\nCurrent version: "</string>
     <string name="send_ussd_dual_command">"/sendussd1 - Send USSD request using SIM slot 1\n/sendussd2 - Send USSD request using SIM slot 2"</string>
     <string name="qrcode_notice">Keep this QR code safe!\nPlease don\'t share it with others.</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="delete_button">Delete</string>
 </resources>
