@@ -1,37 +1,43 @@
 # Telegram SMS
 
-## We're in this together
-
-> Fight COVID-19. Stay at home. Save lives.
+## An SMS-forwarding robot running on your Android device.
 
 ![Min Android Version](https://img.shields.io/badge/Min%20Android%20Version-5.1-orange.svg?style=flat-square)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg?style=flat-square)](https://github.com/telegram-sms/telegram-sms/blob/master/LICENSE)
 [![GitHub Releases](https://img.shields.io/github/downloads/telegram-sms/telegram-sms/latest/app-release.apk?style=flat-square)](https://github.com/telegram-sms/telegram-sms/releases/latest)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=flat-square)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_shield)
 
-A robot running on your Android device.
+## We're in this together
 
-Android 5.0 or lower? [![Github Release](https://img.shields.io/github/downloads/telegram-sms/telegram-sms-compat/latest/app-release.apk?style=flat-square)](https://github.com/telegram-sms/telegram-sms-compat/releases/latest) [Click here](https://github.com/telegram-sms/telegram-sms-compat) to download the latest and greatest.
+> Fight COVID-19. Stay at home. Save lives.
 
-The primary language used for commit messages is Simplified Chinese. However, you're welcome to use English in commit messages when making contributions.
+## News, Qustions and Contributions
+
+You can follow the Telegram channel [Telegram SMS 更新日志](https://t.me/tg_sms_changelog) for the latest news. (Simplified Chinese only)
 
 **Please visit [https://reall.uk](https://reall.uk) to submit and discuss issues regarding this project.**
 
 **请访问 [https://reall.uk](https://reall.uk) 提交并讨论有关此项目的问题。**
 
-You can follow the Telegram channel [Telegram SMS 更新日志](https://t.me/tg_sms_changelog) for the latest news. (Simplified Chinese only)
+The primary language used for commit messages is Simplified Chinese. However, you're welcome to use English in commit messages when making contributions.
 
-**Warning**: All versions are not compatible (not signed by the same key)! You will have to uninstall one to install the other, which will delete all your data.
+## Get the Right Version
 
-[XDA Labs](https://labs.xda-developers.com/store/app/com.qwe7002.telegram_sms)
+**Warning**: All versions are not compatible (not signed by the same key)! You have to uninstall one first to install another, which will delete all your data.
 
-The app provided from xda-labs are the latest stable version. Revenues generated will be used to help the author to improve its future stability and user experience. You can still download the latest version from GitHub release page.
+[XDA Labs Download](https://labs.xda-developers.com/store/app/com.qwe7002.telegram_sms)
+
+The APP distributed by XDA Labs is the latest stable version. Revenues generated will be used to help the author to improve its future stability and user experience. You can still download the latest version from the following GitHub release page.
 
 [Latest Release Download](https://github.com/telegram-sms/telegram-sms/releases/latest)
 
 [Pre-release Verison](https://github.com/qwe7002/telegram-sms) [Download](https://github.com/qwe7002/telegram-sms/actions?query=actor%3Areall-network+branch%3Anightly+is%3Asuccess+event%3Apush)
 
-**No warranty expressed or implied. Use at your own risk. You have been warned.**
+**NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK!**
+
+[Telegram SMS compat](https://github.com/telegram-sms/telegram-sms-compat)
+
+Android 5.0 or lower? Click [![Github Release](https://img.shields.io/github/downloads/telegram-sms/telegram-sms-compat/latest/app-release.apk?style=flat-square)](https://github.com/telegram-sms/telegram-sms-compat/releases/latest) to download the latest and greatest.
 
 ## Features
 
@@ -51,16 +57,16 @@ This app requires following permissions to work properly:
 - Camera: Scan the QR code and quickly enter the Bot Token.
 - Notification access: Listen for notification messages.
 
-You can set this app as the default SMS app, which will prevent SMS notifications and set all received SMS as "read".
+You can set this APP as the default SMS APP, which will stop popping up SMS notifications and set all received SMS as "read" on the phone.
 
-## User manual
+## User Manual
 
 - [English](https://get.telegram-sms.com/wiki/User_manual)
 - [简体中文](https://get.telegram-sms.com/wiki/用户手册)
 - [繁體中文](https://get.telegram-sms.com/wiki/用戶手冊)
 - [日本語](https://get.telegram-sms.com/wiki/マニュアル)
 
-## License
+## Licenses
 
 Telegram-SMS is licensed under [BSD 3-Clause License](https://get.telegram-sms.com/license).
 
@@ -68,21 +74,21 @@ Telegram-SMS is licensed under [BSD 3-Clause License](https://get.telegram-sms.c
 
 CodeauxLib is licensed under [BSD 3-Clause License](https://github.com/telegram-sms/telegram-sms/blob/master/codeauxlib-license/LICENSE).
 
+Artwork Use free fonts licensed by the whole society: [站酷庆科黄油体](https://www.zcool.com.cn/work/ZMTg5MDEyMDQ=.html)
+
 Copyright of the artwork belongs to [@walliant](https://www.pixiv.net/member.php?id=5600144). Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
-Download resource file: [mega.nz](https://mega.nz/#F!TmwQSYjD!XN-uVfciajwy3okjIdpCAQ)
-
-Artwork Use free fonts licensed by the whole society: [站酷庆科黄油体](https://www.zcool.com.cn/work/ZMTg5MDEyMDQ=.html)
+Download resource file of the artwork: [mega.nz](https://mega.nz/#F!TmwQSYjD!XN-uVfciajwy3okjIdpCAQ)
 
 Character set：
 
 - Name: Fay (菲, フェイ)
 - Birthday: 1st October, 2018
 - Place of birth: Fujian, China
-- Birth sign: Libra
-- Habits: Eat sweets, Maid dress，Listening heavy metal music
+- Zodiac sign: Libra
+- Habits: Eat sweets, Maid dress, Listen heavy metal music
 
-Designed by Reall with Love in Fujian, China
+Designed by Reall with love in Fujian, China
 
 ## Acknowledgements
 
@@ -94,7 +100,7 @@ This APP uses the following open source libraries:
 - [Paper](https://github.com/pilgr/Paper)
 - [AwesomeQRCode](https://github.com/SumiMakito/AwesomeQRCode)
 
-The creation of this APP would not be possible without help from the following people:
+The creation of this APP would not be possible without the help from the following people:
 
 - [@SumiMakito](https://github.com/SumiMakito) ([Donate](https://paypal.me/makito))
 - [@zsxsoft](https://github.com/zsxsoft)
@@ -122,6 +128,6 @@ And finally, [sm.ms](https://sm.ms) for hosting images used in this page.
 - [via Github](https://get.telegram-sms.com/donate/github)
 - [via Paypal](https://get.telegram-sms.com/donate/paypal)
 - [via Bitcoin](bitcoin:17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae) (**17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae**)
-- [via UnionPay(中国银联云闪付)](https://get.telegram-sms.com/donate/unionpay)
+- [via UnionPay (中国银联云闪付)](https://get.telegram-sms.com/donate/unionpay)
 
 Your donation will make me work better for this project.
