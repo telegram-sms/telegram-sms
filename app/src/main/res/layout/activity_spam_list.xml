@@ -16,12 +16,12 @@
 
         app:layout_behavior=".fab_scroll_behavior"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:ignore="ContentDescription" />
 
     <ListView
         android:id="@+id/spam_list"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
-    </ListView>
+        android:layout_height="match_parent" />
 
 </FrameLayout>
