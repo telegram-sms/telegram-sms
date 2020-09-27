@@ -45,7 +45,7 @@ public class qrcode_show_activity extends AppCompatActivity {
         AwesomeQrRenderer renderer = new AwesomeQrRenderer();
         ByteMatrix byte_matrix;
         try {
-            QRCode qrcode = renderer.getProtoQrCode(content, ErrorCorrectionLevel.Q);
+            QRCode qrcode = renderer.getProtoQrCode(content, ErrorCorrectionLevel.H);
             byte_matrix = qrcode.getMatrix();
         } catch (WriterException e) {
             e.printStackTrace();
