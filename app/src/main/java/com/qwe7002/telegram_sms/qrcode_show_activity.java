@@ -31,8 +31,7 @@ public class qrcode_show_activity extends AppCompatActivity {
         config.verification_code = sharedPreferences.getBoolean("verification_code", false);
         config.privacy_mode = sharedPreferences.getBoolean("privacy_mode", false);
         ImageView qr_image_imageview = findViewById(R.id.qr_image_imageview);
-        AwesomeQrRenderer renderer = new AwesomeQrRenderer();
-        qr_image_imageview.setImageBitmap(renderer.genQRcodeBitmap(new Gson().toJson(config), ErrorCorrectionLevel.H, 600, 600));
+        qr_image_imageview.setImageBitmap(new AwesomeQrRenderer().genQRcodeBitmap(new Gson().toJson(config), ErrorCorrectionLevel.H, 600, 600));
     }
 
 
