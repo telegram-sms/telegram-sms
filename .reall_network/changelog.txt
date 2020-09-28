@@ -1,0 +1,11 @@
+-  Add Spanish translation, thanks to [@lpdavidgc](https://github.com/lpdavidgc)
+
+- Modify the grammar of the Japanese language pack, thanks to [@Qiaogun](https://github.com/Qiaogun)
+
+- Implement QRcode synchronization configuration
+
+- Add a redesigned SMS filter blacklist page
+
+- Fix stability issues
+
+- Make it compatible with API 30 to avoid automatic clearance of permissions
