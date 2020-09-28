@@ -23,6 +23,8 @@ You can follow the Telegram channel [Telegram SMS 更新日志](https://t.me/tg_
 
 The primary language used for commit messages is Simplified Chinese. However, you're welcome to use English in commit messages when making contributions.
 
+If you want to generate the configuration QR code in a fast way, please visit [qrcode.telegram-sms.com](https://qrcode.telegram-sms.com).
+
 ## Get the Right Version
 
 **Warning**: All versions are not compatible (not signed by the same key)! You have to uninstall one first to install another, which will delete all your data.
@@ -40,6 +42,7 @@ The APP distributed by XDA Labs is the latest stable version. Revenues generated
 [Telegram SMS compat](https://github.com/telegram-sms/telegram-sms-compat)
 
 Android 5.0 or lower? Click [![Github Release](https://img.shields.io/github/downloads/telegram-sms/telegram-sms-compat/latest/app-release.apk?style=flat-square)](https://github.com/telegram-sms/telegram-sms-compat/releases/latest) to download the latest and greatest.
+
 
 ## Features
 
