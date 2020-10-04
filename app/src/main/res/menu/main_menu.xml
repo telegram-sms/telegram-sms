@@ -35,6 +35,7 @@
     <item
         android:id="@+id/config_qrcode_menu_item"
         android:title="@string/transfer_configuration"
+        android:visible="false"
         app:showAsAction="never" />
     <item
         android:id="@+id/logcat_menu_item"
