@@ -83,6 +83,8 @@ Artwork Use free fonts licensed by the whole society: [站酷庆科黄油体](ht
 
 Copyright of the artwork belongs to [@walliant](https://www.pixiv.net/member.php?id=5600144). Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
+Cover Author: [@YJBeetle](https://github.com/yjbeetle)
+
 Download resource file of the artwork: [mega.nz](https://mega.nz/#F!TmwQSYjD!XN-uVfciajwy3okjIdpCAQ)
 
 Character set：
@@ -91,7 +93,7 @@ Character set：
 - Birthday: 1st October, 2018
 - Place of birth: Fujian, China
 - Zodiac sign: Libra
-- Habits: Eat sweets, Maid dress, Listen heavy metal music
+- Habits: Eat sweets, Maid dress, Listen Heavy metal music
 
 Designed by Reall with love in Fujian, China
 
