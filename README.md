@@ -15,7 +15,7 @@
 
 ## News, Questions and Contributions
 
-You can follow the Telegram channel [Telegram SMS 更新日志](https://t.me/tg_sms_changelog) for the latest news. (Simplified Chinese only)
+You can follow the Telegram channel Telegram SMS Change Log for the latest news. [Simplified Chinese](https://t.me/tg_sms_changelog), [English](https://t.me/tg_sms_changelog_eng)
 
 **Please visit [https://reall.uk](https://reall.uk) to submit and discuss issues regarding this project.**
 
@@ -83,6 +83,8 @@ Artwork Use free fonts licensed by the whole society: [站酷庆科黄油体](ht
 
 Copyright of the artwork belongs to [@walliant](https://www.pixiv.net/member.php?id=5600144). Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
+Cover Author: [@YJBeetle](https://github.com/yjbeetle)
+
 Download resource file of the artwork: [mega.nz](https://mega.nz/#F!TmwQSYjD!XN-uVfciajwy3okjIdpCAQ)
 
 Character set：
@@ -91,7 +93,7 @@ Character set：
 - Birthday: 1st October, 2018
 - Place of birth: Fujian, China
 - Zodiac sign: Libra
-- Habits: Eat sweets, Maid dress, Listen heavy metal music
+- Habits: Eat sweets, Maid dress, Listen Heavy metal music
 
 Designed by Reall with love in Fujian, China
 
