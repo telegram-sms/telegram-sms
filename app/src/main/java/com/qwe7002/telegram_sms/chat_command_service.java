@@ -189,6 +189,10 @@ public class chat_command_service extends Service {
                 request_body.text = result;
                 has_command = true;
                 break;
+            case "/cancel":
+                request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.command_cancelled);
+                has_command = true;
+                break;
             case "/ping":
             case "/getinfo":
                 String card_info = "";

@@ -84,7 +84,8 @@ public class resend_service extends Service {
                     for (String item : send_list) {
                         network_progress_handle(item, sharedPreferences.getString("chat_id", ""), okhttp_client);
                     }
-                    if (resend_list == send_list) {
+                    resend_list = Paper.book().read(table_name, new ArrayList<>());
+                    if (resend_list == send_list || resend_list.size() == 0) {
                         break;
                     }
                 }

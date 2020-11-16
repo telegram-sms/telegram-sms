@@ -112,4 +112,5 @@
     <string name="qrcode_notice">Keep this QR code safe!\nPlease don\'t share it with others.</string>
     <string name="cancel_button">Cancel</string>
     <string name="delete_button">Delete</string>
+    <string name="command_cancelled">Command cancelled</string>
 </resources>
