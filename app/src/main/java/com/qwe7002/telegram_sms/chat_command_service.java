@@ -68,6 +68,55 @@ public class chat_command_service extends Service {
     private boolean privacy_mode;
     static Thread thread_main;
 
+    private static boolean is_numeric(String str) {
+        for (int i = 0; i < str.length(); i++) {
+            System.out.println(str.charAt(i));
+            if (!Character.isDigit(str.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
+        startForeground(public_func.CHAT_COMMAND_NOTIFY_ID, notification);
+        return START_STICKY;
+    }
+
+    @SuppressLint({"InvalidWakeLockTag", "WakelockTimeout"})
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        context = getApplicationContext();
+        Paper.init(context);
+        sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        chat_id = sharedPreferences.getString("chat_id", "");
+        bot_token = sharedPreferences.getString("bot_token", "");
+        okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book().read("proxy_config", new proxy_config()));
+        privacy_mode = sharedPreferences.getBoolean("privacy_mode", false);
+        wifiLock = ((WifiManager) Objects.requireNonNull(context.getApplicationContext().getSystemService(Context.WIFI_SERVICE))).createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi");
+        wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "bot_command_polling");
+        wifiLock.setReferenceCounted(false);
+        wakelock.setReferenceCounted(false);
+
+        if (!wifiLock.isHeld()) {
+            wifiLock.acquire();
+        }
+        if (!wakelock.isHeld()) {
+            wakelock.acquire();
+        }
+
+        thread_main = new Thread(new thread_main_runnable());
+        thread_main.start();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(public_func.BROADCAST_STOP_SERVICE);
+        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        broadcast_receiver = new broadcast_receiver();
+        registerReceiver(broadcast_receiver, intentFilter);
+    }
+
     private void receive_handle(@NotNull JsonObject result_obj) {
         String message_type = "";
         long update_id = result_obj.get("update_id").getAsLong();
@@ -211,7 +260,18 @@ public class chat_command_service extends Service {
                 has_command = true;
                 break;
             case "/log":
-                request_body.text = getString(R.string.system_message_head) + public_func.read_log(context, 10);
+                String[] cmd_list = request_msg.split(" ");
+                int line = 10;
+                if (cmd_list.length == 2 && is_numeric(cmd_list[1])) {
+                    assert cmd_list[1] != null;
+                    int line_command = Integer.getInteger(cmd_list[1]);
+                    if (line_command > 50) {
+                        line_command = 50;
+                    }
+                    line = line_command;
+
+                }
+                request_body.text = getString(R.string.system_message_head) + public_func.read_log(context, line);
                 has_command = true;
                 break;
             case "/sendussd":
@@ -411,46 +471,6 @@ public class chat_command_service extends Service {
             }
         });
     }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
-        startForeground(public_func.CHAT_COMMAND_NOTIFY_ID, notification);
-        return START_STICKY;
-    }
-
-    @SuppressLint({"InvalidWakeLockTag", "WakelockTimeout"})
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        context = getApplicationContext();
-        Paper.init(context);
-        sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-        chat_id = sharedPreferences.getString("chat_id", "");
-        bot_token = sharedPreferences.getString("bot_token", "");
-        okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book().read("proxy_config", new proxy_config()));
-        privacy_mode = sharedPreferences.getBoolean("privacy_mode", false);
-        wifiLock = ((WifiManager) Objects.requireNonNull(context.getApplicationContext().getSystemService(Context.WIFI_SERVICE))).createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi");
-        wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "bot_command_polling");
-        wifiLock.setReferenceCounted(false);
-        wakelock.setReferenceCounted(false);
-
-        if (!wifiLock.isHeld()) {
-            wifiLock.acquire();
-        }
-        if (!wakelock.isHeld()) {
-            wakelock.acquire();
-        }
-
-        thread_main = new Thread(new thread_main_runnable());
-        thread_main.start();
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(public_func.BROADCAST_STOP_SERVICE);
-        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        broadcast_receiver = new broadcast_receiver();
-        registerReceiver(broadcast_receiver, intentFilter);
-    }
-
     private static class SEND_SMS_STATUS {
         public static final int STANDBY_STATUS = -1;
         public static final int PHONE_INPUT_STATUS = 0;
