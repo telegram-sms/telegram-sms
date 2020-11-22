@@ -16,6 +16,7 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.os.Build;
+import android.os.StrictMode;
 import android.telephony.SmsManager;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
@@ -190,6 +191,8 @@ class public_func {
         Proxy proxy = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             if (proxy_item.enable) {
+                StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+                StrictMode.setThreadPolicy(policy);
                 InetSocketAddress proxyAddr = new InetSocketAddress(proxy_item.proxy_host, proxy_item.proxy_port);
                 proxy = new Proxy(Proxy.Type.SOCKS, proxyAddr);
                 Authenticator.setDefault(new Authenticator() {
