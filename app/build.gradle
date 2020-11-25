@@ -47,8 +47,7 @@ dependencies {
     implementation 'io.paperdb:paperdb:2.7.1'
     implementation 'me.dm7.barcodescanner:zxing:1.9.13'
     implementation 'androidx.core:core-ktx:1.3.2'
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.20-RC'
-
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.20'
 }
 
 repositories {
@@ -60,7 +59,6 @@ task copy_language_pack(type: Copy) {
     from 'language_pack/'
     into 'src/main/res/'
     exclude '**/README.md'
-    exclude '**/crowdin.yml'
     include '**/*'
 }
 task pull_language_pack(type: Exec) {
