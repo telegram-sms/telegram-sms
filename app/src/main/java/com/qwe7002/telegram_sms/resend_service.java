@@ -13,6 +13,8 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.google.gson.Gson;
+import com.qwe7002.telegram_sms.data_structure.message_json;
+import com.qwe7002.telegram_sms.data_structure.proxy_config;
 
 import java.io.IOException;
 import java.util.ArrayList;

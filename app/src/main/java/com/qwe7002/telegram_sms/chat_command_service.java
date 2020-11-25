@@ -30,6 +30,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.qwe7002.telegram_sms.data_structure.message_item;
+import com.qwe7002.telegram_sms.data_structure.message_json;
+import com.qwe7002.telegram_sms.data_structure.polling_json;
+import com.qwe7002.telegram_sms.data_structure.proxy_config;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -155,7 +159,6 @@ public class chat_command_service extends Service {
             public_func.write_log(context, "Chat ID[" + from_id + "] not allow.");
             return;
         }
-
         String command = "";
         String command_bot_username = "";
         String request_msg = "";
@@ -269,7 +272,6 @@ public class chat_command_service extends Service {
                         line_command = 50;
                     }
                     line = line_command;
-
                 }
                 request_body.text = getString(R.string.system_message_head) + public_func.read_log(context, line);
                 has_command = true;

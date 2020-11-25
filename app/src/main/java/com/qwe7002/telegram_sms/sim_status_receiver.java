@@ -11,6 +11,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
+import com.qwe7002.telegram_sms.data_structure.message_json;
+import com.qwe7002.telegram_sms.data_structure.proxy_config;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -64,6 +66,10 @@ public class sim_status_receiver extends BroadcastReceiver {
             case TelephonyManager.SIM_STATE_NETWORK_LOCKED:
                 status = context.getString(R.string.sim_card_lock);
                 break;
+            case TelephonyManager.SIM_STATE_CARD_IO_ERROR:
+            case TelephonyManager.SIM_STATE_CARD_RESTRICTED:
+            case TelephonyManager.SIM_STATE_NOT_READY:
+            case TelephonyManager.SIM_STATE_PERM_DISABLED:
             default:
                 Log.d("sim_status", "onReceive: " + state);
                 return;

@@ -30,6 +30,9 @@ import androidx.core.content.PermissionChecker;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.qwe7002.telegram_sms.data_structure.message_item;
+import com.qwe7002.telegram_sms.data_structure.message_json;
+import com.qwe7002.telegram_sms.data_structure.proxy_config;
 
 import org.jetbrains.annotations.NotNull;
 
