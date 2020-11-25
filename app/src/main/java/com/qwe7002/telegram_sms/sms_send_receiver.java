@@ -12,8 +12,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
-import com.qwe7002.telegram_sms.data_structure.message_json;
 import com.qwe7002.telegram_sms.data_structure.proxy_config;
+import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.static_class.public_func;
 import com.qwe7002.telegram_sms.static_class.public_value;
 
@@ -49,7 +49,7 @@ public class sms_send_receiver extends BroadcastReceiver {
         }
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
-        final message_json request_body = new message_json();
+        final request_message request_body = new request_message();
         request_body.chat_id = chat_id;
         String request_uri = public_func.get_url(bot_token, "sendMessage");
         long message_id = Long.parseLong(Objects.requireNonNull(extras.getString("message_id")));

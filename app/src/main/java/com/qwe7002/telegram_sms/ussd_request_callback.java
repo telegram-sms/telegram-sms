@@ -9,8 +9,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import com.google.gson.Gson;
-import com.qwe7002.telegram_sms.data_structure.message_json;
 import com.qwe7002.telegram_sms.data_structure.proxy_config;
+import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.static_class.public_func;
 import com.qwe7002.telegram_sms.static_class.public_value;
 
@@ -33,14 +33,14 @@ class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
     private final boolean doh_switch;
     private String request_uri;
     private final String message_header;
-    private final message_json request_body;
+    private final request_message request_body;
 
     ussd_request_callback(Context context, @NotNull SharedPreferences sharedPreferences, long message_id) {
         this.context = context;
         Paper.init(context);
         String chat_id = sharedPreferences.getString("chat_id", "");
         this.doh_switch = sharedPreferences.getBoolean("doh_switch", true);
-        this.request_body = new message_json();
+        this.request_body = new request_message();
         this.request_body.chat_id = chat_id;
         String bot_token = sharedPreferences.getString("bot_token", "");
         this.request_uri = public_func.get_url(bot_token, "SendMessage");

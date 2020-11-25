@@ -11,8 +11,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
-import com.qwe7002.telegram_sms.data_structure.message_json;
 import com.qwe7002.telegram_sms.data_structure.proxy_config;
+import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.static_class.public_func;
 import com.qwe7002.telegram_sms.static_class.public_value;
 
@@ -80,7 +80,7 @@ public class call_receiver extends BroadcastReceiver {
                 String bot_token = sharedPreferences.getString("bot_token", "");
                 String chat_id = sharedPreferences.getString("chat_id", "");
                 String request_uri = public_func.get_url(bot_token, "sendMessage");
-                final message_json request_body = new message_json();
+                final request_message request_body = new request_message();
                 request_body.chat_id = chat_id;
                 String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
                 request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + call_status_listener.incoming_number;
@@ -112,7 +112,7 @@ public class call_receiver extends BroadcastReceiver {
                                 public_func.write_log(context, "[" + call_status_listener.incoming_number + "] Not a regular phone number.");
                                 return;
                             }
-                            public_func.add_message_list(public_func.get_message_id(result), call_status_listener.incoming_number, slot, public_func.get_sub_id(context, slot));
+                            public_func.add_message_list(public_func.get_message_id(result), call_status_listener.incoming_number, slot);
                         }
                     }
                 });

@@ -32,9 +32,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.qwe7002.telegram_sms.R;
 import com.qwe7002.telegram_sms.chat_command_service;
-import com.qwe7002.telegram_sms.data_structure.message_item;
-import com.qwe7002.telegram_sms.data_structure.message_json;
 import com.qwe7002.telegram_sms.data_structure.proxy_config;
+import com.qwe7002.telegram_sms.data_structure.request_message;
+import com.qwe7002.telegram_sms.data_structure.sms_request_info;
 import com.qwe7002.telegram_sms.notification_listener_service;
 import com.qwe7002.telegram_sms.resend_service;
 import com.qwe7002.telegram_sms.sms_send_receiver;
@@ -275,7 +275,11 @@ public class public_func {
     }
 
     public static void send_sms(Context context, String send_to, String content, int slot, int sub_id) {
-        if (androidx.core.content.PermissionChecker.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PermissionChecker.PERMISSION_GRANTED) {
+        send_sms(context, send_to, content, slot, sub_id, -1);
+    }
+
+    public static void send_sms(Context context, String send_to, String content, int slot, int sub_id, long message_id) {
+        if (PermissionChecker.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PermissionChecker.PERMISSION_GRANTED) {
             Log.d("send_sms", "No permission.");
             return;
         }
@@ -287,9 +291,13 @@ public class public_func {
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = public_func.get_url(bot_token, "sendMessage");
-        message_json request_body = new message_json();
+        if (message_id != -1) {
+            Log.d("send_sms", "Find the message_id and switch to edit mode.");
+            request_uri = public_func.get_url(bot_token, "editMessageText");
+        }
+        request_message request_body = new request_message();
         request_body.chat_id = chat_id;
-        android.telephony.SmsManager sms_manager;
+        SmsManager sms_manager;
         if (sub_id == -1) {
             sms_manager = SmsManager.getDefault();
         } else {
@@ -297,11 +305,12 @@ public class public_func {
         }
         String dual_sim = get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
         String send_content = "[" + dual_sim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + send_to + "\n" + context.getString(R.string.content) + content;
-        String message_id = "-1";
         request_body.text = send_content + "\n" + context.getString(R.string.status) + context.getString(R.string.sending);
-        String request_body_raw = new Gson().toJson(request_body);
+        request_body.message_id = message_id;
+        Gson gson = new Gson();
+        String request_body_raw = gson.toJson(request_body);
         RequestBody body = RequestBody.create(request_body_raw, public_value.JSON);
-        OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book().read("proxy_config", new proxy_config()));
+        OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy_config()));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
         try {
@@ -309,7 +318,9 @@ public class public_func {
             if (response.code() != 200 || response.body() == null) {
                 throw new IOException(String.valueOf(response.code()));
             }
-            message_id = get_message_id(Objects.requireNonNull(response.body()).string());
+            if (message_id == -1) {
+                message_id = get_message_id(Objects.requireNonNull(response.body()).string());
+            }
         } catch (IOException e) {
             e.printStackTrace();
             public_func.write_log(context, "failed to send message:" + e.getMessage());
@@ -355,9 +366,9 @@ public class public_func {
 
     }
 
-    public static String get_message_id(String result) {
+    public static long get_message_id(String result) {
         JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject().get("result").getAsJsonObject();
-        return result_obj.get("message_id").getAsString();
+        return result_obj.get("message_id").getAsLong();
     }
 
     @NotNull
@@ -547,12 +558,11 @@ public class public_func {
         }
     }
 
-    public static void add_message_list(String message_id, String phone, int slot, int sub_id) {
-        message_item item = new message_item();
+    public static void add_message_list(long message_id, String phone, int slot) {
+        sms_request_info item = new sms_request_info();
         item.phone = phone;
         item.card = slot;
-        item.sub_id = sub_id;
-        Paper.book().write(message_id, item);
+        Paper.book().write(String.valueOf(message_id), item);
         Log.d("add_message_list", "add_message_list: " + message_id);
     }
 

@@ -20,8 +20,8 @@ import androidx.core.app.ActivityCompat;
 
 import com.github.sumimakito.codeauxlib.CodeauxLibPortable;
 import com.google.gson.Gson;
-import com.qwe7002.telegram_sms.data_structure.message_json;
 import com.qwe7002.telegram_sms.data_structure.proxy_config;
+import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.static_class.public_func;
 import com.qwe7002.telegram_sms.static_class.public_value;
 
@@ -118,7 +118,7 @@ public class sms_receiver extends BroadcastReceiver {
         if (trusted_phone_number != null && trusted_phone_number.length() != 0) {
             is_trusted_phone = message_address.contains(trusted_phone_number);
         }
-        final message_json request_body = new message_json();
+        final request_message request_body = new request_message();
         request_body.chat_id = chat_id;
 
         String message_body_html = message_body;
@@ -242,7 +242,7 @@ public class sms_receiver extends BroadcastReceiver {
                         public_func.write_log(context, "[" + message_address + "] Not a regular phone number.");
                         return;
                     }
-                    public_func.add_message_list(public_func.get_message_id(result), message_address, final_slot, sub_id);
+                    public_func.add_message_list(public_func.get_message_id(result), message_address, final_slot);
                 }
             }
         });

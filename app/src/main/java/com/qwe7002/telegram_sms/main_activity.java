@@ -41,9 +41,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.qwe7002.telegram_sms.data_structure.message_json;
 import com.qwe7002.telegram_sms.data_structure.polling_json;
 import com.qwe7002.telegram_sms.data_structure.proxy_config;
+import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.static_class.public_func;
 import com.qwe7002.telegram_sms.static_class.public_value;
 
@@ -364,7 +364,7 @@ public class main_activity extends AppCompatActivity {
             progress_dialog.show();
 
             String request_uri = public_func.get_url(bot_token_editview.getText().toString().trim(), "sendMessage");
-            message_json request_body = new message_json();
+            request_message request_body = new request_message();
             request_body.chat_id = chat_id_editview.getText().toString().trim();
             request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
             Gson gson = new Gson();

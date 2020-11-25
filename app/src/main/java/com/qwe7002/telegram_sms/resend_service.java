@@ -13,8 +13,8 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.google.gson.Gson;
-import com.qwe7002.telegram_sms.data_structure.message_json;
 import com.qwe7002.telegram_sms.data_structure.proxy_config;
+import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.static_class.public_func;
 import com.qwe7002.telegram_sms.static_class.public_value;
 
@@ -46,7 +46,7 @@ public class resend_service extends Service {
     }
 
     private void network_progress_handle(String message, String chat_id, OkHttpClient okhttp_client) {
-        message_json request_body = new message_json();
+        request_message request_body = new request_message();
         request_body.chat_id = chat_id;
         request_body.text = message;
         if (message.contains("<code>") && message.contains("</code>")) {
