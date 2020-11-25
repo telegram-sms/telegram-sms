@@ -44,6 +44,8 @@ import com.google.gson.JsonParser;
 import com.qwe7002.telegram_sms.data_structure.message_json;
 import com.qwe7002.telegram_sms.data_structure.polling_json;
 import com.qwe7002.telegram_sms.data_structure.proxy_config;
+import com.qwe7002.telegram_sms.static_class.public_func;
+import com.qwe7002.telegram_sms.static_class.public_value;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -239,7 +241,7 @@ public class main_activity extends AppCompatActivity {
                     .build();
             polling_json request_body = new polling_json();
             request_body.timeout = 60;
-            RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_func.JSON);
+            RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_value.JSON);
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
             progress_dialog.setOnKeyListener((dialogInterface, i, keyEvent) -> {
@@ -367,7 +369,7 @@ public class main_activity extends AppCompatActivity {
             request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
             Gson gson = new Gson();
             String request_body_raw = gson.toJson(request_body);
-            RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
+            RequestBody body = RequestBody.create(request_body_raw, public_value.JSON);
             OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked(), Paper.book().read("proxy_config", new proxy_config()));
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
@@ -651,7 +653,7 @@ public class main_activity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
             switch (resultCode) {
-                case public_func.RESULT_CONFIG_JSON:
+                case public_value.RESULT_CONFIG_JSON:
                     JsonObject json_config = JsonParser.parseString(Objects.requireNonNull(data.getStringExtra("config_json"))).getAsJsonObject();
                     ((EditText) findViewById(R.id.bot_token_editview)).setText(json_config.get("bot_token").getAsString());
                     ((EditText) findViewById(R.id.chat_id_editview)).setText(json_config.get("chat_id").getAsString());
@@ -685,7 +687,7 @@ public class main_activity extends AppCompatActivity {
                         fallback_sms.setChecked(false);
                     }
                     break;
-                case public_func.RESULT_BOT_TOKEN:
+                case public_value.RESULT_BOT_TOKEN:
                     ((EditText) findViewById(R.id.bot_token_editview)).setText(data.getStringExtra("bot_token"));
                     break;
             }

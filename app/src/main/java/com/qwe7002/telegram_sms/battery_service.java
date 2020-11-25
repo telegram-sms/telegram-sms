@@ -16,6 +16,8 @@ import androidx.annotation.NonNull;
 import com.google.gson.Gson;
 import com.qwe7002.telegram_sms.data_structure.message_json;
 import com.qwe7002.telegram_sms.data_structure.proxy_config;
+import com.qwe7002.telegram_sms.static_class.public_func;
+import com.qwe7002.telegram_sms.static_class.public_value;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -40,7 +42,7 @@ public class battery_service extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = public_func.get_notification_obj(context, getString(R.string.battery_monitoring_notify));
-        startForeground(public_func.BATTERY_NOTIFY_ID, notification);
+        startForeground(public_value.BATTERY_NOTIFY_ID, notification);
         return START_STICKY;
     }
 
@@ -58,7 +60,7 @@ public class battery_service extends Service {
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_OKAY);
         filter.addAction(Intent.ACTION_BATTERY_LOW);
-        filter.addAction(public_func.BROADCAST_STOP_SERVICE);
+        filter.addAction(public_value.BROADCAST_STOP_SERVICE);
         if (charger_status) {
             filter.addAction(Intent.ACTION_POWER_CONNECTED);
             filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
@@ -85,7 +87,7 @@ public class battery_service extends Service {
             String TAG = "battery_receiver";
             assert intent.getAction() != null;
             Log.d(TAG, "Receive action: " + intent.getAction());
-            if (intent.getAction().equals(public_func.BROADCAST_STOP_SERVICE)) {
+            if (intent.getAction().equals(public_value.BROADCAST_STOP_SERVICE)) {
                 Log.i(TAG, "Received stop signal, quitting now...");
                 stopSelf();
                 android.os.Process.killProcess(android.os.Process.myPid());
@@ -120,7 +122,7 @@ public class battery_service extends Service {
             request_body.text = message_body.append("\n").append(context.getString(R.string.current_battery_level)).append(battery_level).append("%").toString();
             OkHttpClient okhttp_client = public_func.get_okhttp_obj(battery_service.doh_switch, Paper.book().read("proxy_config", new proxy_config()));
             String request_body_raw = new Gson().toJson(request_body);
-            RequestBody body = RequestBody.create(request_body_raw, public_func.JSON);
+            RequestBody body = RequestBody.create(request_body_raw, public_value.JSON);
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
             final String error_head = "Send battery info failed:";

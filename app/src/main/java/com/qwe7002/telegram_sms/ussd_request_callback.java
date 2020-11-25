@@ -11,6 +11,8 @@ import androidx.annotation.RequiresApi;
 import com.google.gson.Gson;
 import com.qwe7002.telegram_sms.data_structure.message_json;
 import com.qwe7002.telegram_sms.data_structure.proxy_config;
+import com.qwe7002.telegram_sms.static_class.public_func;
+import com.qwe7002.telegram_sms.static_class.public_value;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -66,7 +68,7 @@ class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
     private void network_progress_handle(String message) {
         request_body.text = message;
         String request_body_json = new Gson().toJson(request_body);
-        RequestBody body = RequestBody.create(request_body_json, public_func.JSON);
+        RequestBody body = RequestBody.create(request_body_json, public_value.JSON);
         OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch, Paper.book().read("proxy_config", new proxy_config()));
         Request request_obj = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request_obj);

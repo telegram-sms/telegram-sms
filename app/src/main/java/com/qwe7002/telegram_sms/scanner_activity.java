@@ -7,12 +7,14 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.appcompat.widget.Toolbar;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.zxing.Result;
+import com.qwe7002.telegram_sms.static_class.public_value;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -51,14 +53,11 @@ public class scanner_activity extends Activity implements ZXingScannerView.Resul
     public void handleResult(@NotNull Result rawResult) {
         String TAG = "activity_scanner";
         Log.d(TAG, "format: " + rawResult.getBarcodeFormat().toString() + " content: " + rawResult.getText());
-        if (!json_validate(rawResult.getText())) {
-            Intent intent = new Intent().putExtra("bot_token", rawResult.getText());
-            setResult(public_func.RESULT_BOT_TOKEN, intent);
-        } else {
-            Intent intent = new Intent().putExtra("config_json", rawResult.getText());
-            setResult(public_func.RESULT_CONFIG_JSON, intent);
+        if (json_validate(rawResult.getText())) {
+            Toast.makeText(this, "The QR code is not legal", Toast.LENGTH_SHORT).show();
         }
-
+        Intent intent = new Intent().putExtra("config_json", rawResult.getText());
+        setResult(public_value.RESULT_CONFIG_JSON, intent);
         finish();
     }
 

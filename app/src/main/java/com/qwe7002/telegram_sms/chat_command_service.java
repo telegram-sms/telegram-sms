@@ -34,6 +34,8 @@ import com.qwe7002.telegram_sms.data_structure.message_item;
 import com.qwe7002.telegram_sms.data_structure.message_json;
 import com.qwe7002.telegram_sms.data_structure.polling_json;
 import com.qwe7002.telegram_sms.data_structure.proxy_config;
+import com.qwe7002.telegram_sms.static_class.public_func;
+import com.qwe7002.telegram_sms.static_class.public_value;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -85,7 +87,7 @@ public class chat_command_service extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
-        startForeground(public_func.CHAT_COMMAND_NOTIFY_ID, notification);
+        startForeground(public_value.CHAT_COMMAND_NOTIFY_ID, notification);
         return START_STICKY;
     }
 
@@ -115,7 +117,7 @@ public class chat_command_service extends Service {
         thread_main = new Thread(new thread_main_runnable());
         thread_main.start();
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(public_func.BROADCAST_STOP_SERVICE);
+        intentFilter.addAction(public_value.BROADCAST_STOP_SERVICE);
         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         broadcast_receiver = new broadcast_receiver();
         registerReceiver(broadcast_receiver, intentFilter);
@@ -311,7 +313,7 @@ public class chat_command_service extends Service {
                             send_sms_request_body.text = item;
                             String request_uri = public_func.get_url(bot_token, "sendMessage");
                             String request_body_json = new Gson().toJson(send_sms_request_body);
-                            RequestBody body = RequestBody.create(request_body_json, public_func.JSON);
+                            RequestBody body = RequestBody.create(request_body_json, public_value.JSON);
                             Request request_obj = new Request.Builder().url(request_uri).method("POST", body).build();
                             Call call = okhttp_client.newCall(request_obj);
                             call.enqueue(new Callback() {
@@ -451,7 +453,7 @@ public class chat_command_service extends Service {
         }
 
         String request_uri = public_func.get_url(bot_token, "sendMessage");
-        RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_func.JSON);
+        RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_value.JSON);
         Request send_request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(send_request);
         final String error_head = "Send reply failed:";
@@ -677,7 +679,7 @@ public class chat_command_service extends Service {
                 polling_json request_body = new polling_json();
                 request_body.offset = offset;
                 request_body.timeout = timeout;
-                RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_func.JSON);
+                RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_value.JSON);
                 Request request = new Request.Builder().url(request_uri).method("POST", body).build();
                 Call call = okhttp_client_new.newCall(request);
                 Response response;
@@ -753,7 +755,7 @@ public class chat_command_service extends Service {
             Log.d(TAG, "onReceive: " + intent.getAction());
             assert intent.getAction() != null;
             switch (intent.getAction()) {
-                case public_func.BROADCAST_STOP_SERVICE:
+                case public_value.BROADCAST_STOP_SERVICE:
                     Log.i(TAG, "Received stop signal, quitting now...");
                     stopSelf();
                     android.os.Process.killProcess(android.os.Process.myPid());
