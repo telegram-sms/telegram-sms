@@ -1,1 +1,5 @@
 - Fix retransmission errors and solve performance problems
+
+- Add cancel function for interactive SMS sending
+
+- Fix the crash caused by too large log

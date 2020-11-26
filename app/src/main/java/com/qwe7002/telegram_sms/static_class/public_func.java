@@ -487,6 +487,11 @@ public class public_func {
         int new_file_mode = Context.MODE_APPEND;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(context.getString(R.string.time_format), Locale.UK);
         String write_string = "\n" + simpleDateFormat.format(new Date(System.currentTimeMillis())) + " " + log;
+        int log_count = Paper.book("system_config").read("log_count", 0);
+        if (log_count >= 50000) {
+            reset_log_file(context);
+        }
+        Paper.book("system_config").write("log_count", ++log_count);
         write_log_file(context, write_string, new_file_mode);
     }
 
@@ -536,6 +541,7 @@ public class public_func {
     }
 
     public static void reset_log_file(Context context) {
+        Paper.book("system_config").delete("log_count");
         write_log_file(context, "", Context.MODE_PRIVATE);
     }
 
