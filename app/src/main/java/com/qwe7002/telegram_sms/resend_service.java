@@ -64,6 +64,7 @@ public class resend_service extends Service {
                 Paper.book().write(table_name, resend_list_local);
             }
         } catch (IOException e) {
+            public_func.write_log(context, "An error occurred while resending: " + e.getMessage());
             e.printStackTrace();
         }
     }
