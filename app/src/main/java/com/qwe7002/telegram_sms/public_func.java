@@ -74,7 +74,6 @@ class public_func {
     static final int RESEND_SERVICE_NOTIFY_ID = 5;
     static final int RESULT_CONFIG_JSON = 1;
     static final int RESULT_BOT_TOKEN = 2;
-    private static final String TELEGRAM_API_DOMAIN = "api.telegram.org";
     private static final String DNS_OVER_HTTP_ADDRSS = "https://cloudflare-dns.com/dns-query";
 
     static String get_nine_key_map_convert(String input) {
@@ -177,7 +176,7 @@ class public_func {
 
     @NotNull
     static String get_url(String token, String func) {
-        return "https://" + TELEGRAM_API_DOMAIN + "/bot" + token + "/" + func;
+        return BuildConfig.TELEGRAM_API_LOCATION + "/bot" + token + "/" + func;
     }
 
     @NotNull

@@ -33,6 +33,10 @@ android {
             signingConfig signingConfigs.release
         }
     }
+
+    applicationVariants.all { variant ->
+        variant.buildConfigField 'String', 'TELEGRAM_API_LOCATION ', '"https://api.telegram.org"'
+    }
 }
 
 dependencies {
