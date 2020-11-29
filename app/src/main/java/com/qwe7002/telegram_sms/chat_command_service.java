@@ -72,7 +72,7 @@ public class chat_command_service extends Service {
     private final String TAG = "chat_command_service";
     private boolean privacy_mode;
     private static Thread thread_main;
-
+    private static boolean first_request = true;
     private static boolean is_numeric(String str) {
         for (int i = 0; i < str.length(); i++) {
             System.out.println(str.charAt(i));
@@ -123,113 +123,14 @@ public class chat_command_service extends Service {
         registerReceiver(broadcast_receiver, intentFilter);
     }
 
-
-    @SuppressWarnings("BusyWait")
-    class thread_main_runnable implements Runnable {
-        @Override
-        public void run() {
-            Log.d(TAG, "run: thread main start");
-            if (public_func.parse_string_to_long(chat_id) < 0) {
-                bot_username = Paper.book().read("bot_username", null);
-                if (bot_username == null) {
-                    while (!get_me()) {
-                        public_func.write_log(context, "Failed to get bot Username, Wait 5 seconds and try again.");
-                        try {
-                            Thread.sleep(5000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-                Log.i(TAG, "run: The Bot Username is loaded. The Bot Username is: " + bot_username);
-            }
-            while (true) {
-                int timeout = 5 * magnification;
-                int http_timeout = timeout + 5;
-                OkHttpClient okhttp_client_new = okhttp_client.newBuilder()
-                        .readTimeout(http_timeout, TimeUnit.SECONDS)
-                        .writeTimeout(http_timeout, TimeUnit.SECONDS)
-                        .build();
-                Log.d(TAG, "run: Current timeout: " + timeout + "S");
-                String request_uri = public_func.get_url(bot_token, "getUpdates");
-                polling_json request_body = new polling_json();
-                request_body.offset = offset;
-                request_body.timeout = timeout;
-                RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_value.JSON);
-                Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-                Call call = okhttp_client_new.newCall(request);
-                Response response;
-                try {
-                    response = call.execute();
-                    error_magnification = 1;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    if (!public_func.check_network_status(context)) {
-                        public_func.write_log(context, "No network connections available, Wait for the network to recover." +
-                                "");
-                        error_magnification = 1;
-                        magnification = 1;
-                        Log.d(TAG, "run: break loop.");
-                        break;
-                    }
-                    int sleep_time = 5 * error_magnification;
-                    public_func.write_log(context, "Connection to the Telegram API service failed, try again after " + sleep_time + " seconds.");
-                    magnification = 1;
-                    if (error_magnification <= 59) {
-                        ++error_magnification;
-                    }
-                    try {
-                        Thread.sleep(sleep_time * 1000);
-                    } catch (InterruptedException e1) {
-                        e1.printStackTrace();
-                    }
-                    continue;
-                }
-                if (response.code() == 200) {
-                    assert response.body() != null;
-                    String result;
-                    try {
-                        result = Objects.requireNonNull(response.body()).string();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        continue;
-                    }
-                    JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
-                    if (result_obj.get("ok").getAsBoolean()) {
-                        JsonArray result_array = result_obj.get("result").getAsJsonArray();
-                        for (JsonElement item : result_array) {
-                            receive_handle(item.getAsJsonObject());
-                        }
-                    }
-                    if (magnification <= 11) {
-                        ++magnification;
-                    }
-                } else {
-                    public_func.write_log(context, "response code: " + response.code());
-                    if (response.code() == 401) {
-                        assert response.body() != null;
-                        String result;
-                        try {
-                            result = Objects.requireNonNull(response.body()).string();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            continue;
-                        }
-                        JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
-                        String result_message = getString(R.string.system_message_head) + "\n" + getString(R.string.error_stop_message) + "\n" + getString(R.string.error_message_head) + result_obj.get("description").getAsString() + "\n" + "Code: " + response.code();
-                        public_func.send_fallback_sms(context, result_message, -1);
-                        public_func.stop_all_service(context);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    private void receive_handle(@NotNull JsonObject result_obj) {
-        String message_type = "";
+    private void receive_handle(@NotNull JsonObject result_obj, boolean get_id_only) {
         long update_id = result_obj.get("update_id").getAsLong();
         offset = update_id + 1;
+        if (get_id_only) {
+            Log.d(TAG, "receive_handle: get_id_only");
+            return;
+        }
+        String message_type = "";
         final request_message request_body = new request_message();
         request_body.chat_id = chat_id;
         JsonObject message_obj = null;
@@ -619,6 +520,108 @@ public class chat_command_service extends Service {
                 }
             }
         });
+    }
+
+    @SuppressWarnings("BusyWait")
+    class thread_main_runnable implements Runnable {
+        @Override
+        public void run() {
+            Log.d(TAG, "run: thread main start");
+            if (public_func.parse_string_to_long(chat_id) < 0) {
+                bot_username = Paper.book().read("bot_username", null);
+                if (bot_username == null) {
+                    while (!get_me()) {
+                        public_func.write_log(context, "Failed to get bot Username, Wait 5 seconds and try again.");
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                Log.i(TAG, "run: The Bot Username is loaded. The Bot Username is: " + bot_username);
+            }
+            while (true) {
+                int timeout = 5 * magnification;
+                int http_timeout = timeout + 5;
+                OkHttpClient okhttp_client_new = okhttp_client.newBuilder()
+                        .readTimeout(http_timeout, TimeUnit.SECONDS)
+                        .writeTimeout(http_timeout, TimeUnit.SECONDS)
+                        .build();
+                Log.d(TAG, "run: Current timeout: " + timeout + "S");
+                String request_uri = public_func.get_url(bot_token, "getUpdates");
+                polling_json request_body = new polling_json();
+                request_body.offset = offset;
+                request_body.timeout = timeout;
+                RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_value.JSON);
+                Request request = new Request.Builder().url(request_uri).method("POST", body).build();
+                Call call = okhttp_client_new.newCall(request);
+                Response response;
+                try {
+                    response = call.execute();
+                    error_magnification = 1;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    if (!public_func.check_network_status(context)) {
+                        public_func.write_log(context, "No network connections available, Wait for the network to recover.");
+                        error_magnification = 1;
+                        magnification = 1;
+                        Log.d(TAG, "run: break loop.");
+                        break;
+                    }
+                    int sleep_time = 5 * error_magnification;
+                    public_func.write_log(context, "Connection to the Telegram API service failed, try again after " + sleep_time + " seconds.");
+                    magnification = 1;
+                    if (error_magnification <= 59) {
+                        ++error_magnification;
+                    }
+                    try {
+                        Thread.sleep(sleep_time * 1000);
+                    } catch (InterruptedException e1) {
+                        e1.printStackTrace();
+                    }
+                    continue;
+                }
+                if (response.code() == 200) {
+                    assert response.body() != null;
+                    String result;
+                    try {
+                        result = Objects.requireNonNull(response.body()).string();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        continue;
+                    }
+                    JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
+                    if (result_obj.get("ok").getAsBoolean()) {
+                        JsonArray result_array = result_obj.get("result").getAsJsonArray();
+                        for (JsonElement item : result_array) {
+                            receive_handle(item.getAsJsonObject(), first_request);
+                        }
+                        first_request = false;
+                    }
+                    if (magnification <= 11) {
+                        ++magnification;
+                    }
+                } else {
+                    Log.d(TAG, "response code: " + response.code());
+                    if (response.code() == 401) {
+                        assert response.body() != null;
+                        String result;
+                        try {
+                            result = Objects.requireNonNull(response.body()).string();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            continue;
+                        }
+                        JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
+                        String result_message = getString(R.string.system_message_head) + "\n" + getString(R.string.error_stop_message) + "\n" + getString(R.string.error_message_head) + result_obj.get("description").getAsString() + "\n" + "Code: " + response.code();
+                        public_func.send_fallback_sms(context, result_message, -1);
+                        public_func.stop_all_service(context);
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     private void set_sms_send_status_standby() {
