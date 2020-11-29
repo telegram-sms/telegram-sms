@@ -71,7 +71,7 @@ public class chat_command_service extends Service {
     private String bot_username = "";
     private final String TAG = "chat_command_service";
     private boolean privacy_mode;
-    static Thread thread_main;
+    private static Thread thread_main;
 
     private static boolean is_numeric(String str) {
         for (int i = 0; i < str.length(); i++) {
@@ -150,7 +150,7 @@ public class chat_command_service extends Service {
                         .readTimeout(http_timeout, TimeUnit.SECONDS)
                         .writeTimeout(http_timeout, TimeUnit.SECONDS)
                         .build();
-                Log.d(TAG, "run: Current timeout:" + timeout + "S");
+                Log.d(TAG, "run: Current timeout: " + timeout + "S");
                 String request_uri = public_func.get_url(bot_token, "getUpdates");
                 polling_json request_body = new polling_json();
                 request_body.offset = offset;
@@ -165,14 +165,15 @@ public class chat_command_service extends Service {
                 } catch (IOException e) {
                     e.printStackTrace();
                     if (!public_func.check_network_status(context)) {
-                        public_func.write_log(context, "No network connections available.");
+                        public_func.write_log(context, "No network connections available, Wait for the network to recover." +
+                                "");
                         error_magnification = 1;
                         magnification = 1;
-                        Log.d(TAG, "run: break while.");
+                        Log.d(TAG, "run: break loop.");
                         break;
                     }
                     int sleep_time = 5 * error_magnification;
-                    public_func.write_log(context, "Connection to the Telegram API service failed,try again after " + sleep_time + " seconds.");
+                    public_func.write_log(context, "Connection to the Telegram API service failed, try again after " + sleep_time + " seconds.");
                     magnification = 1;
                     if (error_magnification <= 59) {
                         ++error_magnification;
