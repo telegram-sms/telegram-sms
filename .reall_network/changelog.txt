@@ -3,3 +3,5 @@
 - Add cancel function for interactive SMS sending
 
 - Fix the crash caused by too large log
+
+- Fix the problem of getting messages that were not processed last time when chat command is started.

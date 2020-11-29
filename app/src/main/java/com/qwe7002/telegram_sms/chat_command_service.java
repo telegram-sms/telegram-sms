@@ -73,6 +73,7 @@ public class chat_command_service extends Service {
     private boolean privacy_mode;
     private static Thread thread_main;
     private static boolean first_request = true;
+
     private static boolean is_numeric(String str) {
         for (int i = 0; i < str.length(); i++) {
             System.out.println(str.charAt(i));
@@ -289,10 +290,6 @@ public class chat_command_service extends Service {
                     result = result.replace(" -", "@" + bot_username + " -");
                 }
                 request_body.text = result;
-                has_command = true;
-                break;
-            case "/cancel":
-                request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.command_cancelled);
                 has_command = true;
                 break;
             case "/ping":
@@ -523,7 +520,7 @@ public class chat_command_service extends Service {
     }
 
     @SuppressWarnings("BusyWait")
-    class thread_main_runnable implements Runnable {
+    private class thread_main_runnable implements Runnable {
         @Override
         public void run() {
             Log.d(TAG, "run: thread main start");
@@ -553,6 +550,9 @@ public class chat_command_service extends Service {
                 polling_json request_body = new polling_json();
                 request_body.offset = offset;
                 request_body.timeout = timeout;
+                if (first_request) {
+                    request_body.timeout = 0;
+                }
                 RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_value.JSON);
                 Request request = new Request.Builder().url(request_uri).method("POST", body).build();
                 Call call = okhttp_client_new.newCall(request);
