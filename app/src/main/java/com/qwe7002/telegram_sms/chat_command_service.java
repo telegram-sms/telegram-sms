@@ -83,47 +83,6 @@ public class chat_command_service extends Service {
         }
         return true;
     }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
-        startForeground(public_value.CHAT_COMMAND_NOTIFY_ID, notification);
-        return START_STICKY;
-    }
-
-    @SuppressLint({"InvalidWakeLockTag", "WakelockTimeout"})
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        context = getApplicationContext();
-        Paper.init(context);
-        set_sms_send_status_standby();
-        sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-        chat_id = sharedPreferences.getString("chat_id", "");
-        bot_token = sharedPreferences.getString("bot_token", "");
-        okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book().read("proxy_config", new proxy_config()));
-        privacy_mode = sharedPreferences.getBoolean("privacy_mode", false);
-        wifiLock = ((WifiManager) Objects.requireNonNull(context.getApplicationContext().getSystemService(Context.WIFI_SERVICE))).createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi");
-        wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "bot_command_polling");
-        wifiLock.setReferenceCounted(false);
-        wakelock.setReferenceCounted(false);
-
-        if (!wifiLock.isHeld()) {
-            wifiLock.acquire();
-        }
-        if (!wakelock.isHeld()) {
-            wakelock.acquire();
-        }
-
-        thread_main = new Thread(new thread_main_runnable());
-        thread_main.start();
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(public_value.BROADCAST_STOP_SERVICE);
-        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        broadcast_receiver = new broadcast_receiver();
-        registerReceiver(broadcast_receiver, intentFilter);
-    }
-
     private void receive_handle(@NotNull JsonObject result_obj, boolean get_id_only) {
         long update_id = result_obj.get("update_id").getAsLong();
         offset = update_id + 1;
@@ -135,7 +94,7 @@ public class chat_command_service extends Service {
         final request_message request_body = new request_message();
         request_body.chat_id = chat_id;
         JsonObject message_obj = null;
-        String callback_data = null;
+
         if (result_obj.has("message")) {
             message_obj = result_obj.get("message").getAsJsonObject();
             message_type = message_obj.get("chat").getAsJsonObject().get("type").getAsString();
@@ -144,6 +103,7 @@ public class chat_command_service extends Service {
             message_type = "channel";
             message_obj = result_obj.get("channel_post").getAsJsonObject();
         }
+        String callback_data = null;
         if (result_obj.has("callback_query")) {
             message_type = "callback_query";
             JsonObject callback_query = result_obj.get("callback_query").getAsJsonObject();
@@ -155,7 +115,7 @@ public class chat_command_service extends Service {
             String to = Paper.book("send_temp").read("to", "");
             String content = Paper.book("send_temp").read("content", "");
             assert callback_data != null;
-            if (!callback_data.equals("send")) {
+            if (!callback_data.equals(CALLBACK_DATA_VALUE.SEND)) {
                 set_sms_send_status_standby();
                 String request_uri = public_func.get_url(bot_token, "editMessageText");
                 String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
@@ -477,8 +437,8 @@ public class chat_command_service extends Service {
                     Paper.book("send_temp").write("content", request_msg);
                     reply_markup_keyboard.keyboard_markup keyboardMarkup = new reply_markup_keyboard.keyboard_markup();
                     ArrayList<ArrayList<reply_markup_keyboard.InlineKeyboardButton>> inlineKeyboardButtons = new ArrayList<>();
-                    inlineKeyboardButtons.add(reply_markup_keyboard.get_inline_keyboard_obj(context.getString(R.string.ok_button), "send"));
-                    inlineKeyboardButtons.add(reply_markup_keyboard.get_inline_keyboard_obj(context.getString(R.string.cancel_button), "cancel"));
+                    inlineKeyboardButtons.add(reply_markup_keyboard.get_inline_keyboard_obj(context.getString(R.string.ok_button), CALLBACK_DATA_VALUE.SEND));
+                    inlineKeyboardButtons.add(reply_markup_keyboard.get_inline_keyboard_obj(context.getString(R.string.cancel_button), CALLBACK_DATA_VALUE.CANCEL));
                     keyboardMarkup.inline_keyboard = inlineKeyboardButtons;
                     request_body.reply_markup = keyboardMarkup;
                     result_send = context.getString(R.string.to) + Paper.book("send_temp").read("to") + "\n" + context.getString(R.string.content) + Paper.book("send_temp").read("content", "");
@@ -514,6 +474,51 @@ public class chat_command_service extends Service {
                 }
             }
         });
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Notification notification = public_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
+        startForeground(public_value.CHAT_COMMAND_NOTIFY_ID, notification);
+        return START_STICKY;
+    }
+
+    @SuppressLint({"InvalidWakeLockTag", "WakelockTimeout"})
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        context = getApplicationContext();
+        Paper.init(context);
+        set_sms_send_status_standby();
+        sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
+        chat_id = sharedPreferences.getString("chat_id", "");
+        bot_token = sharedPreferences.getString("bot_token", "");
+        okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book().read("proxy_config", new proxy_config()));
+        privacy_mode = sharedPreferences.getBoolean("privacy_mode", false);
+        wifiLock = ((WifiManager) Objects.requireNonNull(context.getApplicationContext().getSystemService(Context.WIFI_SERVICE))).createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi");
+        wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "bot_command_polling");
+        wifiLock.setReferenceCounted(false);
+        wakelock.setReferenceCounted(false);
+
+        if (!wifiLock.isHeld()) {
+            wifiLock.acquire();
+        }
+        if (!wakelock.isHeld()) {
+            wakelock.acquire();
+        }
+
+        thread_main = new Thread(new thread_main_runnable());
+        thread_main.start();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(public_value.BROADCAST_STOP_SERVICE);
+        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        broadcast_receiver = new broadcast_receiver();
+        registerReceiver(broadcast_receiver, intentFilter);
+    }
+
+    static class CALLBACK_DATA_VALUE {
+        final static String SEND = "send";
+        final static String CANCEL = "cancel";
     }
 
     @SuppressWarnings("BusyWait")
