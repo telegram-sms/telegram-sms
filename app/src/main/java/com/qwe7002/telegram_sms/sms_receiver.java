@@ -20,7 +20,6 @@ import androidx.core.app.ActivityCompat;
 
 import com.github.sumimakito.codeauxlib.CodeauxLibPortable;
 import com.google.gson.Gson;
-import com.qwe7002.telegram_sms.data_structure.proxy_config;
 import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.static_class.public_func;
 import com.qwe7002.telegram_sms.static_class.public_value;

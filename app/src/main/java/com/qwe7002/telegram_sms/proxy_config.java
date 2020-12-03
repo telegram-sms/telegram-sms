@@ -1,4 +1,4 @@
-package com.qwe7002.telegram_sms.data_structure;
+package com.qwe7002.telegram_sms;
 
 public class proxy_config {
     public int proxy_port = 1080;

@@ -42,7 +42,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.qwe7002.telegram_sms.data_structure.polling_json;
-import com.qwe7002.telegram_sms.data_structure.proxy_config;
 import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.static_class.public_func;
 import com.qwe7002.telegram_sms.static_class.public_value;
