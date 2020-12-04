@@ -561,6 +561,7 @@ public class chat_command_service extends Service {
                 request_body.timeout = timeout;
                 if (first_request) {
                     request_body.timeout = 0;
+                    Log.d(TAG, "run: first_request");
                 }
                 RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_value.JSON);
                 Request request = new Request.Builder().url(request_uri).method("POST", body).build();
