@@ -59,6 +59,20 @@ public class chat_command_service extends Service {
     private static int error_magnification = 1;
     private static SharedPreferences sharedPreferences;
     private static int send_sms_next_status = SEND_SMS_STATUS.STANDBY_STATUS;
+    private static Thread thread_main;
+    private static boolean first_request = true;
+
+    private static class CALLBACK_DATA_VALUE {
+        final static String SEND = "send";
+        final static String CANCEL = "cancel";
+    }
+    private static class SEND_SMS_STATUS {
+        static final int STANDBY_STATUS = -1;
+        static final int PHONE_INPUT_STATUS = 0;
+        static final int MESSAGE_INPUT_STATUS = 1;
+        static final int WAITING_TO_SEND_STATUS = 2;
+        static final int SEND_STATUS = 3;
+    }
 
     private String chat_id;
     private String bot_token;
@@ -70,8 +84,6 @@ public class chat_command_service extends Service {
     private String bot_username = "";
     private final String TAG = "chat_command_service";
     private boolean privacy_mode;
-    private static Thread thread_main;
-    private static boolean first_request = true;
 
     private static boolean is_numeric(String str) {
         for (int i = 0; i < str.length(); i++) {
@@ -515,10 +527,6 @@ public class chat_command_service extends Service {
         registerReceiver(broadcast_receiver, intentFilter);
     }
 
-    static class CALLBACK_DATA_VALUE {
-        final static String SEND = "send";
-        final static String CANCEL = "cancel";
-    }
 
     @SuppressWarnings("BusyWait")
     private class thread_main_runnable implements Runnable {
@@ -630,13 +638,7 @@ public class chat_command_service extends Service {
         Paper.book("send_temp").destroy();
     }
 
-    private static class SEND_SMS_STATUS {
-        public static final int STANDBY_STATUS = -1;
-        public static final int PHONE_INPUT_STATUS = 0;
-        public static final int MESSAGE_INPUT_STATUS = 1;
-        public static final int WAITING_TO_SEND_STATUS = 2;
-        public static final int SEND_STATUS = 3;
-    }
+
 
     @Override
     public void onDestroy() {
