@@ -1,6 +1,6 @@
 package com.qwe7002.telegram_sms.data_structure;
 
-public class proxy_config {
+public class proxy {
     public int port = 1080;
     public String host = "";
     public String username = "";

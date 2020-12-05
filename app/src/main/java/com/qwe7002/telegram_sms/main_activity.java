@@ -42,7 +42,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.qwe7002.telegram_sms.data_structure.polling_json;
-import com.qwe7002.telegram_sms.data_structure.proxy_config;
+import com.qwe7002.telegram_sms.data_structure.proxy;
 import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.static_class.public_func;
 import com.qwe7002.telegram_sms.static_class.public_value;
@@ -70,12 +70,32 @@ public class main_activity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private String privacy_police;
 
+
+    private void update_config() {
+        int store_version = Paper.book("system_config").read("version", 0);
+        if (store_version == public_value.SYSTEM_CONFIG_VERSION) {
+            return;
+        }
+        //noinspection SwitchStatementWithTooFewBranches
+        switch (store_version) {
+            case 0:
+                proxy_config outdated_proxy_item = Paper.book().read("proxy_config", new proxy_config());
+                new com.qwe7002.telegram_sms.version1().update(outdated_proxy_item);
+                break;
+            default:
+                Log.i(TAG, "update_config: 找不到能够更新的版本");
+        }
+    }
+
     @SuppressLint({"BatteryLife"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         context = getApplicationContext();
+        //load config
+        Paper.init(context);
+        sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         privacy_police = "/guide/" + context.getString(R.string.Lang) + "/privacy-policy";
         final EditText chat_id_editview = findViewById(R.id.chat_id_editview);
         final EditText bot_token_editview = findViewById(R.id.bot_token_editview);
@@ -92,9 +112,7 @@ public class main_activity extends AppCompatActivity {
         final Button get_id_button = findViewById(R.id.get_id_button);
 
 
-        //load config
-        Paper.init(context);
-        sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
+
 
         if (!sharedPreferences.getBoolean("privacy_dialog_agree", false)) {
             show_privacy_dialog();
@@ -110,6 +128,7 @@ public class main_activity extends AppCompatActivity {
         }
 
         if (sharedPreferences.getBoolean("initialized", false)) {
+            update_config();
             public_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
 
         }
@@ -175,7 +194,7 @@ public class main_activity extends AppCompatActivity {
 
         doh_switch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            doh_switch.setEnabled(!Paper.book().read("proxy_config", new proxy_config()).enable);
+            doh_switch.setEnabled(!Paper.book("system_config").read("proxy_config", new proxy()).enable);
         }
 
         privacy_mode_switch.setChecked(sharedPreferences.getBoolean("privacy_mode", false));
@@ -234,7 +253,7 @@ public class main_activity extends AppCompatActivity {
             progress_dialog.setCancelable(false);
             progress_dialog.show();
             String request_uri = public_func.get_url(bot_token_editview.getText().toString().trim(), "getUpdates");
-            OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked(), Paper.book("system_config").read("proxy_config", new proxy_config()));
+            OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked(), Paper.book("system_config").read("proxy_config", new proxy()));
             okhttp_client = okhttp_client.newBuilder()
                     .readTimeout(60, TimeUnit.SECONDS)
                     .build();
@@ -369,7 +388,7 @@ public class main_activity extends AppCompatActivity {
             Gson gson = new Gson();
             String request_body_raw = gson.toJson(request_body);
             RequestBody body = RequestBody.create(request_body_raw, public_value.JSON);
-            OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked(), Paper.book("system_config").read("proxy_config", new proxy_config()));
+            OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked(), Paper.book("system_config").read("proxy_config", new proxy()));
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
             final String error_head = "Send message failed:";
@@ -586,7 +605,7 @@ public class main_activity extends AppCompatActivity {
                 final EditText proxy_port = proxy_dialog_view.findViewById(R.id.proxy_port_editview);
                 final EditText proxy_username = proxy_dialog_view.findViewById(R.id.proxy_username_editview);
                 final EditText proxy_password = proxy_dialog_view.findViewById(R.id.proxy_password_editview);
-                proxy_config proxy_item = Paper.book().read("proxy_config", new proxy_config());
+                proxy proxy_item = Paper.book("system_config").read("proxy_config", new proxy());
                 proxy_enable.setChecked(proxy_item.enable);
                 proxy_doh_socks5.setChecked(proxy_item.dns_over_socks5);
                 proxy_host.setText(proxy_item.host);

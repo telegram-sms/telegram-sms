@@ -32,7 +32,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.qwe7002.telegram_sms.R;
 import com.qwe7002.telegram_sms.chat_command_service;
-import com.qwe7002.telegram_sms.data_structure.proxy_config;
+import com.qwe7002.telegram_sms.data_structure.proxy;
 import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.data_structure.sms_request_info;
 import com.qwe7002.telegram_sms.notification_listener_service;
@@ -180,7 +180,7 @@ public class public_func {
     }
 
     @NotNull
-    public static OkHttpClient get_okhttp_obj(boolean doh_switch, proxy_config proxy_item) {
+    public static OkHttpClient get_okhttp_obj(boolean doh_switch, proxy proxy_item) {
         OkHttpClient.Builder okhttp = new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .readTimeout(15, TimeUnit.SECONDS)
@@ -310,7 +310,7 @@ public class public_func {
         Gson gson = new Gson();
         String request_body_raw = gson.toJson(request_body);
         RequestBody body = RequestBody.create(request_body_raw, public_value.JSON);
-        OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy_config()));
+        OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
         try {
