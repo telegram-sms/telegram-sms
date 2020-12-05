@@ -64,12 +64,31 @@ import okhttp3.Response;
 
 @SuppressLint("UseSwitchCompatOrMaterialCode")
 public class main_activity extends AppCompatActivity {
-    private Context context = null;
     private static boolean set_permission_back = false;
     private final String TAG = "main_activity";
     private SharedPreferences sharedPreferences;
     private String privacy_police;
+    private Context context;
 
+    private void check_version_upgrade(boolean reset_log) {
+        int version_code = Paper.book("system_config").read("version_code", 0);
+        PackageManager packageManager = context.getPackageManager();
+        PackageInfo packageInfo;
+        int current_version_code;
+        try {
+            packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
+            current_version_code = packageInfo.versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return;
+        }
+        if (version_code != current_version_code) {
+            if (reset_log) {
+                public_func.reset_log_file(context);
+            }
+            Paper.book("system_config").write("version_code", current_version_code);
+        }
+    }
 
     private void update_config() {
         int store_version = Paper.book("system_config").read("version", 0);
@@ -79,14 +98,12 @@ public class main_activity extends AppCompatActivity {
         //noinspection SwitchStatementWithTooFewBranches
         switch (store_version) {
             case 0:
-                proxy_config outdated_proxy_item = Paper.book().read("proxy_config", new proxy_config());
-                new com.qwe7002.telegram_sms.version1().update(outdated_proxy_item);
+                new com.qwe7002.telegram_sms.version1().update();
                 break;
             default:
-                Log.i(TAG, "update_config: 找不到能够更新的版本");
+                Log.i(TAG, "update_config: Can't find a version that can be updated");
         }
     }
-
     @SuppressLint({"BatteryLife"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +114,7 @@ public class main_activity extends AppCompatActivity {
         Paper.init(context);
         sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         privacy_police = "/guide/" + context.getString(R.string.Lang) + "/privacy-policy";
+
         final EditText chat_id_editview = findViewById(R.id.chat_id_editview);
         final EditText bot_token_editview = findViewById(R.id.bot_token_editview);
         final EditText trusted_phone_number_editview = findViewById(R.id.trusted_phone_number_editview);
@@ -129,6 +147,7 @@ public class main_activity extends AppCompatActivity {
 
         if (sharedPreferences.getBoolean("initialized", false)) {
             update_config();
+            check_version_upgrade(true);
             public_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
 
         }
@@ -424,6 +443,8 @@ public class main_activity extends AppCompatActivity {
                         Log.i(TAG, "onResponse: The current bot token does not match the saved bot token, clearing the message database.");
                         Paper.book().destroy();
                     }
+                    Paper.book("system_config").write("version", public_value.SYSTEM_CONFIG_VERSION);
+                    check_version_upgrade(false);
                     SharedPreferences.Editor editor = sharedPreferences.edit().clear();
                     editor.putString("bot_token", new_bot_token);
                     editor.putString("chat_id", chat_id_editview.getText().toString().trim());

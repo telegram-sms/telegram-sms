@@ -10,10 +10,11 @@ import java.util.List;
 import io.paperdb.Paper;
 
 public class version1 {
-    public void update(proxy_config outdated_proxy_item) {
+    public void update() {
         Log.i("from v1", "onReceive: Start the configuration file conversion");
         List<String> notify_listen_list = Paper.book().read("notify_listen_list", new ArrayList<>());
         ArrayList<String> black_keyword_list = Paper.book().read("black_keyword_list", new ArrayList<>());
+        proxy_config outdated_proxy_item = Paper.book().read("proxy_config", new proxy_config());
         //Replacement object
         proxy proxy_item = new proxy();
         proxy_item.dns_over_socks5 = outdated_proxy_item.dns_over_socks5;

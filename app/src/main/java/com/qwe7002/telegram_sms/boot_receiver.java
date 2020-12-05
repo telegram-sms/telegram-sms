@@ -29,9 +29,6 @@ public class boot_receiver extends BroadcastReceiver {
                 Log.d(TAG, "An unsent message was detected, and the automatic resend process was initiated.");
                 public_func.start_resend(context);
             }
-            if (intent.getAction().equals("android.intent.action.MY_PACKAGE_REPLACED")) {
-                public_func.reset_log_file(context);
-            }
         }
     }
 }
