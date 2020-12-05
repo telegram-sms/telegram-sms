@@ -41,8 +41,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.qwe7002.telegram_sms.config.proxy;
 import com.qwe7002.telegram_sms.data_structure.polling_json;
-import com.qwe7002.telegram_sms.data_structure.proxy;
 import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.static_class.public_func;
 import com.qwe7002.telegram_sms.static_class.public_value;
@@ -98,7 +98,7 @@ public class main_activity extends AppCompatActivity {
         //noinspection SwitchStatementWithTooFewBranches
         switch (store_version) {
             case 0:
-                new com.qwe7002.telegram_sms.version1().update();
+                new com.qwe7002.telegram_sms.update_to_version1().update();
                 break;
             default:
                 Log.i(TAG, "update_config: Can't find a version that can be updated");

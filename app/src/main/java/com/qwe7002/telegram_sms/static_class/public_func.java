@@ -32,7 +32,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.qwe7002.telegram_sms.R;
 import com.qwe7002.telegram_sms.chat_command_service;
-import com.qwe7002.telegram_sms.data_structure.proxy;
+import com.qwe7002.telegram_sms.config.proxy;
 import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.data_structure.sms_request_info;
 import com.qwe7002.telegram_sms.notification_listener_service;
