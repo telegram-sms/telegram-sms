@@ -5,3 +5,8 @@
 - Fix the crash caused by too large log
 
 - Fix the problem of getting messages that were not processed last time when chat command is started.
+
+- Fix the problem of repeatedly sending the charger disconnection information
+
+- Fix the problem that the automatic resend is only sent once
+
