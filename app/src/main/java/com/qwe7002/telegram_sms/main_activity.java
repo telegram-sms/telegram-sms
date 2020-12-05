@@ -42,6 +42,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.qwe7002.telegram_sms.data_structure.polling_json;
+import com.qwe7002.telegram_sms.data_structure.proxy_config;
 import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.static_class.public_func;
 import com.qwe7002.telegram_sms.static_class.public_value;
@@ -50,7 +51,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -234,7 +234,7 @@ public class main_activity extends AppCompatActivity {
             progress_dialog.setCancelable(false);
             progress_dialog.show();
             String request_uri = public_func.get_url(bot_token_editview.getText().toString().trim(), "getUpdates");
-            OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked(), Paper.book().read("proxy_config", new proxy_config()));
+            OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked(), Paper.book("system_config").read("proxy_config", new proxy_config()));
             okhttp_client = okhttp_client.newBuilder()
                     .readTimeout(60, TimeUnit.SECONDS)
                     .build();
@@ -369,7 +369,7 @@ public class main_activity extends AppCompatActivity {
             Gson gson = new Gson();
             String request_body_raw = gson.toJson(request_body);
             RequestBody body = RequestBody.create(request_body_raw, public_value.JSON);
-            OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked(), Paper.book().read("proxy_config", new proxy_config()));
+            OkHttpClient okhttp_client = public_func.get_okhttp_obj(doh_switch.isChecked(), Paper.book("system_config").read("proxy_config", new proxy_config()));
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
             final String error_head = "Send message failed:";
@@ -403,11 +403,7 @@ public class main_activity extends AppCompatActivity {
                     }
                     if (!new_bot_token.equals(bot_token_save)) {
                         Log.i(TAG, "onResponse: The current bot token does not match the saved bot token, clearing the message database.");
-                        List<String> notify_listen_list = Paper.book().read("notify_listen_list", new ArrayList<>());
-                        ArrayList<String> black_keyword_list = Paper.book().read("black_keyword_list", new ArrayList<>());
-                        proxy_config proxy_item = Paper.book().read("proxy_config", new proxy_config());
                         Paper.book().destroy();
-                        Paper.book().write("notify_listen_list", notify_listen_list).write("black_keyword_list", black_keyword_list).write("proxy_config", proxy_item);
                     }
                     SharedPreferences.Editor editor = sharedPreferences.edit().clear();
                     editor.putString("bot_token", new_bot_token);
@@ -593,8 +589,8 @@ public class main_activity extends AppCompatActivity {
                 proxy_config proxy_item = Paper.book().read("proxy_config", new proxy_config());
                 proxy_enable.setChecked(proxy_item.enable);
                 proxy_doh_socks5.setChecked(proxy_item.dns_over_socks5);
-                proxy_host.setText(proxy_item.proxy_host);
-                proxy_port.setText(String.valueOf(proxy_item.proxy_port));
+                proxy_host.setText(proxy_item.host);
+                proxy_port.setText(String.valueOf(proxy_item.port));
                 proxy_username.setText(proxy_item.username);
                 proxy_password.setText(proxy_item.password);
                 new AlertDialog.Builder(this).setTitle(R.string.proxy_dialog_title)
@@ -606,11 +602,11 @@ public class main_activity extends AppCompatActivity {
                             doh_switch.setEnabled(!proxy_enable.isChecked());
                             proxy_item.enable = proxy_enable.isChecked();
                             proxy_item.dns_over_socks5 = proxy_doh_socks5.isChecked();
-                            proxy_item.proxy_host = proxy_host.getText().toString();
-                            proxy_item.proxy_port = Integer.parseInt(proxy_port.getText().toString());
+                            proxy_item.host = proxy_host.getText().toString();
+                            proxy_item.port = Integer.parseInt(proxy_port.getText().toString());
                             proxy_item.username = proxy_username.getText().toString();
                             proxy_item.password = proxy_password.getText().toString();
-                            Paper.book().write("proxy_config", proxy_item);
+                            Paper.book("system_config").write("proxy_config", proxy_item);
                             new Thread(() -> {
                                 public_func.stop_all_service(context);
                                 if (sharedPreferences.getBoolean("initialized", false)) {

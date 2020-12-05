@@ -14,6 +14,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
+import com.qwe7002.telegram_sms.data_structure.proxy_config;
 import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.static_class.public_func;
 import com.qwe7002.telegram_sms.static_class.public_value;
@@ -119,7 +120,7 @@ public class battery_service extends Service {
                 battery_level = 100;
             }
             request_body.text = message_body.append("\n").append(context.getString(R.string.current_battery_level)).append(battery_level).append("%").toString();
-            OkHttpClient okhttp_client = public_func.get_okhttp_obj(battery_service.doh_switch, Paper.book().read("proxy_config", new proxy_config()));
+            OkHttpClient okhttp_client = public_func.get_okhttp_obj(battery_service.doh_switch, Paper.book("system_config").read("proxy_config", new proxy_config()));
             String request_body_raw = new Gson().toJson(request_body);
             RequestBody body = RequestBody.create(request_body_raw, public_value.JSON);
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();

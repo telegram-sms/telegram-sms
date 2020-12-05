@@ -20,6 +20,7 @@ import androidx.core.app.ActivityCompat;
 
 import com.github.sumimakito.codeauxlib.CodeauxLibPortable;
 import com.google.gson.Gson;
+import com.qwe7002.telegram_sms.data_structure.proxy_config;
 import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.static_class.public_func;
 import com.qwe7002.telegram_sms.static_class.public_value;
@@ -189,7 +190,7 @@ public class sms_receiver extends BroadcastReceiver {
         }
 
         if (!is_verification_code && !is_trusted_phone) {
-            ArrayList<String> black_list_array = Paper.book().read("black_keyword_list", new ArrayList<>());
+            ArrayList<String> black_list_array = Paper.book("system_config").read("block_keyword_list", new ArrayList<>());
             for (String black_list_item : black_list_array) {
                 if (black_list_item.isEmpty()) {
                     continue;
@@ -214,7 +215,7 @@ public class sms_receiver extends BroadcastReceiver {
 
 
         RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_value.JSON);
-        OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book().read("proxy_config", new proxy_config()));
+        OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy_config()));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
         final String error_head = "Send SMS forward failed:";

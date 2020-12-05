@@ -27,24 +27,24 @@ public class spam_list_activity extends AppCompatActivity {
         final FloatingActionButton fab = findViewById(R.id.spam_list_fab);
         final ListView spam_list = findViewById(R.id.spam_list);
 
-        ArrayList<String> black_keyword_list = Paper.book().read("black_keyword_list", new ArrayList<>());
+        ArrayList<String> block_keyword_list = Paper.book("system_config").read("block_keyword_list", new ArrayList<>());
         ArrayAdapter<String> spam_list_adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,
-                black_keyword_list);
+                block_keyword_list);
         spam_list.setAdapter(spam_list_adapter);
         spam_list.setOnItemClickListener((parent, view, position, id) -> {
             View spam_dialog_view = inflater.inflate(R.layout.set_keyword_layout, null);
             final EditText editText = spam_dialog_view.findViewById(R.id.spam_sms_keyword_editview);
-            editText.setText(black_keyword_list.get(position));
+            editText.setText(block_keyword_list.get(position));
             new AlertDialog.Builder(spam_list_activity.this).setTitle(R.string.spam_keyword_edit_title)
                     .setView(spam_dialog_view)
                     .setPositiveButton(R.string.ok_button, (dialog, which) -> {
-                        black_keyword_list.set(position, editText.getText().toString());
-                        save_and_flush(black_keyword_list, spam_list_adapter);
+                        block_keyword_list.set(position, editText.getText().toString());
+                        save_and_flush(block_keyword_list, spam_list_adapter);
                     })
                     .setNeutralButton(R.string.cancel_button, null)
                     .setNegativeButton(R.string.delete_button, (((dialog, which) -> {
-                        black_keyword_list.remove(position);
-                        save_and_flush(black_keyword_list, spam_list_adapter);
+                        block_keyword_list.remove(position);
+                        save_and_flush(block_keyword_list, spam_list_adapter);
                     })))
                     .show();
         });
@@ -55,17 +55,17 @@ public class spam_list_activity extends AppCompatActivity {
             new AlertDialog.Builder(spam_list_activity.this).setTitle(R.string.spam_keyword_add_title)
                     .setView(spam_dialog_view)
                     .setPositiveButton(R.string.ok_button, (dialog, which) -> {
-                        black_keyword_list.add(editText.getText().toString());
-                        save_and_flush(black_keyword_list, spam_list_adapter);
+                        block_keyword_list.add(editText.getText().toString());
+                        save_and_flush(block_keyword_list, spam_list_adapter);
                     })
                     .setNeutralButton(R.string.cancel_button, null)
                     .show();
         });
     }
 
-    void save_and_flush(ArrayList<String> black_keyword_list, ArrayAdapter<String> list_adapter) {
-        Log.d("save_and_flush", String.valueOf(black_keyword_list));
-        Paper.book().write("black_keyword_list", black_keyword_list);
+    void save_and_flush(ArrayList<String> block_keyword_list, ArrayAdapter<String> list_adapter) {
+        Log.d("save_and_flush", String.valueOf(block_keyword_list));
+        Paper.book("system_config").write("block_keyword_list", block_keyword_list);
         list_adapter.notifyDataSetChanged();
     }
 }

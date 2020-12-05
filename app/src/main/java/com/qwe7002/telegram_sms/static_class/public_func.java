@@ -32,10 +32,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.qwe7002.telegram_sms.R;
 import com.qwe7002.telegram_sms.chat_command_service;
+import com.qwe7002.telegram_sms.data_structure.proxy_config;
 import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.data_structure.sms_request_info;
 import com.qwe7002.telegram_sms.notification_listener_service;
-import com.qwe7002.telegram_sms.proxy_config;
 import com.qwe7002.telegram_sms.resend_service;
 import com.qwe7002.telegram_sms.sms_send_receiver;
 
@@ -191,13 +191,13 @@ public class public_func {
             if (proxy_item.enable) {
                 StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
                 StrictMode.setThreadPolicy(policy);
-                InetSocketAddress proxyAddr = new InetSocketAddress(proxy_item.proxy_host, proxy_item.proxy_port);
+                InetSocketAddress proxyAddr = new InetSocketAddress(proxy_item.host, proxy_item.port);
                 proxy = new Proxy(Proxy.Type.SOCKS, proxyAddr);
                 Authenticator.setDefault(new Authenticator() {
                     @Override
                     protected PasswordAuthentication getPasswordAuthentication() {
-                        if (getRequestingHost().equalsIgnoreCase(proxy_item.proxy_host)) {
-                            if (proxy_item.proxy_port == getRequestingPort()) {
+                        if (getRequestingHost().equalsIgnoreCase(proxy_item.host)) {
+                            if (proxy_item.port == getRequestingPort()) {
                                 return new PasswordAuthentication(proxy_item.username, proxy_item.password.toCharArray());
                             }
                         }

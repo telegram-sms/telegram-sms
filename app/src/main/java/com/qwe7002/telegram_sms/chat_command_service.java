@@ -31,6 +31,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.qwe7002.telegram_sms.data_structure.polling_json;
+import com.qwe7002.telegram_sms.data_structure.proxy_config;
 import com.qwe7002.telegram_sms.data_structure.reply_markup_keyboard;
 import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.data_structure.sms_request_info;
@@ -285,6 +286,7 @@ public class chat_command_service extends Service {
                 int line = 10;
                 if (cmd_list.length == 2 && is_numeric(cmd_list[1])) {
                     assert cmd_list[1] != null;
+                    //noinspection ConstantConditions
                     int line_command = Integer.getInteger(cmd_list[1]);
                     if (line_command > 50) {
                         line_command = 50;
@@ -322,7 +324,7 @@ public class chat_command_service extends Service {
                 }
                 new Thread(() -> {
                     if (public_func.check_network_status(context)) {
-                        OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book().read("proxy_config", new proxy_config()));
+                        OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy_config()));
                         for (String item : spam_sms_list) {
                             request_message send_sms_request_body = new request_message();
                             send_sms_request_body.chat_id = chat_id;
@@ -388,7 +390,6 @@ public class chat_command_service extends Service {
                         }
                     }
                 } else {
-                    has_command = false;
                     send_sms_next_status = SEND_SMS_STATUS.PHONE_INPUT_STATUS;
                     int send_slot = -1;
                     if (public_func.get_active_card(context) > 1) {
@@ -504,7 +505,7 @@ public class chat_command_service extends Service {
         sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
-        okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book().read("proxy_config", new proxy_config()));
+        okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy_config()));
         privacy_mode = sharedPreferences.getBoolean("privacy_mode", false);
         wifiLock = ((WifiManager) Objects.requireNonNull(context.getApplicationContext().getSystemService(Context.WIFI_SERVICE))).createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi");
         wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "bot_command_polling");
