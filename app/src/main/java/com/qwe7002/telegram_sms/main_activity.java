@@ -93,6 +93,7 @@ public class main_activity extends AppCompatActivity {
     private void update_config() {
         int store_version = Paper.book("system_config").read("version", 0);
         if (store_version == public_value.SYSTEM_CONFIG_VERSION) {
+            new com.qwe7002.telegram_sms.update_to_version1().check_error();
             return;
         }
         //noinspection SwitchStatementWithTooFewBranches

@@ -12,6 +12,16 @@ import io.paperdb.Paper;
 public class update_to_version1 {
     private final String TAG = "update_to_version1";
 
+    public void check_error() {
+        try {
+            Paper.book("system_config").read("proxy_config", new proxy());
+        } catch (Exception e) {
+            e.printStackTrace();
+            Paper.book("system_config").delete("proxy_config");
+            Log.i(TAG, "update_config: Unsupported type");
+        }
+    }
+
     public void update() {
         Log.i(TAG, "onReceive: Start the configuration file conversion");
 
