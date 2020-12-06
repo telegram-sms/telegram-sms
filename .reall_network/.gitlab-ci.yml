@@ -28,6 +28,7 @@ release_nightly_github:
     script:
         - eval $(ssh-agent -s)
         - ssh-add - <<< $(curl https://${KEYSTORE_SERVER}/gitlab-sshkey/id_ecdsa -u gitlab:${key_store_passwd})
+        - git push --set-upstream git@github.com:${OWNER}/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
         - git push --set-upstream git@github.com:qwe7002/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME} -f
 
 release_apk:
@@ -46,6 +47,7 @@ build_release:
     stage: build
     only:
         - master
+    retry: 2
     script:
         - sdkmanager --install "ndk;21.3.6528147" "cmake;3.10.2.4988404"
         - git submodule update --init --recursive
