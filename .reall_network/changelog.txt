@@ -2,11 +2,8 @@
 
 - Add cancel function for interactive SMS sending
 
-- Fix the crash caused by too large log
-
-- Fix the problem of getting messages that were not processed last time when chat command is started.
+- Fix the crash caused by log cache too large
 
 - Fix the problem of repeatedly sending the charger disconnection information
 
-- Fix the problem that the automatic resend is only sent once
-
+- Now the unprocessed messages will be ignored after the chat command service starts
