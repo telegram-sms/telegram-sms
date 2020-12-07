@@ -15,8 +15,7 @@
 
 ## News, Questions and Contributions
 
-You can follow the Telegram channel Telegram SMS Change Log for the latest news. [简体中文](https://t.me/tg_sms_changelog), [English()](https://t.me/tg_sms_changelog_eng)
-
+You can follow the Telegram channel Telegram SMS Change Log for the latest news. [English()](https://t.me/tg_sms_changelog_eng), [简体中文](https://t.me/tg_sms_changelog)
 **Please visit [https://reall.uk](https://reall.uk) to submit and discuss issues regarding this project.**
 
 **请访问 [https://reall.uk](https://reall.uk) 提交并讨论有关此项目的问题。**
