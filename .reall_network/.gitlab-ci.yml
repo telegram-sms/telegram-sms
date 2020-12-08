@@ -59,7 +59,8 @@ build_release:
         - export GRADLE_USER_HOME=$(pwd)/.gradle && mkdir -p ${GRADLE_USER_HOME}
         - echo -e "org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true" >> ${GRADLE_USER_HOME}/gradle.properties
         - chmod +x ./gradlew
-        - ./gradlew app:copy_language_pack && ./gradlew assembleRelease
+        - ./gradlew app:copy_language_pack
+        - ./gradlew assembleReleas
     artifacts:
         paths:
             - app/build/outputs/apk/release/app-release.apk
