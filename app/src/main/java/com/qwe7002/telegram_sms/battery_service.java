@@ -122,10 +122,11 @@ public class battery_service extends Service {
                 battery_level = 100;
             }
             String request_uri = public_func.get_url(battery_service.bot_token, "sendMessage");
-            if (System.currentTimeMillis() - last_receive_time < 5000 && last_receive_message_id != -1) {
+            if ((System.currentTimeMillis() - last_receive_time) < 5000 && last_receive_message_id != -1) {
                 request_uri = public_func.get_url(bot_token, "editMessageText");
                 request_body.message_id = last_receive_message_id;
             }
+            last_receive_time = System.currentTimeMillis();
             request_body.text = message_body.append("\n").append(context.getString(R.string.current_battery_level)).append(battery_level).append("%").toString();
             OkHttpClient okhttp_client = public_func.get_okhttp_obj(battery_service.doh_switch, Paper.book("system_config").read("proxy_config", new proxy()));
             String request_body_raw = new Gson().toJson(request_body);
