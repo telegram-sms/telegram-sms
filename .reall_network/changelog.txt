@@ -1,3 +1,5 @@
+- Reduce so file size
+
 - Fix retransmission errors and solve performance problems
 
 - Add cancel function for interactive SMS sending
