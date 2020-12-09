@@ -137,6 +137,7 @@ public class battery_service extends Service {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
                     e.printStackTrace();
+                    last_receive_message_id = -1;
                     public_func.write_log(context, error_head + e.getMessage());
                     if (action.equals(Intent.ACTION_BATTERY_LOW)) {
                         public_func.send_fallback_sms(context, request_body.text, -1);
@@ -146,11 +147,18 @@ public class battery_service extends Service {
 
                 @Override
                 public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    String result = Objects.requireNonNull(response.body()).string();
                     if (response.code() != 200) {
                         assert response.body() != null;
-                        String error_message = error_head + response.code() + " " + Objects.requireNonNull(response.body()).string();
+                        last_receive_message_id = -1;
+                        String error_message = error_head + response.code() + " " + result;
                         public_func.write_log(context, error_message);
                         public_func.add_resend_loop(context, request_body.text);
+                    }
+                    if (response.code() == 200) {
+                        Log.d(TAG, "onResponse: " + result);
+                        Log.d(TAG, "onResponse: " + public_func.get_message_id(result));
+                        last_receive_message_id = public_func.get_message_id(result);
                     }
                 }
             });
