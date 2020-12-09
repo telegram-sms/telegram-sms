@@ -286,7 +286,6 @@ public class chat_command_service extends Service {
                 int line = 10;
                 if (cmd_list.length == 2 && is_numeric(cmd_list[1])) {
                     assert cmd_list[1] != null;
-                    //noinspection ConstantConditions
                     int line_command = Integer.getInteger(cmd_list[1]);
                     if (line_command > 50) {
                         line_command = 50;
@@ -373,7 +372,7 @@ public class chat_command_service extends Service {
                             public_func.send_sms(context, msg_send_to, msg_send_content.toString(), -1, -1);
                             return;
                         }
-                        int slot = -1;
+                        /*int slot = -1;
                         switch (command) {
                             case "/sendsms":
                             case "/sendsms1":
@@ -382,16 +381,23 @@ public class chat_command_service extends Service {
                             case "/sendsms2":
                                 slot = 1;
                                 break;
+                        }*/
+                        int send_slot = -1;
+                        if (public_func.get_active_card(context) > 1) {
+                            send_slot = 0;
+                            if (command.equals("/sendsms2")) {
+                                send_slot = 1;
+                            }
                         }
-                        int sub_id = public_func.get_sub_id(context, slot);
+                        int sub_id = public_func.get_sub_id(context, send_slot);
                         if (sub_id != -1) {
-                            public_func.send_sms(context, msg_send_to, msg_send_content.toString(), slot, sub_id);
+                            public_func.send_sms(context, msg_send_to, msg_send_content.toString(), send_slot, sub_id);
                             return;
                         }
                     }
                 } else {
                     send_sms_next_status = SEND_SMS_STATUS.PHONE_INPUT_STATUS;
-                    int send_slot = -1;
+/*                    int send_slot = -1;
                     if (public_func.get_active_card(context) > 1) {
                         switch (command) {
                             case "/sendsms":
@@ -401,6 +407,13 @@ public class chat_command_service extends Service {
                             case "/sendsms2":
                                 send_slot = 1;
                                 break;
+                        }
+                    }*/
+                    int send_slot = -1;
+                    if (public_func.get_active_card(context) > 1) {
+                        send_slot = 0;
+                        if (command.equals("/sendsms2")) {
+                            send_slot = 1;
                         }
                     }
                     Paper.book("send_temp").write("slot", send_slot);
