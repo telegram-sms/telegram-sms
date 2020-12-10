@@ -131,8 +131,6 @@ public class main_activity extends AppCompatActivity {
         final Button get_id_button = findViewById(R.id.get_id_button);
 
 
-
-
         if (!sharedPreferences.getBoolean("privacy_dialog_agree", false)) {
             show_privacy_dialog();
         }
