@@ -12,5 +12,4 @@ public class public_value {
     public static final int SEND_USSD_SERVCE_NOTIFY_ID = 4;
     public static final int RESEND_SERVICE_NOTIFY_ID = 5;
     public static final int RESULT_CONFIG_JSON = 1;
-    public static final int RESULT_BOT_TOKEN = 2;
 }

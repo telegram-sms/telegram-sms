@@ -686,44 +686,39 @@ public class main_activity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
-            switch (resultCode) {
-                case public_value.RESULT_CONFIG_JSON:
-                    JsonObject json_config = JsonParser.parseString(Objects.requireNonNull(data.getStringExtra("config_json"))).getAsJsonObject();
-                    ((EditText) findViewById(R.id.bot_token_editview)).setText(json_config.get("bot_token").getAsString());
-                    ((EditText) findViewById(R.id.chat_id_editview)).setText(json_config.get("chat_id").getAsString());
-                    ((Switch) findViewById(R.id.battery_monitoring_switch)).setChecked(json_config.get("battery_monitoring_switch").getAsBoolean());
-                    ((Switch) findViewById(R.id.verification_code_switch)).setChecked(json_config.get("verification_code").getAsBoolean());
+            if (resultCode == public_value.RESULT_CONFIG_JSON) {
+                JsonObject json_config = JsonParser.parseString(Objects.requireNonNull(data.getStringExtra("config_json"))).getAsJsonObject();
+                ((EditText) findViewById(R.id.bot_token_editview)).setText(json_config.get("bot_token").getAsString());
+                ((EditText) findViewById(R.id.chat_id_editview)).setText(json_config.get("chat_id").getAsString());
+                ((Switch) findViewById(R.id.battery_monitoring_switch)).setChecked(json_config.get("battery_monitoring_switch").getAsBoolean());
+                ((Switch) findViewById(R.id.verification_code_switch)).setChecked(json_config.get("verification_code").getAsBoolean());
 
-                    Switch charger_status = findViewById(R.id.charger_status_switch);
-                    if (json_config.get("battery_monitoring_switch").getAsBoolean()) {
-                        charger_status.setChecked(json_config.get("charger_status").getAsBoolean());
-                        charger_status.setVisibility(View.VISIBLE);
-                    } else {
-                        charger_status.setChecked(false);
-                        charger_status.setVisibility(View.GONE);
-                    }
+                Switch charger_status = findViewById(R.id.charger_status_switch);
+                if (json_config.get("battery_monitoring_switch").getAsBoolean()) {
+                    charger_status.setChecked(json_config.get("charger_status").getAsBoolean());
+                    charger_status.setVisibility(View.VISIBLE);
+                } else {
+                    charger_status.setChecked(false);
+                    charger_status.setVisibility(View.GONE);
+                }
 
-                    Switch chat_command = findViewById(R.id.chat_command_switch);
-                    chat_command.setChecked(json_config.get("chat_command").getAsBoolean());
-                    Switch privacy_mode_switch = findViewById(R.id.privacy_switch);
-                    privacy_mode_switch.setChecked(json_config.get("privacy_mode").getAsBoolean());
+                Switch chat_command = findViewById(R.id.chat_command_switch);
+                chat_command.setChecked(json_config.get("chat_command").getAsBoolean());
+                Switch privacy_mode_switch = findViewById(R.id.privacy_switch);
+                privacy_mode_switch.setChecked(json_config.get("privacy_mode").getAsBoolean());
 
-                    set_privacy_mode_checkbox(json_config.get("chat_id").getAsString(), chat_command, privacy_mode_switch);
+                set_privacy_mode_checkbox(json_config.get("chat_id").getAsString(), chat_command, privacy_mode_switch);
 
-                    EditText trusted_phone_number = findViewById(R.id.trusted_phone_number_editview);
-                    trusted_phone_number.setText(json_config.get("trusted_phone_number").getAsString());
-                    Switch fallback_sms = findViewById(R.id.fallback_sms_switch);
-                    fallback_sms.setChecked(json_config.get("fallback_sms").getAsBoolean());
-                    if (trusted_phone_number.length() != 0) {
-                        fallback_sms.setVisibility(View.VISIBLE);
-                    } else {
-                        fallback_sms.setVisibility(View.GONE);
-                        fallback_sms.setChecked(false);
-                    }
-                    break;
-                case public_value.RESULT_BOT_TOKEN:
-                    ((EditText) findViewById(R.id.bot_token_editview)).setText(data.getStringExtra("bot_token"));
-                    break;
+                EditText trusted_phone_number = findViewById(R.id.trusted_phone_number_editview);
+                trusted_phone_number.setText(json_config.get("trusted_phone_number").getAsString());
+                Switch fallback_sms = findViewById(R.id.fallback_sms_switch);
+                fallback_sms.setChecked(json_config.get("fallback_sms").getAsBoolean());
+                if (trusted_phone_number.length() != 0) {
+                    fallback_sms.setVisibility(View.VISIBLE);
+                } else {
+                    fallback_sms.setVisibility(View.GONE);
+                    fallback_sms.setChecked(false);
+                }
             }
         }
     }
