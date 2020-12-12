@@ -16,8 +16,12 @@ import androidx.annotation.NonNull;
 import com.google.gson.Gson;
 import com.qwe7002.telegram_sms.config.proxy;
 import com.qwe7002.telegram_sms.data_structure.request_message;
-import com.qwe7002.telegram_sms.static_class.public_func;
-import com.qwe7002.telegram_sms.static_class.public_value;
+import com.qwe7002.telegram_sms.static_class.const_value;
+import com.qwe7002.telegram_sms.static_class.log_func;
+import com.qwe7002.telegram_sms.static_class.network_func;
+import com.qwe7002.telegram_sms.static_class.other_func;
+import com.qwe7002.telegram_sms.static_class.resend_func;
+import com.qwe7002.telegram_sms.static_class.sms_func;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -43,8 +47,8 @@ public class battery_service extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Notification notification = public_func.get_notification_obj(context, getString(R.string.battery_monitoring_notify));
-        startForeground(public_value.BATTERY_NOTIFY_ID, notification);
+        Notification notification = other_func.get_notification_obj(context, getString(R.string.battery_monitoring_notify));
+        startForeground(const_value.BATTERY_NOTIFY_ID, notification);
         return START_STICKY;
     }
 
@@ -62,7 +66,7 @@ public class battery_service extends Service {
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_OKAY);
         filter.addAction(Intent.ACTION_BATTERY_LOW);
-        filter.addAction(public_value.BROADCAST_STOP_SERVICE);
+        filter.addAction(const_value.BROADCAST_STOP_SERVICE);
         if (charger_status) {
             filter.addAction(Intent.ACTION_POWER_CONNECTED);
             filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
@@ -89,7 +93,7 @@ public class battery_service extends Service {
             String TAG = "battery_receiver";
             assert intent.getAction() != null;
             Log.d(TAG, "Receive action: " + intent.getAction());
-            if (intent.getAction().equals(public_value.BROADCAST_STOP_SERVICE)) {
+            if (intent.getAction().equals(const_value.BROADCAST_STOP_SERVICE)) {
                 Log.i(TAG, "Received stop signal, quitting now...");
                 stopSelf();
                 android.os.Process.killProcess(android.os.Process.myPid());
@@ -121,17 +125,17 @@ public class battery_service extends Service {
                 Log.d(TAG, "The previous battery is over 100%, and the correction is 100%.");
                 battery_level = 100;
             }
-            String request_uri = public_func.get_url(battery_service.bot_token, "sendMessage");
+            String request_uri = network_func.get_url(battery_service.bot_token, "sendMessage");
             Log.d(TAG, "onReceive: " + last_receive_message_id);
             if ((System.currentTimeMillis() - last_receive_time) < 5000 && last_receive_message_id != -1) {
-                request_uri = public_func.get_url(bot_token, "editMessageText");
+                request_uri = network_func.get_url(bot_token, "editMessageText");
                 request_body.message_id = last_receive_message_id;
             }
             last_receive_time = System.currentTimeMillis();
             request_body.text = message_body.append("\n").append(context.getString(R.string.current_battery_level)).append(battery_level).append("%").toString();
-            OkHttpClient okhttp_client = public_func.get_okhttp_obj(battery_service.doh_switch, Paper.book("system_config").read("proxy_config", new proxy()));
+            OkHttpClient okhttp_client = network_func.get_okhttp_obj(battery_service.doh_switch, Paper.book("system_config").read("proxy_config", new proxy()));
             String request_body_raw = new Gson().toJson(request_body);
-            RequestBody body = RequestBody.create(request_body_raw, public_value.JSON);
+            RequestBody body = RequestBody.create(request_body_raw, const_value.JSON);
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
             final String error_head = "Send battery info failed:";
@@ -140,10 +144,10 @@ public class battery_service extends Service {
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
                     e.printStackTrace();
                     last_receive_message_id = -1;
-                    public_func.write_log(context, error_head + e.getMessage());
+                    log_func.write_log(context, error_head + e.getMessage());
                     if (action.equals(Intent.ACTION_BATTERY_LOW)) {
-                        public_func.send_fallback_sms(context, request_body.text, -1);
-                        public_func.add_resend_loop(context, request_body.text);
+                        sms_func.send_fallback_sms(context, request_body.text, -1);
+                        resend_func.add_resend_loop(context, request_body.text);
                     }
                 }
 
@@ -154,13 +158,13 @@ public class battery_service extends Service {
                         assert response.body() != null;
                         last_receive_message_id = -1;
                         String error_message = error_head + response.code() + " " + result;
-                        public_func.write_log(context, error_message);
-                        public_func.add_resend_loop(context, request_body.text);
+                        log_func.write_log(context, error_message);
+                        resend_func.add_resend_loop(context, request_body.text);
                     }
                     if (response.code() == 200) {
                         Log.d(TAG, "onResponse: " + result);
-                        Log.d(TAG, "onResponse: " + public_func.get_message_id(result));
-                        last_receive_message_id = public_func.get_message_id(result);
+                        Log.d(TAG, "onResponse: " + other_func.get_message_id(result));
+                        last_receive_message_id = other_func.get_message_id(result);
                     }
                 }
             });

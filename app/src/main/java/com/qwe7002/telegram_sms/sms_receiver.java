@@ -22,8 +22,13 @@ import com.github.sumimakito.codeauxlib.CodeauxLibPortable;
 import com.google.gson.Gson;
 import com.qwe7002.telegram_sms.config.proxy;
 import com.qwe7002.telegram_sms.data_structure.request_message;
-import com.qwe7002.telegram_sms.static_class.public_func;
-import com.qwe7002.telegram_sms.static_class.public_value;
+import com.qwe7002.telegram_sms.static_class.const_value;
+import com.qwe7002.telegram_sms.static_class.log_func;
+import com.qwe7002.telegram_sms.static_class.network_func;
+import com.qwe7002.telegram_sms.static_class.other_func;
+import com.qwe7002.telegram_sms.static_class.resend_func;
+import com.qwe7002.telegram_sms.static_class.sms_func;
+import com.qwe7002.telegram_sms.static_class.ussd_func;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -63,11 +68,11 @@ public class sms_receiver extends BroadcastReceiver {
         }
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
-        String request_uri = public_func.get_url(bot_token, "sendMessage");
+        String request_uri = network_func.get_url(bot_token, "sendMessage");
 
         int slot = extras.getInt("slot", -1);
         final int sub_id = extras.getInt("subscription", -1);
-        if (public_func.get_active_card(context) >= 2 && slot == -1) {
+        if (other_func.get_active_card(context) >= 2 && slot == -1) {
             SubscriptionManager manager = SubscriptionManager.from(context);
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                 SubscriptionInfo info = manager.getActiveSubscriptionInfo(sub_id);
@@ -75,7 +80,7 @@ public class sms_receiver extends BroadcastReceiver {
             }
         }
         final int final_slot = slot;
-        String dual_sim = public_func.get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
+        String dual_sim = other_func.get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
 
         Object[] pdus = (Object[]) extras.get("pdus");
         assert pdus != null;
@@ -88,7 +93,7 @@ public class sms_receiver extends BroadcastReceiver {
             }
         }
         if (messages.length == 0) {
-            public_func.write_log(context, "Message length is equal to 0.");
+            log_func.write_log(context, "Message length is equal to 0.");
             return;
         }
 
@@ -138,7 +143,7 @@ public class sms_receiver extends BroadcastReceiver {
                     is_verification_code = true;
                 }
             } else {
-                public_func.write_log(context, "SMS exceeds 140 characters, no verification code is recognized.");
+                log_func.write_log(context, "SMS exceeds 140 characters, no verification code is recognized.");
             }
         }
         request_body.text = message_head + message_body_html;
@@ -148,8 +153,8 @@ public class sms_receiver extends BroadcastReceiver {
                 switch (command_list[0].replace("-", "")) {
                     case "/restartservice":
                         new Thread(() -> {
-                            public_func.stop_all_service(context);
-                            public_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
+                            other_func.stop_all_service(context);
+                            other_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
                         }).start();
                         raw_request_body_text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
                         request_body.text = raw_request_body_text;
@@ -159,8 +164,8 @@ public class sms_receiver extends BroadcastReceiver {
                             Log.i(TAG, "No SMS permission.");
                             break;
                         }
-                        String msg_send_to = public_func.get_send_phone_number(command_list[1]);
-                        if (public_func.is_phone_number(msg_send_to) && command_list.length > 2) {
+                        String msg_send_to = other_func.get_send_phone_number(command_list[1]);
+                        if (other_func.is_phone_number(msg_send_to) && command_list.length > 2) {
                             StringBuilder msg_send_content = new StringBuilder();
                             for (int i = 2; i < command_list.length; ++i) {
                                 if (i != 2) {
@@ -168,7 +173,7 @@ public class sms_receiver extends BroadcastReceiver {
                                 }
                                 msg_send_content.append(command_list[i]);
                             }
-                            new Thread(() -> public_func.send_sms(context, msg_send_to, msg_send_content.toString(), final_slot, sub_id)).start();
+                            new Thread(() -> sms_func.send_sms(context, msg_send_to, msg_send_content.toString(), final_slot, sub_id)).start();
                             return;
                         }
                         break;
@@ -176,7 +181,7 @@ public class sms_receiver extends BroadcastReceiver {
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                             if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
                                 if (command_list.length == 2) {
-                                    public_func.send_ussd(context, command_list[1], sub_id);
+                                    ussd_func.send_ussd(context, command_list[1], sub_id);
                                     return;
                                 }
                             }
@@ -214,8 +219,8 @@ public class sms_receiver extends BroadcastReceiver {
         }
 
 
-        RequestBody body = RequestBody.create(new Gson().toJson(request_body), public_value.JSON);
-        OkHttpClient okhttp_client = public_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+        RequestBody body = RequestBody.create(new Gson().toJson(request_body), const_value.JSON);
+        OkHttpClient okhttp_client = network_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
         final String error_head = "Send SMS forward failed:";
@@ -224,9 +229,9 @@ public class sms_receiver extends BroadcastReceiver {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
-                public_func.write_log(context, error_head + e.getMessage());
-                public_func.send_fallback_sms(context, final_raw_request_body_text, sub_id);
-                public_func.add_resend_loop(context, request_body.text);
+                log_func.write_log(context, error_head + e.getMessage());
+                sms_func.send_fallback_sms(context, final_raw_request_body_text, sub_id);
+                resend_func.add_resend_loop(context, request_body.text);
             }
 
             @Override
@@ -234,15 +239,15 @@ public class sms_receiver extends BroadcastReceiver {
                 assert response.body() != null;
                 String result = Objects.requireNonNull(response.body()).string();
                 if (response.code() != 200) {
-                    public_func.write_log(context, error_head + response.code() + " " + result);
-                    public_func.send_fallback_sms(context, final_raw_request_body_text, sub_id);
-                    public_func.add_resend_loop(context, request_body.text);
+                    log_func.write_log(context, error_head + response.code() + " " + result);
+                    sms_func.send_fallback_sms(context, final_raw_request_body_text, sub_id);
+                    resend_func.add_resend_loop(context, request_body.text);
                 } else {
-                    if (!public_func.is_phone_number(message_address)) {
-                        public_func.write_log(context, "[" + message_address + "] Not a regular phone number.");
+                    if (!other_func.is_phone_number(message_address)) {
+                        log_func.write_log(context, "[" + message_address + "] Not a regular phone number.");
                         return;
                     }
-                    public_func.add_message_list(public_func.get_message_id(result), message_address, final_slot);
+                    other_func.add_message_list(other_func.get_message_id(result), message_address, final_slot);
                 }
             }
         });
