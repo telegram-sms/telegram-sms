@@ -44,7 +44,7 @@ public class service_func {
             if (chat_command_switch) {
                 context.startForegroundService(chat_long_polling_service);
             }
-        } else {//Service activation after O
+        } else {
             if (battery_switch) {
                 context.startService(battery_service);
             }
