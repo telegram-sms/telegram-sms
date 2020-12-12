@@ -40,6 +40,7 @@ import com.qwe7002.telegram_sms.static_class.log_func;
 import com.qwe7002.telegram_sms.static_class.network_func;
 import com.qwe7002.telegram_sms.static_class.other_func;
 import com.qwe7002.telegram_sms.static_class.resend_func;
+import com.qwe7002.telegram_sms.static_class.service_func;
 import com.qwe7002.telegram_sms.static_class.sms_func;
 import com.qwe7002.telegram_sms.static_class.ussd_func;
 
@@ -692,7 +693,7 @@ public class chat_command_service extends Service {
                         JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
                         String result_message = getString(R.string.system_message_head) + "\n" + getString(R.string.error_stop_message) + "\n" + getString(R.string.error_message_head) + result_obj.get("description").getAsString() + "\n" + "Code: " + response.code();
                         sms_func.send_fallback_sms(context, result_message, -1);
-                        other_func.stop_all_service(context);
+                        service_func.stop_all_service(context);
                         break;
                     }
                 }

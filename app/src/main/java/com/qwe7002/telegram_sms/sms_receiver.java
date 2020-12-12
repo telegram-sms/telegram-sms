@@ -27,6 +27,7 @@ import com.qwe7002.telegram_sms.static_class.log_func;
 import com.qwe7002.telegram_sms.static_class.network_func;
 import com.qwe7002.telegram_sms.static_class.other_func;
 import com.qwe7002.telegram_sms.static_class.resend_func;
+import com.qwe7002.telegram_sms.static_class.service_func;
 import com.qwe7002.telegram_sms.static_class.sms_func;
 import com.qwe7002.telegram_sms.static_class.ussd_func;
 
@@ -153,8 +154,8 @@ public class sms_receiver extends BroadcastReceiver {
                 switch (command_list[0].replace("-", "")) {
                     case "/restartservice":
                         new Thread(() -> {
-                            other_func.stop_all_service(context);
-                            other_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
+                            service_func.stop_all_service(context);
+                            service_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
                         }).start();
                         raw_request_body_text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
                         request_body.text = raw_request_body_text;

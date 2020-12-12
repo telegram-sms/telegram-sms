@@ -9,7 +9,7 @@ public class const_value {
     public static final String BROADCAST_STOP_SERVICE = "com.qwe7002.telegram_sms.stop_all";
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     public static final int NOTIFICATION_LISTENER_SERVICE_NOTIFY_ID = 3;
-    public static final int SEND_USSD_SERVCE_NOTIFY_ID = 4;
+    //public static final int SEND_USSD_SERVCE_NOTIFY_ID = 4;
     public static final int RESEND_SERVICE_NOTIFY_ID = 5;
     public static final int RESULT_CONFIG_JSON = 1;
 }

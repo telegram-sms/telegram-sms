@@ -48,6 +48,7 @@ import com.qwe7002.telegram_sms.static_class.const_value;
 import com.qwe7002.telegram_sms.static_class.log_func;
 import com.qwe7002.telegram_sms.static_class.network_func;
 import com.qwe7002.telegram_sms.static_class.other_func;
+import com.qwe7002.telegram_sms.static_class.service_func;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -149,7 +150,7 @@ public class main_activity extends AppCompatActivity {
         if (sharedPreferences.getBoolean("initialized", false)) {
             update_config();
             check_version_upgrade(true);
-            other_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
+            service_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
 
         }
         boolean display_dual_sim_display_name_config = sharedPreferences.getBoolean("display_dual_sim_display_name", false);
@@ -264,7 +265,7 @@ public class main_activity extends AppCompatActivity {
                 Snackbar.make(v, R.string.token_not_configure, Snackbar.LENGTH_LONG).show();
                 return;
             }
-            new Thread(() -> other_func.stop_all_service(context)).start();
+            new Thread(() -> service_func.stop_all_service(context)).start();
             final ProgressDialog progress_dialog = new ProgressDialog(main_activity.this);
             progress_dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             progress_dialog.setTitle(getString(R.string.get_recent_chat_title));
@@ -464,8 +465,8 @@ public class main_activity extends AppCompatActivity {
                     editor.putBoolean("privacy_dialog_agree", true);
                     editor.apply();
                     new Thread(() -> {
-                        other_func.stop_all_service(context);
-                        other_func.start_service(context, battery_monitoring_switch.isChecked(), chat_command_switch.isChecked());
+                        service_func.stop_all_service(context);
+                        service_func.start_service(context, battery_monitoring_switch.isChecked(), chat_command_switch.isChecked());
                     }).start();
                     Looper.prepare();
                     Snackbar.make(v, R.string.success, Snackbar.LENGTH_LONG)
@@ -523,7 +524,7 @@ public class main_activity extends AppCompatActivity {
         boolean back_status = set_permission_back;
         set_permission_back = false;
         if (back_status) {
-            if (other_func.is_notify_listener(context)) {
+            if (service_func.is_notify_listener(context)) {
                 startActivity(new Intent(main_activity.this, notify_apps_list_activity.class));
             }
         }
@@ -606,7 +607,7 @@ public class main_activity extends AppCompatActivity {
                 }
                 return true;
             case R.id.set_notify_menu_item:
-                if (!other_func.is_notify_listener(context)) {
+                if (!service_func.is_notify_listener(context)) {
                     Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
@@ -649,9 +650,9 @@ public class main_activity extends AppCompatActivity {
                             proxy_item.password = proxy_password.getText().toString();
                             Paper.book("system_config").write("proxy_config", proxy_item);
                             new Thread(() -> {
-                                other_func.stop_all_service(context);
+                                service_func.stop_all_service(context);
                                 if (sharedPreferences.getBoolean("initialized", false)) {
-                                    other_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
+                                    service_func.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
                                 }
                             }).start();
                         })
