@@ -17,11 +17,12 @@ import androidx.annotation.NonNull;
 import com.google.gson.Gson;
 import com.qwe7002.telegram_sms.config.proxy;
 import com.qwe7002.telegram_sms.data_structure.request_message;
-import com.qwe7002.telegram_sms.static_class.const_value;
 import com.qwe7002.telegram_sms.static_class.log_func;
 import com.qwe7002.telegram_sms.static_class.network_func;
 import com.qwe7002.telegram_sms.static_class.other_func;
 import com.qwe7002.telegram_sms.static_class.resend_func;
+import com.qwe7002.telegram_sms.value.const_value;
+import com.qwe7002.telegram_sms.value.notify_id;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -53,7 +54,7 @@ public class notification_listener_service extends NotificationListenerService {
         Paper.init(context);
         sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         Notification notification = other_func.get_notification_obj(getApplicationContext(), getString(R.string.Notification_Listener_title));
-        startForeground(const_value.NOTIFICATION_LISTENER_SERVICE_NOTIFY_ID, notification);
+        startForeground(notify_id.NOTIFICATION_LISTENER_SERVICE_NOTIFY_ID, notification);
     }
 
     @Override

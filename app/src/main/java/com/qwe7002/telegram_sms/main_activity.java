@@ -44,11 +44,11 @@ import com.google.gson.JsonParser;
 import com.qwe7002.telegram_sms.config.proxy;
 import com.qwe7002.telegram_sms.data_structure.polling_json;
 import com.qwe7002.telegram_sms.data_structure.request_message;
-import com.qwe7002.telegram_sms.static_class.const_value;
 import com.qwe7002.telegram_sms.static_class.log_func;
 import com.qwe7002.telegram_sms.static_class.network_func;
 import com.qwe7002.telegram_sms.static_class.other_func;
 import com.qwe7002.telegram_sms.static_class.service_func;
+import com.qwe7002.telegram_sms.value.const_value;
 
 import org.jetbrains.annotations.NotNull;
 

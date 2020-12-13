@@ -15,10 +15,11 @@ import androidx.annotation.Nullable;
 import com.google.gson.Gson;
 import com.qwe7002.telegram_sms.config.proxy;
 import com.qwe7002.telegram_sms.data_structure.request_message;
-import com.qwe7002.telegram_sms.static_class.const_value;
 import com.qwe7002.telegram_sms.static_class.log_func;
 import com.qwe7002.telegram_sms.static_class.network_func;
 import com.qwe7002.telegram_sms.static_class.other_func;
+import com.qwe7002.telegram_sms.value.const_value;
+import com.qwe7002.telegram_sms.value.notify_id;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,7 +44,7 @@ public class resend_service extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         resend_list = Paper.book().read(table_name, new ArrayList<>());
         Notification notification = other_func.get_notification_obj(context, getString(R.string.failed_resend));
-        startForeground(const_value.RESEND_SERVICE_NOTIFY_ID, notification);
+        startForeground(notify_id.RESEND_SERVICE_NOTIFY_ID, notification);
         return START_NOT_STICKY;
     }
 

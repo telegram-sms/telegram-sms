@@ -35,7 +35,6 @@ import com.qwe7002.telegram_sms.data_structure.polling_json;
 import com.qwe7002.telegram_sms.data_structure.reply_markup_keyboard;
 import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.data_structure.sms_request_info;
-import com.qwe7002.telegram_sms.static_class.const_value;
 import com.qwe7002.telegram_sms.static_class.log_func;
 import com.qwe7002.telegram_sms.static_class.network_func;
 import com.qwe7002.telegram_sms.static_class.other_func;
@@ -43,6 +42,8 @@ import com.qwe7002.telegram_sms.static_class.resend_func;
 import com.qwe7002.telegram_sms.static_class.service_func;
 import com.qwe7002.telegram_sms.static_class.sms_func;
 import com.qwe7002.telegram_sms.static_class.ussd_func;
+import com.qwe7002.telegram_sms.value.const_value;
+import com.qwe7002.telegram_sms.value.notify_id;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -511,7 +512,7 @@ public class chat_command_service extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = other_func.get_notification_obj(getApplicationContext(), getString(R.string.chat_command_service_name));
-        startForeground(const_value.CHAT_COMMAND_NOTIFY_ID, notification);
+        startForeground(notify_id.CHAT_COMMAND_NOTIFY_ID, notification);
         return START_STICKY;
     }
 

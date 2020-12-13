@@ -18,6 +18,7 @@ import com.qwe7002.telegram_sms.R;
 import com.qwe7002.telegram_sms.config.proxy;
 import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.ussd_request_callback;
+import com.qwe7002.telegram_sms.value.const_value;
 
 import java.io.IOException;
 import java.util.Objects;

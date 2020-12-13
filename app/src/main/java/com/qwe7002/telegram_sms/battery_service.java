@@ -16,12 +16,13 @@ import androidx.annotation.NonNull;
 import com.google.gson.Gson;
 import com.qwe7002.telegram_sms.config.proxy;
 import com.qwe7002.telegram_sms.data_structure.request_message;
-import com.qwe7002.telegram_sms.static_class.const_value;
 import com.qwe7002.telegram_sms.static_class.log_func;
 import com.qwe7002.telegram_sms.static_class.network_func;
 import com.qwe7002.telegram_sms.static_class.other_func;
 import com.qwe7002.telegram_sms.static_class.resend_func;
 import com.qwe7002.telegram_sms.static_class.sms_func;
+import com.qwe7002.telegram_sms.value.const_value;
+import com.qwe7002.telegram_sms.value.notify_id;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -48,7 +49,7 @@ public class battery_service extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = other_func.get_notification_obj(context, getString(R.string.battery_monitoring_notify));
-        startForeground(const_value.BATTERY_NOTIFY_ID, notification);
+        startForeground(notify_id.BATTERY_NOTIFY_ID, notification);
         return START_STICKY;
     }
 

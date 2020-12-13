@@ -14,7 +14,7 @@ import androidx.appcompat.widget.Toolbar;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.zxing.Result;
-import com.qwe7002.telegram_sms.static_class.const_value;
+import com.qwe7002.telegram_sms.value.const_value;
 
 import org.jetbrains.annotations.NotNull;
 
