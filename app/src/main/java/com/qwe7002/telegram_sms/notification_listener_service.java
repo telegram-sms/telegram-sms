@@ -54,7 +54,7 @@ public class notification_listener_service extends NotificationListenerService {
         Paper.init(context);
         sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         Notification notification = other_func.get_notification_obj(getApplicationContext(), getString(R.string.Notification_Listener_title));
-        startForeground(notify_id.NOTIFICATION_LISTENER_SERVICE_NOTIFY_ID, notification);
+        startForeground(notify_id.NOTIFICATION_LISTENER_SERVICE, notification);
     }
 
     @Override
