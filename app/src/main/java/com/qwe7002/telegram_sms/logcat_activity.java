@@ -30,7 +30,6 @@ public class logcat_activity extends AppCompatActivity {
         this.setTitle(R.string.logcat);
         logcat_textview.setText(log_func.read_log(context, line));
         observer = new file_observer(context, logcat_textview);
-
     }
 
     @Override

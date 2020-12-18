@@ -74,11 +74,12 @@ public class battery_service extends Service {
         send_loop_list = new ArrayList<>();
         new Thread(() -> {
             while (true) {
-                Log.d("send_loop", "onCreate: " + send_loop_list);
+                ArrayList<send_obj> need_remove = new ArrayList<>();
                 for (send_obj item : send_loop_list) {
                     network_handle(item);
-                    send_loop_list.remove(item);
+                    need_remove.add(item);
                 }
+                send_loop_list.removeAll(need_remove);
                 try {
                     //noinspection BusyWait
                     Thread.sleep(1000);
