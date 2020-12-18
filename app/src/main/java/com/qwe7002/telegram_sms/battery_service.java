@@ -81,11 +81,14 @@ public class battery_service extends Service {
                 }
                 send_loop_list.removeAll(need_remove);
                 need_remove.clear();
-                try {
-                    //noinspection BusyWait
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                if (send_loop_list.size() == 0) {
+                    //Only enter sleep mode when there are no messages
+                    try {
+                        //noinspection BusyWait
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }).start();
