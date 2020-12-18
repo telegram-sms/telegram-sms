@@ -73,13 +73,14 @@ public class battery_service extends Service {
         registerReceiver(battery_receiver, filter);
         send_loop_list = new ArrayList<>();
         new Thread(() -> {
+            ArrayList<send_obj> need_remove = new ArrayList<>();
             while (true) {
-                ArrayList<send_obj> need_remove = new ArrayList<>();
                 for (send_obj item : send_loop_list) {
                     network_handle(item);
                     need_remove.add(item);
                 }
                 send_loop_list.removeAll(need_remove);
+                need_remove.clear();
                 try {
                     //noinspection BusyWait
                     Thread.sleep(1000);
