@@ -60,9 +60,9 @@ public class sms_receiver extends BroadcastReceiver {
             Log.i(TAG, "Uninitialized, SMS receiver is deactivated.");
             return;
         }
-        final boolean is_default = Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName());
+        final boolean is_default_sms_app = Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName());
         assert intent.getAction() != null;
-        if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED") && is_default) {
+        if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED") && is_default_sms_app) {
             //When it is the default application, it will receive two broadcasts.
             Log.i(TAG, "reject: android.provider.Telephony.SMS_RECEIVED.");
             return;
@@ -107,7 +107,7 @@ public class sms_receiver extends BroadcastReceiver {
         final String message_address = messages[0].getOriginatingAddress();
         assert message_address != null;
 
-        if (is_default) {
+        if (is_default_sms_app) {
             Log.i(TAG, "onReceive: Write to the system database.");
             new Thread(() -> {
                 ContentValues values = new ContentValues();
