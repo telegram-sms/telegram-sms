@@ -53,8 +53,9 @@ public class scanner_activity extends Activity implements ZXingScannerView.Resul
     public void handleResult(@NotNull Result rawResult) {
         String TAG = "activity_scanner";
         Log.d(TAG, "format: " + rawResult.getBarcodeFormat().toString() + " content: " + rawResult.getText());
-        if (json_validate(rawResult.getText())) {
+        if (!json_validate(rawResult.getText())) {
             Toast.makeText(this, "The QR code is not legal", Toast.LENGTH_SHORT).show();
+            return;
         }
         Intent intent = new Intent().putExtra("config_json", rawResult.getText());
         setResult(const_value.RESULT_CONFIG_JSON, intent);
