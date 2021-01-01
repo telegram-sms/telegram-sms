@@ -149,9 +149,11 @@ public class sms_receiver extends BroadcastReceiver {
         }
         request_body.text = message_head + message_body_html;
         if (is_trusted_phone) {
-            String[] command_list = message_body.toLowerCase().split("\n");
+            String message_command = message_body.toLowerCase().replace("_", "").replace("-", "");
+            String[] command_list = message_command.split("\n");
             if (command_list.length > 0) {
-                switch (command_list[0].replace("-", "")) {
+                String[] message_list = message_body.split("\n");
+                switch (command_list[0]) {
                     case "/restartservice":
                         new Thread(() -> {
                             service_func.stop_all_service(context);
@@ -165,14 +167,14 @@ public class sms_receiver extends BroadcastReceiver {
                             Log.i(TAG, "No SMS permission.");
                             break;
                         }
-                        String msg_send_to = other_func.get_send_phone_number(command_list[1]);
-                        if (other_func.is_phone_number(msg_send_to) && command_list.length > 2) {
+                        String msg_send_to = other_func.get_send_phone_number(message_list[1]);
+                        if (other_func.is_phone_number(msg_send_to) && message_list.length > 2) {
                             StringBuilder msg_send_content = new StringBuilder();
-                            for (int i = 2; i < command_list.length; ++i) {
+                            for (int i = 2; i < message_list.length; ++i) {
                                 if (i != 2) {
                                     msg_send_content.append("\n");
                                 }
-                                msg_send_content.append(command_list[i]);
+                                msg_send_content.append(message_list[i]);
                             }
                             new Thread(() -> sms_func.send_sms(context, msg_send_to, msg_send_content.toString(), final_slot, sub_id)).start();
                             return;
@@ -181,8 +183,8 @@ public class sms_receiver extends BroadcastReceiver {
                     case "/sendussd":
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                             if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
-                                if (command_list.length == 2) {
-                                    ussd_func.send_ussd(context, command_list[1], sub_id);
+                                if (message_list.length == 2) {
+                                    ussd_func.send_ussd(context, message_list[1], sub_id);
                                     return;
                                 }
                             }
