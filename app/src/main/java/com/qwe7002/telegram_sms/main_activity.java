@@ -501,6 +501,7 @@ public class main_activity extends AppCompatActivity {
         builder.setNeutralButton(R.string.visit_page, (dialog, which) -> {
             Uri uri = Uri.parse("https://get.telegram-sms.com" + privacy_police);
             CustomTabsIntent.Builder privacy_builder = new CustomTabsIntent.Builder();
+            //noinspection deprecation
             privacy_builder.setToolbarColor(ContextCompat.getColor(context, R.color.colorPrimary));
             CustomTabsIntent customTabsIntent = privacy_builder.build();
             customTabsIntent.intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -674,6 +675,7 @@ public class main_activity extends AppCompatActivity {
         assert file_name != null;
         Uri uri = Uri.parse("https://get.telegram-sms.com" + file_name);
         CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+        //noinspection deprecation
         builder.setToolbarColor(ContextCompat.getColor(this, R.color.colorPrimary));
         CustomTabsIntent customTabsIntent = builder.build();
         try {

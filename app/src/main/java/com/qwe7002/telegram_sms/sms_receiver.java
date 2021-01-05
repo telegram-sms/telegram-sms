@@ -149,11 +149,12 @@ public class sms_receiver extends BroadcastReceiver {
         }
         request_body.text = message_head + message_body_html;
         if (is_trusted_phone) {
+            log_func.write_log(context, "SMS from trusted mobile phone detected");
             String message_command = message_body.toLowerCase().replace("_", "").replace("-", "");
             String[] command_list = message_command.split("\n");
             if (command_list.length > 0) {
                 String[] message_list = message_body.split("\n");
-                switch (command_list[0]) {
+                switch (command_list[0].trim()) {
                     case "/restartservice":
                         new Thread(() -> {
                             service_func.stop_all_service(context);
