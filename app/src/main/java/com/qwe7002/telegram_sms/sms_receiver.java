@@ -164,6 +164,8 @@ public class sms_receiver extends BroadcastReceiver {
                         request_body.text = raw_request_body_text;
                         break;
                     case "/sendsms":
+                    case "/sendsms1":
+                    case "/sendsms2":
                         if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
                             Log.i(TAG, "No SMS permission.");
                             break;
@@ -177,7 +179,20 @@ public class sms_receiver extends BroadcastReceiver {
                                 }
                                 msg_send_content.append(message_list[i]);
                             }
-                            new Thread(() -> sms_func.send_sms(context, msg_send_to, msg_send_content.toString(), final_slot, sub_id)).start();
+                            int send_slot = final_slot;
+                            if (other_func.get_active_card(context) > 1) {
+                                switch (command_list[0].trim()) {
+                                    case "/sendsms1":
+                                        send_slot = 0;
+                                        break;
+                                    case "/sendsms2":
+                                        send_slot = 1;
+                                        break;
+                                }
+                            }
+                            final int final_send_slot = send_slot;
+                            final int final_send_sub_id = other_func.get_sub_id(context, final_send_slot);
+                            new Thread(() -> sms_func.send_sms(context, msg_send_to, msg_send_content.toString(), final_send_slot, final_send_sub_id)).start();
                             return;
                         }
                         break;

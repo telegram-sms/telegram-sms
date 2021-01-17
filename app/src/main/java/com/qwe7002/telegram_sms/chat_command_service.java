@@ -380,16 +380,6 @@ public class chat_command_service extends Service {
                             sms_func.send_sms(context, msg_send_to, msg_send_content.toString(), -1, -1);
                             return;
                         }
-                        /*int slot = -1;
-                        switch (command) {
-                            case "/sendsms":
-                            case "/sendsms1":
-                                slot = 0;
-                                break;
-                            case "/sendsms2":
-                                slot = 1;
-                                break;
-                        }*/
                         int send_slot = -1;
                         if (other_func.get_active_card(context) > 1) {
                             send_slot = 0;
@@ -405,18 +395,6 @@ public class chat_command_service extends Service {
                     }
                 } else {
                     send_sms_next_status = SEND_SMS_STATUS.PHONE_INPUT_STATUS;
-/*                    int send_slot = -1;
-                    if (public_func.get_active_card(context) > 1) {
-                        switch (command) {
-                            case "/sendsms":
-                            case "/sendsms1":
-                                send_slot = 0;
-                                break;
-                            case "/sendsms2":
-                                send_slot = 1;
-                                break;
-                        }
-                    }*/
                     int send_slot = -1;
                     if (other_func.get_active_card(context) > 1) {
                         send_slot = 0;
