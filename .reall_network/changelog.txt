@@ -1,11 +1,3 @@
-- Reduce so file size
+- Repair SMS command function
 
-- Fix retransmission errors and solve performance problems
-
-- Add cancel function for interactive SMS sending
-
-- Fix the crash caused by log cache too large
-
-- Fix the problem of repeatedly sending the charger disconnection information
-
-- Now the unprocessed messages will be ignored after the chat command service starts
+- Add support for sending SMS commands with dual cards
