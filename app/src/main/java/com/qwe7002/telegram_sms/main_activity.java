@@ -638,7 +638,7 @@ public class main_activity extends AppCompatActivity {
                 proxy_password.setText(proxy_item.password);
                 new AlertDialog.Builder(this).setTitle(R.string.proxy_dialog_title)
                         .setView(proxy_dialog_view)
-                        .setPositiveButton("OK", (dialog, which) -> {
+                        .setPositiveButton(R.string.ok_button, (dialog, which) -> {
                             if (!doh_switch.isChecked()) {
                                 doh_switch.setChecked(true);
                             }
