@@ -3,6 +3,9 @@
 buildscript {
     repositories {
         google()
+        //io.paperdb:paperdb Need this source
+        //noinspection JcenterRepositoryObsolete
+        jcenter()
         mavenCentral()
     }
     dependencies {
@@ -14,6 +17,9 @@ buildscript {
 allprojects {
     repositories {
         google()
+        //io.paperdb:paperdb Need this source
+        //noinspection JcenterRepositoryObsolete
+        jcenter()
         mavenCentral()
     }
 }

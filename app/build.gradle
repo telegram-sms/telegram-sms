@@ -8,7 +8,7 @@ android {
         targetSdkVersion 30
         versionCode System.getenv("VERSION_CODE") == null ? 1 : System.getenv("VERSION_CODE").toInteger()
         versionName System.getenv("VERSION_NAME") == null ? "Debug": System.getenv("VERSION_NAME").toString()
-        ndk{                                            // add this
+        ndk{
             abiFilters "armeabi-v7a", "arm64-v8a"
         }
     }
