@@ -699,8 +699,8 @@ public class main_activity extends AppCompatActivity {
                 JsonObject json_config = JsonParser.parseString(Objects.requireNonNull(data.getStringExtra("config_json"))).getAsJsonObject();
                 ((EditText) findViewById(R.id.bot_token_editview)).setText(json_config.get("bot_token").getAsString());
                 ((EditText) findViewById(R.id.chat_id_editview)).setText(json_config.get("chat_id").getAsString());
-                ((Switch) findViewById(R.id.battery_monitoring_switch)).setChecked(json_config.get("battery_monitoring_switch").getAsBoolean());
-                ((Switch) findViewById(R.id.verification_code_switch)).setChecked(json_config.get("verification_code").getAsBoolean());
+                ((SwitchMaterial) findViewById(R.id.battery_monitoring_switch)).setChecked(json_config.get("battery_monitoring_switch").getAsBoolean());
+                ((SwitchMaterial) findViewById(R.id.verification_code_switch)).setChecked(json_config.get("verification_code").getAsBoolean());
 
                 SwitchMaterial charger_status = findViewById(R.id.charger_status_switch);
                 if (json_config.get("battery_monitoring_switch").getAsBoolean()) {
