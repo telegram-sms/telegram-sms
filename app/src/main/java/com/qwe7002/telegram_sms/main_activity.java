@@ -176,8 +176,10 @@ public class main_activity extends AppCompatActivity {
         battery_monitoring_switch.setOnClickListener(v -> {
             if (battery_monitoring_switch.isChecked()) {
                 charger_status_switch.setVisibility(View.VISIBLE);
+                charger_status_switch.setEnabled(true);
             } else {
-                charger_status_switch.setVisibility(View.GONE);
+                //charger_status_switch.setVisibility(View.GONE);
+                charger_status_switch.setEnabled(false);
                 charger_status_switch.setChecked(false);
             }
         });
@@ -202,8 +204,10 @@ public class main_activity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
                 if (trusted_phone_number_editview.length() != 0) {
                     fallback_sms_switch.setVisibility(View.VISIBLE);
+                    fallback_sms_switch.setEnabled(true);
                 } else {
-                    fallback_sms_switch.setVisibility(View.GONE);
+                    //fallback_sms_switch.setVisibility(View.GONE);
+                    fallback_sms_switch.setEnabled(false);
                     fallback_sms_switch.setChecked(false);
                 }
             }
