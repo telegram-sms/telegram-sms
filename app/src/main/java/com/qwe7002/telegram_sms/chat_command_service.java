@@ -235,7 +235,6 @@ public class chat_command_service extends Service {
             Log.i(TAG, "receive_handle: Privacy mode, no username found.");
             return;
         }
-
         Log.d(TAG, "receive_handle: " + command);
         boolean has_command = false;
         switch (command) {
@@ -407,7 +406,7 @@ public class chat_command_service extends Service {
                 request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
                 break;
             default:
-                if (!message_type_is_private) {
+                if (!message_type_is_private && send_sms_next_status == -1) {
                     Log.i(TAG, "receive_handle: The conversation is not Private and does not prompt an error.");
                     return;
                 }
@@ -561,6 +560,7 @@ public class chat_command_service extends Service {
     }
 
     private void set_sms_send_status_standby() {
+        Log.d(TAG, "set_sms_send_status_standby: ");
         send_sms_next_status = SEND_SMS_STATUS.STANDBY_STATUS;
         Paper.book("send_temp").destroy();
     }
