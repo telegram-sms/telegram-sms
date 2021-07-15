@@ -77,7 +77,7 @@ Telegram-SMS is licensed under [BSD 3-Clause License](https://get.telegram-sms.c
 
 CodeauxLib is licensed under [BSD 3-Clause License](https://github.com/telegram-sms/telegram-sms/blob/master/codeauxlib-license/LICENSE).
 
-Artwork Use free fonts licensed by the whole society: [站酷庆科黄油体](https://www.zcool.com.cn/work/ZMTg5MDEyMDQ=.html)
+Artwork Use free fonts licensed by the whole society: [Refrigerator Deluxe](https://fonts.adobe.com/fonts/refrigerator-deluxe) [站酷庆科黄油体](https://www.zcool.com.cn/work/ZMTg5MDEyMDQ=.html)
 
 Copyright of the artwork belongs to [@walliant](https://www.pixiv.net/member.php?id=5600144). Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
@@ -88,12 +88,11 @@ Download resource file of the artwork: [mega.nz](https://mega.nz/#F!TmwQSYjD!XN-
 Character set：
 
 - Name: Fay (菲, フェイ)
+- Type: Gynoid
 - Birthday: 1st October, 2018
 - Place of birth: Fujian, China
 - Zodiac sign: Libra
 - Habits: Eat sweets, Maid dress, Listen Heavy metal music
-
-Designed by Reall with love in Fujian, China
 
 ## Acknowledgements
 
