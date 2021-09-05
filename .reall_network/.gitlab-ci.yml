@@ -43,8 +43,6 @@ release:nightly:
 build_release:
     image: alvrme/alpine-android:android-30-jdk11
     stage: build
-    only:
-        - master
     retry: 2
     script:
         - git submodule update --init --recursive
