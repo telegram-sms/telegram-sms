@@ -61,6 +61,7 @@ public class scanner_activity extends Activity {
         try {
             jsonElement = JsonParser.parseString(jsonStr);
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
         if (jsonElement == null) {
