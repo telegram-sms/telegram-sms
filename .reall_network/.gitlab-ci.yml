@@ -14,7 +14,7 @@ variables:
 
 release:master:
     dependencies:
-        - build
+        - build_release
     stage: push
     only:
         - master
@@ -28,7 +28,7 @@ release:master:
 
 release:nightly:
     dependencies:
-        - build
+        - build_release
     stage: push
     only:
         - nightly
