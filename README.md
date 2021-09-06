@@ -104,6 +104,7 @@ This APP uses the following open source libraries:
 - [CodeauxLib](https://github.com/telegram-sms/CodeauxLibPortable)
 - [Paper](https://github.com/pilgr/Paper)
 - [AwesomeQRCode](https://github.com/SumiMakito/AwesomeQRCode)
+- [code-scanner](https://github.com/yuriy-budiyev/code-scanner)
 
 The creation of this APP would not be possible without the help from the following people:
 

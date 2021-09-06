@@ -52,10 +52,6 @@ dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.20'
 }
 
-repositories {
-    mavenCentral()
-}
-
 task copy_language_pack(type: Copy) {
     description 'Copy the language pack to the source directory, replace the placeholder file'
     from 'language_pack/'
