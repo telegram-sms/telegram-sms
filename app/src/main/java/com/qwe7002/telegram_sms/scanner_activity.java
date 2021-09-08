@@ -1,14 +1,10 @@
 package com.qwe7002.telegram_sms;
 
-
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
-
-import androidx.appcompat.widget.Toolbar;
 
 import com.budiyev.android.codescanner.CodeScanner;
 import com.budiyev.android.codescanner.CodeScannerView;
@@ -24,9 +20,6 @@ public class scanner_activity extends Activity {
     public void onCreate(Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_scanner);
-        Toolbar toolbar = findViewById(R.id.scan_toolbar);
-        toolbar.setTitle(R.string.scan_title);
-        toolbar.setTitleTextColor(Color.WHITE);
         CodeScannerView scannerView = findViewById(R.id.scanner_view);
         mCodeScanner = new CodeScanner(this, scannerView);
         mCodeScanner.setDecodeCallback(result -> runOnUiThread(() -> {
