@@ -10,7 +10,11 @@ import com.budiyev.android.codescanner.CodeScanner;
 import com.budiyev.android.codescanner.CodeScannerView;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.google.zxing.BarcodeFormat;
 import com.qwe7002.telegram_sms.value.const_value;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class scanner_activity extends Activity {
@@ -22,6 +26,9 @@ public class scanner_activity extends Activity {
         setContentView(R.layout.activity_scanner);
         CodeScannerView scannerView = findViewById(R.id.scanner_view);
         mCodeScanner = new CodeScanner(this, scannerView);
+        List<BarcodeFormat> formats = new ArrayList<>();
+        formats.add(BarcodeFormat.QR_CODE);
+        mCodeScanner.setFormats(formats);
         mCodeScanner.setDecodeCallback(result -> runOnUiThread(() -> {
             String TAG = "activity_scanner";
             Log.d(TAG, "format: " + result.getBarcodeFormat().toString() + " content: " + result.getText());
