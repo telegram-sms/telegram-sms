@@ -30,6 +30,7 @@ import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.browser.customtabs.CustomTabColorSchemeParams;
 import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -680,8 +681,8 @@ public class main_activity extends AppCompatActivity {
         assert file_name != null;
         Uri uri = Uri.parse("https://get.telegram-sms.com" + file_name);
         CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
-        //noinspection deprecation
-        builder.setToolbarColor(ContextCompat.getColor(this, R.color.colorPrimary));
+        CustomTabColorSchemeParams params = new CustomTabColorSchemeParams.Builder().setToolbarColor(ContextCompat.getColor(context, R.color.colorPrimary)).build();
+        builder.setDefaultColorSchemeParams(params);
         CustomTabsIntent customTabsIntent = builder.build();
         try {
             customTabsIntent.launchUrl(this, uri);
