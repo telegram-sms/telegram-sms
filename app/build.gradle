@@ -45,7 +45,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.2'
     implementation 'com.squareup.okhttp3:okhttp-dnsoverhttps:5.0.0-alpha.2'
     implementation 'org.conscrypt:conscrypt-android:2.5.2'
-    implementation 'com.google.code.gson:gson:2.8.7'
+    implementation 'com.google.code.gson:gson:2.8.8'
     implementation 'io.github.pilgr:paperdb:2.7.1'
     implementation 'com.github.yuriy-budiyev:code-scanner:2.1.0'
     implementation 'androidx.core:core-ktx:1.6.0'
