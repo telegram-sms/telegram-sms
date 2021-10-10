@@ -15,7 +15,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.CAMERA" /> <!-- Required permissions to send USSD -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Required permissions to send USSD -->
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
@@ -32,27 +33,24 @@
         tools:ignore="GoogleAppIndexingWarning,RtlEnabled"
         tools:targetApi="n">
 
-        <activity android:name=".spam_list_activity"
+        <activity
+            android:name=".spam_list_activity"
             android:label="@string/spam_sms_keyword_title"
-        />
+            tools:ignore="Instantiatable" />
 
 
         <service android:name=".resend_service" />
 
-        <receiver android:name=".sim_status_receiver">
-            <intent-filter>
-                <action android:name="android.intent.action.SIM_STATE_CHANGED" />
-            </intent-filter>
-        </receiver>
-
         <activity
             android:name=".notify_apps_list_activity"
-            android:windowSoftInputMode="adjustPan" />
+            android:windowSoftInputMode="adjustPan"
+            tools:ignore="Instantiatable" />
 
         <service
             android:name=".notification_listener_service"
             android:label="@string/app_name"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            tools:ignore="IntentFilterExportedReceiver">
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
@@ -81,10 +79,12 @@
             </intent-filter>
         </service>
 
-        <receiver android:name=".boot_receiver">
+        <receiver android:name=".boot_receiver"
+            tools:ignore="IntentFilterExportedReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+
                 <data android:scheme="package" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
@@ -110,7 +110,8 @@
                 <data android:mimeType="application/vnd.wap.mms-message" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".call_receiver">
+        <receiver android:name=".call_receiver"
+            tools:ignore="IntentFilterExportedReceiver">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.intent.action.PHONE_STATE" />
                 <action android:name="android.intent.action.SUBSCRIPTION_PHONE_STATE" />
@@ -119,13 +120,16 @@
 
         <activity
             android:name=".qrcode_show_activity"
-            android:label="@string/transfer_configuration" />
-        <activity android:name=".logcat_activity" />
+            android:label="@string/transfer_configuration"
+            tools:ignore="Instantiatable" />
+        <activity android:name=".logcat_activity"
+            tools:ignore="Instantiatable" />
         <activity android:name=".scanner_activity" />
         <activity
             android:name=".main_activity"
             android:label="@string/app_name"
-            android:windowSoftInputMode="adjustPan">
+            android:windowSoftInputMode="adjustPan"
+            tools:ignore="Instantiatable,IntentFilterExportedReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
