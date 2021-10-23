@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     defaultConfig {
         applicationId "com.qwe7002.telegram_sms"
         minSdkVersion 22
-        targetSdkVersion 30
+        targetSdkVersion 31
         versionCode System.getenv("VERSION_CODE") == null ? 1 : System.getenv("VERSION_CODE").toInteger()
         versionName System.getenv("VERSION_NAME") == null ? "Debug": System.getenv("VERSION_NAME").toString()
         ndk{

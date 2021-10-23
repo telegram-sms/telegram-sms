@@ -293,7 +293,7 @@ public class main_activity extends AppCompatActivity {
                 }
                 return false;
             });
-            final String error_head = "Get chat ID failed:";
+            final String error_head = "Get chat ID failed: ";
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
@@ -366,7 +366,7 @@ public class main_activity extends AppCompatActivity {
                             }
                         }
                     }
-                    main_activity.this.runOnUiThread(() -> new AlertDialog.Builder(v.getContext()).setTitle(R.string.select_chat).setItems(chat_name_list.toArray(new String[0]), (dialogInterface, i) -> chat_id_editview.setText(chat_id_list.get(i))).setPositiveButton("Cancel", null).show());
+                    main_activity.this.runOnUiThread(() -> new AlertDialog.Builder(v.getContext()).setTitle(R.string.select_chat).setItems(chat_name_list.toArray(new String[0]), (dialogInterface, i) -> chat_id_editview.setText(chat_id_list.get(i))).setPositiveButton(context.getString(R.string.cancel_button), null).show());
                 }
             });
         });
@@ -416,7 +416,7 @@ public class main_activity extends AppCompatActivity {
             OkHttpClient okhttp_client = network_func.get_okhttp_obj(doh_switch.isChecked(), Paper.book("system_config").read("proxy_config", new proxy()));
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
-            final String error_head = "Send message failed:";
+            final String error_head = "Send message failed: ";
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {

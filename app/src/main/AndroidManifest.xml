@@ -30,27 +30,28 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        tools:ignore="GoogleAppIndexingWarning,RtlEnabled"
+        tools:ignore="DataExtractionRules,GoogleAppIndexingWarning,RtlEnabled,UnusedAttribute"
         tools:targetApi="n">
 
         <activity
             android:name=".spam_list_activity"
             android:label="@string/spam_sms_keyword_title"
-            tools:ignore="Instantiatable" />
+            android:exported="true" />
 
 
-        <service android:name=".resend_service" />
+        <service android:name=".resend_service"
+            android:exported="false"/>
 
         <activity
             android:name=".notify_apps_list_activity"
             android:windowSoftInputMode="adjustPan"
-            tools:ignore="Instantiatable" />
+            android:exported="false" />
 
         <service
             android:name=".notification_listener_service"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
-            tools:ignore="IntentFilterExportedReceiver">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
@@ -80,7 +81,7 @@
         </service>
 
         <receiver android:name=".boot_receiver"
-            tools:ignore="IntentFilterExportedReceiver">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
@@ -111,7 +112,7 @@
             </intent-filter>
         </receiver>
         <receiver android:name=".call_receiver"
-            tools:ignore="IntentFilterExportedReceiver">
+            android:exported="true">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.intent.action.PHONE_STATE" />
                 <action android:name="android.intent.action.SUBSCRIPTION_PHONE_STATE" />
@@ -121,14 +122,15 @@
         <activity
             android:name=".qrcode_show_activity"
             android:label="@string/transfer_configuration"
-            tools:ignore="Instantiatable" />
+            android:exported="false" />
         <activity android:name=".logcat_activity"
-            tools:ignore="Instantiatable" />
-        <activity android:name=".scanner_activity" />
+            android:exported="false" />
+        <activity android:name=".scanner_activity"
+            android:exported="false"/>
         <activity
             android:name=".main_activity"
-            android:label="@string/app_name"
             android:windowSoftInputMode="adjustPan"
+            android:exported="true"
             tools:ignore="Instantiatable,IntentFilterExportedReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
