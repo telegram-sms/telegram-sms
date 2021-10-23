@@ -585,7 +585,7 @@ public class main_activity extends AppCompatActivity {
             case R.id.about_menu_item:
                 PackageManager packageManager = context.getPackageManager();
                 PackageInfo packageInfo;
-                String versionName = "";
+                String versionName= "unknown";
                 try {
                     packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
                     versionName = packageInfo.versionName;
