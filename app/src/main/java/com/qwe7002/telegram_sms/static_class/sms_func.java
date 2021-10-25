@@ -116,7 +116,7 @@ public class sms_func {
             return;
         }
         if (!sharedPreferences.getBoolean("fallback_sms", false)) {
-            Log.i(TAG, "Did not open the SMS to fall back.");
+            Log.i(TAG, "SMS fallback is not turned on.");
             return;
         }
         SmsManager sms_manager;
