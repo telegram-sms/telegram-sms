@@ -162,21 +162,21 @@ public class battery_service extends Service {
                 android.os.Process.killProcess(android.os.Process.myPid());
                 return;
             }
-            StringBuilder prebody = new StringBuilder(context.getString(R.string.system_message_head) + "\n");
+            StringBuilder body = new StringBuilder(context.getString(R.string.system_message_head) + "\n");
             final String action = intent.getAction();
             BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
             switch (Objects.requireNonNull(action)) {
                 case Intent.ACTION_BATTERY_OKAY:
-                    prebody.append(context.getString(R.string.low_battery_status_end));
+                    body.append(context.getString(R.string.low_battery_status_end));
                     break;
                 case Intent.ACTION_BATTERY_LOW:
-                    prebody.append(context.getString(R.string.battery_low));
+                    body.append(context.getString(R.string.battery_low));
                     break;
                 case Intent.ACTION_POWER_CONNECTED:
-                    prebody.append(context.getString(R.string.charger_connect));
+                    body.append(context.getString(R.string.charger_connect));
                     break;
                 case Intent.ACTION_POWER_DISCONNECTED:
-                    prebody.append(context.getString(R.string.charger_disconnect));
+                    body.append(context.getString(R.string.charger_disconnect));
                     break;
             }
             assert batteryManager != null;
@@ -185,7 +185,7 @@ public class battery_service extends Service {
                 Log.d(TAG, "The previous battery is over 100%, and the correction is 100%.");
                 battery_level = 100;
             }
-            String result = prebody.append("\n").append(context.getString(R.string.current_battery_level)).append(battery_level).append("%").toString();
+            String result = body.append("\n").append(context.getString(R.string.current_battery_level)).append(battery_level).append("%").toString();
             send_obj obj = new send_obj();
             obj.action = action;
             obj.content = result;
