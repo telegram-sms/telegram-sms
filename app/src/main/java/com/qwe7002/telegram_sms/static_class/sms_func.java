@@ -1,6 +1,7 @@
 package com.qwe7002.telegram_sms.static_class;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -35,6 +36,7 @@ public class sms_func {
         send_sms(context, send_to, content, slot, sub_id, -1);
     }
 
+    @SuppressLint("UnspecifiedImmutableFlag")
     public static void send_sms(Context context, String send_to, String content, int slot, int sub_id, long message_id) {
         if (PermissionChecker.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PermissionChecker.PERMISSION_GRANTED) {
             Log.d("send_sms", "No permission.");
@@ -91,7 +93,12 @@ public class sms_func {
         sent_intent.putExtra("message_id", message_id);
         sent_intent.putExtra("message_text", send_content);
         sent_intent.putExtra("sub_id", sms_manager.getSubscriptionId());
-        PendingIntent sentIntent = PendingIntent.getBroadcast(context, 0, sent_intent, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent sentIntent;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            sentIntent = PendingIntent.getBroadcast(context, 0, sent_intent, PendingIntent.FLAG_IMMUTABLE);
+        }else{
+            sentIntent = PendingIntent.getBroadcast(context, 0, sent_intent, PendingIntent.FLAG_CANCEL_CURRENT);
+        }
         send_receiver_list.add(sentIntent);
         sms_manager.sendMultipartTextMessage(send_to, null, divideContents, send_receiver_list, null);
     }
