@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.telephony.SmsManager;
 import android.util.Log;
 
@@ -94,7 +95,7 @@ public class sms_func {
         sent_intent.putExtra("message_text", send_content);
         sent_intent.putExtra("sub_id", sms_manager.getSubscriptionId());
         PendingIntent sentIntent;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             sentIntent = PendingIntent.getBroadcast(context, 0, sent_intent, PendingIntent.FLAG_IMMUTABLE);
         }else{
             sentIntent = PendingIntent.getBroadcast(context, 0, sent_intent, PendingIntent.FLAG_CANCEL_CURRENT);
