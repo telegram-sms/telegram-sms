@@ -1,20 +1,19 @@
 package com.qwe7002.telegram_sms;
 
-
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
-
-import androidx.appcompat.widget.Toolbar;
 
 import com.budiyev.android.codescanner.CodeScanner;
 import com.budiyev.android.codescanner.CodeScannerView;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.google.zxing.BarcodeFormat;
 import com.qwe7002.telegram_sms.value.const_value;
+
+import java.util.ArrayList;
 
 
 public class scanner_activity extends Activity {
@@ -24,16 +23,15 @@ public class scanner_activity extends Activity {
     public void onCreate(Bundle state) {
         super.onCreate(state);
         setContentView(R.layout.activity_scanner);
-        Toolbar toolbar = findViewById(R.id.scan_toolbar);
-        toolbar.setTitle(R.string.scan_title);
-        toolbar.setTitleTextColor(Color.WHITE);
         CodeScannerView scannerView = findViewById(R.id.scanner_view);
         mCodeScanner = new CodeScanner(this, scannerView);
+        mCodeScanner.setFormats(new ArrayList<BarcodeFormat>(){{add(BarcodeFormat.QR_CODE);}});
         mCodeScanner.setDecodeCallback(result -> runOnUiThread(() -> {
             String TAG = "activity_scanner";
             Log.d(TAG, "format: " + result.getBarcodeFormat().toString() + " content: " + result.getText());
             if (!json_validate(result.getText())) {
                 Toast.makeText(scanner_activity.this, "The QR code is not legal", Toast.LENGTH_SHORT).show();
+                mCodeScanner.startPreview();
                 return;
             }
             Intent intent = new Intent().putExtra("config_json", result.getText());
@@ -61,6 +59,7 @@ public class scanner_activity extends Activity {
         try {
             jsonElement = JsonParser.parseString(jsonStr);
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
         if (jsonElement == null) {

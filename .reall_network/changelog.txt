@@ -1,3 +1,7 @@
-- Repair SMS command function
+- Support Android 12
 
-- Add support for sending SMS commands with dual cards
+- Fix scan code bug
+
+- Remove SIM card status monitoring function
+
+- Fix the bug that the background process is suddenly killed

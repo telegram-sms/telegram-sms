@@ -12,44 +12,39 @@ variables:
     REPO: telegram-sms
     KEYSTORE_SERVER: keystore.git.reallct.uk
 
-release_github:
+release:master:
+    dependencies:
+        - build_release
     stage: push
     only:
         - master
     script:
-        - eval $(ssh-agent -s)
-        - ssh-add - <<< $(curl https://${KEYSTORE_SERVER}/gitlab-sshkey/id_ecdsa -u gitlab:${key_store_passwd})
-        - git push --set-upstream git@github.com:${OWNER}/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
+        - apk --update --no-cache add git openssl bash curl wget go
+        - go get -u -v github.com/tcnksm/ghr
+        - curl https://${KEYSTORE_SERVER}/gitlab-sshkey/github-key.env -o .reall_network/github-key.env -u gitlab:${key_store_passwd}
+        - . .reall_network/github-key.env
+        - git push --set-upstream https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
+        - ghr -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -b "$(cat .reall_network/changelog.txt)" "${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M")" "./app/build/outputs/apk/release/app-release.apk"
 
-release_nightly_github:
+release:nightly:
+    dependencies:
+        - build_release
     stage: push
     only:
         - nightly
     script:
-        - eval $(ssh-agent -s)
-        - ssh-add - <<< $(curl https://${KEYSTORE_SERVER}/gitlab-sshkey/id_ecdsa -u gitlab:${key_store_passwd})
-        - git push --set-upstream git@github.com:${OWNER}/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
-        - git push --set-upstream git@github.com:qwe7002/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME} -f
-
-release_apk:
-    stage: release
-    dependencies:
-        - build_release
-    only:
-        - master
-    script:
+        - apk --update --no-cache add git openssl bash curl wget go
+        - go get -u -v github.com/tcnksm/ghr
         - curl https://${KEYSTORE_SERVER}/gitlab-sshkey/github-key.env -o .reall_network/github-key.env -u gitlab:${key_store_passwd}
         - . .reall_network/github-key.env
-        - ghr -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -b "$(cat .reall_network/changelog.txt)" "${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M")" "./app/build/outputs/apk/release/app-release.apk"
+        - git push --set-upstream https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
+        - /root/go/bin/ghr -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -c ${CI_COMMIT_REF_NAME} --prerelease "${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M")" "./app/build/outputs/apk/release/app-release.apk"
 
 build_release:
-    image: alvrme/alpine-android:android-30
+    image: alvrme/alpine-android:android-30-jdk11
     stage: build
-    only:
-        - master
     retry: 2
     script:
-        - sdkmanager --install "ndk;21.3.6528147" "cmake;3.10.2.4988404"
         - git submodule update --init --recursive
         - export VERSION_CODE=${CI_PIPELINE_ID}
         - export VERSION_NAME=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}
@@ -60,7 +55,7 @@ build_release:
         - echo -e "org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true" >> ${GRADLE_USER_HOME}/gradle.properties
         - chmod +x ./gradlew
         - ./gradlew app:copy_language_pack
-        - ./gradlew assembleReleas
+        - ./gradlew assembleRelease
     artifacts:
         paths:
             - app/build/outputs/apk/release/app-release.apk

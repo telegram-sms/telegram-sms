@@ -30,7 +30,7 @@ public class qrcode_show_activity extends AppCompatActivity {
         config.charger_status = sharedPreferences.getBoolean("charger_status", false);
         config.verification_code = sharedPreferences.getBoolean("verification_code", false);
         config.privacy_mode = sharedPreferences.getBoolean("privacy_mode", false);
-        ImageView qr_image_imageview = findViewById(R.id.qr_image_imageview);
+        ImageView qr_image_imageview = findViewById(R.id.qr_imageview);
         qr_image_imageview.setImageBitmap(new AwesomeQrRenderer().genQRcodeBitmap(new Gson().toJson(config), ErrorCorrectionLevel.H, 1024, 1024));
     }
 
