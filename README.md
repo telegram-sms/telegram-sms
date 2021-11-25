@@ -15,13 +15,9 @@
 
 ## News, Questions and Contributions
 
-**Because the XDA updates itself to XDA2021, XDA Labs has been closed. I am sorry for this and I can no longer provide the XDA Lab version of Telegram SMS. You can still use the GitHub version to update your Telegram SMS. If you request a refund, please contact me via qwe7002.dev@gmail.com**
-
 You can follow the Telegram channel Telegram SMS Change Log for the latest news. [English](https://t.me/tg_sms_changelog_eng), [简体中文](https://t.me/tg_sms_changelog)
 
 **Please visit [https://reall.uk](https://reall.uk) to submit and discuss issues regarding this project.**
-
-**请访问 [https://reall.uk](https://reall.uk) 提交并讨论有关此项目的问题。**
 
 The primary language used for commit messages is Simplified Chinese. However, you're welcome to use English in commit messages when making contributions.
 
