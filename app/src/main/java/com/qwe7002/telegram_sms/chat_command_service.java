@@ -632,7 +632,7 @@ public class chat_command_service extends Service {
                         ++error_magnification;
                     }
                     try {
-                        Thread.sleep(sleep_time * 1000);
+                        Thread.sleep(sleep_time * 1000L);
                     } catch (InterruptedException e1) {
                         e1.printStackTrace();
                     }
