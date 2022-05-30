@@ -178,7 +178,6 @@ public class main_activity extends AppCompatActivity {
                 charger_status_switch.setVisibility(View.VISIBLE);
                 charger_status_switch.setEnabled(true);
             } else {
-                //charger_status_switch.setVisibility(View.GONE);
                 charger_status_switch.setEnabled(false);
                 charger_status_switch.setChecked(false);
             }
