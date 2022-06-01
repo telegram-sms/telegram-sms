@@ -40,7 +40,7 @@ release:nightly:
         - /root/go/bin/ghr -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -c ${CI_COMMIT_REF_NAME} --prerelease "${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M")" "./app/build/outputs/apk/release/app-release.apk"
 
 build_release:
-    image: alvrme/alpine-android:android-30-jdk11
+    image: alvrme/alpine-android:android-31-jdk11
     stage: build
     retry: 2
     script:
