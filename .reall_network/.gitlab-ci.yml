@@ -20,9 +20,7 @@ release:master:
         - master
     script:
         - apk --update --no-cache add git openssl bash curl wget go
-        - go get -u -v github.com/tcnksm/ghr
-        - curl https://${KEYSTORE_SERVER}/gitlab-sshkey/github-key.env -o .reall_network/github-key.env -u gitlab:${key_store_passwd}
-        - . .reall_network/github-key.env
+        - go install github.com/tcnksm/ghr@latest
         - git push --set-upstream https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
         - /root/go/bin/ghr -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -b "$(cat .reall_network/changelog.txt)" "${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M")" "./app/build/outputs/apk/release/app-release.apk"
 
@@ -34,9 +32,7 @@ release:nightly:
         - nightly
     script:
         - apk --update --no-cache add git openssl bash curl wget go
-        - go get -u -v github.com/tcnksm/ghr
-        - curl https://${KEYSTORE_SERVER}/gitlab-sshkey/github-key.env -o .reall_network/github-key.env -u gitlab:${key_store_passwd}
-        - . .reall_network/github-key.env
+        - go install github.com/tcnksm/ghr@latest
         - git push --set-upstream https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
         - /root/go/bin/ghr -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -c ${CI_COMMIT_REF_NAME} --prerelease "${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M")" "./app/build/outputs/apk/release/app-release.apk"
 
@@ -45,12 +41,10 @@ build_release:
     stage: build
     retry: 2
     script:
+        - echo -n ${KEYSTORE} | base64 -d > app/keys.jks
         - git submodule update --init --recursive
         - export VERSION_CODE=${CI_PIPELINE_ID}
         - export VERSION_NAME=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}
-        - wget https://${KEYSTORE_SERVER}/android/telegram-sms/keys.jks -O app/keys.jks --http-user=gitlab --http-passwd=${key_store_passwd}
-        - wget https://${KEYSTORE_SERVER}/android/telegram-sms/keystore.env -O .reall_network/keystore.env --http-user=gitlab --http-passwd=${key_store_passwd}
-        - . .reall_network/keystore.env
         - export GRADLE_USER_HOME=$(pwd)/.gradle && mkdir -p ${GRADLE_USER_HOME}
         - echo -e "org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true" >> ${GRADLE_USER_HOME}/gradle.properties
         - chmod +x ./gradlew
