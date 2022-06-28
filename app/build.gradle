@@ -1,12 +1,11 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 android {
-    compileSdkVersion 30
+    compileSdkVersion 32
     defaultConfig {
         applicationId "com.qwe7002.telegram_sms"
         minSdkVersion 22
-        //noinspection OldTargetApi
-        targetSdkVersion 30
+        targetSdkVersion 32
         versionCode System.getenv("VERSION_CODE") == null ? 1 : System.getenv("VERSION_CODE").toInteger()
         versionName System.getenv("VERSION_NAME") == null ? "Debug": System.getenv("VERSION_NAME").toString()
         ndk{
@@ -38,7 +37,7 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'androidx.appcompat:appcompat:1.4.2'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'com.google.android.material:material:1.6.1'
     implementation 'androidx.browser:browser:1.4.0'
@@ -49,8 +48,8 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.9'
     implementation 'io.github.pilgr:paperdb:2.7.1'
     implementation 'com.github.yuriy-budiyev:code-scanner:2.1.0'
-    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21'
+    implementation 'androidx.core:core-ktx:1.8.0'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.0'
 }
 
 task copy_language_pack(type: Copy) {
