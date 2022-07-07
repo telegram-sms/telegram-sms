@@ -1,7 +1,7 @@
-- Support Android 12
-
-- Fix scan code bug
-
-- Remove SIM card status monitoring function
+- Support Android 13
 
 - Fix the bug that the background process is suddenly killed
+
+- Update dependency version
+
+- Add Cantonese translation
