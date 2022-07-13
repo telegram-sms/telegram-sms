@@ -49,7 +49,7 @@ dependencies {
     implementation 'io.github.pilgr:paperdb:2.7.2'
     implementation 'com.github.yuriy-budiyev:code-scanner:2.1.0'
     implementation 'androidx.core:core-ktx:1.8.0'
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.0'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.10'
 }
 
 task copy_language_pack(type: Copy) {
