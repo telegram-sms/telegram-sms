@@ -121,6 +121,8 @@ I would also like to thank the following people for their hard work to localise 
 - Chinese(Traditional)
   - [@lm902](https://github.com/lm902)
   - [@孟武尼德霍格龍](https://github.com/tony8077616)
+- Cantonese (Simp./Trad.) (Remember: these translations are only available when the locale is set/fallbacked to 粵語（香港）or 粤语（中华人民共和国） )
+  - [@ous50](https://github.com/ous50)
 
 This APP uses the following public DNS service:
 
