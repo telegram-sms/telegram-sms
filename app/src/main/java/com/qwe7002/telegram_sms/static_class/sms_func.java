@@ -33,17 +33,17 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class sms_func {
-    public static void send_sms(Context context, String send_to, String content, int slot, int sub_id) {
-        send_sms(context, send_to, content, slot, sub_id, -1);
+    public static void sendSms(Context context, String send_to, String content, int slot, int sub_id) {
+        sendSms(context, send_to, content, slot, sub_id, -1);
     }
 
     @SuppressLint("UnspecifiedImmutableFlag")
-    public static void send_sms(Context context, String send_to, String content, int slot, int sub_id, long message_id) {
+    public static void sendSms(Context context, String send_to, String content, int slot, int sub_id, long message_id) {
         if (PermissionChecker.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PermissionChecker.PERMISSION_GRANTED) {
             Log.d("send_sms", "No permission.");
             return;
         }
-        if (!other_func.is_phone_number(send_to)) {
+        if (!other_func.isPhoneNumber(send_to)) {
             log_func.write_log(context, "[" + send_to + "] is an illegal phone number");
             return;
         }

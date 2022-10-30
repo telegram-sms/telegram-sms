@@ -102,34 +102,36 @@ public class chat_command_service extends Service {
         }
         return true;
     }
-    private void receive_handle(@NotNull JsonObject result_obj, boolean get_id_only) {
-        long update_id = result_obj.get("update_id").getAsLong();
+    private void receiveHandle(@NotNull JsonObject resultObj, boolean getIdOnly) {
+        long update_id = resultObj.get("update_id").getAsLong();
         offset = update_id + 1;
-        if (get_id_only) {
+        if (getIdOnly) {
             Log.d(TAG, "receive_handle: get_id_only");
             return;
         }
-        String message_type = "";
+        String messageType = "";
         final request_message request_body = new request_message();
         request_body.chat_id = chat_id;
         JsonObject message_obj = null;
 
-        if (result_obj.has("message")) {
-            message_obj = result_obj.get("message").getAsJsonObject();
-            message_type = message_obj.get("chat").getAsJsonObject().get("type").getAsString();
+        if (resultObj.has("message")) {
+            message_obj = resultObj.get("message").getAsJsonObject();
+            messageType = message_obj.get("chat").getAsJsonObject().get("type").getAsString();
         }
-        if (result_obj.has("channel_post")) {
-            message_type = "channel";
-            message_obj = result_obj.get("channel_post").getAsJsonObject();
+        if (resultObj.has("channel_post")) {
+            messageType = "channel";
+            message_obj = resultObj.get("channel_post").getAsJsonObject();
         }
         String callback_data = null;
-        if (result_obj.has("callback_query")) {
-            message_type = "callback_query";
-            JsonObject callback_query = result_obj.get("callback_query").getAsJsonObject();
+        if (resultObj.has("callback_query")) {
+            messageType = "callback_query";
+            JsonObject callback_query = resultObj.get("callback_query").getAsJsonObject();
             callback_data = callback_query.get("data").getAsString();
         }
-        if (message_type.equals("callback_query") && send_sms_next_status != SEND_SMS_STATUS.STANDBY_STATUS) {
+        if (messageType.equals("callback_query") && send_sms_next_status != SEND_SMS_STATUS.STANDBY_STATUS) {
+            //noinspection ConstantConditions
             int slot = Paper.book("send_temp").read("slot", -1);
+            //noinspection ConstantConditions
             long message_id = Paper.book("send_temp").read("message_id", -1L);
             String to = Paper.book("send_temp").read("to", "");
             String content = Paper.book("send_temp").read("content", "");
@@ -164,7 +166,7 @@ public class chat_command_service extends Service {
             } else {
                 sub_id = other_func.get_sub_id(context, slot);
             }
-            sms_func.send_sms(context, to, content, slot, sub_id, message_id);
+            sms_func.sendSms(context, to, content, slot, sub_id, message_id);
             set_sms_send_status_standby();
             return;
         }
@@ -173,7 +175,7 @@ public class chat_command_service extends Service {
             return;
         }
         JsonObject from_obj = null;
-        final boolean message_type_is_private = message_type.equals("private");
+        final boolean message_type_is_private = messageType.equals("private");
         if (message_obj.has("from")) {
             from_obj = message_obj.get("from").getAsJsonObject();
             if (!message_type_is_private && from_obj.get("is_bot").getAsBoolean()) {
@@ -281,6 +283,7 @@ public class chat_command_service extends Service {
                 }
                 String spam_count = "";
                 ArrayList<String> spam_list = Paper.book().read("spam_sms_list", new ArrayList<>());
+                assert spam_list != null;
                 if (spam_list.size() != 0) {
                     spam_count = "\n" + getString(R.string.spam_count_title) + spam_list.size();
                 }
@@ -324,6 +327,7 @@ public class chat_command_service extends Service {
                 break;
             case "/getspamsms":
                 ArrayList<String> spam_sms_list = Paper.book().read("spam_sms_list", new ArrayList<>());
+                assert spam_sms_list != null;
                 if (spam_sms_list.size() == 0) {
                     request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.no_spam_history);
                     break;
@@ -354,6 +358,7 @@ public class chat_command_service extends Service {
                                 }
                             });
                             ArrayList<String> resend_list_local = Paper.book().read("spam_sms_list", new ArrayList<>());
+                            assert resend_list_local != null;
                             resend_list_local.remove(item);
                             Paper.book().write("spam_sms_list", resend_list_local);
                         }
@@ -364,35 +369,40 @@ public class chat_command_service extends Service {
             case "/sendsms":
             case "/sendsms1":
             case "/sendsms2":
-                String[] msg_send_list = request_msg.split("\n");
-                if (msg_send_list.length > 2) {
-                    String msg_send_to = other_func.get_send_phone_number(msg_send_list[1]);
-                    if (other_func.is_phone_number(msg_send_to)) {
-                        StringBuilder msg_send_content = new StringBuilder();
-                        for (int i = 2; i < msg_send_list.length; ++i) {
-                            if (msg_send_list.length != 3 && i != 2) {
-                                msg_send_content.append("\n");
+                String[] msgSendList = request_msg.split("\n");
+                Log.i(TAG, "receiveHandle: "+msgSendList.length);
+                if (msgSendList.length > 1) {
+                    String[] infoList = msgSendList[0].split(" ");
+                    if(infoList.length == 2) {
+                        String msgSendTo = other_func.getSendPhoneNumber(infoList[1]);
+                        if (other_func.isPhoneNumber(msgSendTo)) {
+                            StringBuilder sendContent = new StringBuilder();
+                            for (int i = 1; i < msgSendList.length; ++i) {
+                                if (msgSendList.length != 2 && i != 1) {
+                                    sendContent.append("\n");
+                                }
+                                sendContent.append(msgSendList[i]);
                             }
-                            msg_send_content.append(msg_send_list[i]);
-                        }
-                        if (other_func.get_active_card(context) == 1) {
-                            sms_func.send_sms(context, msg_send_to, msg_send_content.toString(), -1, -1);
-                            return;
-                        }
-                        int send_slot = -1;
-                        if (other_func.get_active_card(context) > 1) {
-                            send_slot = 0;
-                            if (command.equals("/sendsms2")) {
-                                send_slot = 1;
+                            if (other_func.get_active_card(context) == 1) {
+                                sms_func.sendSms(context, msgSendTo, sendContent.toString(), -1, -1);
+                                return;
                             }
-                        }
-                        int sub_id = other_func.get_sub_id(context, send_slot);
-                        if (sub_id != -1) {
-                            sms_func.send_sms(context, msg_send_to, msg_send_content.toString(), send_slot, sub_id);
-                            return;
+                            int sendSlot = -1;
+                            if (other_func.get_active_card(context) > 1) {
+                                sendSlot = 0;
+                                if (command.equals("/sendsms2")) {
+                                    sendSlot = 1;
+                                }
+                            }
+                            int subId = other_func.get_sub_id(context, sendSlot);
+                            if (subId != -1) {
+                                sms_func.sendSms(context, msgSendTo, sendContent.toString(), sendSlot, subId);
+                                return;
+                            }
                         }
                     }
-                } else {
+                }else if(messageType.equals("private")) {
+                    Log.i(TAG, "receiveHandle: "+messageType);
                     send_sms_next_status = SEND_SMS_STATUS.PHONE_INPUT_STATUS;
                     int send_slot = -1;
                     if (other_func.get_active_card(context) > 1) {
@@ -403,6 +413,8 @@ public class chat_command_service extends Service {
                     }
                     Paper.book("send_temp").write("slot", send_slot);
                 }
+
+
                 request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
                 break;
             default:
@@ -420,6 +432,7 @@ public class chat_command_service extends Service {
         if (!has_command && send_sms_next_status != -1) {
             Log.i(TAG, "receive_handle: Enter the interactive SMS sending mode.");
             String dual_sim = "";
+            //noinspection ConstantConditions
             int send_slot_temp = Paper.book("send_temp").read("slot", -1);
             if (send_slot_temp != -1) {
                 dual_sim = "SIM" + (send_slot_temp + 1) + " ";
@@ -433,8 +446,8 @@ public class chat_command_service extends Service {
                     result_send = getString(R.string.enter_number);
                     break;
                 case SEND_SMS_STATUS.MESSAGE_INPUT_STATUS:
-                    String temp_to = other_func.get_send_phone_number(request_msg);
-                    if (other_func.is_phone_number(temp_to)) {
+                    String temp_to = other_func.getSendPhoneNumber(request_msg);
+                    if (other_func.isPhoneNumber(temp_to)) {
                         Paper.book("send_temp").write("to", temp_to);
                         result_send = getString(R.string.enter_content);
                         send_sms_next_status = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS;
@@ -651,7 +664,7 @@ public class chat_command_service extends Service {
                     if (result_obj.get("ok").getAsBoolean()) {
                         JsonArray result_array = result_obj.get("result").getAsJsonArray();
                         for (JsonElement item : result_array) {
-                            receive_handle(item.getAsJsonObject(), first_request);
+                            receiveHandle(item.getAsJsonObject(), first_request);
                         }
                         first_request = false;
                     }

@@ -74,6 +74,7 @@ public class main_activity extends AppCompatActivity {
     private Context context;
 
     private void check_version_upgrade(boolean reset_log) {
+        //noinspection ConstantConditions
         int version_code = Paper.book("system_config").read("version_code", 0);
         PackageManager packageManager = context.getPackageManager();
         PackageInfo packageInfo;
@@ -94,6 +95,7 @@ public class main_activity extends AppCompatActivity {
     }
 
     private void update_config() {
+        //noinspection ConstantConditions
         int store_version = Paper.book("system_config").read("version", 0);
         if (store_version == const_value.SYSTEM_CONFIG_VERSION) {
             new com.qwe7002.telegram_sms.update_to_version1().check_error();
@@ -108,6 +110,7 @@ public class main_activity extends AppCompatActivity {
                 Log.i(TAG, "update_config: Can't find a version that can be updated");
         }
     }
+    @SuppressWarnings("ConstantConditions")
     @SuppressLint({"BatteryLife"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -635,6 +638,7 @@ public class main_activity extends AppCompatActivity {
                 final EditText proxy_username = proxy_dialog_view.findViewById(R.id.proxy_username_editview);
                 final EditText proxy_password = proxy_dialog_view.findViewById(R.id.proxy_password_editview);
                 proxy proxy_item = Paper.book("system_config").read("proxy_config", new proxy());
+                assert proxy_item != null;
                 proxy_enable.setChecked(proxy_item.enable);
                 proxy_doh_socks5.setChecked(proxy_item.dns_over_socks5);
                 proxy_host.setText(proxy_item.host);

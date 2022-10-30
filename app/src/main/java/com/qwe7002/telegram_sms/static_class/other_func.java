@@ -82,7 +82,7 @@ public class other_func {
     }
 
     @NotNull
-    public static String get_send_phone_number(@NotNull String phone_number) {
+    public static String getSendPhoneNumber(@NotNull String phone_number) {
         phone_number = get_nine_key_map_convert(phone_number);
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < phone_number.length(); ++i) {
@@ -109,7 +109,7 @@ public class other_func {
         return dual_sim;
     }
 
-    public static boolean is_phone_number(@NotNull String str) {
+    public static boolean isPhoneNumber(@NotNull String str) {
         for (int i = str.length(); --i >= 0; ) {
             char c = str.charAt(i);
             if (c == '+') {

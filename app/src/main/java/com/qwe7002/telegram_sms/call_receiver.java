@@ -112,7 +112,7 @@ public class call_receiver extends BroadcastReceiver {
                             resend_func.add_resend_loop(context, request_body.text);
                         } else {
                             String result = Objects.requireNonNull(response.body()).string();
-                            if (!other_func.is_phone_number(call_status_listener.incoming_number)) {
+                            if (!other_func.isPhoneNumber(call_status_listener.incoming_number)) {
                                 log_func.write_log(context, "[" + call_status_listener.incoming_number + "] Not a regular phone number.");
                                 return;
                             }

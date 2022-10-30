@@ -170,30 +170,33 @@ public class sms_receiver extends BroadcastReceiver {
                             Log.i(TAG, "No SMS permission.");
                             break;
                         }
-                        String msg_send_to = other_func.get_send_phone_number(message_list[1]);
-                        if (other_func.is_phone_number(msg_send_to) && message_list.length > 2) {
-                            StringBuilder msg_send_content = new StringBuilder();
-                            for (int i = 2; i < message_list.length; ++i) {
-                                if (i != 2) {
-                                    msg_send_content.append("\n");
+                        String [] messageInfo =message_list[0].split(" ");
+                        if(messageInfo.length==2) {
+                            String msg_send_to = other_func.getSendPhoneNumber(messageInfo[1]);
+                            if (other_func.isPhoneNumber(msg_send_to)) {
+                                StringBuilder msg_send_content = new StringBuilder();
+                                for (int i = 2; i < message_list.length; ++i) {
+                                    if (i != 2) {
+                                        msg_send_content.append("\n");
+                                    }
+                                    msg_send_content.append(message_list[i]);
                                 }
-                                msg_send_content.append(message_list[i]);
-                            }
-                            int send_slot = slot;
-                            if (other_func.get_active_card(context) > 1) {
-                                switch (command_list[0].trim()) {
-                                    case "/sendsms1":
-                                        send_slot = 0;
-                                        break;
-                                    case "/sendsms2":
-                                        send_slot = 1;
-                                        break;
+                                int send_slot = slot;
+                                if (other_func.get_active_card(context) > 1) {
+                                    switch (command_list[0].trim()) {
+                                        case "/sendsms1":
+                                            send_slot = 0;
+                                            break;
+                                        case "/sendsms2":
+                                            send_slot = 1;
+                                            break;
+                                    }
                                 }
+                                final int final_send_slot = send_slot;
+                                final int final_send_sub_id = other_func.get_sub_id(context, final_send_slot);
+                                new Thread(() -> sms_func.sendSms(context, msg_send_to, msg_send_content.toString(), final_send_slot, final_send_sub_id)).start();
+                                return;
                             }
-                            final int final_send_slot = send_slot;
-                            final int final_send_sub_id = other_func.get_sub_id(context, final_send_slot);
-                            new Thread(() -> sms_func.send_sms(context, msg_send_to, msg_send_content.toString(), final_send_slot, final_send_sub_id)).start();
-                            return;
                         }
                         break;
                     case "/sendussd":
@@ -214,8 +217,9 @@ public class sms_receiver extends BroadcastReceiver {
         }
 
         if (!is_verification_code && !is_trusted_phone) {
-            ArrayList<String> black_list_array = Paper.book("system_config").read("block_keyword_list", new ArrayList<>());
-            for (String black_list_item : black_list_array) {
+            ArrayList<String> blackListArray = Paper.book("system_config").read("block_keyword_list", new ArrayList<>());
+            assert blackListArray != null;
+            for (String black_list_item : blackListArray) {
                 if (black_list_item.isEmpty()) {
                     continue;
                 }
@@ -226,6 +230,7 @@ public class sms_receiver extends BroadcastReceiver {
                     ArrayList<String> spam_sms_list;
                     Paper.init(context);
                     spam_sms_list = Paper.book().read("spam_sms_list", new ArrayList<>());
+                    assert spam_sms_list != null;
                     if (spam_sms_list.size() >= 5) {
                         spam_sms_list.remove(0);
                     }
@@ -262,7 +267,7 @@ public class sms_receiver extends BroadcastReceiver {
                     sms_func.send_fallback_sms(context, final_raw_request_body_text, sub_id);
                     resend_func.add_resend_loop(context, request_body.text);
                 } else {
-                    if (!other_func.is_phone_number(message_address)) {
+                    if (!other_func.isPhoneNumber(message_address)) {
                         log_func.write_log(context, "[" + message_address + "] Not a regular phone number.");
                         return;
                     }
