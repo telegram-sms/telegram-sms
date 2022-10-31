@@ -15,8 +15,8 @@ import java.util.Locale;
 import io.paperdb.Paper;
 
 public class
-resend_func {
-    public static void add_resend_loop(Context context, String message) {
+resendFunc {
+    public static void addResendLoop(Context context, String message) {
         ArrayList<String> resend_list;
         Paper.init(context);
         resend_list = Paper.book().read("resend_list", new ArrayList<>());
@@ -24,10 +24,10 @@ resend_func {
         message += "\n"+context.getString(R.string.time) + simpleDateFormat.format(new Date(System.currentTimeMillis()));
         resend_list.add(message);
         Paper.book().write("resend_list", resend_list);
-        start_resend(context);
+        startResend(context);
     }
 
-    public static void start_resend(Context context) {
+    public static void startResend(Context context) {
         Intent intent = new Intent(context, resend_service.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(intent);

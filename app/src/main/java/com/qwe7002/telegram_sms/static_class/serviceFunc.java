@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public class service_func {
+public class serviceFunc {
     public static void stop_all_service(@NotNull Context context) {
         Intent intent = new Intent(const_value.BROADCAST_STOP_SERVICE);
         context.sendBroadcast(intent);

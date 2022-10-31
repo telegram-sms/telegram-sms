@@ -15,9 +15,9 @@ import androidx.annotation.Nullable;
 import com.google.gson.Gson;
 import com.qwe7002.telegram_sms.config.proxy;
 import com.qwe7002.telegram_sms.data_structure.request_message;
-import com.qwe7002.telegram_sms.static_class.log_func;
-import com.qwe7002.telegram_sms.static_class.network_func;
-import com.qwe7002.telegram_sms.static_class.other_func;
+import com.qwe7002.telegram_sms.static_class.logFunc;
+import com.qwe7002.telegram_sms.static_class.networkFunc;
+import com.qwe7002.telegram_sms.static_class.otherFunc;
 import com.qwe7002.telegram_sms.value.const_value;
 import com.qwe7002.telegram_sms.value.notify_id;
 
@@ -43,7 +43,7 @@ public class resend_service extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         resend_list = Paper.book().read(table_name, new ArrayList<>());
-        Notification notification = other_func.get_notification_obj(context, getString(R.string.failed_resend));
+        Notification notification = otherFunc.getNotificationObj(context, getString(R.string.failed_resend));
         startForeground(notify_id.RESEND_SERVICE, notification);
         return START_NOT_STICKY;
     }
@@ -67,7 +67,7 @@ public class resend_service extends Service {
                 Paper.book().write(table_name, resend_list_local);
             }
         } catch (IOException e) {
-            log_func.write_log(context, "An error occurred while resending: " + e.getMessage());
+            logFunc.writeLog(context, "An error occurred while resending: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -82,13 +82,13 @@ public class resend_service extends Service {
         receiver = new stop_notify_receiver();
         registerReceiver(receiver, filter);
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-        request_uri = network_func.get_url(sharedPreferences.getString("bot_token", ""), "SendMessage");
+        request_uri = networkFunc.getUrl(sharedPreferences.getString("bot_token", ""), "SendMessage");
         new Thread(() -> {
             resend_list = Paper.book().read(table_name, new ArrayList<>());
             while (true) {
-                if (network_func.check_network_status(context)) {
+                if (networkFunc.check_network_status(context)) {
                     ArrayList<String> send_list = resend_list;
-                    OkHttpClient okhttp_client = network_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+                    OkHttpClient okhttp_client = networkFunc.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
                     for (String item : send_list) {
                         network_progress_handle(item, sharedPreferences.getString("chat_id", ""), okhttp_client);
                     }
@@ -104,7 +104,7 @@ public class resend_service extends Service {
                     e.printStackTrace();
                 }
             }
-            log_func.write_log(context, "The resend failure message is complete.");
+            logFunc.writeLog(context, "The resend failure message is complete.");
             stopSelf();
         }).start();
     }

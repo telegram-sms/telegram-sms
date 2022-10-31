@@ -18,21 +18,21 @@ import java.util.Locale;
 
 import io.paperdb.Paper;
 
-public class log_func {
-    public static void write_log(@NotNull Context context, String log) {
+public class logFunc {
+    public static void writeLog(@NotNull Context context, String log) {
         Log.i("write_log", log);
         int new_file_mode = Context.MODE_APPEND;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(context.getString(R.string.time_format), Locale.UK);
         String write_string = "\n" + simpleDateFormat.format(new Date(System.currentTimeMillis())) + " " + log;
         int log_count = Paper.book("system_config").read("log_count", 0);
         if (log_count >= 50000) {
-            reset_log_file(context);
+            resetLogFile(context);
         }
         Paper.book("system_config").write("log_count", ++log_count);
-        write_log_file(context, write_string, new_file_mode);
+        writeLogFile(context, write_string, new_file_mode);
     }
 
-    public static String read_log(@NotNull Context context, int line) {
+    public static String readLog(@NotNull Context context, int line) {
         String result = context.getString(R.string.no_logs);
         String TAG = "read_file_last_line";
         StringBuilder builder = new StringBuilder();
@@ -77,12 +77,12 @@ public class log_func {
         }
     }
 
-    public static void reset_log_file(Context context) {
+    public static void resetLogFile(Context context) {
         Paper.book("system_config").delete("log_count");
-        write_log_file(context, "", Context.MODE_PRIVATE);
+        writeLogFile(context, "", Context.MODE_PRIVATE);
     }
 
-    private static void write_log_file(@NotNull Context context, @NotNull String write_string, int mode) {
+    private static void writeLogFile(@NotNull Context context, @NotNull String write_string, int mode) {
         FileOutputStream file_stream = null;
         try {
             file_stream = context.openFileOutput("error.log", mode);

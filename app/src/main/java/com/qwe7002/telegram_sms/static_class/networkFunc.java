@@ -24,7 +24,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.dnsoverhttps.DnsOverHttps;
 
 public class
-network_func {
+networkFunc {
     private static final String TELEGRAM_API_DOMAIN = "api.telegram.org";
     private static final String DNS_OVER_HTTP_ADDRSS = "https://cloudflare-dns.com/dns-query";
 
@@ -46,7 +46,7 @@ network_func {
     }
 
     @NotNull
-    public static String get_url(String token, String func) {
+    public static String getUrl(String token, String func) {
         return "https://" + TELEGRAM_API_DOMAIN + "/bot" + token + "/" + func;
     }
 
