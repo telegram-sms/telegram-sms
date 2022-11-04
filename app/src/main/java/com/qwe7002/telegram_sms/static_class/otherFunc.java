@@ -16,7 +16,7 @@ import androidx.core.app.ActivityCompat;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.qwe7002.telegram_sms.R;
-import com.qwe7002.telegram_sms.data_structure.sms_request_info;
+import com.qwe7002.telegram_sms.data_structure.smsRequestInfo;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -59,16 +59,16 @@ public class otherFunc {
                 put('Z', 9);
             }
         };
-        StringBuilder resultStringbuilder = new StringBuilder();
+        StringBuilder result = new StringBuilder();
         char[] phoneNumberCharArray = input.toUpperCase().toCharArray();
         for (char c : phoneNumberCharArray) {
             if (Character.isUpperCase(c)) {
-                resultStringbuilder.append(nineKeyMap.get(c));
+                result.append(nineKeyMap.get(c));
             } else {
-                resultStringbuilder.append(c);
+                result.append(c);
             }
         }
-        return resultStringbuilder.toString();
+        return result.toString();
     }
 
     public static long parse_string_to_long(String content) {
@@ -94,19 +94,19 @@ public class otherFunc {
         return result.toString();
     }
 
-    public static String get_dual_sim_card_display(Context context, int slot, boolean show_name) {
-        String dual_sim = "";
+    public static String getDualSimCardDisplay(Context context, int slot, boolean show_name) {
+        String dualSim = "";
         if (slot == -1) {
-            return dual_sim;
+            return dualSim;
         }
         if (otherFunc.getActiveCard(context) >= 2) {
             String result = "";
             if (show_name) {
                 result = "(" + getSimDisplayName(context, slot) + ")";
             }
-            dual_sim = "SIM" + (slot + 1) + result + " ";
+            dualSim = "SIM" + (slot + 1) + result + " ";
         }
-        return dual_sim;
+        return dualSim;
     }
 
     public static boolean isPhoneNumber(@NotNull String str) {
@@ -203,12 +203,12 @@ public class otherFunc {
     }
 
 
-    public static void add_message_list(long message_id, String phone, int slot) {
-        sms_request_info item = new sms_request_info();
+    public static void add_message_list(long messageId, String phone, int slot) {
+        smsRequestInfo item = new smsRequestInfo();
         item.phone = phone;
         item.card = slot;
-        Paper.book().write(String.valueOf(message_id), item);
-        Log.d("add_message_list", "add_message_list: " + message_id);
+        Paper.book().write(String.valueOf(messageId), item);
+        Log.d("add_message_list", "add_message_list: " + messageId);
     }
 
 }

@@ -63,7 +63,7 @@ public class smsFunc {
         } else {
             sms_manager = SmsManager.getSmsManagerForSubscriptionId(sub_id);
         }
-        String dual_sim = otherFunc.get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
+        String dual_sim = otherFunc.getDualSimCardDisplay(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
         String send_content = "[" + dual_sim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + send_to + "\n" + context.getString(R.string.content) + content;
         request_body.text = send_content + "\n" + context.getString(R.string.status) + context.getString(R.string.sending);
         request_body.message_id = message_id;

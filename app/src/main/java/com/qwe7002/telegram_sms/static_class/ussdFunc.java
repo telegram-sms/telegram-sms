@@ -32,7 +32,7 @@ import okhttp3.Response;
 
 public class ussdFunc {
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public static void send_ussd(Context context, String ussd_raw, int sub_id) {
+    public static void sendUssd(Context context, String ussd_raw, int sub_id) {
         final String TAG = "send_ussd";
         final String ussd = otherFunc.getNineKeyMapConvert(ussd_raw);
 

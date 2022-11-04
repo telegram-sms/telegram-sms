@@ -34,7 +34,7 @@ import com.qwe7002.telegram_sms.config.proxy;
 import com.qwe7002.telegram_sms.data_structure.polling_json;
 import com.qwe7002.telegram_sms.data_structure.reply_markup_keyboard;
 import com.qwe7002.telegram_sms.data_structure.request_message;
-import com.qwe7002.telegram_sms.data_structure.sms_request_info;
+import com.qwe7002.telegram_sms.data_structure.smsRequestInfo;
 import com.qwe7002.telegram_sms.static_class.logFunc;
 import com.qwe7002.telegram_sms.static_class.networkFunc;
 import com.qwe7002.telegram_sms.static_class.otherFunc;
@@ -139,7 +139,7 @@ public class chat_command_service extends Service {
             if (!callback_data.equals(CALLBACK_DATA_VALUE.SEND)) {
                 set_sms_send_status_standby();
                 String request_uri = networkFunc.getUrl(bot_token, "editMessageText");
-                String dual_sim = otherFunc.get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
+                String dual_sim = otherFunc.getDualSimCardDisplay(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
                 String send_content = "[" + dual_sim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + to + "\n" + context.getString(R.string.content) + content;
                 request_body.text = send_content + "\n" + context.getString(R.string.status) + context.getString(R.string.cancel_button);
                 request_body.message_id = message_id;
@@ -194,13 +194,13 @@ public class chat_command_service extends Service {
             return;
         }
         String command = "";
-        String command_bot_username = "";
+        String commandBotUsername = "";
         String request_msg = "";
         if (message_obj.has("text")) {
             request_msg = message_obj.get("text").getAsString();
         }
         if (message_obj.has("reply_to_message")) {
-            sms_request_info save_item = Paper.book().read(message_obj.get("reply_to_message").getAsJsonObject().get("message_id").getAsString(), null);
+            smsRequestInfo save_item = Paper.book().read(message_obj.get("reply_to_message").getAsJsonObject().get("message_id").getAsString(), null);
             if (save_item != null && !request_msg.isEmpty()) {
                 String phone_number = save_item.phone;
                 int card_slot = save_item.card;
@@ -215,25 +215,25 @@ public class chat_command_service extends Service {
             }
         }
         if (message_obj.has("entities")) {
-            String temp_command;
+            String tempCommand;
             String temp_command_lowercase;
             JsonArray entities_arr = message_obj.get("entities").getAsJsonArray();
             JsonObject entities_obj_command = entities_arr.get(0).getAsJsonObject();
             if (entities_obj_command.get("type").getAsString().equals("bot_command")) {
                 int command_offset = entities_obj_command.get("offset").getAsInt();
                 int command_end_offset = command_offset + entities_obj_command.get("length").getAsInt();
-                temp_command = request_msg.substring(command_offset, command_end_offset).trim();
-                temp_command_lowercase = temp_command.toLowerCase().replace("_", "");
+                tempCommand = request_msg.substring(command_offset, command_end_offset).trim();
+                temp_command_lowercase = tempCommand.toLowerCase().replace("_", "");
                 command = temp_command_lowercase;
                 if (temp_command_lowercase.contains("@")) {
                     int command_at_location = temp_command_lowercase.indexOf("@");
                     command = temp_command_lowercase.substring(0, command_at_location);
-                    command_bot_username = temp_command.substring(command_at_location + 1);
+                    commandBotUsername = tempCommand.substring(command_at_location + 1);
                 }
 
             }
         }
-        if (!message_type_is_private && privacy_mode && !command_bot_username.equals(bot_username)) {
+        if (!message_type_is_private && privacy_mode && !commandBotUsername.equals(bot_username)) {
             Log.i(TAG, "receive_handle: Privacy mode, no username found.");
             return;
         }
@@ -318,7 +318,7 @@ public class chat_command_service extends Service {
                             }
                         }
                         if (command_list.length == 2) {
-                            ussdFunc.send_ussd(context, command_list[1], sub_id);
+                            ussdFunc.sendUssd(context, command_list[1], sub_id);
                             return;
                         }
                     }
@@ -685,7 +685,7 @@ public class chat_command_service extends Service {
                         JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
                         String result_message = getString(R.string.system_message_head) + "\n" + getString(R.string.error_stop_message) + "\n" + getString(R.string.error_message_head) + result_obj.get("description").getAsString() + "\n" + "Code: " + response.code();
                         smsFunc.send_fallback_sms(context, result_message, -1);
-                        serviceFunc.stop_all_service(context);
+                        serviceFunc.stopAllService(context);
                         break;
                     }
                 }
