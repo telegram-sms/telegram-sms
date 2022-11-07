@@ -127,19 +127,18 @@ public class sms_receiver extends BroadcastReceiver {
         final request_message request_body = new request_message();
         request_body.chat_id = chat_id;
 
-        String message_body_html = message_body;
-        final String message_head = "[" + dual_sim + context.getString(R.string.receive_sms_head) + "]" + "\n" + context.getString(R.string.from) + message_address + "\n" + context.getString(R.string.content);
+        String message_body_html = message_body
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("&", "&amp;");
+        final String message_head = context.getString(R.string.sim_slot) + dual_sim + "\n" + context.getString(R.string.from) + message_address;
         String raw_request_body_text = message_head + message_body;
         boolean is_verification_code = false;
         if (sharedPreferences.getBoolean("verification_code", false) && !is_trusted_phone) {
             if (message_body.length() <= 140) {
                 String verification = code_aux_lib.find(message_body);
                 if (verification != null) {
-                    request_body.parse_mode = "html";
-                    message_body_html = message_body
-                            .replace("<", "&lt;")
-                            .replace(">", "&gt;")
-                            .replace("&", "&amp;")
+                    message_body_html = message_body_html
                             .replace(verification, "<code>" + verification + "</code>");
                     is_verification_code = true;
                 }
@@ -147,7 +146,8 @@ public class sms_receiver extends BroadcastReceiver {
                 log_func.write_log(context, "SMS exceeds 140 characters, no verification code is recognized.");
             }
         }
-        request_body.text = message_head + message_body_html;
+        request_body.parse_mode = "html";
+        request_body.text = "<b>" + message_body_html + "</b>" + "\n" + "\n" + message_head;
         if (is_trusted_phone) {
             log_func.write_log(context, "SMS from trusted mobile phone detected");
             String message_command = message_body.toLowerCase().replace("_", "").replace("-", "");
