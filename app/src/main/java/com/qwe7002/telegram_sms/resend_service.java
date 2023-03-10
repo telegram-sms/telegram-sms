@@ -48,9 +48,10 @@ public class resend_service extends Service {
         return START_NOT_STICKY;
     }
 
-    private void network_progress_handle(String message, String chat_id, OkHttpClient okhttp_client) {
+    private void network_progress_handle(String message, String chat_id, String message_thread_id, OkHttpClient okhttp_client) {
         request_message request_body = new request_message();
         request_body.chat_id = chat_id;
+        request_body.message_thread_id = message_thread_id;
         request_body.text = message;
         if (message.contains("<code>") && message.contains("</code>")) {
             request_body.parse_mode = "html";
@@ -90,7 +91,7 @@ public class resend_service extends Service {
                     ArrayList<String> send_list = resend_list;
                     OkHttpClient okhttp_client = network_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
                     for (String item : send_list) {
-                        network_progress_handle(item, sharedPreferences.getString("chat_id", ""), okhttp_client);
+                        network_progress_handle(item, sharedPreferences.getString("chat_id", ""), sharedPreferences.getString("message_thread_id", ""), okhttp_client);
                     }
                     resend_list = Paper.book().read(table_name, new ArrayList<>());
                     if (resend_list == send_list || resend_list.size() == 0) {

@@ -8,5 +8,6 @@ public class request_message {
     public String parse_mode;
     public String chat_id;
     public String text;
+    public String message_thread_id;
     public reply_markup_keyboard.keyboard_markup reply_markup;
 }

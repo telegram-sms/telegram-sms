@@ -84,6 +84,7 @@ public class chat_command_service extends Service {
 
     private String chat_id;
     private String bot_token;
+    private String message_thread_id;
     private Context context;
     private OkHttpClient okhttp_client;
     private broadcast_receiver broadcast_receiver;
@@ -112,6 +113,7 @@ public class chat_command_service extends Service {
         String message_type = "";
         final request_message request_body = new request_message();
         request_body.chat_id = chat_id;
+        request_body.message_thread_id = message_thread_id;
         JsonObject message_obj = null;
 
         if (result_obj.has("message")) {
@@ -187,7 +189,15 @@ public class chat_command_service extends Service {
 
         assert from_obj != null;
         String from_id = from_obj.get("id").getAsString();
-        if (!Objects.equals(chat_id, from_id)) {
+        String from_topic_id = "";
+        if(message_obj.has("is_topic_message")) {
+            from_topic_id = message_obj.get("message_thread_id").getAsString();
+            if (!Objects.equals(message_thread_id, from_topic_id) ) {
+                log_func.write_log(context, "Topic ID[" + from_id + "] not allow.");
+                return;
+            }
+        }
+        if (!Objects.equals(chat_id, from_id) ) {
             log_func.write_log(context, "Chat ID[" + from_id + "] not allow.");
             return;
         }
@@ -207,8 +217,7 @@ public class chat_command_service extends Service {
                 Paper.book("send_temp").write("to", phone_number);
                 Paper.book("send_temp").write("content", request_msg);
             }
-            if (!message_type_is_private) {
-                Log.i(TAG, "receive_handle: The message id could not be found, ignored.");
+            else{
                 return;
             }
         }
@@ -335,6 +344,7 @@ public class chat_command_service extends Service {
                             request_message send_sms_request_body = new request_message();
                             send_sms_request_body.chat_id = chat_id;
                             send_sms_request_body.text = item;
+                            send_sms_request_body.message_thread_id = message_thread_id;
                             String request_uri = network_func.get_url(bot_token, "sendMessage");
                             String request_body_json = new Gson().toJson(send_sms_request_body);
                             RequestBody body = RequestBody.create(request_body_json, const_value.JSON);
@@ -503,6 +513,7 @@ public class chat_command_service extends Service {
         sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
+        message_thread_id = sharedPreferences.getString("message_thread_id","");
         okhttp_client = network_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
         privacy_mode = sharedPreferences.getBoolean("privacy_mode", false);
         wifiLock = ((WifiManager) Objects.requireNonNull(context.getApplicationContext().getSystemService(Context.WIFI_SERVICE))).createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi");

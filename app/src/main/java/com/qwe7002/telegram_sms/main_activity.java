@@ -121,6 +121,7 @@ public class main_activity extends AppCompatActivity {
 
         final EditText chat_id_editview = findViewById(R.id.chat_id_editview);
         final EditText bot_token_editview = findViewById(R.id.bot_token_editview);
+        final EditText message_thread_id_editview = findViewById(R.id.message_thread_id_editview);
         final EditText trusted_phone_number_editview = findViewById(R.id.trusted_phone_number_editview);
         final SwitchMaterial chat_command_switch = findViewById(R.id.chat_command_switch);
         final SwitchMaterial fallback_sms_switch = findViewById(R.id.fallback_sms_switch);
@@ -140,6 +141,7 @@ public class main_activity extends AppCompatActivity {
 
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
+        String message_thread_id_save = sharedPreferences.getString("message_thread_id", "");
 
         if (other_func.parse_string_to_long(chat_id_save) < 0) {
             privacy_mode_switch.setVisibility(View.VISIBLE);
@@ -164,6 +166,7 @@ public class main_activity extends AppCompatActivity {
 
         bot_token_editview.setText(bot_token_save);
         chat_id_editview.setText(chat_id_save);
+        message_thread_id_editview.setText(message_thread_id_save);
         trusted_phone_number_editview.setText(sharedPreferences.getString("trusted_phone_number", ""));
         battery_monitoring_switch.setChecked(sharedPreferences.getBoolean("battery_monitoring_switch", false));
         charger_status_switch.setChecked(sharedPreferences.getBoolean("charger_status", false));
@@ -408,6 +411,7 @@ public class main_activity extends AppCompatActivity {
             String request_uri = network_func.get_url(bot_token_editview.getText().toString().trim(), "sendMessage");
             request_message request_body = new request_message();
             request_body.chat_id = chat_id_editview.getText().toString().trim();
+            request_body.message_thread_id = message_thread_id_editview.getText().toString().trim();
             request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
             Gson gson = new Gson();
             String request_body_raw = gson.toJson(request_body);
@@ -453,6 +457,7 @@ public class main_activity extends AppCompatActivity {
                     SharedPreferences.Editor editor = sharedPreferences.edit().clear();
                     editor.putString("bot_token", new_bot_token);
                     editor.putString("chat_id", chat_id_editview.getText().toString().trim());
+                    editor.putString("message_thread_id", message_thread_id_editview.getText().toString().trim());
                     if (trusted_phone_number_editview.getText().toString().trim().length() != 0) {
                         editor.putString("trusted_phone_number", trusted_phone_number_editview.getText().toString().trim());
                     }
