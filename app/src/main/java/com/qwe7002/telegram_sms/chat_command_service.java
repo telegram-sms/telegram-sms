@@ -217,9 +217,6 @@ public class chat_command_service extends Service {
                 Paper.book("send_temp").write("to", phone_number);
                 Paper.book("send_temp").write("content", request_msg);
             }
-            else{
-                return;
-            }
         }
         if (message_obj.has("entities")) {
             String temp_command;
