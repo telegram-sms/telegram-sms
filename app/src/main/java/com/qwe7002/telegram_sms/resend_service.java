@@ -89,7 +89,7 @@ public class resend_service extends Service {
             while (true) {
                 if (networkFunc.check_network_status(context)) {
                     ArrayList<String> send_list = resend_list;
-                    OkHttpClient okhttp_client = networkFunc.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+                    OkHttpClient okhttp_client = networkFunc.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
                     for (String item : send_list) {
                         network_progress_handle(item, sharedPreferences.getString("chat_id", ""), sharedPreferences.getString("message_thread_id", ""), okhttp_client);
                     }

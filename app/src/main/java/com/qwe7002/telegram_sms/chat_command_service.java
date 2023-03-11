@@ -148,7 +148,7 @@ public class chat_command_service extends Service {
                 Gson gson = new Gson();
                 String request_body_raw = gson.toJson(request_body);
                 RequestBody body = RequestBody.create(request_body_raw, const_value.JSON);
-                OkHttpClient okhttp_client = networkFunc.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+                OkHttpClient okhttp_client = networkFunc.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
                 Request request = new Request.Builder().url(request_uri).method("POST", body).build();
                 Call call = okhttp_client.newCall(request);
                 try {
@@ -195,12 +195,12 @@ public class chat_command_service extends Service {
         if(message_obj.has("is_topic_message")) {
             from_topic_id = message_obj.get("message_thread_id").getAsString();
             if (!Objects.equals(message_thread_id, from_topic_id) ) {
-                log_func.writeLog(context, "Topic ID[" + from_id + "] not allow.");
+                logFunc.writeLog(context, "Topic ID[" + from_id + "] not allow.");
                 return;
             }
         }
         if (!Objects.equals(chat_id, from_id) ) {
-            log_func.writeLog(context, "Chat ID[" + from_id + "] not allow.");
+            logFunc.writeLog(context, "Chat ID[" + from_id + "] not allow.");
             return;
         }
         String command = "";
@@ -340,13 +340,13 @@ public class chat_command_service extends Service {
                 }
                 new Thread(() -> {
                     if (networkFunc.check_network_status(context)) {
-                        OkHttpClient okhttp_client = networkFunc.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+                        OkHttpClient okhttp_client = networkFunc.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
                         for (String item : spam_sms_list) {
                             request_message send_sms_request_body = new request_message();
                             send_sms_request_body.chat_id = chat_id;
                             send_sms_request_body.text = item;
                             send_sms_request_body.message_thread_id = message_thread_id;
-                            String request_uri = network_func.getUrl(bot_token, "sendMessage");
+                            String request_uri = networkFunc.getUrl(bot_token, "sendMessage");
                             String request_body_json = new Gson().toJson(send_sms_request_body);
                             RequestBody body = RequestBody.create(request_body_json, const_value.JSON);
                             Request request_obj = new Request.Builder().url(request_uri).method("POST", body).build();
@@ -524,7 +524,7 @@ public class chat_command_service extends Service {
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
         message_thread_id = sharedPreferences.getString("message_thread_id","");
-        okhttp_client = network_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+        okhttp_client = networkFunc.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
         privacy_mode = sharedPreferences.getBoolean("privacy_mode", false);
         wifiLock = ((WifiManager) Objects.requireNonNull(context.getApplicationContext().getSystemService(Context.WIFI_SERVICE))).createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi");
         wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "bot_command_polling");

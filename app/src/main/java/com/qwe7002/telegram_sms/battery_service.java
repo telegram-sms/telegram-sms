@@ -109,7 +109,7 @@ String request_uri = networkFunc.getUrl(battery_service.bot_token, "sendMessage"
             Log.d(TAG, "onReceive: edit_mode");
         }
         last_receive_time = System.currentTimeMillis();
-        OkHttpClient okhttp_client = networkFunc.get_okhttp_obj(battery_service.doh_switch, Paper.book("system_config").read("proxy_config", new proxy()));
+        OkHttpClient okhttp_client = networkFunc.getOkhttpObj(battery_service.doh_switch, Paper.book("system_config").read("proxy_config", new proxy()));
         String request_body_raw = new Gson().toJson(request_body);
         RequestBody body = RequestBody.create(request_body_raw, const_value.JSON);
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();

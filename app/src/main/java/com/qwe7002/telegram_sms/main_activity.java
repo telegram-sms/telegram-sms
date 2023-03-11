@@ -148,8 +148,10 @@ public class main_activity extends AppCompatActivity {
 
         if (otherFunc.parse_string_to_long(chat_id_save) < 0) {
             privacy_mode_switch.setVisibility(View.VISIBLE);
+            message_thread_id_editview.setVisibility(View.VISIBLE);
         } else {
             privacy_mode_switch.setVisibility(View.GONE);
+            message_thread_id_editview.setVisibility(View.GONE);
         }
 
         if (sharedPreferences.getBoolean("initialized", false)) {
@@ -219,7 +221,7 @@ public class main_activity extends AppCompatActivity {
         });
 
         chat_command_switch.setChecked(sharedPreferences.getBoolean("chat_command", false));
-        chat_command_switch.setOnClickListener(v -> set_privacy_mode_checkbox(chat_id_editview.getText().toString(), chat_command_switch, privacy_mode_switch));
+        chat_command_switch.setOnClickListener(v -> set_privacy_mode_checkbox(chat_id_editview.getText().toString(), chat_command_switch, privacy_mode_switch,message_thread_id_editview));
         verification_code_switch.setChecked(sharedPreferences.getBoolean("verification_code", false));
 
         doh_switch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
@@ -259,7 +261,7 @@ public class main_activity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                set_privacy_mode_checkbox(chat_id_editview.getText().toString(), chat_command_switch, privacy_mode_switch);
+                set_privacy_mode_checkbox(chat_id_editview.getText().toString(), chat_command_switch, privacy_mode_switch,message_thread_id_editview);
             }
 
             @Override
@@ -283,7 +285,7 @@ public class main_activity extends AppCompatActivity {
             progress_dialog.setCancelable(false);
             progress_dialog.show();
             String request_uri = networkFunc.getUrl(bot_token_editview.getText().toString().trim(), "getUpdates");
-            OkHttpClient okhttp_client = networkFunc.get_okhttp_obj(doh_switch.isChecked(), Paper.book("system_config").read("proxy_config", new proxy()));
+            OkHttpClient okhttp_client = networkFunc.getOkhttpObj(doh_switch.isChecked(), Paper.book("system_config").read("proxy_config", new proxy()));
             okhttp_client = okhttp_client.newBuilder()
                     .readTimeout(60, TimeUnit.SECONDS)
                     .build();
@@ -419,7 +421,7 @@ public class main_activity extends AppCompatActivity {
             Gson gson = new Gson();
             String request_body_raw = gson.toJson(request_body);
             RequestBody body = RequestBody.create(request_body_raw, const_value.JSON);
-            OkHttpClient okhttp_client = networkFunc.get_okhttp_obj(doh_switch.isChecked(), Paper.book("system_config").read("proxy_config", new proxy()));
+            OkHttpClient okhttp_client = networkFunc.getOkhttpObj(doh_switch.isChecked(), Paper.book("system_config").read("proxy_config", new proxy()));
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
             final String error_head = "Send message failed: ";
@@ -488,15 +490,17 @@ public class main_activity extends AppCompatActivity {
         });
     }
 
-    private void set_privacy_mode_checkbox(String chat_id, @NotNull SwitchMaterial chat_command, SwitchMaterial privacy_mode_switch) {
+    private void set_privacy_mode_checkbox(String chat_id, @NotNull SwitchMaterial chat_command, SwitchMaterial privacy_mode_switch,EditText message_topic_id_view) {
         if (!chat_command.isChecked()) {
             privacy_mode_switch.setVisibility(View.GONE);
             privacy_mode_switch.setChecked(false);
             return;
         }
         if (otherFunc.parse_string_to_long(chat_id) < 0) {
+            message_topic_id_view.setVisibility(View.VISIBLE);
             privacy_mode_switch.setVisibility(View.VISIBLE);
         } else {
+            message_topic_id_view.setVisibility(View.GONE);
             privacy_mode_switch.setVisibility(View.GONE);
             privacy_mode_switch.setChecked(false);
         }
@@ -725,8 +729,9 @@ public class main_activity extends AppCompatActivity {
                 chat_command.setChecked(json_config.get("chat_command").getAsBoolean());
                 SwitchMaterial privacy_mode_switch = findViewById(R.id.privacy_switch);
                 privacy_mode_switch.setChecked(json_config.get("privacy_mode").getAsBoolean());
+                final EditText message_thread_id_editview = findViewById(R.id.message_thread_id_editview);
 
-                set_privacy_mode_checkbox(json_config.get("chat_id").getAsString(), chat_command, privacy_mode_switch);
+                set_privacy_mode_checkbox(json_config.get("chat_id").getAsString(), chat_command, privacy_mode_switch,message_thread_id_editview);
 
                 EditText trusted_phone_number = findViewById(R.id.trusted_phone_number_editview);
                 trusted_phone_number.setText(json_config.get("trusted_phone_number").getAsString());

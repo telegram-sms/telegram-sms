@@ -51,7 +51,7 @@ networkFunc {
     }
 
     @NotNull
-    public static OkHttpClient get_okhttp_obj(boolean doh_switch, proxy proxy_item) {
+    public static OkHttpClient getOkhttpObj(boolean doh_switch, proxy proxy_item) {
         OkHttpClient.Builder okhttp = new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .readTimeout(15, TimeUnit.SECONDS)

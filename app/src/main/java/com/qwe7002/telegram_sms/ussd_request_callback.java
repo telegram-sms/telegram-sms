@@ -73,7 +73,7 @@ class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
         request_body.text = message;
         String request_body_json = new Gson().toJson(request_body);
         RequestBody body = RequestBody.create(request_body_json, const_value.JSON);
-        OkHttpClient okhttp_client = networkFunc.get_okhttp_obj(doh_switch, Paper.book("system_config").read("proxy_config", new proxy()));
+        OkHttpClient okhttp_client = networkFunc.getOkhttpObj(doh_switch, Paper.book("system_config").read("proxy_config", new proxy()));
         Request request_obj = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request_obj);
         final String error_head = "Send USSD failed:";

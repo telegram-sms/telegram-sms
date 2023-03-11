@@ -56,7 +56,7 @@ public class sms_send_receiver extends BroadcastReceiver {
         final request_message request_body = new request_message();
         request_body.chat_id = chat_id;
         request_body.message_thread_id = message_thread_id;
-        String request_uri = network_func.get_url(bot_token, "sendMessage");
+        String request_uri = networkFunc.getUrl(bot_token, "sendMessage");
         long message_id = extras.getLong("message_id");
         if (message_id != -1) {
             Log.d(TAG, "Find the message_id and switch to edit mode.");
@@ -81,7 +81,7 @@ public class sms_send_receiver extends BroadcastReceiver {
         request_body.text = extras.getString("message_text") + "\n" + context.getString(R.string.status) + result_status;
         String request_body_raw = new Gson().toJson(request_body);
         RequestBody body = RequestBody.create(request_body_raw, const_value.JSON);
-        OkHttpClient okhttp_client = networkFunc.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+        OkHttpClient okhttp_client = networkFunc.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
         final String error_head = "Send SMS status failed:";
