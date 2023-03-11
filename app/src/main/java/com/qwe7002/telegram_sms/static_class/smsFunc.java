@@ -32,28 +32,28 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class sms_func {
-    public static void send_sms(Context context, String send_to, String content, int slot, int sub_id) {
-        send_sms(context, send_to, content, slot, sub_id, -1);
+public class smsFunc {
+    public static void sendSms(Context context, String send_to, String content, int slot, int sub_id) {
+        sendSms(context, send_to, content, slot, sub_id, -1);
     }
 
     @SuppressLint("UnspecifiedImmutableFlag")
-    public static void send_sms(Context context, String send_to, String content, int slot, int sub_id, long message_id) {
+    public static void sendSms(Context context, String send_to, String content, int slot, int sub_id, long message_id) {
         if (PermissionChecker.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PermissionChecker.PERMISSION_GRANTED) {
             Log.d("send_sms", "No permission.");
             return;
         }
-        if (!other_func.is_phone_number(send_to)) {
-            log_func.write_log(context, "[" + send_to + "] is an illegal phone number");
+        if (!otherFunc.isPhoneNumber(send_to)) {
+            logFunc.writeLog(context, "[" + send_to + "] is an illegal phone number");
             return;
         }
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
-        String request_uri = network_func.get_url(bot_token, "sendMessage");
+        String request_uri = networkFunc.getUrl(bot_token, "sendMessage");
         if (message_id != -1) {
             Log.d("send_sms", "Find the message_id and switch to edit mode.");
-            request_uri = network_func.get_url(bot_token, "editMessageText");
+            request_uri = networkFunc.getUrl(bot_token, "editMessageText");
         }
         request_message request_body = new request_message();
         request_body.chat_id = chat_id;
@@ -63,14 +63,14 @@ public class sms_func {
         } else {
             sms_manager = SmsManager.getSmsManagerForSubscriptionId(sub_id);
         }
-        String dual_sim = other_func.get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
+        String dual_sim = otherFunc.getDualSimCardDisplay(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
         String send_content = "[" + dual_sim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + send_to + "\n" + context.getString(R.string.content) + content;
         request_body.text = send_content + "\n" + context.getString(R.string.status) + context.getString(R.string.sending);
         request_body.message_id = message_id;
         Gson gson = new Gson();
         String request_body_raw = gson.toJson(request_body);
         RequestBody body = RequestBody.create(request_body_raw, const_value.JSON);
-        OkHttpClient okhttp_client = network_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+        OkHttpClient okhttp_client = networkFunc.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
         try {
@@ -79,11 +79,11 @@ public class sms_func {
                 throw new IOException(String.valueOf(response.code()));
             }
             if (message_id == -1) {
-                message_id = other_func.get_message_id(Objects.requireNonNull(response.body()).string());
+                message_id = otherFunc.get_message_id(Objects.requireNonNull(response.body()).string());
             }
         } catch (IOException e) {
             e.printStackTrace();
-            log_func.write_log(context, "failed to send message:" + e.getMessage());
+            logFunc.writeLog(context, "failed to send message:" + e.getMessage());
         }
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
         ArrayList<PendingIntent> send_receiver_list = new ArrayList<>();

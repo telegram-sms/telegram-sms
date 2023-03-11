@@ -13,11 +13,11 @@ import androidx.annotation.NonNull;
 import com.google.gson.Gson;
 import com.qwe7002.telegram_sms.config.proxy;
 import com.qwe7002.telegram_sms.data_structure.request_message;
-import com.qwe7002.telegram_sms.static_class.log_func;
-import com.qwe7002.telegram_sms.static_class.network_func;
-import com.qwe7002.telegram_sms.static_class.other_func;
-import com.qwe7002.telegram_sms.static_class.resend_func;
-import com.qwe7002.telegram_sms.static_class.sms_func;
+import com.qwe7002.telegram_sms.static_class.logFunc;
+import com.qwe7002.telegram_sms.static_class.networkFunc;
+import com.qwe7002.telegram_sms.static_class.otherFunc;
+import com.qwe7002.telegram_sms.static_class.resendFunc;
+import com.qwe7002.telegram_sms.static_class.smsFunc;
 import com.qwe7002.telegram_sms.value.const_value;
 
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +36,7 @@ import okhttp3.Response;
 
 public class call_receiver extends BroadcastReceiver {
     private static int slot;
-    private static String incoming_number;
+    private static String incomingNumber;
 
     @Override
     public void onReceive(Context context, @NotNull Intent intent) {
@@ -45,11 +45,11 @@ public class call_receiver extends BroadcastReceiver {
         switch (Objects.requireNonNull(intent.getAction())) {
             case "android.intent.action.PHONE_STATE":
                 if (intent.getStringExtra("incoming_number") != null) {
-                    incoming_number = intent.getStringExtra("incoming_number");
+                    incomingNumber = intent.getStringExtra("incoming_number");
                 }
                 TelephonyManager telephony = (TelephonyManager) context
                         .getSystemService(Context.TELEPHONY_SERVICE);
-                call_status_listener custom_phone_listener = new call_status_listener(context, slot, incoming_number);
+                callStatusListener custom_phone_listener = new callStatusListener(context, slot, incomingNumber);
                 assert telephony != null;
                 telephony.listen(custom_phone_listener, PhoneStateListener.LISTEN_CALL_STATE);
                 break;
@@ -60,17 +60,17 @@ public class call_receiver extends BroadcastReceiver {
         }
     }
 
-    static class call_status_listener extends PhoneStateListener {
+    static class callStatusListener extends PhoneStateListener {
         private static int last_receive_status = TelephonyManager.CALL_STATE_IDLE;
         private static String incoming_number;
         private final Context context;
         private final int slot;
 
-        call_status_listener(Context context, int slot, String incoming_number) {
+        callStatusListener(Context context, int slot, String incoming_number) {
             super();
             this.context = context;
             this.slot = slot;
-            call_status_listener.incoming_number = incoming_number;
+            callStatusListener.incoming_number = incoming_number;
         }
 
         public void onCallStateChanged(int now_state, String now_incoming_number) {
@@ -83,24 +83,26 @@ public class call_receiver extends BroadcastReceiver {
                 }
                 String bot_token = sharedPreferences.getString("bot_token", "");
                 String chat_id = sharedPreferences.getString("chat_id", "");
-                String request_uri = network_func.get_url(bot_token, "sendMessage");
+                String message_thread_id = sharedPreferences.getString("message_thread_id", "");
+                String requestUri = networkFunc.getUrl(bot_token, "sendMessage");
                 final request_message request_body = new request_message();
                 request_body.chat_id = chat_id;
-                String dual_sim = other_func.get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
-                request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + call_status_listener.incoming_number;
+                request_body.message_thread_id = message_thread_id;
+                String dual_sim = otherFunc.getDualSimCardDisplay(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
+                request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + callStatusListener.incoming_number;
                 String request_body_raw = new Gson().toJson(request_body);
                 RequestBody body = RequestBody.create(request_body_raw, const_value.JSON);
-                OkHttpClient okhttp_client = network_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
-                Request request = new Request.Builder().url(request_uri).method("POST", body).build();
+                OkHttpClient okhttp_client = networkFunc.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+                Request request = new Request.Builder().url(requestUri).method("POST", body).build();
                 Call call = okhttp_client.newCall(request);
                 final String error_head = "Send missed call error:";
                 call.enqueue(new Callback() {
                     @Override
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
                         e.printStackTrace();
-                        log_func.write_log(context, error_head + e.getMessage());
-                        sms_func.send_fallback_sms(context, request_body.text, other_func.get_sub_id(context, slot));
-                        resend_func.add_resend_loop(context, request_body.text);
+                        logFunc.writeLog(context, error_head + e.getMessage());
+                        smsFunc.send_fallback_sms(context, request_body.text, otherFunc.getSubId(context, slot));
+                        resendFunc.addResendLoop(context, request_body.text);
                     }
 
                     @Override
@@ -108,15 +110,15 @@ public class call_receiver extends BroadcastReceiver {
                         assert response.body() != null;
                         if (response.code() != 200) {
                             String error_message = error_head + response.code() + " " + Objects.requireNonNull(response.body()).string();
-                            log_func.write_log(context, error_message);
-                            resend_func.add_resend_loop(context, request_body.text);
+                            logFunc.writeLog(context, error_message);
+                            resendFunc.addResendLoop(context, request_body.text);
                         } else {
                             String result = Objects.requireNonNull(response.body()).string();
-                            if (!other_func.is_phone_number(call_status_listener.incoming_number)) {
-                                log_func.write_log(context, "[" + call_status_listener.incoming_number + "] Not a regular phone number.");
+                            if (!otherFunc.isPhoneNumber(callStatusListener.incoming_number)) {
+                                logFunc.writeLog(context, "[" + callStatusListener.incoming_number + "] Not a regular phone number.");
                                 return;
                             }
-                            other_func.add_message_list(other_func.get_message_id(result), call_status_listener.incoming_number, slot);
+                            otherFunc.add_message_list(otherFunc.get_message_id(result), callStatusListener.incoming_number, slot);
                         }
                     }
                 });

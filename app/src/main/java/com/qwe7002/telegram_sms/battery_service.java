@@ -14,10 +14,10 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.qwe7002.telegram_sms.config.proxy;
 import com.qwe7002.telegram_sms.data_structure.request_message;
-import com.qwe7002.telegram_sms.static_class.log_func;
-import com.qwe7002.telegram_sms.static_class.network_func;
-import com.qwe7002.telegram_sms.static_class.other_func;
-import com.qwe7002.telegram_sms.static_class.sms_func;
+import com.qwe7002.telegram_sms.static_class.logFunc;
+import com.qwe7002.telegram_sms.static_class.networkFunc;
+import com.qwe7002.telegram_sms.static_class.otherFunc;
+import com.qwe7002.telegram_sms.static_class.smsFunc;
 import com.qwe7002.telegram_sms.value.const_value;
 import com.qwe7002.telegram_sms.value.notify_id;
 
@@ -37,6 +37,7 @@ import okhttp3.Response;
 public class battery_service extends Service {
     static String bot_token;
     static String chat_id;
+    static String message_thread_id;
     static boolean doh_switch;
     private Context context;
     private battery_receiver battery_receiver = null;
@@ -46,7 +47,7 @@ public class battery_service extends Service {
     private static ArrayList<send_obj> send_loop_list;
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Notification notification = other_func.get_notification_obj(context, getString(R.string.battery_monitoring_notify));
+        Notification notification = otherFunc.getNotificationObj(context, getString(R.string.battery_monitoring_notify));
         startForeground(notify_id.BATTERY, notification);
         return START_STICKY;
     }
@@ -59,6 +60,7 @@ public class battery_service extends Service {
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
+        message_thread_id = sharedPreferences.getString("message_thread_id", "");
         doh_switch = sharedPreferences.getBoolean("doh_switch", true);
         boolean charger_status = sharedPreferences.getBoolean("charger_status", false);
         battery_receiver = new battery_receiver();
@@ -99,14 +101,15 @@ public class battery_service extends Service {
         final request_message request_body = new request_message();
         request_body.chat_id = battery_service.chat_id;
         request_body.text = obj.content;
-        String request_uri = network_func.get_url(battery_service.bot_token, "sendMessage");
+        request_body.message_thread_id = battery_service.message_thread_id;
+String request_uri = networkFunc.getUrl(battery_service.bot_token, "sendMessage");
         if ((System.currentTimeMillis() - last_receive_time) <= 5000L && last_receive_message_id != -1) {
-            request_uri = network_func.get_url(bot_token, "editMessageText");
+            request_uri = networkFunc.getUrl(bot_token, "editMessageText");
             request_body.message_id = last_receive_message_id;
             Log.d(TAG, "onReceive: edit_mode");
         }
         last_receive_time = System.currentTimeMillis();
-        OkHttpClient okhttp_client = network_func.get_okhttp_obj(battery_service.doh_switch, Paper.book("system_config").read("proxy_config", new proxy()));
+        OkHttpClient okhttp_client = networkFunc.getOkhttpObj(battery_service.doh_switch, Paper.book("system_config").read("proxy_config", new proxy()));
         String request_body_raw = new Gson().toJson(request_body);
         RequestBody body = RequestBody.create(request_body_raw, const_value.JSON);
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
@@ -115,19 +118,19 @@ public class battery_service extends Service {
         try {
             Response response = call.execute();
             if (response.code() == 200) {
-                last_receive_message_id = other_func.get_message_id(Objects.requireNonNull(response.body()).string());
+                last_receive_message_id = otherFunc.get_message_id(Objects.requireNonNull(response.body()).string());
             } else {
                 assert response.body() != null;
                 last_receive_message_id = -1;
                 if (obj.action.equals(Intent.ACTION_BATTERY_LOW)) {
-                    sms_func.send_fallback_sms(context, request_body.text, -1);
+                    smsFunc.send_fallback_sms(context, request_body.text, -1);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
-            log_func.write_log(context, error_head + e.getMessage());
+            logFunc.writeLog(context, error_head + e.getMessage());
             if (obj.action.equals(Intent.ACTION_BATTERY_LOW)) {
-                sms_func.send_fallback_sms(context, request_body.text, -1);
+                smsFunc.send_fallback_sms(context, request_body.text, -1);
             }
         }
     }
