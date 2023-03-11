@@ -52,9 +52,11 @@ public class sms_send_receiver extends BroadcastReceiver {
         }
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
+        String message_thread_id = sharedPreferences.getString("message_thread_id", "");
         final request_message request_body = new request_message();
         request_body.chat_id = chat_id;
-        String request_uri = networkFunc.getUrl(bot_token, "sendMessage");
+        request_body.message_thread_id = message_thread_id;
+        String request_uri = network_func.get_url(bot_token, "sendMessage");
         long message_id = extras.getLong("message_id");
         if (message_id != -1) {
             Log.d(TAG, "Find the message_id and switch to edit mode.");

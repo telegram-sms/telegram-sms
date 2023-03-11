@@ -37,6 +37,7 @@ import okhttp3.Response;
 public class battery_service extends Service {
     static String bot_token;
     static String chat_id;
+    static String message_thread_id;
     static boolean doh_switch;
     private Context context;
     private battery_receiver battery_receiver = null;
@@ -59,6 +60,7 @@ public class battery_service extends Service {
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         chat_id = sharedPreferences.getString("chat_id", "");
         bot_token = sharedPreferences.getString("bot_token", "");
+        message_thread_id = sharedPreferences.getString("message_thread_id", "");
         doh_switch = sharedPreferences.getBoolean("doh_switch", true);
         boolean charger_status = sharedPreferences.getBoolean("charger_status", false);
         battery_receiver = new battery_receiver();
@@ -99,7 +101,8 @@ public class battery_service extends Service {
         final request_message request_body = new request_message();
         request_body.chat_id = battery_service.chat_id;
         request_body.text = obj.content;
-        String request_uri = networkFunc.getUrl(battery_service.bot_token, "sendMessage");
+        request_body.message_thread_id = battery_service.message_thread_id;
+String request_uri = networkFunc.getUrl(battery_service.bot_token, "sendMessage");
         if ((System.currentTimeMillis() - last_receive_time) <= 5000L && last_receive_message_id != -1) {
             request_uri = networkFunc.getUrl(bot_token, "editMessageText");
             request_body.message_id = last_receive_message_id;

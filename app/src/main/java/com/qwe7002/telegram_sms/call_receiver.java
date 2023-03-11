@@ -81,13 +81,15 @@ public class call_receiver extends BroadcastReceiver {
                     Log.i("call_status_listener", "Uninitialized, Phone receiver is deactivated.");
                     return;
                 }
-                String botToken = sharedPreferences.getString("bot_token", "");
-                String chatId = sharedPreferences.getString("chat_id", "");
-                String requestUri = networkFunc.getUrl(botToken, "sendMessage");
+                String bot_token = sharedPreferences.getString("bot_token", "");
+                String chat_id = sharedPreferences.getString("chat_id", "");
+                String message_thread_id = sharedPreferences.getString("message_thread_id", "");
+                String request_uri = network_func.getUrl(bot_token, "sendMessage");
                 final request_message request_body = new request_message();
-                request_body.chat_id = chatId;
-                String dual_sim = otherFunc.getDualSimCardDisplay(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
-                request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + callStatusListener.incoming_number;
+                request_body.chat_id = chat_id;
+                request_body.message_thread_id = message_thread_id;
+                String dual_sim = other_func.getDualSimCardDisplay(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
+                request_body.text = "[" + dual_sim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + call_status_listener.incoming_number;
                 String request_body_raw = new Gson().toJson(request_body);
                 RequestBody body = RequestBody.create(request_body_raw, const_value.JSON);
                 OkHttpClient okhttp_client = networkFunc.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));

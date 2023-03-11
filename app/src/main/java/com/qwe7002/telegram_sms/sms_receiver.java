@@ -58,9 +58,17 @@ public class sms_receiver extends BroadcastReceiver {
             Log.i(TAG, "Uninitialized, SMS receiver is deactivated.");
             return;
         }
-        String botToken = sharedPreferences.getString("bot_token", "");
-        String chatId = sharedPreferences.getString("chat_id", "");
-        String requestUri = networkFunc.getUrl(botToken, "sendMessage");
+        final boolean is_default_sms_app = Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName());
+        assert intent.getAction() != null;
+        if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED") && is_default_sms_app) {
+            //When it is the default application, it will receive two broadcasts.
+            Log.i(TAG, "reject: android.provider.Telephony.SMS_RECEIVED.");
+            return;
+        }
+        String bot_token = sharedPreferences.getString("bot_token", "");
+        String chat_id = sharedPreferences.getString("chat_id", "");
+        String message_thread_id = sharedPreferences.getString("message_thread_id", "");
+        String request_uri = networkFunc.getUrl(bot_token, "sendMessage");
 
         int intentSlot = extras.getInt("slot", -1);
         final int subId = extras.getInt("subscription", -1);
@@ -104,7 +112,8 @@ public class sms_receiver extends BroadcastReceiver {
             isTrustedPhone = messageAddress.contains(trusted_phone_number);
         }
         final request_message request_body = new request_message();
-        request_body.chat_id = chatId;
+        request_body.chat_id = chat_id;
+        request_body.message_thread_id = message_thread_id;
 
         String message_body_html = message_body;
         final String message_head = "[" + dualSim + context.getString(R.string.receive_sms_head) + "]" + "\n" + context.getString(R.string.from) + messageAddress + "\n" + context.getString(R.string.content);
