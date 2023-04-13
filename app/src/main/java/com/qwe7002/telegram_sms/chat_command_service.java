@@ -64,11 +64,11 @@ import okhttp3.Response;
 public class chat_command_service extends Service {
     private static long offset = 0;
     private static int magnification = 1;
-    private static int error_magnification = 1;
+    private static int errorMagnification = 1;
     private static SharedPreferences sharedPreferences;
-    private static int send_sms_next_status = SEND_SMS_STATUS.STANDBY_STATUS;
-    private static Thread thread_main;
-    private static boolean first_request = true;
+    private static int sendSmsNextStatus = SEND_SMS_STATUS.STANDBY_STATUS;
+    private static Thread threadMain;
+    private static boolean firstRequest = true;
 
     private static class CALLBACK_DATA_VALUE {
         final static String SEND = "send";
@@ -82,19 +82,19 @@ public class chat_command_service extends Service {
         static final int SEND_STATUS = 3;
     }
 
-    private String chat_id;
-    private String bot_token;
-    private String message_thread_id;
+    private String chatId;
+    private String botToken;
+    private String messageThreadId;
     private Context context;
-    private OkHttpClient okhttp_client;
-    private broadcast_receiver broadcast_receiver;
+    private OkHttpClient okHttpClient;
+    private stopReceive stopReceive;
     private PowerManager.WakeLock wakelock;
     private WifiManager.WifiLock wifiLock;
-    private String bot_username = "";
+    private String botUsername = "";
     private final String TAG = "chat_command_service";
-    private boolean privacy_mode;
+    private boolean privacyMode;
 
-    private static boolean is_numeric(String str) {
+    private static boolean isNumeric(String str) {
         for (int i = 0; i < str.length(); i++) {
             System.out.println(str.charAt(i));
             if (!Character.isDigit(str.charAt(i))) {
@@ -104,53 +104,53 @@ public class chat_command_service extends Service {
         return true;
     }
     private void receiveHandle(@NotNull JsonObject resultObj, boolean getIdOnly) {
-        long update_id = resultObj.get("update_id").getAsLong();
-        offset = update_id + 1;
+        long updateId = resultObj.get("update_id").getAsLong();
+        offset = updateId + 1;
         if (getIdOnly) {
             Log.d(TAG, "receive_handle: get_id_only");
             return;
         }
         String messageType = "";
-        final request_message request_body = new request_message();
-        request_body.chat_id = chat_id;
-        request_body.message_thread_id = message_thread_id;
-        JsonObject message_obj = null;
+        final request_message requestBody = new request_message();
+        requestBody.chat_id = chatId;
+        requestBody.message_thread_id = messageThreadId;
+        JsonObject jsonObject = null;
 
         if (resultObj.has("message")) {
-            message_obj = resultObj.get("message").getAsJsonObject();
-            messageType = message_obj.get("chat").getAsJsonObject().get("type").getAsString();
+            jsonObject = resultObj.get("message").getAsJsonObject();
+            messageType = jsonObject.get("chat").getAsJsonObject().get("type").getAsString();
         }
         if (resultObj.has("channel_post")) {
             messageType = "channel";
-            message_obj = resultObj.get("channel_post").getAsJsonObject();
+            jsonObject = resultObj.get("channel_post").getAsJsonObject();
         }
-        String callback_data = null;
+        String callbackData = null;
         if (resultObj.has("callback_query")) {
             messageType = "callback_query";
             JsonObject callback_query = resultObj.get("callback_query").getAsJsonObject();
-            callback_data = callback_query.get("data").getAsString();
+            callbackData = callback_query.get("data").getAsString();
         }
-        if (messageType.equals("callback_query") && send_sms_next_status != SEND_SMS_STATUS.STANDBY_STATUS) {
+        if (messageType.equals("callback_query") && sendSmsNextStatus != SEND_SMS_STATUS.STANDBY_STATUS) {
             //noinspection ConstantConditions
             int slot = Paper.book("send_temp").read("slot", -1);
             //noinspection ConstantConditions
-            long message_id = Paper.book("send_temp").read("message_id", -1L);
+            long messageId = Paper.book("send_temp").read("message_id", -1L);
             String to = Paper.book("send_temp").read("to", "");
             String content = Paper.book("send_temp").read("content", "");
-            assert callback_data != null;
-            if (!callback_data.equals(CALLBACK_DATA_VALUE.SEND)) {
-                set_sms_send_status_standby();
-                String request_uri = networkFunc.getUrl(bot_token, "editMessageText");
-                String dual_sim = otherFunc.getDualSimCardDisplay(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
-                String send_content = "[" + dual_sim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + to + "\n" + context.getString(R.string.content) + content;
-                request_body.text = send_content + "\n" + context.getString(R.string.status) + context.getString(R.string.cancel_button);
-                request_body.message_id = message_id;
+            assert callbackData != null;
+            if (!callbackData.equals(CALLBACK_DATA_VALUE.SEND)) {
+                setSmsSendStatusStandby();
+                String requestUri = networkFunc.getUrl(botToken, "editMessageText");
+                String dualSim = otherFunc.getDualSimCardDisplay(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
+                String sendContent = "[" + dualSim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + to + "\n" + context.getString(R.string.content) + content;
+                requestBody.text = sendContent + "\n" + context.getString(R.string.status) + context.getString(R.string.cancel_button);
+                requestBody.message_id = messageId;
                 Gson gson = new Gson();
-                String request_body_raw = gson.toJson(request_body);
-                RequestBody body = RequestBody.create(request_body_raw, const_value.JSON);
-                OkHttpClient okhttp_client = networkFunc.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
-                Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-                Call call = okhttp_client.newCall(request);
+                String requestBodyRaw = gson.toJson(requestBody);
+                RequestBody body = RequestBody.create(requestBodyRaw, const_value.JSON);
+                OkHttpClient okhttpObj = networkFunc.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+                Request request = new Request.Builder().url(requestUri).method("POST", body).build();
+                Call call = okhttpObj.newCall(request);
                 try {
                     Response response = call.execute();
                     if (response.code() != 200 || response.body() == null) {
@@ -162,195 +162,195 @@ public class chat_command_service extends Service {
                 }
                 return;
             }
-            int sub_id = -1;
+            int subId = -1;
             if (otherFunc.getActiveCard(context) == 1) {
                 slot = -1;
             } else {
-                sub_id = otherFunc.getSubId(context, slot);
+                subId = otherFunc.getSubId(context, slot);
             }
-            smsFunc.sendSms(context, to, content, slot, sub_id, message_id);
-            set_sms_send_status_standby();
+            smsFunc.sendSms(context, to, content, slot, subId, messageId);
+            setSmsSendStatusStandby();
             return;
         }
-        if (message_obj == null) {
+        if (jsonObject == null) {
             logFunc.writeLog(context, "Request type is not allowed by security policy.");
             return;
         }
-        JsonObject from_obj = null;
-        final boolean message_type_is_private = messageType.equals("private");
-        if (message_obj.has("from")) {
-            from_obj = message_obj.get("from").getAsJsonObject();
-            if (!message_type_is_private && from_obj.get("is_bot").getAsBoolean()) {
+        JsonObject fromObj = null;
+        final boolean isPrivate = messageType.equals("private");
+        if (jsonObject.has("from")) {
+            fromObj = jsonObject.get("from").getAsJsonObject();
+            if (!isPrivate && fromObj.get("is_bot").getAsBoolean()) {
                 Log.i(TAG, "receive_handle: receive from bot.");
                 return;
             }
         }
-        if (message_obj.has("chat")) {
-            from_obj = message_obj.get("chat").getAsJsonObject();
+        if (jsonObject.has("chat")) {
+            fromObj = jsonObject.get("chat").getAsJsonObject();
         }
 
-        assert from_obj != null;
-        String from_id = from_obj.get("id").getAsString();
-        String from_topic_id = "";
-        if(message_obj.has("is_topic_message")) {
-            from_topic_id = message_obj.get("message_thread_id").getAsString();
-            if (!Objects.equals(message_thread_id, from_topic_id) ) {
+        assert fromObj != null;
+        String from_id = fromObj.get("id").getAsString();
+        String from_topic_id;
+        if(jsonObject.has("is_topic_message")) {
+            from_topic_id = jsonObject.get("message_thread_id").getAsString();
+            if (!Objects.equals(messageThreadId, from_topic_id) ) {
                 logFunc.writeLog(context, "Topic ID[" + from_id + "] not allow.");
                 return;
             }
         }
-        if (!Objects.equals(chat_id, from_id) ) {
+        if (!Objects.equals(chatId, from_id) ) {
             logFunc.writeLog(context, "Chat ID[" + from_id + "] not allow.");
             return;
         }
         String command = "";
-        String commandBotUsername = "";
-        String request_msg = "";
-        if (message_obj.has("text")) {
-            request_msg = message_obj.get("text").getAsString();
+        String currentBotUsername = "";
+        String requestMsg = "";
+        if (jsonObject.has("text")) {
+            requestMsg = jsonObject.get("text").getAsString();
         }
-        if (message_obj.has("reply_to_message")) {
-            smsRequestInfo save_item = Paper.book().read(message_obj.get("reply_to_message").getAsJsonObject().get("message_id").getAsString(), null);
-            if (save_item != null && !request_msg.isEmpty()) {
-                String phone_number = save_item.phone;
-                int card_slot = save_item.card;
-                send_sms_next_status = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS;
-                Paper.book("send_temp").write("slot", card_slot);
-                Paper.book("send_temp").write("to", phone_number);
-                Paper.book("send_temp").write("content", request_msg);
+        if (jsonObject.has("reply_to_message")) {
+            smsRequestInfo saveItem = Paper.book().read(jsonObject.get("reply_to_message").getAsJsonObject().get("message_id").getAsString(), null);
+            if (saveItem != null && !requestMsg.isEmpty()) {
+                String phoneNumber = saveItem.phone;
+                int cardSlot = saveItem.card;
+                sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS;
+                Paper.book("send_temp").write("slot", cardSlot);
+                Paper.book("send_temp").write("to", phoneNumber);
+                Paper.book("send_temp").write("content", requestMsg);
             }
         }
-        if (message_obj.has("entities")) {
+        if (jsonObject.has("entities")) {
             String tempCommand;
-            String temp_command_lowercase;
-            JsonArray entities_arr = message_obj.get("entities").getAsJsonArray();
-            JsonObject entities_obj_command = entities_arr.get(0).getAsJsonObject();
-            if (entities_obj_command.get("type").getAsString().equals("bot_command")) {
-                int command_offset = entities_obj_command.get("offset").getAsInt();
-                int command_end_offset = command_offset + entities_obj_command.get("length").getAsInt();
-                tempCommand = request_msg.substring(command_offset, command_end_offset).trim();
-                temp_command_lowercase = tempCommand.toLowerCase().replace("_", "");
-                command = temp_command_lowercase;
-                if (temp_command_lowercase.contains("@")) {
-                    int command_at_location = temp_command_lowercase.indexOf("@");
-                    command = temp_command_lowercase.substring(0, command_at_location);
-                    commandBotUsername = tempCommand.substring(command_at_location + 1);
+            String tempCommandLowercase;
+            JsonArray entities = jsonObject.get("entities").getAsJsonArray();
+            JsonObject entitiesObjCommand = entities.get(0).getAsJsonObject();
+            if (entitiesObjCommand.get("type").getAsString().equals("bot_command")) {
+                int commandOffset = entitiesObjCommand.get("offset").getAsInt();
+                int commandEndOffset = commandOffset + entitiesObjCommand.get("length").getAsInt();
+                tempCommand = requestMsg.substring(commandOffset, commandEndOffset).trim();
+                tempCommandLowercase = tempCommand.toLowerCase().replace("_", "");
+                command = tempCommandLowercase;
+                if (tempCommandLowercase.contains("@")) {
+                    int commandAtLocation = tempCommandLowercase.indexOf("@");
+                    command = tempCommandLowercase.substring(0, commandAtLocation);
+                    currentBotUsername = tempCommand.substring(commandAtLocation + 1);
                 }
 
             }
         }
-        if (!message_type_is_private && privacy_mode && !commandBotUsername.equals(bot_username)) {
+        if (!isPrivate && privacyMode && !currentBotUsername.equals(botUsername)) {
             Log.i(TAG, "receive_handle: Privacy mode, no username found.");
             return;
         }
         Log.d(TAG, "receive_handle: " + command);
-        boolean has_command = false;
+        boolean hasCommand = false;
         switch (command) {
             case "/help":
             case "/start":
             case "/commandlist":
-                String sms_command = getString(R.string.sendsms);
+                String smsCommand = getString(R.string.sendsms);
                 if (otherFunc.getActiveCard(context) == 2) {
-                    sms_command = getString(R.string.sendsms_dual);
+                    smsCommand = getString(R.string.sendsms_dual);
                 }
-                sms_command += "\n" + getString(R.string.get_spam_sms);
+                smsCommand += "\n" + getString(R.string.get_spam_sms);
 
-                String ussd_command = "";
+                String ussdCommand = "";
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                        ussd_command = "\n" + getString(R.string.send_ussd_command);
+                        ussdCommand = "\n" + getString(R.string.send_ussd_command);
                         if (otherFunc.getActiveCard(context) == 2) {
-                            ussd_command = "\n" + getString(R.string.send_ussd_dual_command);
+                            ussdCommand = "\n" + getString(R.string.send_ussd_dual_command);
                         }
                     }
                 }
 
                 if (command.equals("/commandlist")) {
-                    request_body.text = (getString(R.string.available_command) + "\n" + sms_command + ussd_command).replace("/", "");
+                    requestBody.text = (getString(R.string.available_command) + "\n" + smsCommand + ussdCommand).replace("/", "");
                     break;
                 }
 
-                String result = getString(R.string.system_message_head) + "\n" + getString(R.string.available_command) + "\n" + sms_command + ussd_command;
+                String result = getString(R.string.system_message_head) + "\n" + getString(R.string.available_command) + "\n" + smsCommand + ussdCommand;
 
-                if (!message_type_is_private && privacy_mode && !bot_username.equals("")) {
-                    result = result.replace(" -", "@" + bot_username + " -");
+                if (!isPrivate && privacyMode && !botUsername.equals("")) {
+                    result = result.replace(" -", "@" + botUsername + " -");
                 }
-                request_body.text = result;
-                has_command = true;
+                requestBody.text = result;
+                hasCommand = true;
                 break;
             case "/ping":
             case "/getinfo":
-                String card_info = "";
+                String cardInfo = "";
                 if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                    card_info = "\nSIM: " + otherFunc.getSimDisplayName(context, 0);
+                    cardInfo = "\nSIM: " + otherFunc.getSimDisplayName(context, 0);
                     if (otherFunc.getActiveCard(context) == 2) {
-                        card_info = "\nSIM1: " + otherFunc.getSimDisplayName(context, 0) + "\nSIM2: " + otherFunc.getSimDisplayName(context, 1);
+                        cardInfo = "\nSIM1: " + otherFunc.getSimDisplayName(context, 0) + "\nSIM2: " + otherFunc.getSimDisplayName(context, 1);
                     }
                 }
-                String spam_count = "";
-                ArrayList<String> spam_list = Paper.book().read("spam_sms_list", new ArrayList<>());
-                assert spam_list != null;
-                if (spam_list.size() != 0) {
-                    spam_count = "\n" + getString(R.string.spam_count_title) + spam_list.size();
+                String spamCount = "";
+                ArrayList<String> spamSmsList = Paper.book().read("spam_sms_list", new ArrayList<>());
+                assert spamSmsList != null;
+                if (spamSmsList.size() != 0) {
+                    spamCount = "\n" + getString(R.string.spam_count_title) + spamSmsList.size();
                 }
-                request_body.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + get_battery_info() + "\n" + getString(R.string.current_network_connection_status) + get_network_type() + spam_count + card_info;
-                has_command = true;
+                requestBody.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + getBatteryInfo() + "\n" + getString(R.string.current_network_connection_status) + getNetworkType() + spamCount + cardInfo;
+                hasCommand = true;
                 break;
             case "/log":
-                String[] cmd_list = request_msg.split(" ");
+                String[] commands = requestMsg.split(" ");
                 int line = 10;
-                if (cmd_list.length == 2 && is_numeric(cmd_list[1])) {
-                    assert cmd_list[1] != null;
+                if (commands.length == 2 && isNumeric(commands[1])) {
+                    assert commands[1] != null;
                     //noinspection ConstantConditions
-                    int line_command = Integer.getInteger(cmd_list[1]);
-                    if (line_command > 50) {
-                        line_command = 50;
+                    int getLine = Integer.getInteger(commands[1]);
+                    if (getLine > 50) {
+                        getLine = 50;
                     }
-                    line = line_command;
+                    line = getLine;
                 }
-                request_body.text = getString(R.string.system_message_head) + logFunc.readLog(context, line);
-                has_command = true;
+                requestBody.text = getString(R.string.system_message_head) + logFunc.readLog(context, line);
+                hasCommand = true;
                 break;
             case "/sendussd":
             case "/sendussd1":
             case "/sendussd2":
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                     if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
-                        String[] command_list = request_msg.split(" ");
+                        String[] commandList = requestMsg.split(" ");
                         int sub_id = -1;
                         if (otherFunc.getActiveCard(context) == 2) {
                             if (command.equals("/sendussd2")) {
                                 sub_id = otherFunc.getSubId(context, 1);
                             }
                         }
-                        if (command_list.length == 2) {
-                            ussdFunc.sendUssd(context, command_list[1], sub_id);
+                        if (commandList.length == 2) {
+                            ussdFunc.sendUssd(context, commandList[1], sub_id);
                             return;
                         }
                     }
                 }
-                request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
+                requestBody.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
                 break;
             case "/getspamsms":
-                ArrayList<String> spam_sms_list = Paper.book().read("spam_sms_list", new ArrayList<>());
-                assert spam_sms_list != null;
-                if (spam_sms_list.size() == 0) {
-                    request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.no_spam_history);
+                ArrayList<String> spamSmsList1 = Paper.book().read("spam_sms_list", new ArrayList<>());
+                assert spamSmsList1 != null;
+                if (spamSmsList1.size() == 0) {
+                    requestBody.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.no_spam_history);
                     break;
                 }
                 new Thread(() -> {
-                    if (networkFunc.check_network_status(context)) {
-                        OkHttpClient okhttp_client = networkFunc.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
-                        for (String item : spam_sms_list) {
-                            request_message send_sms_request_body = new request_message();
-                            send_sms_request_body.chat_id = chat_id;
-                            send_sms_request_body.text = item;
-                            send_sms_request_body.message_thread_id = message_thread_id;
-                            String request_uri = networkFunc.getUrl(bot_token, "sendMessage");
-                            String request_body_json = new Gson().toJson(send_sms_request_body);
-                            RequestBody body = RequestBody.create(request_body_json, const_value.JSON);
-                            Request request_obj = new Request.Builder().url(request_uri).method("POST", body).build();
-                            Call call = okhttp_client.newCall(request_obj);
+                    if (networkFunc.checkNetworkStatus(context)) {
+                        OkHttpClient okhttpObj = networkFunc.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+                        for (String item : spamSmsList1) {
+                            request_message sendSmsRequestBody = new request_message();
+                            sendSmsRequestBody.chat_id = chatId;
+                            sendSmsRequestBody.text = item;
+                            sendSmsRequestBody.message_thread_id = messageThreadId;
+                            String requestUri = networkFunc.getUrl(botToken, "sendMessage");
+                            String requestBodyJson = new Gson().toJson(sendSmsRequestBody);
+                            RequestBody body = RequestBody.create(requestBodyJson, const_value.JSON);
+                            Request requestObj = new Request.Builder().url(requestUri).method("POST", body).build();
+                            Call call = okhttpObj.newCall(requestObj);
                             call.enqueue(new Callback() {
                                 @Override
                                 public void onFailure(@NotNull Call call, @NotNull IOException e) {
@@ -364,10 +364,10 @@ public class chat_command_service extends Service {
                                     Log.d(TAG, "onResponse: " + response.code());
                                 }
                             });
-                            ArrayList<String> resend_list_local = Paper.book().read("spam_sms_list", new ArrayList<>());
-                            assert resend_list_local != null;
-                            resend_list_local.remove(item);
-                            Paper.book().write("spam_sms_list", resend_list_local);
+                            ArrayList<String> resendListLocal = Paper.book().read("spam_sms_list", new ArrayList<>());
+                            assert resendListLocal != null;
+                            resendListLocal.remove(item);
+                            Paper.book().write("spam_sms_list", resendListLocal);
                         }
                     }
                     logFunc.writeLog(context, "Send spam message is complete.");
@@ -376,7 +376,7 @@ public class chat_command_service extends Service {
             case "/sendsms":
             case "/sendsms1":
             case "/sendsms2":
-                String[] msgSendList = request_msg.split("\n");
+                String[] msgSendList = requestMsg.split("\n");
                 Log.i(TAG, "receiveHandle: "+msgSendList.length);
                 if (msgSendList.length > 1) {
                     String[] infoList = msgSendList[0].split(" ");
@@ -410,85 +410,85 @@ public class chat_command_service extends Service {
                     }
                 }else if(messageType.equals("private")) {
                     Log.i(TAG, "receiveHandle: "+messageType);
-                    send_sms_next_status = SEND_SMS_STATUS.PHONE_INPUT_STATUS;
-                    int send_slot = -1;
+                    sendSmsNextStatus = SEND_SMS_STATUS.PHONE_INPUT_STATUS;
+                    int sendSlot = -1;
                     if (otherFunc.getActiveCard(context) > 1) {
-                        send_slot = 0;
+                        sendSlot = 0;
                         if (command.equals("/sendsms2")) {
-                            send_slot = 1;
+                            sendSlot = 1;
                         }
                     }
-                    Paper.book("send_temp").write("slot", send_slot);
+                    Paper.book("send_temp").write("slot", sendSlot);
                 }
 
 
-                request_body.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
+                requestBody.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
                 break;
             default:
-                if (!message_type_is_private && send_sms_next_status == -1) {
+                if (!isPrivate && sendSmsNextStatus == -1) {
                     Log.i(TAG, "receive_handle: The conversation is not Private and does not prompt an error.");
                     return;
                 }
-                request_body.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
+                requestBody.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
                 break;
         }
 
-        if (has_command) {
-            set_sms_send_status_standby();
+        if (hasCommand) {
+            setSmsSendStatusStandby();
         }
-        if (!has_command && send_sms_next_status != -1) {
+        if (!hasCommand && sendSmsNextStatus != -1) {
             Log.i(TAG, "receive_handle: Enter the interactive SMS sending mode.");
-            String dual_sim = "";
+            String dualSim = "";
             //noinspection ConstantConditions
-            int send_slot_temp = Paper.book("send_temp").read("slot", -1);
-            if (send_slot_temp != -1) {
-                dual_sim = "SIM" + (send_slot_temp + 1) + " ";
+            int sendSlotTemp = Paper.book("send_temp").read("slot", -1);
+            if (sendSlotTemp != -1) {
+                dualSim = "SIM" + (sendSlotTemp + 1) + " ";
             }
-            String head = "[" + dual_sim + context.getString(R.string.send_sms_head) + "]";
-            String result_send = getString(R.string.failed_to_get_information);
-            Log.d(TAG, "Sending mode status: " + send_sms_next_status);
-            switch (send_sms_next_status) {
+            String head = "[" + dualSim + context.getString(R.string.send_sms_head) + "]";
+            String resultSend = getString(R.string.failed_to_get_information);
+            Log.d(TAG, "Sending mode status: " + sendSmsNextStatus);
+            switch (sendSmsNextStatus) {
                 case SEND_SMS_STATUS.PHONE_INPUT_STATUS:
-                    send_sms_next_status = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS;
-                    result_send = getString(R.string.enter_number);
+                    sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS;
+                    resultSend = getString(R.string.enter_number);
                     break;
                 case SEND_SMS_STATUS.MESSAGE_INPUT_STATUS:
-                    String temp_to = otherFunc.getSendPhoneNumber(request_msg);
-                    if (otherFunc.isPhoneNumber(temp_to)) {
-                        Paper.book("send_temp").write("to", temp_to);
-                        result_send = getString(R.string.enter_content);
-                        send_sms_next_status = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS;
+                    String tempTo = otherFunc.getSendPhoneNumber(requestMsg);
+                    if (otherFunc.isPhoneNumber(tempTo)) {
+                        Paper.book("send_temp").write("to", tempTo);
+                        resultSend = getString(R.string.enter_content);
+                        sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS;
                     } else {
-                        set_sms_send_status_standby();
-                        result_send = getString(R.string.unable_get_phone_number);
+                        setSmsSendStatusStandby();
+                        resultSend = getString(R.string.unable_get_phone_number);
                     }
                     break;
                 case SEND_SMS_STATUS.WAITING_TO_SEND_STATUS:
-                    Paper.book("send_temp").write("content", request_msg);
+                    Paper.book("send_temp").write("content", requestMsg);
                     reply_markup_keyboard.keyboard_markup keyboardMarkup = new reply_markup_keyboard.keyboard_markup();
                     ArrayList<ArrayList<reply_markup_keyboard.InlineKeyboardButton>> inlineKeyboardButtons = new ArrayList<>();
                     inlineKeyboardButtons.add(reply_markup_keyboard.get_inline_keyboard_obj(context.getString(R.string.send_button), CALLBACK_DATA_VALUE.SEND));
                     inlineKeyboardButtons.add(reply_markup_keyboard.get_inline_keyboard_obj(context.getString(R.string.cancel_button), CALLBACK_DATA_VALUE.CANCEL));
                     keyboardMarkup.inline_keyboard = inlineKeyboardButtons;
-                    request_body.reply_markup = keyboardMarkup;
-                    result_send = context.getString(R.string.to) + Paper.book("send_temp").read("to") + "\n" + context.getString(R.string.content) + Paper.book("send_temp").read("content", "");
-                    send_sms_next_status = SEND_SMS_STATUS.SEND_STATUS;
+                    requestBody.reply_markup = keyboardMarkup;
+                    resultSend = context.getString(R.string.to) + Paper.book("send_temp").read("to") + "\n" + context.getString(R.string.content) + Paper.book("send_temp").read("content", "");
+                    sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS;
                     break;
             }
-            request_body.text = head + "\n" + result_send;
+            requestBody.text = head + "\n" + resultSend;
         }
 
-        String request_uri = networkFunc.getUrl(bot_token, "sendMessage");
-        RequestBody body = RequestBody.create(new Gson().toJson(request_body), const_value.JSON);
-        Request send_request = new Request.Builder().url(request_uri).method("POST", body).build();
-        Call call = okhttp_client.newCall(send_request);
-        final String error_head = "Send reply failed:";
+        String requestUri = networkFunc.getUrl(botToken, "sendMessage");
+        RequestBody body = RequestBody.create(new Gson().toJson(requestBody), const_value.JSON);
+        Request sendRequest = new Request.Builder().url(requestUri).method("POST", body).build();
+        Call call = okHttpClient.newCall(sendRequest);
+        final String errorHead = "Send reply failed:";
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
-                logFunc.writeLog(context, error_head + e.getMessage());
-                resendFunc.addResendLoop(context, request_body.text);
+                logFunc.writeLog(context, errorHead + e.getMessage());
+                resendFunc.addResendLoop(context, requestBody.text);
             }
 
             @Override
@@ -496,10 +496,10 @@ public class chat_command_service extends Service {
                 String response_string = Objects.requireNonNull(response.body()).string();
                 if (response.code() != 200) {
                     assert response.body() != null;
-                    logFunc.writeLog(context, error_head + response.code() + " " + response_string);
-                    resendFunc.addResendLoop(context, request_body.text);
+                    logFunc.writeLog(context, errorHead + response.code() + " " + response_string);
+                    resendFunc.addResendLoop(context, requestBody.text);
                 }
-                if (send_sms_next_status == SEND_SMS_STATUS.SEND_STATUS) {
+                if (sendSmsNextStatus == SEND_SMS_STATUS.SEND_STATUS) {
                     Paper.book("send_temp").write("message_id", otherFunc.get_message_id(response_string));
                 }
             }
@@ -519,13 +519,13 @@ public class chat_command_service extends Service {
         super.onCreate();
         context = getApplicationContext();
         Paper.init(context);
-        set_sms_send_status_standby();
+        setSmsSendStatusStandby();
         sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-        chat_id = sharedPreferences.getString("chat_id", "");
-        bot_token = sharedPreferences.getString("bot_token", "");
-        message_thread_id = sharedPreferences.getString("message_thread_id","");
-        okhttp_client = networkFunc.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
-        privacy_mode = sharedPreferences.getBoolean("privacy_mode", false);
+        chatId = sharedPreferences.getString("chat_id", "");
+        botToken = sharedPreferences.getString("bot_token", "");
+        messageThreadId = sharedPreferences.getString("message_thread_id","");
+        okHttpClient = networkFunc.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+        privacyMode = sharedPreferences.getBoolean("privacy_mode", false);
         wifiLock = ((WifiManager) Objects.requireNonNull(context.getApplicationContext().getSystemService(Context.WIFI_SERVICE))).createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi");
         wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "bot_command_polling");
         wifiLock.setReferenceCounted(false);
@@ -538,20 +538,20 @@ public class chat_command_service extends Service {
             wakelock.acquire();
         }
 
-        thread_main = new Thread(new thread_main_runnable());
-        thread_main.start();
+        threadMain = new Thread(new threadMainRunnable());
+        threadMain.start();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(const_value.BROADCAST_STOP_SERVICE);
         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        broadcast_receiver = new broadcast_receiver();
-        registerReceiver(broadcast_receiver, intentFilter);
+        stopReceive = new stopReceive();
+        registerReceiver(stopReceive, intentFilter);
     }
 
-    private boolean get_me() {
-        OkHttpClient okhttp_client_new = okhttp_client;
-        String request_uri = networkFunc.getUrl(bot_token, "getMe");
-        Request request = new Request.Builder().url(request_uri).build();
-        Call call = okhttp_client_new.newCall(request);
+    private boolean getMe() {
+        OkHttpClient okhttpClientNew = okHttpClient;
+        String requestUri = networkFunc.getUrl(botToken, "getMe");
+        Request request = new Request.Builder().url(requestUri).build();
+        Call call = okhttpClientNew.newCall(request);
         Response response;
         try {
             response = call.execute();
@@ -568,21 +568,21 @@ public class chat_command_service extends Service {
                 e.printStackTrace();
                 return false;
             }
-            JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
-            if (result_obj.get("ok").getAsBoolean()) {
-                bot_username = result_obj.get("result").getAsJsonObject().get("username").getAsString();
-                Paper.book().write("bot_username", bot_username);
-                Log.d(TAG, "bot_username: " + bot_username);
-                logFunc.writeLog(context, "Get the bot username: " + bot_username);
+            JsonObject resultObj = JsonParser.parseString(result).getAsJsonObject();
+            if (resultObj.get("ok").getAsBoolean()) {
+                botUsername = resultObj.get("result").getAsJsonObject().get("username").getAsString();
+                Paper.book().write("bot_username", botUsername);
+                Log.d(TAG, "bot_username: " + botUsername);
+                logFunc.writeLog(context, "Get the bot username: " + botUsername);
             }
             return true;
         }
         return false;
     }
 
-    private void set_sms_send_status_standby() {
+    private void setSmsSendStatusStandby() {
         Log.d(TAG, "set_sms_send_status_standby: ");
-        send_sms_next_status = SEND_SMS_STATUS.STANDBY_STATUS;
+        sendSmsNextStatus = SEND_SMS_STATUS.STANDBY_STATUS;
         Paper.book("send_temp").destroy();
     }
 
@@ -590,20 +590,20 @@ public class chat_command_service extends Service {
     public void onDestroy() {
         wifiLock.release();
         wakelock.release();
-        unregisterReceiver(broadcast_receiver);
+        unregisterReceiver(stopReceive);
         stopForeground(true);
         super.onDestroy();
     }
 
     @SuppressWarnings("BusyWait")
-    private class thread_main_runnable implements Runnable {
+    private class threadMainRunnable implements Runnable {
         @Override
         public void run() {
             Log.d(TAG, "run: thread main start");
-            if (otherFunc.parse_string_to_long(chat_id) < 0) {
-                bot_username = Paper.book().read("bot_username", null);
-                if (bot_username == null) {
-                    while (!get_me()) {
+            if (otherFunc.parseStringToLong(chatId) < 0) {
+                botUsername = Paper.book().read("bot_username", null);
+                if (botUsername == null) {
+                    while (!getMe()) {
                         logFunc.writeLog(context, "Failed to get bot Username, Wait 5 seconds and try again.");
                         try {
                             Thread.sleep(5000);
@@ -612,45 +612,45 @@ public class chat_command_service extends Service {
                         }
                     }
                 }
-                Log.i(TAG, "run: The Bot Username is loaded. The Bot Username is: " + bot_username);
+                Log.i(TAG, "run: The Bot Username is loaded. The Bot Username is: " + botUsername);
             }
             while (true) {
                 int timeout = 5 * magnification;
                 int http_timeout = timeout + 5;
-                OkHttpClient okhttp_client_new = okhttp_client.newBuilder()
+                OkHttpClient okhttp_client_new = okHttpClient.newBuilder()
                         .readTimeout(http_timeout, TimeUnit.SECONDS)
                         .writeTimeout(http_timeout, TimeUnit.SECONDS)
                         .build();
                 Log.d(TAG, "run: Current timeout: " + timeout + "S");
-                String request_uri = networkFunc.getUrl(bot_token, "getUpdates");
-                polling_json request_body = new polling_json();
-                request_body.offset = offset;
-                request_body.timeout = timeout;
-                if (first_request) {
-                    request_body.timeout = 0;
+                String requestUri = networkFunc.getUrl(botToken, "getUpdates");
+                polling_json requestBody = new polling_json();
+                requestBody.offset = offset;
+                requestBody.timeout = timeout;
+                if (firstRequest) {
+                    requestBody.timeout = 0;
                     Log.d(TAG, "run: first_request");
                 }
-                RequestBody body = RequestBody.create(new Gson().toJson(request_body), const_value.JSON);
-                Request request = new Request.Builder().url(request_uri).method("POST", body).build();
+                RequestBody body = RequestBody.create(new Gson().toJson(requestBody), const_value.JSON);
+                Request request = new Request.Builder().url(requestUri).method("POST", body).build();
                 Call call = okhttp_client_new.newCall(request);
                 Response response;
                 try {
                     response = call.execute();
-                    error_magnification = 1;
+                    errorMagnification = 1;
                 } catch (IOException e) {
                     e.printStackTrace();
-                    if (!networkFunc.check_network_status(context)) {
+                    if (!networkFunc.checkNetworkStatus(context)) {
                         logFunc.writeLog(context, "No network connections available, Wait for the network to recover.");
-                        error_magnification = 1;
+                        errorMagnification = 1;
                         magnification = 1;
                         Log.d(TAG, "run: break loop.");
                         break;
                     }
-                    int sleep_time = 5 * error_magnification;
+                    int sleep_time = 5 * errorMagnification;
                     logFunc.writeLog(context, "Connection to the Telegram API service failed, try again after " + sleep_time + " seconds.");
                     magnification = 1;
-                    if (error_magnification <= 59) {
-                        ++error_magnification;
+                    if (errorMagnification <= 59) {
+                        ++errorMagnification;
                     }
                     try {
                         Thread.sleep(sleep_time * 1000L);
@@ -672,9 +672,9 @@ public class chat_command_service extends Service {
                     if (result_obj.get("ok").getAsBoolean()) {
                         JsonArray result_array = result_obj.get("result").getAsJsonArray();
                         for (JsonElement item : result_array) {
-                            receiveHandle(item.getAsJsonObject(), first_request);
+                            receiveHandle(item.getAsJsonObject(), firstRequest);
                         }
-                        first_request = false;
+                        firstRequest = false;
                     }
                     if (magnification <= 11) {
                         ++magnification;
@@ -708,7 +708,7 @@ public class chat_command_service extends Service {
     }
 
     @NotNull
-    private String get_battery_info() {
+    private String getBatteryInfo() {
         BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
         assert batteryManager != null;
         int battery_level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
@@ -740,59 +740,59 @@ public class chat_command_service extends Service {
         return battery_string_builder.toString();
     }
 
-    private String get_network_type() {
-        String net_type = "Unknown";
-        ConnectivityManager connect_manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        assert connect_manager != null;
+    private String getNetworkType() {
+        String netType = "Unknown";
+        ConnectivityManager connectManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        assert connectManager != null;
         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         assert telephonyManager != null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            Network[] networks = connect_manager.getAllNetworks();
+            Network[] networks = connectManager.getAllNetworks();
             if (networks.length != 0) {
                 for (Network network : networks) {
-                    NetworkCapabilities network_capabilities = connect_manager.getNetworkCapabilities(network);
-                    assert network_capabilities != null;
-                    if (!network_capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
-                        if (network_capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                            net_type = "WIFI";
+                    NetworkCapabilities networkCapabilities = connectManager.getNetworkCapabilities(network);
+                    assert networkCapabilities != null;
+                    if (!networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
+                        if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                            netType = "WIFI";
                         }
-                        if (network_capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-                            if (network_capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_IMS)) {
+                        if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                            if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_IMS)) {
                                 continue;
                             }
                             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
                                 Log.d("get_network_type", "No permission.");
                             }
-                            net_type = check_cellular_network_type(telephonyManager.getDataNetworkType());
+                            netType = checkCellularNetworkType(telephonyManager.getDataNetworkType());
                         }
-                        if (network_capabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH)) {
-                            net_type = "Bluetooth";
+                        if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH)) {
+                            netType = "Bluetooth";
                         }
-                        if (network_capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
-                            net_type = "Ethernet";
+                        if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
+                            netType = "Ethernet";
                         }
                     }
                 }
             }
         } else {
-            NetworkInfo network_info = connect_manager.getActiveNetworkInfo();
-            if (network_info == null) {
-                return net_type;
+            NetworkInfo activeNetworkInfo = connectManager.getActiveNetworkInfo();
+            if (activeNetworkInfo == null) {
+                return netType;
             }
-            switch (network_info.getType()) {
+            switch (activeNetworkInfo.getType()) {
                 case ConnectivityManager.TYPE_WIFI:
-                    net_type = "WIFI";
+                    netType = "WIFI";
                     break;
                 case ConnectivityManager.TYPE_MOBILE:
-                    net_type = check_cellular_network_type(network_info.getSubtype());
+                    netType = checkCellularNetworkType(activeNetworkInfo.getSubtype());
                     break;
             }
         }
 
-        return net_type;
+        return netType;
     }
 
-    private String check_cellular_network_type(int type) {
+    private String checkCellularNetworkType(int type) {
         String net_type = "Unknown";
         switch (type) {
             case TelephonyManager.NETWORK_TYPE_NR:
@@ -824,7 +824,7 @@ public class chat_command_service extends Service {
         return net_type;
     }
 
-    private class broadcast_receiver extends BroadcastReceiver {
+    private class stopReceive extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, @NotNull Intent intent) {
             Log.d(TAG, "onReceive: " + intent.getAction());
@@ -836,11 +836,11 @@ public class chat_command_service extends Service {
                     android.os.Process.killProcess(android.os.Process.myPid());
                     break;
                 case ConnectivityManager.CONNECTIVITY_ACTION:
-                    if (networkFunc.check_network_status(context)) {
-                        if (!thread_main.isAlive()) {
+                    if (networkFunc.checkNetworkStatus(context)) {
+                        if (!threadMain.isAlive()) {
                             logFunc.writeLog(context, "Network connections has been restored.");
-                            thread_main = new Thread(new thread_main_runnable());
-                            thread_main.start();
+                            threadMain = new Thread(new threadMainRunnable());
+                            threadMain.start();
                         }
                     }
                     break;

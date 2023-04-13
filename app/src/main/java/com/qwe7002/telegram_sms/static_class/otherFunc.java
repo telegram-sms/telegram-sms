@@ -29,7 +29,7 @@ import io.paperdb.Paper;
 public class otherFunc {
 
     public static String getNineKeyMapConvert(String input) {
-        final Map<Character, Integer> nineKeyMap = new HashMap<Character, Integer>() {
+        final Map<Character, Integer> nineKeyMap = new HashMap<>() {
             {
                 put('A', 2);
                 put('B', 2);
@@ -71,7 +71,7 @@ public class otherFunc {
         return result.toString();
     }
 
-    public static long parse_string_to_long(String content) {
+    public static long parseStringToLong(String content) {
         long result = 0;
         try {
             result = Long.parseLong(content);

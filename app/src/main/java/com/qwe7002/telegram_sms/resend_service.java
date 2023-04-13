@@ -63,9 +63,9 @@ public class resend_service extends Service {
         try {
             Response response = call.execute();
             if (response.code() == 200) {
-                ArrayList<String> resend_list_local = Paper.book().read(table_name, new ArrayList<>());
-                resend_list_local.remove(message);
-                Paper.book().write(table_name, resend_list_local);
+                ArrayList<String> resendListLocal = Paper.book().read(table_name, new ArrayList<>());
+                Objects.requireNonNull(resendListLocal).remove(message);
+                Paper.book().write(table_name, resendListLocal);
             }
         } catch (IOException e) {
             logFunc.writeLog(context, "An error occurred while resending: " + e.getMessage());
@@ -87,14 +87,14 @@ public class resend_service extends Service {
         new Thread(() -> {
             resend_list = Paper.book().read(table_name, new ArrayList<>());
             while (true) {
-                if (networkFunc.check_network_status(context)) {
+                if (networkFunc.checkNetworkStatus(context)) {
                     ArrayList<String> send_list = resend_list;
                     OkHttpClient okhttp_client = networkFunc.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
                     for (String item : send_list) {
                         network_progress_handle(item, sharedPreferences.getString("chat_id", ""), sharedPreferences.getString("message_thread_id", ""), okhttp_client);
                     }
                     resend_list = Paper.book().read(table_name, new ArrayList<>());
-                    if (resend_list == send_list || resend_list.size() == 0) {
+                    if (resend_list == send_list || Objects.requireNonNull(resend_list).size() == 0) {
                         break;
                     }
                 }
