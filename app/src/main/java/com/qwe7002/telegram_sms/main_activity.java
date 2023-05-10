@@ -352,7 +352,7 @@ public class main_activity extends AppCompatActivity {
                                 String type = chatObj.get("type").getAsString();
                                 chatNameList.add(username + "(" + type + ")");
                                 chatIdList.add(chatObj.get("id").getAsString());
-                                String  threadId = "";
+                                String threadId = "";
                                 if (type.equals("supergroup") && messageObj.has("is_topic_message")) {
                                     threadId = messageObj.get("message_thread_id").getAsString();
                                 }
@@ -370,9 +370,7 @@ public class main_activity extends AppCompatActivity {
                     }
                     main_activity.this.runOnUiThread(() -> new AlertDialog.Builder(v.getContext()).setTitle(R.string.select_chat).setItems(chatNameList.toArray(new String[0]), (dialogInterface, i) -> {
                         chatIdEditView.setText(chatIdList.get(i));
-
-                            messageThreadIdEditView.setText(chatTopicIdList.get(i));
-
+                        messageThreadIdEditView.setText(chatTopicIdList.get(i));
                     }).setPositiveButton(context.getString(R.string.cancel_button), null).show());
                 }
             });
