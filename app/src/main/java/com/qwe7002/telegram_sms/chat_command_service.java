@@ -410,7 +410,7 @@ public class chat_command_service extends Service {
                             }
                         }
                     }
-                } else if (messageType.equals("private") || (messageType.equals("supergroup") && !messageThreadId.equals(""))) {
+                } else if (isPrivate || (messageType.equals("supergroup") && !messageThreadId.equals(""))) {
                     Log.i(TAG, "receiveHandle: " + messageType);
                     sendSmsNextStatus = SEND_SMS_STATUS.PHONE_INPUT_STATUS;
                     int sendSlot = -1;
@@ -426,9 +426,11 @@ public class chat_command_service extends Service {
                 requestBody.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
                 break;
             default:
-                if (!isPrivate && sendSmsNextStatus == -1) {
-                    Log.i(TAG, "receive_handle: The conversation is not Private and does not prompt an error.");
-                    return;
+                if ((!isPrivate && sendSmsNextStatus == -1)) {
+                    if (!messageType.equals("supergroup") && messageThreadId.equals("")) {
+                        Log.i(TAG, "receive_handle: The conversation is not Private and does not prompt an error.");
+                        return;
+                    }
                 }
                 requestBody.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
                 break;
