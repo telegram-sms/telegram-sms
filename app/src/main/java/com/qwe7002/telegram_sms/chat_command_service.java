@@ -427,7 +427,7 @@ public class chat_command_service extends Service {
                 break;
             default:
                 if ((!isPrivate && sendSmsNextStatus == -1)) {
-                    if (!messageType.equals("supergroup") && messageThreadId.equals("")) {
+                    if (!messageType.equals("supergroup") || messageThreadId.equals("")) {
                         Log.i(TAG, "receive_handle: The conversation is not Private and does not prompt an error.");
                         return;
                     }
@@ -682,8 +682,8 @@ public class chat_command_service extends Service {
                             e.printStackTrace();
                             continue;
                         }
-                        JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
-                        String result_message = getString(R.string.system_message_head) + "\n" + getString(R.string.error_stop_message) + "\n" + getString(R.string.error_message_head) + result_obj.get("description").getAsString() + "\n" + "Code: " + response.code();
+                        JsonObject jsonObject = JsonParser.parseString(result).getAsJsonObject();
+                        String result_message = getString(R.string.system_message_head) + "\n" + getString(R.string.error_stop_message) + "\n" + getString(R.string.error_message_head) + jsonObject.get("description").getAsString() + "\n" + "Code: " + response.code();
                         sms.send_fallback_sms(context, result_message, -1);
                         service.stopAllService(context);
                         break;
