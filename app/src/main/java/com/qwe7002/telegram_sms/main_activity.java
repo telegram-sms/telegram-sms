@@ -112,7 +112,7 @@ public class main_activity extends AppCompatActivity {
         final EditText chatIdEditView = findViewById(R.id.chat_id_editview);
         final EditText botTokenEditView = findViewById(R.id.bot_token_editview);
         final EditText messageThreadIdEditView = findViewById(R.id.message_thread_id_editview);
-        final com.google.android.material.textfield.TextInputLayout messageThreadIdView = findViewById(R.id.message_thread_id_view);
+        final TextInputLayout messageThreadIdView = findViewById(R.id.message_thread_id_view);
         final EditText trustedPhoneNumberEditView = findViewById(R.id.trusted_phone_number_editview);
         final SwitchMaterial chatCommandSwitch = findViewById(R.id.chat_command_switch);
         final SwitchMaterial fallbackSmsSwitch = findViewById(R.id.fallback_sms_switch);
