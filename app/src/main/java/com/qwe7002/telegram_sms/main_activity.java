@@ -327,7 +327,7 @@ public class main_activity extends AppCompatActivity {
                     }
                     final ArrayList<String> chatNameList = new ArrayList<>();
                     final ArrayList<String> chatIdList = new ArrayList<>();
-                    final ArrayList<Integer> chatTopicIdList = new ArrayList<>();
+                    final ArrayList<String> chatTopicIdList = new ArrayList<>();
                     for (JsonElement item : chatList) {
                         JsonObject itemObj = item.getAsJsonObject();
                         if (itemObj.has("message")) {
@@ -352,9 +352,9 @@ public class main_activity extends AppCompatActivity {
                                 String type = chatObj.get("type").getAsString();
                                 chatNameList.add(username + "(" + type + ")");
                                 chatIdList.add(chatObj.get("id").getAsString());
-                                int threadId = -1;
-                                if (type.equals("supergroup") && messageObj.has("message_thread_id")) {
-                                    threadId = messageObj.get("message_thread_id").getAsInt();
+                                String  threadId = "";
+                                if (type.equals("supergroup") && messageObj.has("is_topic_message")) {
+                                    threadId = messageObj.get("message_thread_id").getAsString();
                                 }
                                 chatTopicIdList.add(threadId);
                             }
@@ -370,10 +370,9 @@ public class main_activity extends AppCompatActivity {
                     }
                     main_activity.this.runOnUiThread(() -> new AlertDialog.Builder(v.getContext()).setTitle(R.string.select_chat).setItems(chatNameList.toArray(new String[0]), (dialogInterface, i) -> {
                         chatIdEditView.setText(chatIdList.get(i));
-                        int threadId = chatTopicIdList.get(i);
-                        if (threadId != -1) {
-                            messageThreadIdEditView.setText(String.valueOf(threadId));
-                        }
+
+                            messageThreadIdEditView.setText(chatTopicIdList.get(i));
+
                     }).setPositiveButton(context.getString(R.string.cancel_button), null).show());
                 }
             });

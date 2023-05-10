@@ -72,6 +72,7 @@ public class chat_command_service extends Service {
         final static String SEND = "send";
         final static String CANCEL = "cancel";
     }
+
     private static class SEND_SMS_STATUS {
         static final int STANDBY_STATUS = -1;
         static final int PHONE_INPUT_STATUS = 0;
@@ -101,6 +102,7 @@ public class chat_command_service extends Service {
         }
         return true;
     }
+
     private void receiveHandle(@NotNull JsonObject resultObj, boolean getIdOnly) {
         long updateId = resultObj.get("update_id").getAsLong();
         offset = updateId + 1;
@@ -188,17 +190,19 @@ public class chat_command_service extends Service {
         }
 
         assert fromObj != null;
-        String from_id = fromObj.get("id").getAsString();
-        String from_topic_id;
-        if(jsonObject.has("is_topic_message")) {
-            from_topic_id = jsonObject.get("message_thread_id").getAsString();
-            if (!Objects.equals(messageThreadId, from_topic_id) ) {
-                log.writeLog(context, "Topic ID[" + from_id + "] not allow.");
+        String fromId = fromObj.get("id").getAsString();
+        String fromTopicId = "";
+        if (!Objects.equals(messageThreadId, "")) {
+            if (jsonObject.has("is_topic_message")) {
+                fromTopicId = jsonObject.get("message_thread_id").getAsString();
+            }
+            if (!Objects.equals(messageThreadId, fromTopicId)) {
+                Log.i(TAG, "Topic ID[" + fromTopicId + "] not allow.");
                 return;
             }
         }
-        if (!Objects.equals(chatId, from_id) ) {
-            log.writeLog(context, "Chat ID[" + from_id + "] not allow.");
+        if (!Objects.equals(chatId, fromId)) {
+            log.writeLog(context, "Chat ID[" + fromId + "] not allow.");
             return;
         }
         String command = "";
@@ -375,10 +379,10 @@ public class chat_command_service extends Service {
             case "/sendsms1":
             case "/sendsms2":
                 String[] msgSendList = requestMsg.split("\n");
-                Log.i(TAG, "receiveHandle: "+msgSendList.length);
+                Log.i(TAG, "receiveHandle: " + msgSendList.length);
                 if (msgSendList.length > 1) {
                     String[] infoList = msgSendList[0].split(" ");
-                    if(infoList.length == 2) {
+                    if (infoList.length == 2) {
                         String msgSendTo = other.getSendPhoneNumber(infoList[1]);
                         if (other.isPhoneNumber(msgSendTo)) {
                             StringBuilder sendContent = new StringBuilder();
@@ -406,8 +410,8 @@ public class chat_command_service extends Service {
                             }
                         }
                     }
-                }else if(messageType.equals("private")) {
-                    Log.i(TAG, "receiveHandle: "+messageType);
+                } else if (messageType.equals("private") || (messageType.equals("supergroup") && !messageThreadId.equals(""))) {
+                    Log.i(TAG, "receiveHandle: " + messageType);
                     sendSmsNextStatus = SEND_SMS_STATUS.PHONE_INPUT_STATUS;
                     int sendSlot = -1;
                     if (other.getActiveCard(context) > 1) {
@@ -418,7 +422,6 @@ public class chat_command_service extends Service {
                     }
                     Paper.book("send_temp").write("slot", sendSlot);
                 }
-
 
                 requestBody.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
                 break;
@@ -521,7 +524,7 @@ public class chat_command_service extends Service {
         sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         chatId = sharedPreferences.getString("chat_id", "");
         botToken = sharedPreferences.getString("bot_token", "");
-        messageThreadId = sharedPreferences.getString("message_thread_id","");
+        messageThreadId = sharedPreferences.getString("message_thread_id", "");
         okHttpClient = network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
         privacyMode = sharedPreferences.getBoolean("privacy_mode", false);
         wifiLock = ((WifiManager) Objects.requireNonNull(context.getApplicationContext().getSystemService(Context.WIFI_SERVICE))).createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi");
