@@ -10,7 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.qwe7002.telegram_sms.static_class.logFunc;
+import com.qwe7002.telegram_sms.static_class.log;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +28,7 @@ public class logcat_activity extends AppCompatActivity {
         setContentView(R.layout.activity_logcat);
         logcat_textview = findViewById(R.id.logcat_textview);
         this.setTitle(R.string.logcat);
-        logcat_textview.setText(logFunc.readLog(context, line));
+        logcat_textview.setText(log.readLog(context, line));
         observer = new file_observer(context, logcat_textview);
     }
 
@@ -41,7 +41,7 @@ public class logcat_activity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        logcat_textview.setText(logFunc.readLog(context, line));
+        logcat_textview.setText(log.readLog(context, line));
         observer.startWatching();
     }
 
@@ -53,7 +53,7 @@ public class logcat_activity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        logFunc.resetLogFile(context);
+        log.resetLogFile(context);
         return true;
     }
 
@@ -70,7 +70,7 @@ public class logcat_activity extends AppCompatActivity {
         @Override
         public void onEvent(int event, String path) {
             if (event == FileObserver.MODIFY && path.contains("error.log")) {
-                runOnUiThread(() -> logcat.setText(logFunc.readLog(context, line)));
+                runOnUiThread(() -> logcat.setText(log.readLog(context, line)));
             }
         }
     }

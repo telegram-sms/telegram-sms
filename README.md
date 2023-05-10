@@ -21,6 +21,7 @@ You can follow the Telegram channel Telegram SMS Change Log for the latest news.
 
 The primary language used for commit messages is Simplified Chinese. However, you're welcome to use English in commit messages when making contributions.
 
+
 If you want to generate the configuration QR code in a fast way, please visit [qrcode.telegram-sms.com](https://qrcode.telegram-sms.com).
 
 ## Get the Right Version

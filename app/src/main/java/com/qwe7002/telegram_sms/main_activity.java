@@ -45,10 +45,10 @@ import com.google.gson.JsonParser;
 import com.qwe7002.telegram_sms.config.proxy;
 import com.qwe7002.telegram_sms.data_structure.polling_json;
 import com.qwe7002.telegram_sms.data_structure.request_message;
-import com.qwe7002.telegram_sms.static_class.logFunc;
-import com.qwe7002.telegram_sms.static_class.networkFunc;
-import com.qwe7002.telegram_sms.static_class.otherFunc;
-import com.qwe7002.telegram_sms.static_class.serviceFunc;
+import com.qwe7002.telegram_sms.static_class.log;
+import com.qwe7002.telegram_sms.static_class.network;
+import com.qwe7002.telegram_sms.static_class.other;
+import com.qwe7002.telegram_sms.static_class.service;
 import com.qwe7002.telegram_sms.value.const_value;
 
 import org.jetbrains.annotations.NotNull;
@@ -89,7 +89,7 @@ public class main_activity extends AppCompatActivity {
         }
         if (version_code != currentVersionCode) {
             if (reset_log) {
-                logFunc.resetLogFile(context);
+                log.resetLogFile(context);
             }
             Paper.book("system_config").write("version_code", currentVersionCode);
         }
@@ -132,7 +132,7 @@ public class main_activity extends AppCompatActivity {
         String chatIdSave = sharedPreferences.getString("chat_id", "");
         String messageThreadIdSave = sharedPreferences.getString("message_thread_id", "");
 
-        if (otherFunc.parseStringToLong(chatIdSave) < 0) {
+        if (other.parseStringToLong(chatIdSave) < 0) {
             privacyModeSwitch.setVisibility(View.VISIBLE);
             messageThreadIdEditView.setVisibility(View.VISIBLE);
         } else {
@@ -142,12 +142,12 @@ public class main_activity extends AppCompatActivity {
 
         if (sharedPreferences.getBoolean("initialized", false)) {
             checkVersionUpgrade(true);
-            serviceFunc.startService(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
+            service.startService(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
 
         }
         boolean DualSimDisplayNameConfig = sharedPreferences.getBoolean("display_dual_sim_display_name", false);
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-            if (otherFunc.getActiveCard(context) < 2) {
+            if (other.getActiveCard(context) < 2) {
                 DualSimDisplayNameSwitch.setEnabled(false);
                 DualSimDisplayNameConfig = false;
             }
@@ -230,7 +230,7 @@ public class main_activity extends AppCompatActivity {
                 DualSimDisplayNameSwitch.setChecked(false);
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
             } else {
-                if (otherFunc.getActiveCard(context) < 2) {
+                if (other.getActiveCard(context) < 2) {
                     DualSimDisplayNameSwitch.setEnabled(false);
                     DualSimDisplayNameSwitch.setChecked(false);
                 }
@@ -261,7 +261,7 @@ public class main_activity extends AppCompatActivity {
                 Snackbar.make(v, R.string.token_not_configure, Snackbar.LENGTH_LONG).show();
                 return;
             }
-            new Thread(() -> serviceFunc.stopAllService(context)).start();
+            new Thread(() -> service.stopAllService(context)).start();
             final ProgressDialog progressDialog = new ProgressDialog(main_activity.this);
             progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             progressDialog.setTitle(getString(R.string.get_recent_chat_title));
@@ -269,8 +269,8 @@ public class main_activity extends AppCompatActivity {
             progressDialog.setIndeterminate(false);
             progressDialog.setCancelable(false);
             progressDialog.show();
-            String request_uri = networkFunc.getUrl(botTokenEditView.getText().toString().trim(), "getUpdates");
-            OkHttpClient okhttpClient = networkFunc.getOkhttpObj(dohSwitch.isChecked(), Paper.book("system_config").read("proxy_config", new proxy()));
+            String request_uri = network.getUrl(botTokenEditView.getText().toString().trim(), "getUpdates");
+            OkHttpClient okhttpClient = network.getOkhttpObj(dohSwitch.isChecked(), Paper.book("system_config").read("proxy_config", new proxy()));
             okhttpClient = okhttpClient.newBuilder()
                     .readTimeout(60, TimeUnit.SECONDS)
                     .build();
@@ -292,7 +292,7 @@ public class main_activity extends AppCompatActivity {
                     e.printStackTrace();
                     progressDialog.cancel();
                     String error_message = errorHead + e.getMessage();
-                    logFunc.writeLog(context, error_message);
+                    log.writeLog(context, error_message);
                     Looper.prepare();
                     Snackbar.make(v, error_message, Snackbar.LENGTH_LONG).show();
                     Looper.loop();
@@ -306,7 +306,7 @@ public class main_activity extends AppCompatActivity {
                         String result = Objects.requireNonNull(response.body()).string();
                         JsonObject resultObj = JsonParser.parseString(result).getAsJsonObject();
                         String errorMessage = errorHead + resultObj.get("description").getAsString();
-                        logFunc.writeLog(context, errorMessage);
+                        log.writeLog(context, errorMessage);
 
                         Looper.prepare();
                         Snackbar.make(v, errorMessage, Snackbar.LENGTH_LONG).show();
@@ -398,7 +398,7 @@ public class main_activity extends AppCompatActivity {
             progressDialog.setCancelable(false);
             progressDialog.show();
 
-            String requestUri = networkFunc.getUrl(botTokenEditView.getText().toString().trim(), "sendMessage");
+            String requestUri = network.getUrl(botTokenEditView.getText().toString().trim(), "sendMessage");
             request_message requestBody = new request_message();
             requestBody.chat_id = chatIdEditView.getText().toString().trim();
             requestBody.message_thread_id = messageThreadIdEditView.getText().toString().trim();
@@ -406,7 +406,7 @@ public class main_activity extends AppCompatActivity {
             Gson gson = new Gson();
             String requestBodyRaw = gson.toJson(requestBody);
             RequestBody body = RequestBody.create(requestBodyRaw, const_value.JSON);
-            OkHttpClient okhttpObj = networkFunc.getOkhttpObj(dohSwitch.isChecked(), Paper.book("system_config").read("proxy_config", new proxy()));
+            OkHttpClient okhttpObj = network.getOkhttpObj(dohSwitch.isChecked(), Paper.book("system_config").read("proxy_config", new proxy()));
             Request request = new Request.Builder().url(requestUri).method("POST", body).build();
             Call call = okhttpObj.newCall(request);
             final String errorHead = "Send message failed: ";
@@ -416,7 +416,7 @@ public class main_activity extends AppCompatActivity {
                     e.printStackTrace();
                     progressDialog.cancel();
                     String errorMessage = errorHead + e.getMessage();
-                    logFunc.writeLog(context, errorMessage);
+                    log.writeLog(context, errorMessage);
                     Looper.prepare();
                     Snackbar.make(v, errorMessage, Snackbar.LENGTH_LONG)
                             .show();
@@ -432,7 +432,7 @@ public class main_activity extends AppCompatActivity {
                         String result = Objects.requireNonNull(response.body()).string();
                         JsonObject resultObj = JsonParser.parseString(result).getAsJsonObject();
                         String errorMessage = errorHead + resultObj.get("description");
-                        logFunc.writeLog(context, errorMessage);
+                        log.writeLog(context, errorMessage);
                         Looper.prepare();
                         Snackbar.make(v, errorMessage, Snackbar.LENGTH_LONG).show();
                         Looper.loop();
@@ -463,8 +463,8 @@ public class main_activity extends AppCompatActivity {
                     editor.putBoolean("privacy_dialog_agree", true);
                     editor.apply();
                     new Thread(() -> {
-                        serviceFunc.stopAllService(context);
-                        serviceFunc.startService(context, batteryMonitoringSwitch.isChecked(), chatCommandSwitch.isChecked());
+                        service.stopAllService(context);
+                        service.startService(context, batteryMonitoringSwitch.isChecked(), chatCommandSwitch.isChecked());
                     }).start();
                     Looper.prepare();
                     Snackbar.make(v, R.string.success, Snackbar.LENGTH_LONG)
@@ -482,7 +482,7 @@ public class main_activity extends AppCompatActivity {
             privacyModeSwitch.setChecked(false);
             return;
         }
-        if (otherFunc.parseStringToLong(chatId) < 0) {
+        if (other.parseStringToLong(chatId) < 0) {
             messageTopicIdView.setVisibility(View.VISIBLE);
             privacyModeSwitch.setVisibility(View.VISIBLE);
         } else {
@@ -526,7 +526,7 @@ public class main_activity extends AppCompatActivity {
         boolean back_status = setPermissionBack;
         setPermissionBack = false;
         if (back_status) {
-            if (serviceFunc.isNotifyListener(context)) {
+            if (service.isNotifyListener(context)) {
                 startActivity(new Intent(main_activity.this, notify_apps_list_activity.class));
             }
         }
@@ -552,7 +552,7 @@ public class main_activity extends AppCompatActivity {
                     if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                         TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
                         assert tm != null;
-                        if (tm.getPhoneCount() <= 1 || otherFunc.getActiveCard(context) < 2) {
+                        if (tm.getPhoneCount() <= 1 || other.getActiveCard(context) < 2) {
                             dualSimDisplayName.setEnabled(false);
                             dualSimDisplayName.setChecked(false);
                         }
@@ -611,7 +611,7 @@ public class main_activity extends AppCompatActivity {
                 }
                 return true;
             case R.id.set_notify_menu_item:
-                if (!serviceFunc.isNotifyListener(context)) {
+                if (!service.isNotifyListener(context)) {
                     Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
@@ -655,9 +655,9 @@ public class main_activity extends AppCompatActivity {
                             proxyItem.password = proxyPassword.getText().toString();
                             Paper.book("system_config").write("proxy_config", proxyItem);
                             new Thread(() -> {
-                                serviceFunc.stopAllService(context);
+                                service.stopAllService(context);
                                 if (sharedPreferences.getBoolean("initialized", false)) {
-                                    serviceFunc.startService(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
+                                    service.startService(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
                                 }
                             }).start();
                         })

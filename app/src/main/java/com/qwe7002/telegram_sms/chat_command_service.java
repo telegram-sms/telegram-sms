@@ -35,13 +35,13 @@ import com.qwe7002.telegram_sms.data_structure.polling_json;
 import com.qwe7002.telegram_sms.data_structure.reply_markup_keyboard;
 import com.qwe7002.telegram_sms.data_structure.request_message;
 import com.qwe7002.telegram_sms.data_structure.smsRequestInfo;
-import com.qwe7002.telegram_sms.static_class.logFunc;
-import com.qwe7002.telegram_sms.static_class.networkFunc;
-import com.qwe7002.telegram_sms.static_class.otherFunc;
-import com.qwe7002.telegram_sms.static_class.resendFunc;
-import com.qwe7002.telegram_sms.static_class.serviceFunc;
-import com.qwe7002.telegram_sms.static_class.smsFunc;
-import com.qwe7002.telegram_sms.static_class.ussdFunc;
+import com.qwe7002.telegram_sms.static_class.log;
+import com.qwe7002.telegram_sms.static_class.network;
+import com.qwe7002.telegram_sms.static_class.other;
+import com.qwe7002.telegram_sms.static_class.resend;
+import com.qwe7002.telegram_sms.static_class.service;
+import com.qwe7002.telegram_sms.static_class.sms;
+import com.qwe7002.telegram_sms.static_class.ussd;
 import com.qwe7002.telegram_sms.value.const_value;
 import com.qwe7002.telegram_sms.value.notify_id;
 
@@ -63,8 +63,6 @@ import okhttp3.Response;
 
 public class chat_command_service extends Service {
     private static long offset = 0;
-    private static int magnification = 1;
-    private static int errorMagnification = 1;
     private static SharedPreferences sharedPreferences;
     private static int sendSmsNextStatus = SEND_SMS_STATUS.STANDBY_STATUS;
     private static Thread threadMain;
@@ -140,15 +138,15 @@ public class chat_command_service extends Service {
             assert callbackData != null;
             if (!callbackData.equals(CALLBACK_DATA_VALUE.SEND)) {
                 setSmsSendStatusStandby();
-                String requestUri = networkFunc.getUrl(botToken, "editMessageText");
-                String dualSim = otherFunc.getDualSimCardDisplay(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
+                String requestUri = network.getUrl(botToken, "editMessageText");
+                String dualSim = other.getDualSimCardDisplay(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
                 String sendContent = "[" + dualSim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + to + "\n" + context.getString(R.string.content) + content;
                 requestBody.text = sendContent + "\n" + context.getString(R.string.status) + context.getString(R.string.cancel_button);
                 requestBody.message_id = messageId;
                 Gson gson = new Gson();
                 String requestBodyRaw = gson.toJson(requestBody);
                 RequestBody body = RequestBody.create(requestBodyRaw, const_value.JSON);
-                OkHttpClient okhttpObj = networkFunc.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+                OkHttpClient okhttpObj = network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
                 Request request = new Request.Builder().url(requestUri).method("POST", body).build();
                 Call call = okhttpObj.newCall(request);
                 try {
@@ -158,22 +156,22 @@ public class chat_command_service extends Service {
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
-                    logFunc.writeLog(context, "failed to send message:" + e.getMessage());
+                    log.writeLog(context, "failed to send message:" + e.getMessage());
                 }
                 return;
             }
             int subId = -1;
-            if (otherFunc.getActiveCard(context) == 1) {
+            if (other.getActiveCard(context) == 1) {
                 slot = -1;
             } else {
-                subId = otherFunc.getSubId(context, slot);
+                subId = other.getSubId(context, slot);
             }
-            smsFunc.sendSms(context, to, content, slot, subId, messageId);
+            sms.sendSms(context, to, content, slot, subId, messageId);
             setSmsSendStatusStandby();
             return;
         }
         if (jsonObject == null) {
-            logFunc.writeLog(context, "Request type is not allowed by security policy.");
+            log.writeLog(context, "Request type is not allowed by security policy.");
             return;
         }
         JsonObject fromObj = null;
@@ -195,12 +193,12 @@ public class chat_command_service extends Service {
         if(jsonObject.has("is_topic_message")) {
             from_topic_id = jsonObject.get("message_thread_id").getAsString();
             if (!Objects.equals(messageThreadId, from_topic_id) ) {
-                logFunc.writeLog(context, "Topic ID[" + from_id + "] not allow.");
+                log.writeLog(context, "Topic ID[" + from_id + "] not allow.");
                 return;
             }
         }
         if (!Objects.equals(chatId, from_id) ) {
-            logFunc.writeLog(context, "Chat ID[" + from_id + "] not allow.");
+            log.writeLog(context, "Chat ID[" + from_id + "] not allow.");
             return;
         }
         String command = "";
@@ -250,7 +248,7 @@ public class chat_command_service extends Service {
             case "/start":
             case "/commandlist":
                 String smsCommand = getString(R.string.sendsms);
-                if (otherFunc.getActiveCard(context) == 2) {
+                if (other.getActiveCard(context) == 2) {
                     smsCommand = getString(R.string.sendsms_dual);
                 }
                 smsCommand += "\n" + getString(R.string.get_spam_sms);
@@ -259,7 +257,7 @@ public class chat_command_service extends Service {
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                         ussdCommand = "\n" + getString(R.string.send_ussd_command);
-                        if (otherFunc.getActiveCard(context) == 2) {
+                        if (other.getActiveCard(context) == 2) {
                             ussdCommand = "\n" + getString(R.string.send_ussd_dual_command);
                         }
                     }
@@ -282,9 +280,9 @@ public class chat_command_service extends Service {
             case "/getinfo":
                 String cardInfo = "";
                 if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                    cardInfo = "\nSIM: " + otherFunc.getSimDisplayName(context, 0);
-                    if (otherFunc.getActiveCard(context) == 2) {
-                        cardInfo = "\nSIM1: " + otherFunc.getSimDisplayName(context, 0) + "\nSIM2: " + otherFunc.getSimDisplayName(context, 1);
+                    cardInfo = "\nSIM: " + other.getSimDisplayName(context, 0);
+                    if (other.getActiveCard(context) == 2) {
+                        cardInfo = "\nSIM1: " + other.getSimDisplayName(context, 0) + "\nSIM2: " + other.getSimDisplayName(context, 1);
                     }
                 }
                 String spamCount = "";
@@ -308,7 +306,7 @@ public class chat_command_service extends Service {
                     }
                     line = getLine;
                 }
-                requestBody.text = getString(R.string.system_message_head) + logFunc.readLog(context, line);
+                requestBody.text = getString(R.string.system_message_head) + log.readLog(context, line);
                 hasCommand = true;
                 break;
             case "/sendussd":
@@ -318,13 +316,13 @@ public class chat_command_service extends Service {
                     if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
                         String[] commandList = requestMsg.split(" ");
                         int sub_id = -1;
-                        if (otherFunc.getActiveCard(context) == 2) {
+                        if (other.getActiveCard(context) == 2) {
                             if (command.equals("/sendussd2")) {
-                                sub_id = otherFunc.getSubId(context, 1);
+                                sub_id = other.getSubId(context, 1);
                             }
                         }
                         if (commandList.length == 2) {
-                            ussdFunc.sendUssd(context, commandList[1], sub_id);
+                            ussd.sendUssd(context, commandList[1], sub_id);
                             return;
                         }
                     }
@@ -339,14 +337,14 @@ public class chat_command_service extends Service {
                     break;
                 }
                 new Thread(() -> {
-                    if (networkFunc.checkNetworkStatus(context)) {
-                        OkHttpClient okhttpObj = networkFunc.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+                    if (network.checkNetworkStatus(context)) {
+                        OkHttpClient okhttpObj = network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
                         for (String item : spamSmsList1) {
                             request_message sendSmsRequestBody = new request_message();
                             sendSmsRequestBody.chat_id = chatId;
                             sendSmsRequestBody.text = item;
                             sendSmsRequestBody.message_thread_id = messageThreadId;
-                            String requestUri = networkFunc.getUrl(botToken, "sendMessage");
+                            String requestUri = network.getUrl(botToken, "sendMessage");
                             String requestBodyJson = new Gson().toJson(sendSmsRequestBody);
                             RequestBody body = RequestBody.create(requestBodyJson, const_value.JSON);
                             Request requestObj = new Request.Builder().url(requestUri).method("POST", body).build();
@@ -356,7 +354,7 @@ public class chat_command_service extends Service {
                                 public void onFailure(@NotNull Call call, @NotNull IOException e) {
                                     Log.d(TAG, "onFailure: " + e.getMessage());
                                     e.printStackTrace();
-                                    logFunc.writeLog(context, e.getMessage());
+                                    log.writeLog(context, e.getMessage());
                                 }
 
                                 @Override
@@ -370,7 +368,7 @@ public class chat_command_service extends Service {
                             Paper.book().write("spam_sms_list", resendListLocal);
                         }
                     }
-                    logFunc.writeLog(context, "Send spam message is complete.");
+                    log.writeLog(context, "Send spam message is complete.");
                 }).start();
                 return;
             case "/sendsms":
@@ -381,8 +379,8 @@ public class chat_command_service extends Service {
                 if (msgSendList.length > 1) {
                     String[] infoList = msgSendList[0].split(" ");
                     if(infoList.length == 2) {
-                        String msgSendTo = otherFunc.getSendPhoneNumber(infoList[1]);
-                        if (otherFunc.isPhoneNumber(msgSendTo)) {
+                        String msgSendTo = other.getSendPhoneNumber(infoList[1]);
+                        if (other.isPhoneNumber(msgSendTo)) {
                             StringBuilder sendContent = new StringBuilder();
                             for (int i = 1; i < msgSendList.length; ++i) {
                                 if (msgSendList.length != 2 && i != 1) {
@@ -390,20 +388,20 @@ public class chat_command_service extends Service {
                                 }
                                 sendContent.append(msgSendList[i]);
                             }
-                            if (otherFunc.getActiveCard(context) == 1) {
-                                smsFunc.sendSms(context, msgSendTo, sendContent.toString(), -1, -1);
+                            if (other.getActiveCard(context) == 1) {
+                                sms.sendSms(context, msgSendTo, sendContent.toString(), -1, -1);
                                 return;
                             }
                             int sendSlot = -1;
-                            if (otherFunc.getActiveCard(context) > 1) {
+                            if (other.getActiveCard(context) > 1) {
                                 sendSlot = 0;
                                 if (command.equals("/sendsms2")) {
                                     sendSlot = 1;
                                 }
                             }
-                            int subId = otherFunc.getSubId(context, sendSlot);
+                            int subId = other.getSubId(context, sendSlot);
                             if (subId != -1) {
-                                smsFunc.sendSms(context, msgSendTo, sendContent.toString(), sendSlot, subId);
+                                sms.sendSms(context, msgSendTo, sendContent.toString(), sendSlot, subId);
                                 return;
                             }
                         }
@@ -412,7 +410,7 @@ public class chat_command_service extends Service {
                     Log.i(TAG, "receiveHandle: "+messageType);
                     sendSmsNextStatus = SEND_SMS_STATUS.PHONE_INPUT_STATUS;
                     int sendSlot = -1;
-                    if (otherFunc.getActiveCard(context) > 1) {
+                    if (other.getActiveCard(context) > 1) {
                         sendSlot = 0;
                         if (command.equals("/sendsms2")) {
                             sendSlot = 1;
@@ -453,8 +451,8 @@ public class chat_command_service extends Service {
                     resultSend = getString(R.string.enter_number);
                     break;
                 case SEND_SMS_STATUS.MESSAGE_INPUT_STATUS:
-                    String tempTo = otherFunc.getSendPhoneNumber(requestMsg);
-                    if (otherFunc.isPhoneNumber(tempTo)) {
+                    String tempTo = other.getSendPhoneNumber(requestMsg);
+                    if (other.isPhoneNumber(tempTo)) {
                         Paper.book("send_temp").write("to", tempTo);
                         resultSend = getString(R.string.enter_content);
                         sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS;
@@ -478,7 +476,7 @@ public class chat_command_service extends Service {
             requestBody.text = head + "\n" + resultSend;
         }
 
-        String requestUri = networkFunc.getUrl(botToken, "sendMessage");
+        String requestUri = network.getUrl(botToken, "sendMessage");
         RequestBody body = RequestBody.create(new Gson().toJson(requestBody), const_value.JSON);
         Request sendRequest = new Request.Builder().url(requestUri).method("POST", body).build();
         Call call = okHttpClient.newCall(sendRequest);
@@ -487,8 +485,8 @@ public class chat_command_service extends Service {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
-                logFunc.writeLog(context, errorHead + e.getMessage());
-                resendFunc.addResendLoop(context, requestBody.text);
+                log.writeLog(context, errorHead + e.getMessage());
+                resend.addResendLoop(context, requestBody.text);
             }
 
             @Override
@@ -496,11 +494,11 @@ public class chat_command_service extends Service {
                 String response_string = Objects.requireNonNull(response.body()).string();
                 if (response.code() != 200) {
                     assert response.body() != null;
-                    logFunc.writeLog(context, errorHead + response.code() + " " + response_string);
-                    resendFunc.addResendLoop(context, requestBody.text);
+                    log.writeLog(context, errorHead + response.code() + " " + response_string);
+                    resend.addResendLoop(context, requestBody.text);
                 }
                 if (sendSmsNextStatus == SEND_SMS_STATUS.SEND_STATUS) {
-                    Paper.book("send_temp").write("message_id", otherFunc.get_message_id(response_string));
+                    Paper.book("send_temp").write("message_id", other.get_message_id(response_string));
                 }
             }
         });
@@ -508,7 +506,7 @@ public class chat_command_service extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Notification notification = otherFunc.getNotificationObj(getApplicationContext(), getString(R.string.chat_command_service_name));
+        Notification notification = other.getNotificationObj(getApplicationContext(), getString(R.string.chat_command_service_name));
         startForeground(notify_id.CHAT_COMMAND, notification);
         return START_STICKY;
     }
@@ -524,7 +522,7 @@ public class chat_command_service extends Service {
         chatId = sharedPreferences.getString("chat_id", "");
         botToken = sharedPreferences.getString("bot_token", "");
         messageThreadId = sharedPreferences.getString("message_thread_id","");
-        okHttpClient = networkFunc.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+        okHttpClient = network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
         privacyMode = sharedPreferences.getBoolean("privacy_mode", false);
         wifiLock = ((WifiManager) Objects.requireNonNull(context.getApplicationContext().getSystemService(Context.WIFI_SERVICE))).createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi");
         wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "bot_command_polling");
@@ -549,7 +547,7 @@ public class chat_command_service extends Service {
 
     private boolean getMe() {
         OkHttpClient okhttpClientNew = okHttpClient;
-        String requestUri = networkFunc.getUrl(botToken, "getMe");
+        String requestUri = network.getUrl(botToken, "getMe");
         Request request = new Request.Builder().url(requestUri).build();
         Call call = okhttpClientNew.newCall(request);
         Response response;
@@ -557,7 +555,7 @@ public class chat_command_service extends Service {
             response = call.execute();
         } catch (IOException e) {
             e.printStackTrace();
-            logFunc.writeLog(context, "Get username failed:" + e.getMessage());
+            log.writeLog(context, "Get username failed:" + e.getMessage());
             return false;
         }
         if (response.code() == 200) {
@@ -573,7 +571,7 @@ public class chat_command_service extends Service {
                 botUsername = resultObj.get("result").getAsJsonObject().get("username").getAsString();
                 Paper.book().write("bot_username", botUsername);
                 Log.d(TAG, "bot_username: " + botUsername);
-                logFunc.writeLog(context, "Get the bot username: " + botUsername);
+                log.writeLog(context, "Get the bot username: " + botUsername);
             }
             return true;
         }
@@ -600,11 +598,11 @@ public class chat_command_service extends Service {
         @Override
         public void run() {
             Log.d(TAG, "run: thread main start");
-            if (otherFunc.parseStringToLong(chatId) < 0) {
+            if (other.parseStringToLong(chatId) < 0) {
                 botUsername = Paper.book().read("bot_username", null);
                 if (botUsername == null) {
                     while (!getMe()) {
-                        logFunc.writeLog(context, "Failed to get bot Username, Wait 5 seconds and try again.");
+                        log.writeLog(context, "Failed to get bot Username, Wait 5 seconds and try again.");
                         try {
                             Thread.sleep(5000);
                         } catch (InterruptedException e) {
@@ -615,14 +613,13 @@ public class chat_command_service extends Service {
                 Log.i(TAG, "run: The Bot Username is loaded. The Bot Username is: " + botUsername);
             }
             while (true) {
-                int timeout = 5 * magnification;
-                int http_timeout = timeout + 5;
+                int timeout = 60;
+                int http_timeout = 65;
                 OkHttpClient okhttp_client_new = okHttpClient.newBuilder()
                         .readTimeout(http_timeout, TimeUnit.SECONDS)
                         .writeTimeout(http_timeout, TimeUnit.SECONDS)
                         .build();
-                Log.d(TAG, "run: Current timeout: " + timeout + "S");
-                String requestUri = networkFunc.getUrl(botToken, "getUpdates");
+                String requestUri = network.getUrl(botToken, "getUpdates");
                 polling_json requestBody = new polling_json();
                 requestBody.offset = offset;
                 requestBody.timeout = timeout;
@@ -636,22 +633,15 @@ public class chat_command_service extends Service {
                 Response response;
                 try {
                     response = call.execute();
-                    errorMagnification = 1;
                 } catch (IOException e) {
                     e.printStackTrace();
-                    if (!networkFunc.checkNetworkStatus(context)) {
-                        logFunc.writeLog(context, "No network connections available, Wait for the network to recover.");
-                        errorMagnification = 1;
-                        magnification = 1;
+                    if (!network.checkNetworkStatus(context)) {
+                        log.writeLog(context, "No network connections available, Wait for the network to recover.");
                         Log.d(TAG, "run: break loop.");
                         break;
                     }
-                    int sleep_time = 5 * errorMagnification;
-                    logFunc.writeLog(context, "Connection to the Telegram API service failed, try again after " + sleep_time + " seconds.");
-                    magnification = 1;
-                    if (errorMagnification <= 59) {
-                        ++errorMagnification;
-                    }
+                    int sleep_time = 5;
+                    log.writeLog(context, "Connection to the Telegram API service failed, try again after " + sleep_time + " seconds.");
                     try {
                         Thread.sleep(sleep_time * 1000L);
                     } catch (InterruptedException e1) {
@@ -676,9 +666,6 @@ public class chat_command_service extends Service {
                         }
                         firstRequest = false;
                     }
-                    if (magnification <= 11) {
-                        ++magnification;
-                    }
                 } else {
                     Log.d(TAG, "response code: " + response.code());
                     if (response.code() == 401) {
@@ -692,8 +679,8 @@ public class chat_command_service extends Service {
                         }
                         JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
                         String result_message = getString(R.string.system_message_head) + "\n" + getString(R.string.error_stop_message) + "\n" + getString(R.string.error_message_head) + result_obj.get("description").getAsString() + "\n" + "Code: " + response.code();
-                        smsFunc.send_fallback_sms(context, result_message, -1);
-                        serviceFunc.stopAllService(context);
+                        sms.send_fallback_sms(context, result_message, -1);
+                        service.stopAllService(context);
                         break;
                     }
                 }
@@ -836,9 +823,9 @@ public class chat_command_service extends Service {
                     android.os.Process.killProcess(android.os.Process.myPid());
                     break;
                 case ConnectivityManager.CONNECTIVITY_ACTION:
-                    if (networkFunc.checkNetworkStatus(context)) {
+                    if (network.checkNetworkStatus(context)) {
                         if (!threadMain.isAlive()) {
-                            logFunc.writeLog(context, "Network connections has been restored.");
+                            log.writeLog(context, "Network connections has been restored.");
                             threadMain = new Thread(new threadMainRunnable());
                             threadMain.start();
                         }

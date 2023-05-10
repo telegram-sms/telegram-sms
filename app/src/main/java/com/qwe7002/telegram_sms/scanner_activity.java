@@ -25,7 +25,9 @@ public class scanner_activity extends Activity {
         setContentView(R.layout.activity_scanner);
         CodeScannerView scannerView = findViewById(R.id.scanner_view);
         mCodeScanner = new CodeScanner(this, scannerView);
-        mCodeScanner.setFormats(new ArrayList<BarcodeFormat>(){{add(BarcodeFormat.QR_CODE);}});
+        mCodeScanner.setFormats(new ArrayList<>() {{
+            add(BarcodeFormat.QR_CODE);
+        }});
         mCodeScanner.setDecodeCallback(result -> runOnUiThread(() -> {
             String TAG = "activity_scanner";
             Log.d(TAG, "format: " + result.getBarcodeFormat().toString() + " content: " + result.getText());

@@ -24,9 +24,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.dnsoverhttps.DnsOverHttps;
 
 public class
-networkFunc {
+network {
     private static final String TELEGRAM_API_DOMAIN = "api.telegram.org";
-    private static final String DNS_OVER_HTTP_ADDRSS = "https://cloudflare-dns.com/dns-query";
+    private static final String DNS_OVER_HTTP_ADDRSS = "https://1.1.1.1/dns-query";
 
     public static boolean checkNetworkStatus(@NotNull Context context) {
         ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
