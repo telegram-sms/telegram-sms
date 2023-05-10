@@ -731,7 +731,7 @@ public class main_activity extends AppCompatActivity {
                 chatCommand.setChecked(jsonConfig.get("chat_command").getAsBoolean());
                 SwitchMaterial privacyModeSwitch = findViewById(R.id.privacy_switch);
                 privacyModeSwitch.setChecked(jsonConfig.get("privacy_mode").getAsBoolean());
-                final com.google.android.material.textfield.TextInputLayout  messageThreadIdView = findViewById(R.id.message_thread_id_view);
+                final com.google.android.material.textfield.TextInputLayout messageThreadIdView = findViewById(R.id.message_thread_id_view);
 
                 privacyModeCheckbox(jsonConfig.get("chat_id").getAsString(), chatCommand, privacyModeSwitch, messageThreadIdView);
 
