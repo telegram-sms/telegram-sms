@@ -37,6 +37,7 @@ import androidx.core.content.ContextCompat;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -111,6 +112,7 @@ public class main_activity extends AppCompatActivity {
         final EditText chatIdEditView = findViewById(R.id.chat_id_editview);
         final EditText botTokenEditView = findViewById(R.id.bot_token_editview);
         final EditText messageThreadIdEditView = findViewById(R.id.message_thread_id_editview);
+        final com.google.android.material.textfield.TextInputLayout messageThreadIdView = findViewById(R.id.message_thread_id_view);
         final EditText trustedPhoneNumberEditView = findViewById(R.id.trusted_phone_number_editview);
         final SwitchMaterial chatCommandSwitch = findViewById(R.id.chat_command_switch);
         final SwitchMaterial fallbackSmsSwitch = findViewById(R.id.fallback_sms_switch);
@@ -134,10 +136,10 @@ public class main_activity extends AppCompatActivity {
 
         if (other.parseStringToLong(chatIdSave) < 0) {
             privacyModeSwitch.setVisibility(View.VISIBLE);
-            messageThreadIdEditView.setVisibility(View.VISIBLE);
+            messageThreadIdView.setVisibility(View.VISIBLE);
         } else {
             privacyModeSwitch.setVisibility(View.GONE);
-            messageThreadIdEditView.setVisibility(View.GONE);
+            messageThreadIdView.setVisibility(View.GONE);
         }
 
         if (sharedPreferences.getBoolean("initialized", false)) {
@@ -198,7 +200,6 @@ public class main_activity extends AppCompatActivity {
                     fallbackSmsSwitch.setVisibility(View.VISIBLE);
                     fallbackSmsSwitch.setEnabled(true);
                 } else {
-                    //fallback_sms_switch.setVisibility(View.GONE);
                     fallbackSmsSwitch.setEnabled(false);
                     fallbackSmsSwitch.setChecked(false);
                 }
@@ -206,7 +207,7 @@ public class main_activity extends AppCompatActivity {
         });
 
         chatCommandSwitch.setChecked(sharedPreferences.getBoolean("chat_command", false));
-        chatCommandSwitch.setOnClickListener(v -> privacyModeCheckbox(chatIdEditView.getText().toString(), chatCommandSwitch, privacyModeSwitch,messageThreadIdEditView));
+        chatCommandSwitch.setOnClickListener(v -> privacyModeCheckbox(chatIdEditView.getText().toString(), chatCommandSwitch, privacyModeSwitch, messageThreadIdView));
         verificationCodeSwitch.setChecked(sharedPreferences.getBoolean("verification_code", false));
 
         dohSwitch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
@@ -246,7 +247,7 @@ public class main_activity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                privacyModeCheckbox(chatIdEditView.getText().toString(), chatCommandSwitch, privacyModeSwitch,messageThreadIdEditView);
+                privacyModeCheckbox(chatIdEditView.getText().toString(), chatCommandSwitch, privacyModeSwitch, messageThreadIdView);
             }
 
             @Override
@@ -313,7 +314,9 @@ public class main_activity extends AppCompatActivity {
                         Looper.loop();
                         return;
                     }
+
                     String result = Objects.requireNonNull(response.body()).string();
+                    Log.d(TAG, "onResponse: " + result);
                     JsonObject resultObj = JsonParser.parseString(result).getAsJsonObject();
                     JsonArray chatList = resultObj.getAsJsonArray("result");
                     if (chatList.size() == 0) {
@@ -324,6 +327,7 @@ public class main_activity extends AppCompatActivity {
                     }
                     final ArrayList<String> chatNameList = new ArrayList<>();
                     final ArrayList<String> chatIdList = new ArrayList<>();
+                    final ArrayList<Integer> chatTopicIdList = new ArrayList<>();
                     for (JsonElement item : chatList) {
                         JsonObject itemObj = item.getAsJsonObject();
                         if (itemObj.has("message")) {
@@ -345,8 +349,14 @@ public class main_activity extends AppCompatActivity {
                                         username += " " + chatObj.get("last_name").getAsString();
                                     }
                                 }
-                                chatNameList.add(username + "(" + chatObj.get("type").getAsString() + ")");
+                                String type = chatObj.get("type").getAsString();
+                                chatNameList.add(username + "(" + type + ")");
                                 chatIdList.add(chatObj.get("id").getAsString());
+                                int threadId = -1;
+                                if (type.equals("supergroup") && messageObj.has("message_thread_id")) {
+                                    threadId = messageObj.get("message_thread_id").getAsInt();
+                                }
+                                chatTopicIdList.add(threadId);
                             }
                         }
                         if (itemObj.has("channel_post")) {
@@ -358,7 +368,13 @@ public class main_activity extends AppCompatActivity {
                             }
                         }
                     }
-                    main_activity.this.runOnUiThread(() -> new AlertDialog.Builder(v.getContext()).setTitle(R.string.select_chat).setItems(chatNameList.toArray(new String[0]), (dialogInterface, i) -> chatIdEditView.setText(chatIdList.get(i))).setPositiveButton(context.getString(R.string.cancel_button), null).show());
+                    main_activity.this.runOnUiThread(() -> new AlertDialog.Builder(v.getContext()).setTitle(R.string.select_chat).setItems(chatNameList.toArray(new String[0]), (dialogInterface, i) -> {
+                        chatIdEditView.setText(chatIdList.get(i));
+                        int threadId = chatTopicIdList.get(i);
+                        if (threadId != -1) {
+                            messageThreadIdEditView.setText(String.valueOf(threadId));
+                        }
+                    }).setPositiveButton(context.getString(R.string.cancel_button), null).show());
                 }
             });
         });
@@ -475,7 +491,7 @@ public class main_activity extends AppCompatActivity {
         });
     }
 
-    private void privacyModeCheckbox(String chatId, @NotNull SwitchMaterial chatCommand, SwitchMaterial privacyModeSwitch, EditText messageTopicIdView) {
+    private void privacyModeCheckbox(String chatId, @NotNull SwitchMaterial chatCommand, SwitchMaterial privacyModeSwitch, TextInputLayout messageTopicIdView) {
         if (!chatCommand.isChecked()) {
             messageTopicIdView.setVisibility(View.GONE);
             privacyModeSwitch.setVisibility(View.GONE);
@@ -582,7 +598,7 @@ public class main_activity extends AppCompatActivity {
             case R.id.about_menu_item:
                 PackageManager packageManager = context.getPackageManager();
                 PackageInfo packageInfo;
-                String versionName= "unknown";
+                String versionName = "unknown";
                 try {
                     packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
                     versionName = packageInfo.versionName;
@@ -715,9 +731,9 @@ public class main_activity extends AppCompatActivity {
                 chatCommand.setChecked(jsonConfig.get("chat_command").getAsBoolean());
                 SwitchMaterial privacyModeSwitch = findViewById(R.id.privacy_switch);
                 privacyModeSwitch.setChecked(jsonConfig.get("privacy_mode").getAsBoolean());
-                final EditText messageThreadIdEditView = findViewById(R.id.message_thread_id_editview);
+                final com.google.android.material.textfield.TextInputLayout  messageThreadIdView = findViewById(R.id.message_thread_id_view);
 
-                privacyModeCheckbox(jsonConfig.get("chat_id").getAsString(), chatCommand, privacyModeSwitch,messageThreadIdEditView);
+                privacyModeCheckbox(jsonConfig.get("chat_id").getAsString(), chatCommand, privacyModeSwitch, messageThreadIdView);
 
                 EditText trustedPhoneNumber = findViewById(R.id.trusted_phone_number_editview);
                 trustedPhoneNumber.setText(jsonConfig.get("trusted_phone_number").getAsString());
