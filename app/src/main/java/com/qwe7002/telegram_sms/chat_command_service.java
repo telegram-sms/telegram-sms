@@ -426,7 +426,7 @@ public class chat_command_service extends Service {
                 requestBody.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
                 break;
             default:
-                if ((!isPrivate && sendSmsNextStatus == -1)) {
+                if (!isPrivate && sendSmsNextStatus == -1) {
                     if (!messageType.equals("supergroup") || messageThreadId.equals("")) {
                         Log.i(TAG, "receive_handle: The conversation is not Private and does not prompt an error.");
                         return;

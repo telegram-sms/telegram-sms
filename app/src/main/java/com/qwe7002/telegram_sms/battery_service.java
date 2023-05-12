@@ -35,16 +35,17 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class battery_service extends Service {
-    static String bot_token;
-    static String chat_id;
-    static String message_thread_id;
-    static boolean doh_switch;
+    static String botToken;
+    static String chatId;
+    static String messageThreadId;
+    static boolean dohSwitch;
     private Context context;
-    private battery_receiver battery_receiver = null;
-    static long last_receive_time = 0;
-    static long last_receive_message_id = -1;
+    private battery_receiver batteryReceiver = null;
+    static long lastReceiveTime = 0;
+    static long lastReceiveMessageId = -1;
 
-    private static ArrayList<send_obj> send_loop_list;
+    private static ArrayList<sendObj> sendLoopList;
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = other.getNotificationObj(context, getString(R.string.battery_monitoring_notify));
@@ -58,12 +59,12 @@ public class battery_service extends Service {
         context = getApplicationContext();
         Paper.init(context);
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-        chat_id = sharedPreferences.getString("chat_id", "");
-        bot_token = sharedPreferences.getString("bot_token", "");
-        message_thread_id = sharedPreferences.getString("message_thread_id", "");
-        doh_switch = sharedPreferences.getBoolean("doh_switch", true);
+        chatId = sharedPreferences.getString("chat_id", "");
+        botToken = sharedPreferences.getString("bot_token", "");
+        messageThreadId = sharedPreferences.getString("message_thread_id", "");
+        dohSwitch = sharedPreferences.getBoolean("doh_switch", true);
         boolean charger_status = sharedPreferences.getBoolean("charger_status", false);
-        battery_receiver = new battery_receiver();
+        batteryReceiver = new battery_receiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_OKAY);
         filter.addAction(Intent.ACTION_BATTERY_LOW);
@@ -72,18 +73,18 @@ public class battery_service extends Service {
             filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
         }
         filter.addAction(const_value.BROADCAST_STOP_SERVICE);
-        registerReceiver(battery_receiver, filter);
-        send_loop_list = new ArrayList<>();
+        registerReceiver(batteryReceiver, filter);
+        sendLoopList = new ArrayList<>();
         new Thread(() -> {
-            ArrayList<send_obj> need_remove = new ArrayList<>();
+            ArrayList<sendObj> need_remove = new ArrayList<>();
             while (true) {
-                for (send_obj item : send_loop_list) {
+                for (sendObj item : sendLoopList) {
                     network_handle(item);
                     need_remove.add(item);
                 }
-                send_loop_list.removeAll(need_remove);
+                sendLoopList.removeAll(need_remove);
                 need_remove.clear();
-                if (send_loop_list.size() == 0) {
+                if (sendLoopList.size() == 0) {
                     //Only enter sleep mode when there are no messages
                     try {
                         //noinspection BusyWait
@@ -96,48 +97,48 @@ public class battery_service extends Service {
         }).start();
     }
 
-    private void network_handle(send_obj obj) {
+    private void network_handle(sendObj obj) {
         String TAG = "network_handle";
-        final request_message request_body = new request_message();
-        request_body.chat_id = battery_service.chat_id;
-        request_body.text = obj.content;
-        request_body.message_thread_id = battery_service.message_thread_id;
-String request_uri = network.getUrl(battery_service.bot_token, "sendMessage");
-        if ((System.currentTimeMillis() - last_receive_time) <= 5000L && last_receive_message_id != -1) {
-            request_uri = network.getUrl(bot_token, "editMessageText");
-            request_body.message_id = last_receive_message_id;
+        final request_message requestMessage = new request_message();
+        requestMessage.chat_id = battery_service.chatId;
+        requestMessage.text = obj.content;
+        requestMessage.message_thread_id = battery_service.messageThreadId;
+        String requestUri = network.getUrl(battery_service.botToken, "sendMessage");
+        if ((System.currentTimeMillis() - lastReceiveTime) <= 5000L && lastReceiveMessageId != -1) {
+            requestUri = network.getUrl(botToken, "editMessageText");
+            requestMessage.message_id = lastReceiveMessageId;
             Log.d(TAG, "onReceive: edit_mode");
         }
-        last_receive_time = System.currentTimeMillis();
-        OkHttpClient okhttp_client = network.getOkhttpObj(battery_service.doh_switch, Paper.book("system_config").read("proxy_config", new proxy()));
-        String request_body_raw = new Gson().toJson(request_body);
-        RequestBody body = RequestBody.create(request_body_raw, const_value.JSON);
-        Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-        Call call = okhttp_client.newCall(request);
-        final String error_head = "Send battery info failed:";
+        lastReceiveTime = System.currentTimeMillis();
+        OkHttpClient okhttpObj = network.getOkhttpObj(battery_service.dohSwitch, Paper.book("system_config").read("proxy_config", new proxy()));
+        String requestBodyRaw = new Gson().toJson(requestMessage);
+        RequestBody body = RequestBody.create(requestBodyRaw, const_value.JSON);
+        Request request = new Request.Builder().url(requestUri).method("POST", body).build();
+        Call call = okhttpObj.newCall(request);
+        final String errorHead = "Send battery info failed:";
         try {
             Response response = call.execute();
             if (response.code() == 200) {
-                last_receive_message_id = other.get_message_id(Objects.requireNonNull(response.body()).string());
+                lastReceiveMessageId = other.get_message_id(Objects.requireNonNull(response.body()).string());
             } else {
                 assert response.body() != null;
-                last_receive_message_id = -1;
+                lastReceiveMessageId = -1;
                 if (obj.action.equals(Intent.ACTION_BATTERY_LOW)) {
-                    sms.send_fallback_sms(context, request_body.text, -1);
+                    sms.send_fallback_sms(context, requestMessage.text, -1);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
-            log.writeLog(context, error_head + e.getMessage());
+            log.writeLog(context, errorHead + e.getMessage());
             if (obj.action.equals(Intent.ACTION_BATTERY_LOW)) {
-                sms.send_fallback_sms(context, request_body.text, -1);
+                sms.send_fallback_sms(context, requestMessage.text, -1);
             }
         }
     }
 
     @Override
     public void onDestroy() {
-        unregisterReceiver(battery_receiver);
+        unregisterReceiver(batteryReceiver);
         stopForeground(true);
         super.onDestroy();
     }
@@ -147,7 +148,7 @@ String request_uri = network.getUrl(battery_service.bot_token, "sendMessage");
         return null;
     }
 
-    private static class send_obj {
+    private static class sendObj {
         public String content;
         public String action;
     }
@@ -183,16 +184,16 @@ String request_uri = network.getUrl(battery_service.bot_token, "sendMessage");
                     break;
             }
             assert batteryManager != null;
-            int battery_level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
-            if (battery_level > 100) {
+            int batteryLevel = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+            if (batteryLevel > 100) {
                 Log.d(TAG, "The previous battery is over 100%, and the correction is 100%.");
-                battery_level = 100;
+                batteryLevel = 100;
             }
-            String result = body.append("\n").append(context.getString(R.string.current_battery_level)).append(battery_level).append("%").toString();
-            send_obj obj = new send_obj();
+            String result = body.append("\n").append(context.getString(R.string.current_battery_level)).append(batteryLevel).append("%").toString();
+            sendObj obj = new sendObj();
             obj.action = action;
             obj.content = result;
-            send_loop_list.add(obj);
+            sendLoopList.add(obj);
 
         }
     }
