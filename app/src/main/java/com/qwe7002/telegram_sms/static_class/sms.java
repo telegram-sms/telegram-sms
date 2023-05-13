@@ -79,7 +79,7 @@ public class sms {
                 throw new IOException(String.valueOf(response.code()));
             }
             if (message_id == -1) {
-                message_id = other.get_message_id(Objects.requireNonNull(response.body()).string());
+                message_id = other.getMessageId(Objects.requireNonNull(response.body()).string());
             }
         } catch (IOException e) {
             e.printStackTrace();

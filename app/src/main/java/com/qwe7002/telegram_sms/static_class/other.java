@@ -124,7 +124,7 @@ public class other {
     }
 
 
-    public static long get_message_id(String result) {
+    public static long getMessageId(String result) {
         JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject().get("result").getAsJsonObject();
         return result_obj.get("message_id").getAsLong();
     }
@@ -203,7 +203,7 @@ public class other {
     }
 
 
-    public static void add_message_list(long messageId, String phone, int slot) {
+    public static void addMessageList(long messageId, String phone, int slot) {
         smsRequestInfo item = new smsRequestInfo();
         item.phone = phone;
         item.card = slot;

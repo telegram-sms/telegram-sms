@@ -118,7 +118,7 @@ public class call_receiver extends BroadcastReceiver {
                                 log.writeLog(context, "[" + callStatusListener.incoming_number + "] Not a regular phone number.");
                                 return;
                             }
-                            other.add_message_list(other.get_message_id(result), callStatusListener.incoming_number, slot);
+                            other.addMessageList(other.getMessageId(result), callStatusListener.incoming_number, slot);
                         }
                     }
                 });

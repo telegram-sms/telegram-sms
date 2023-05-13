@@ -119,7 +119,7 @@ public class battery_service extends Service {
         try {
             Response response = call.execute();
             if (response.code() == 200) {
-                lastReceiveMessageId = other.get_message_id(Objects.requireNonNull(response.body()).string());
+                lastReceiveMessageId = other.getMessageId(Objects.requireNonNull(response.body()).string());
             } else {
                 assert response.body() != null;
                 lastReceiveMessageId = -1;

@@ -65,7 +65,7 @@ public class ussd {
             long message_id = -1L;
             try {
                 Response response = call.execute();
-                message_id = other.get_message_id(Objects.requireNonNull(response.body()).string());
+                message_id = other.getMessageId(Objects.requireNonNull(response.body()).string());
             } catch (IOException e) {
                 e.printStackTrace();
             }

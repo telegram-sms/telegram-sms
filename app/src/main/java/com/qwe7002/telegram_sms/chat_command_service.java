@@ -11,15 +11,9 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
-import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
-import android.os.BatteryManager;
-import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -42,6 +36,7 @@ import com.qwe7002.telegram_sms.static_class.resend;
 import com.qwe7002.telegram_sms.static_class.service;
 import com.qwe7002.telegram_sms.static_class.sms;
 import com.qwe7002.telegram_sms.static_class.ussd;
+import com.qwe7002.telegram_sms.static_class.chatCommand;
 import com.qwe7002.telegram_sms.value.const_value;
 import com.qwe7002.telegram_sms.value.notify_id;
 
@@ -251,51 +246,12 @@ public class chat_command_service extends Service {
             case "/help":
             case "/start":
             case "/commandlist":
-                String smsCommand = getString(R.string.sendsms);
-                if (other.getActiveCard(context) == 2) {
-                    smsCommand = getString(R.string.sendsms_dual);
-                }
-                smsCommand += "\n" + getString(R.string.get_spam_sms);
-
-                String ussdCommand = "";
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                        ussdCommand = "\n" + getString(R.string.send_ussd_command);
-                        if (other.getActiveCard(context) == 2) {
-                            ussdCommand = "\n" + getString(R.string.send_ussd_dual_command);
-                        }
-                    }
-                }
-
-                if (command.equals("/commandlist")) {
-                    requestBody.text = (getString(R.string.available_command) + "\n" + smsCommand + ussdCommand).replace("/", "");
-                    break;
-                }
-
-                String result = getString(R.string.system_message_head) + "\n" + getString(R.string.available_command) + "\n" + smsCommand + ussdCommand;
-
-                if (!isPrivate && privacyMode && !botUsername.equals("")) {
-                    result = result.replace(" -", "@" + botUsername + " -");
-                }
-                requestBody.text = result;
+                requestBody.text = chatCommand.getCommandList(context,command,isPrivate,privacyMode,botUsername);
                 hasCommand = true;
                 break;
             case "/ping":
             case "/getinfo":
-                String cardInfo = "";
-                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                    cardInfo = "\nSIM: " + other.getSimDisplayName(context, 0);
-                    if (other.getActiveCard(context) == 2) {
-                        cardInfo = "\nSIM1: " + other.getSimDisplayName(context, 0) + "\nSIM2: " + other.getSimDisplayName(context, 1);
-                    }
-                }
-                String spamCount = "";
-                ArrayList<String> spamSmsList = Paper.book().read("spam_sms_list", new ArrayList<>());
-                assert spamSmsList != null;
-                if (spamSmsList.size() != 0) {
-                    spamCount = "\n" + getString(R.string.spam_count_title) + spamSmsList.size();
-                }
-                requestBody.text = getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + getBatteryInfo() + "\n" + getString(R.string.current_network_connection_status) + getNetworkType() + spamCount + cardInfo;
+                requestBody.text = chatCommand.getInfo(context);
                 hasCommand = true;
                 break;
             case "/log":
@@ -334,16 +290,16 @@ public class chat_command_service extends Service {
                 requestBody.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
                 break;
             case "/getspamsms":
-                ArrayList<String> spamSmsList1 = Paper.book().read("spam_sms_list", new ArrayList<>());
-                assert spamSmsList1 != null;
-                if (spamSmsList1.size() == 0) {
+                ArrayList<String> spamSMSHistory = Paper.book().read("spam_sms_list", new ArrayList<>());
+                assert spamSMSHistory != null;
+                if (spamSMSHistory.size() == 0) {
                     requestBody.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.no_spam_history);
                     break;
                 }
                 new Thread(() -> {
                     if (network.checkNetworkStatus(context)) {
                         OkHttpClient okhttpObj = network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
-                        for (String item : spamSmsList1) {
+                        for (String item : spamSMSHistory) {
                             request_message sendSmsRequestBody = new request_message();
                             sendSmsRequestBody.chat_id = chatId;
                             sendSmsRequestBody.text = item;
@@ -503,7 +459,7 @@ public class chat_command_service extends Service {
                     resend.addResendLoop(context, requestBody.text);
                 }
                 if (sendSmsNextStatus == SEND_SMS_STATUS.SEND_STATUS) {
-                    Paper.book("send_temp").write("message_id", other.get_message_id(response_string));
+                    Paper.book("send_temp").write("message_id", other.getMessageId(response_string));
                 }
             }
         });
@@ -699,122 +655,7 @@ public class chat_command_service extends Service {
         return null;
     }
 
-    @NotNull
-    private String getBatteryInfo() {
-        BatteryManager batteryManager = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
-        assert batteryManager != null;
-        int battery_level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
-        if (battery_level > 100) {
-            Log.i(TAG, "The previous battery is over 100%, and the correction is 100%.");
-            battery_level = 100;
-        }
-        IntentFilter intentfilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        Intent batteryStatus = context.registerReceiver(null, intentfilter);
-        assert batteryStatus != null;
-        int charge_status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-        StringBuilder battery_string_builder = new StringBuilder().append(battery_level).append("%");
-        switch (charge_status) {
-            case BatteryManager.BATTERY_STATUS_CHARGING:
-            case BatteryManager.BATTERY_STATUS_FULL:
-                battery_string_builder.append(" (").append(context.getString(R.string.charging)).append(")");
-                break;
-            case BatteryManager.BATTERY_STATUS_DISCHARGING:
-            case BatteryManager.BATTERY_STATUS_NOT_CHARGING:
-                switch (batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1)) {
-                    case BatteryManager.BATTERY_PLUGGED_AC:
-                    case BatteryManager.BATTERY_PLUGGED_USB:
-                    case BatteryManager.BATTERY_PLUGGED_WIRELESS:
-                        battery_string_builder.append(" (").append(context.getString(R.string.not_charging)).append(")");
-                        break;
-                }
-                break;
-        }
-        return battery_string_builder.toString();
-    }
 
-    private String getNetworkType() {
-        String netType = "Unknown";
-        ConnectivityManager connectManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        assert connectManager != null;
-        TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        assert telephonyManager != null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            Network[] networks = connectManager.getAllNetworks();
-            if (networks.length != 0) {
-                for (Network network : networks) {
-                    NetworkCapabilities networkCapabilities = connectManager.getNetworkCapabilities(network);
-                    assert networkCapabilities != null;
-                    if (!networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
-                        if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                            netType = "WIFI";
-                        }
-                        if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-                            if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_IMS)) {
-                                continue;
-                            }
-                            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-                                Log.d("get_network_type", "No permission.");
-                            }
-                            netType = checkCellularNetworkType(telephonyManager.getDataNetworkType());
-                        }
-                        if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH)) {
-                            netType = "Bluetooth";
-                        }
-                        if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
-                            netType = "Ethernet";
-                        }
-                    }
-                }
-            }
-        } else {
-            NetworkInfo activeNetworkInfo = connectManager.getActiveNetworkInfo();
-            if (activeNetworkInfo == null) {
-                return netType;
-            }
-            switch (activeNetworkInfo.getType()) {
-                case ConnectivityManager.TYPE_WIFI:
-                    netType = "WIFI";
-                    break;
-                case ConnectivityManager.TYPE_MOBILE:
-                    netType = checkCellularNetworkType(activeNetworkInfo.getSubtype());
-                    break;
-            }
-        }
-
-        return netType;
-    }
-
-    private String checkCellularNetworkType(int type) {
-        String net_type = "Unknown";
-        switch (type) {
-            case TelephonyManager.NETWORK_TYPE_NR:
-                net_type = "NR";
-                break;
-            case TelephonyManager.NETWORK_TYPE_LTE:
-                net_type = "LTE";
-                break;
-            case TelephonyManager.NETWORK_TYPE_HSPAP:
-            case TelephonyManager.NETWORK_TYPE_EVDO_0:
-            case TelephonyManager.NETWORK_TYPE_EVDO_A:
-            case TelephonyManager.NETWORK_TYPE_EVDO_B:
-            case TelephonyManager.NETWORK_TYPE_EHRPD:
-            case TelephonyManager.NETWORK_TYPE_HSDPA:
-            case TelephonyManager.NETWORK_TYPE_HSUPA:
-            case TelephonyManager.NETWORK_TYPE_HSPA:
-            case TelephonyManager.NETWORK_TYPE_TD_SCDMA:
-            case TelephonyManager.NETWORK_TYPE_UMTS:
-                net_type = "3G";
-                break;
-            case TelephonyManager.NETWORK_TYPE_GPRS:
-            case TelephonyManager.NETWORK_TYPE_EDGE:
-            case TelephonyManager.NETWORK_TYPE_CDMA:
-            case TelephonyManager.NETWORK_TYPE_1xRTT:
-            case TelephonyManager.NETWORK_TYPE_IDEN:
-                net_type = "2G";
-                break;
-        }
-        return net_type;
-    }
 
     private class stopReceive extends BroadcastReceiver {
         @Override
