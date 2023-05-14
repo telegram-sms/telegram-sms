@@ -115,12 +115,12 @@ public class notification_listener_service extends NotificationListenerService {
         OkHttpClient okhttpObj = network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
         Request request = new Request.Builder().url(requestUri).method("POST", body).build();
         Call call = okhttpObj.newCall(request);
-        final String error_head = "Send notification failed:";
+        final String errorHead = "Send notification failed:";
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
-                log.writeLog(context, error_head + e.getMessage());
+                log.writeLog(context, errorHead + e.getMessage());
                 resend.addResendLoop(context, requestBody.text);
             }
 
@@ -129,7 +129,7 @@ public class notification_listener_service extends NotificationListenerService {
                 assert response.body() != null;
                 String result = Objects.requireNonNull(response.body()).string();
                 if (response.code() != 200) {
-                    log.writeLog(context, error_head + response.code() + " " + result);
+                    log.writeLog(context, errorHead + response.code() + " " + result);
                     resend.addResendLoop(context, requestBody.text);
                 }
             }
