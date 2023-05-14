@@ -11,7 +11,7 @@ import androidx.core.app.NotificationManagerCompat;
 
 import com.qwe7002.telegram_sms.chat_command_service;
 import com.qwe7002.telegram_sms.notification_listener_service;
-import com.qwe7002.telegram_sms.value.const_value;
+import com.qwe7002.telegram_sms.value.constValue;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -19,7 +19,7 @@ import java.util.Set;
 
 public class service {
     public static void stopAllService(@NotNull Context context) {
-        Intent intent = new Intent(const_value.BROADCAST_STOP_SERVICE);
+        Intent intent = new Intent(constValue.BROADCAST_STOP_SERVICE);
         context.sendBroadcast(intent);
         try {
             Thread.sleep(1000);

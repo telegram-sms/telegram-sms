@@ -13,13 +13,13 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.qwe7002.telegram_sms.config.proxy;
-import com.qwe7002.telegram_sms.data_structure.request_message;
+import com.qwe7002.telegram_sms.data_structure.sendMessageBody;
 import com.qwe7002.telegram_sms.static_class.log;
 import com.qwe7002.telegram_sms.static_class.network;
 import com.qwe7002.telegram_sms.static_class.other;
 import com.qwe7002.telegram_sms.static_class.sms;
-import com.qwe7002.telegram_sms.value.const_value;
-import com.qwe7002.telegram_sms.value.notify_id;
+import com.qwe7002.telegram_sms.value.constValue;
+import com.qwe7002.telegram_sms.value.notifyId;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -40,7 +40,7 @@ public class battery_service extends Service {
     static String messageThreadId;
     static boolean dohSwitch;
     private Context context;
-    private battery_receiver batteryReceiver = null;
+    private batteryChangeReceiver batteryReceiver = null;
     static long lastReceiveTime = 0;
     static long lastReceiveMessageId = -1;
 
@@ -49,7 +49,7 @@ public class battery_service extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = other.getNotificationObj(context, getString(R.string.battery_monitoring_notify));
-        startForeground(notify_id.BATTERY, notification);
+        startForeground(notifyId.BATTERY, notification);
         return START_STICKY;
     }
 
@@ -64,7 +64,7 @@ public class battery_service extends Service {
         messageThreadId = sharedPreferences.getString("message_thread_id", "");
         dohSwitch = sharedPreferences.getBoolean("doh_switch", true);
         boolean charger_status = sharedPreferences.getBoolean("charger_status", false);
-        batteryReceiver = new battery_receiver();
+        batteryReceiver = new batteryChangeReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_OKAY);
         filter.addAction(Intent.ACTION_BATTERY_LOW);
@@ -72,14 +72,14 @@ public class battery_service extends Service {
             filter.addAction(Intent.ACTION_POWER_CONNECTED);
             filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
         }
-        filter.addAction(const_value.BROADCAST_STOP_SERVICE);
+        filter.addAction(constValue.BROADCAST_STOP_SERVICE);
         registerReceiver(batteryReceiver, filter);
         sendLoopList = new ArrayList<>();
         new Thread(() -> {
             ArrayList<sendObj> need_remove = new ArrayList<>();
             while (true) {
                 for (sendObj item : sendLoopList) {
-                    network_handle(item);
+                    networkHandle(item);
                     need_remove.add(item);
                 }
                 sendLoopList.removeAll(need_remove);
@@ -97,9 +97,9 @@ public class battery_service extends Service {
         }).start();
     }
 
-    private void network_handle(sendObj obj) {
+    private void networkHandle(sendObj obj) {
         String TAG = "network_handle";
-        final request_message requestMessage = new request_message();
+        final sendMessageBody requestMessage = new sendMessageBody();
         requestMessage.chat_id = battery_service.chatId;
         requestMessage.text = obj.content;
         requestMessage.message_thread_id = battery_service.messageThreadId;
@@ -112,7 +112,7 @@ public class battery_service extends Service {
         lastReceiveTime = System.currentTimeMillis();
         OkHttpClient okhttpObj = network.getOkhttpObj(battery_service.dohSwitch, Paper.book("system_config").read("proxy_config", new proxy()));
         String requestBodyRaw = new Gson().toJson(requestMessage);
-        RequestBody body = RequestBody.create(requestBodyRaw, const_value.JSON);
+        RequestBody body = RequestBody.create(requestBodyRaw, constValue.JSON);
         Request request = new Request.Builder().url(requestUri).method("POST", body).build();
         Call call = okhttpObj.newCall(request);
         final String errorHead = "Send battery info failed:";
@@ -124,14 +124,14 @@ public class battery_service extends Service {
                 assert response.body() != null;
                 lastReceiveMessageId = -1;
                 if (obj.action.equals(Intent.ACTION_BATTERY_LOW)) {
-                    sms.send_fallback_sms(context, requestMessage.text, -1);
+                    sms.fallbackSMS(context, requestMessage.text, -1);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
             log.writeLog(context, errorHead + e.getMessage());
             if (obj.action.equals(Intent.ACTION_BATTERY_LOW)) {
-                sms.send_fallback_sms(context, requestMessage.text, -1);
+                sms.fallbackSMS(context, requestMessage.text, -1);
             }
         }
     }
@@ -153,14 +153,14 @@ public class battery_service extends Service {
         public String action;
     }
 
-    class battery_receiver extends BroadcastReceiver {
+    class batteryChangeReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(final Context context, @NotNull final Intent intent) {
 
             String TAG = "battery_receiver";
             assert intent.getAction() != null;
             Log.d(TAG, "Receive action: " + intent.getAction());
-            if (intent.getAction().equals(const_value.BROADCAST_STOP_SERVICE)) {
+            if (intent.getAction().equals(constValue.BROADCAST_STOP_SERVICE)) {
                 Log.i(TAG, "Received stop signal, quitting now...");
                 stopSelf();
                 android.os.Process.killProcess(android.os.Process.myPid());

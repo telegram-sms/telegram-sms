@@ -44,13 +44,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.qwe7002.telegram_sms.config.proxy;
-import com.qwe7002.telegram_sms.data_structure.polling_json;
-import com.qwe7002.telegram_sms.data_structure.request_message;
+import com.qwe7002.telegram_sms.data_structure.pollingBody;
+import com.qwe7002.telegram_sms.data_structure.sendMessageBody;
 import com.qwe7002.telegram_sms.static_class.log;
 import com.qwe7002.telegram_sms.static_class.network;
 import com.qwe7002.telegram_sms.static_class.other;
 import com.qwe7002.telegram_sms.static_class.service;
-import com.qwe7002.telegram_sms.value.const_value;
+import com.qwe7002.telegram_sms.value.constValue;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -275,9 +275,9 @@ public class main_activity extends AppCompatActivity {
             okhttpClient = okhttpClient.newBuilder()
                     .readTimeout(60, TimeUnit.SECONDS)
                     .build();
-            polling_json request_body = new polling_json();
+            pollingBody request_body = new pollingBody();
             request_body.timeout = 60;
-            RequestBody body = RequestBody.create(new Gson().toJson(request_body), const_value.JSON);
+            RequestBody body = RequestBody.create(new Gson().toJson(request_body), constValue.JSON);
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttpClient.newCall(request);
             progressDialog.setOnKeyListener((dialogInterface, i, keyEvent) -> {
@@ -412,13 +412,13 @@ public class main_activity extends AppCompatActivity {
             progressDialog.show();
 
             String requestUri = network.getUrl(botTokenEditView.getText().toString().trim(), "sendMessage");
-            request_message requestBody = new request_message();
+            sendMessageBody requestBody = new sendMessageBody();
             requestBody.chat_id = chatIdEditView.getText().toString().trim();
             requestBody.message_thread_id = messageThreadIdEditView.getText().toString().trim();
             requestBody.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
             Gson gson = new Gson();
             String requestBodyRaw = gson.toJson(requestBody);
-            RequestBody body = RequestBody.create(requestBodyRaw, const_value.JSON);
+            RequestBody body = RequestBody.create(requestBodyRaw, constValue.JSON);
             OkHttpClient okhttpObj = network.getOkhttpObj(dohSwitch.isChecked(), Paper.book("system_config").read("proxy_config", new proxy()));
             Request request = new Request.Builder().url(requestUri).method("POST", body).build();
             Call call = okhttpObj.newCall(request);
@@ -455,7 +455,7 @@ public class main_activity extends AppCompatActivity {
                         Log.i(TAG, "onResponse: The current bot token does not match the saved bot token, clearing the message database.");
                         Paper.book().destroy();
                     }
-                    Paper.book("system_config").write("version", const_value.SYSTEM_CONFIG_VERSION);
+                    Paper.book("system_config").write("version", constValue.SYSTEM_CONFIG_VERSION);
                     checkVersionUpgrade(false);
                     SharedPreferences.Editor editor = sharedPreferences.edit().clear();
                     editor.putString("bot_token", newBotToken);
@@ -708,7 +708,7 @@ public class main_activity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
-            if (resultCode == const_value.RESULT_CONFIG_JSON) {
+            if (resultCode == constValue.RESULT_CONFIG_JSON) {
                 JsonObject jsonConfig = JsonParser.parseString(Objects.requireNonNull(data.getStringExtra("config_json"))).getAsJsonObject();
                 ((EditText) findViewById(R.id.bot_token_editview)).setText(jsonConfig.get("bot_token").getAsString());
                 ((EditText) findViewById(R.id.chat_id_editview)).setText(jsonConfig.get("chat_id").getAsString());

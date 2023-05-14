@@ -25,20 +25,19 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.qwe7002.telegram_sms.config.proxy;
-import com.qwe7002.telegram_sms.data_structure.polling_json;
-import com.qwe7002.telegram_sms.data_structure.reply_markup_keyboard;
-import com.qwe7002.telegram_sms.data_structure.request_message;
+import com.qwe7002.telegram_sms.data_structure.pollingBody;
+import com.qwe7002.telegram_sms.data_structure.replyMarkupKeyboard;
+import com.qwe7002.telegram_sms.data_structure.sendMessageBody;
 import com.qwe7002.telegram_sms.data_structure.smsRequestInfo;
+import com.qwe7002.telegram_sms.static_class.chatCommand;
 import com.qwe7002.telegram_sms.static_class.log;
 import com.qwe7002.telegram_sms.static_class.network;
 import com.qwe7002.telegram_sms.static_class.other;
 import com.qwe7002.telegram_sms.static_class.resend;
-import com.qwe7002.telegram_sms.static_class.service;
 import com.qwe7002.telegram_sms.static_class.sms;
 import com.qwe7002.telegram_sms.static_class.ussd;
-import com.qwe7002.telegram_sms.static_class.chatCommand;
-import com.qwe7002.telegram_sms.value.const_value;
-import com.qwe7002.telegram_sms.value.notify_id;
+import com.qwe7002.telegram_sms.value.constValue;
+import com.qwe7002.telegram_sms.value.notifyId;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -106,7 +105,7 @@ public class chat_command_service extends Service {
             return;
         }
         String messageType = "";
-        final request_message requestBody = new request_message();
+        final sendMessageBody requestBody = new sendMessageBody();
         requestBody.chat_id = chatId;
         requestBody.message_thread_id = messageThreadId;
         JsonObject jsonObject = null;
@@ -142,7 +141,7 @@ public class chat_command_service extends Service {
                 requestBody.message_id = messageId;
                 Gson gson = new Gson();
                 String requestBodyRaw = gson.toJson(requestBody);
-                RequestBody body = RequestBody.create(requestBodyRaw, const_value.JSON);
+                RequestBody body = RequestBody.create(requestBodyRaw, constValue.JSON);
                 OkHttpClient okhttpObj = network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
                 Request request = new Request.Builder().url(requestUri).method("POST", body).build();
                 Call call = okhttpObj.newCall(request);
@@ -163,7 +162,7 @@ public class chat_command_service extends Service {
             } else {
                 subId = other.getSubId(context, slot);
             }
-            sms.sendSms(context, to, content, slot, subId, messageId);
+            sms.send(context, to, content, slot, subId, messageId);
             setSmsSendStatusStandby();
             return;
         }
@@ -197,7 +196,7 @@ public class chat_command_service extends Service {
             }
         }
         if (!Objects.equals(chatId, fromId)) {
-            log.writeLog(context, "Chat ID[" + fromId + "] not allow.");
+            Log.i(TAG, "Chat ID[" + fromId + "] not allow.");
             return;
         }
         String command = "";
@@ -246,7 +245,7 @@ public class chat_command_service extends Service {
             case "/help":
             case "/start":
             case "/commandlist":
-                requestBody.text = chatCommand.getCommandList(context,command,isPrivate,privacyMode,botUsername);
+                requestBody.text = chatCommand.getCommandList(context, command, isPrivate, privacyMode, botUsername);
                 hasCommand = true;
                 break;
             case "/ping":
@@ -300,13 +299,13 @@ public class chat_command_service extends Service {
                     if (network.checkNetworkStatus(context)) {
                         OkHttpClient okhttpObj = network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
                         for (String item : spamSMSHistory) {
-                            request_message sendSmsRequestBody = new request_message();
+                            sendMessageBody sendSmsRequestBody = new sendMessageBody();
                             sendSmsRequestBody.chat_id = chatId;
                             sendSmsRequestBody.text = item;
                             sendSmsRequestBody.message_thread_id = messageThreadId;
                             String requestUri = network.getUrl(botToken, "sendMessage");
                             String requestBodyJson = new Gson().toJson(sendSmsRequestBody);
-                            RequestBody body = RequestBody.create(requestBodyJson, const_value.JSON);
+                            RequestBody body = RequestBody.create(requestBodyJson, constValue.JSON);
                             Request requestObj = new Request.Builder().url(requestUri).method("POST", body).build();
                             Call call = okhttpObj.newCall(requestObj);
                             call.enqueue(new Callback() {
@@ -424,10 +423,10 @@ public class chat_command_service extends Service {
                     break;
                 case SEND_SMS_STATUS.WAITING_TO_SEND_STATUS:
                     Paper.book("send_temp").write("content", requestMsg);
-                    reply_markup_keyboard.keyboard_markup keyboardMarkup = new reply_markup_keyboard.keyboard_markup();
-                    ArrayList<ArrayList<reply_markup_keyboard.InlineKeyboardButton>> inlineKeyboardButtons = new ArrayList<>();
-                    inlineKeyboardButtons.add(reply_markup_keyboard.get_inline_keyboard_obj(context.getString(R.string.send_button), CALLBACK_DATA_VALUE.SEND));
-                    inlineKeyboardButtons.add(reply_markup_keyboard.get_inline_keyboard_obj(context.getString(R.string.cancel_button), CALLBACK_DATA_VALUE.CANCEL));
+                    replyMarkupKeyboard.keyboard_markup keyboardMarkup = new replyMarkupKeyboard.keyboard_markup();
+                    ArrayList<ArrayList<replyMarkupKeyboard.InlineKeyboardButton>> inlineKeyboardButtons = new ArrayList<>();
+                    inlineKeyboardButtons.add(replyMarkupKeyboard.get_inline_keyboard_obj(context.getString(R.string.send_button), CALLBACK_DATA_VALUE.SEND));
+                    inlineKeyboardButtons.add(replyMarkupKeyboard.get_inline_keyboard_obj(context.getString(R.string.cancel_button), CALLBACK_DATA_VALUE.CANCEL));
                     keyboardMarkup.inline_keyboard = inlineKeyboardButtons;
                     requestBody.reply_markup = keyboardMarkup;
                     resultSend = context.getString(R.string.to) + Paper.book("send_temp").read("to") + "\n" + context.getString(R.string.content) + Paper.book("send_temp").read("content", "");
@@ -438,7 +437,7 @@ public class chat_command_service extends Service {
         }
 
         String requestUri = network.getUrl(botToken, "sendMessage");
-        RequestBody body = RequestBody.create(new Gson().toJson(requestBody), const_value.JSON);
+        RequestBody body = RequestBody.create(new Gson().toJson(requestBody), constValue.JSON);
         Request sendRequest = new Request.Builder().url(requestUri).method("POST", body).build();
         Call call = okHttpClient.newCall(sendRequest);
         final String errorHead = "Send reply failed:";
@@ -468,7 +467,7 @@ public class chat_command_service extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = other.getNotificationObj(getApplicationContext(), getString(R.string.chat_command_service_name));
-        startForeground(notify_id.CHAT_COMMAND, notification);
+        startForeground(notifyId.CHAT_COMMAND, notification);
         return START_STICKY;
     }
 
@@ -500,7 +499,7 @@ public class chat_command_service extends Service {
         threadMain = new Thread(new threadMainRunnable());
         threadMain.start();
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(const_value.BROADCAST_STOP_SERVICE);
+        intentFilter.addAction(constValue.BROADCAST_STOP_SERVICE);
         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         stopReceive = new stopReceive();
         registerReceiver(stopReceive, intentFilter);
@@ -576,21 +575,21 @@ public class chat_command_service extends Service {
             while (true) {
                 int timeout = 60;
                 int http_timeout = 65;
-                OkHttpClient okhttp_client_new = okHttpClient.newBuilder()
+                OkHttpClient okhttpClientNew = okHttpClient.newBuilder()
                         .readTimeout(http_timeout, TimeUnit.SECONDS)
                         .writeTimeout(http_timeout, TimeUnit.SECONDS)
                         .build();
                 String requestUri = network.getUrl(botToken, "getUpdates");
-                polling_json requestBody = new polling_json();
+                pollingBody requestBody = new pollingBody();
                 requestBody.offset = offset;
                 requestBody.timeout = timeout;
                 if (firstRequest) {
                     requestBody.timeout = 0;
                     Log.d(TAG, "run: first_request");
                 }
-                RequestBody body = RequestBody.create(new Gson().toJson(requestBody), const_value.JSON);
+                RequestBody body = RequestBody.create(new Gson().toJson(requestBody), constValue.JSON);
                 Request request = new Request.Builder().url(requestUri).method("POST", body).build();
-                Call call = okhttp_client_new.newCall(request);
+                Call call = okhttpClientNew.newCall(request);
                 Response response;
                 try {
                     response = call.execute();
@@ -601,10 +600,10 @@ public class chat_command_service extends Service {
                         Log.d(TAG, "run: break loop.");
                         break;
                     }
-                    int sleep_time = 5;
-                    log.writeLog(context, "Connection to the Telegram API service failed, try again after " + sleep_time + " seconds.");
+                    int sleepTime = 5;
+                    log.writeLog(context, "Connection to the Telegram API service failed.");
                     try {
-                        Thread.sleep(sleep_time * 1000L);
+                        Thread.sleep(sleepTime * 1000L);
                     } catch (InterruptedException e1) {
                         e1.printStackTrace();
                     }
@@ -619,32 +618,18 @@ public class chat_command_service extends Service {
                         e.printStackTrace();
                         continue;
                     }
-                    JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
-                    if (result_obj.get("ok").getAsBoolean()) {
-                        JsonArray result_array = result_obj.get("result").getAsJsonArray();
-                        for (JsonElement item : result_array) {
+                    JsonObject resultObj = JsonParser.parseString(result).getAsJsonObject();
+                    if (resultObj.get("ok").getAsBoolean()) {
+                        JsonArray resultArray = resultObj.get("result").getAsJsonArray();
+                        for (JsonElement item : resultArray) {
                             receiveHandle(item.getAsJsonObject(), firstRequest);
                         }
                         firstRequest = false;
                     }
-                } else {
-                    Log.d(TAG, "response code: " + response.code());
-                    if (response.code() == 401) {
-                        assert response.body() != null;
-                        String result;
-                        try {
-                            result = Objects.requireNonNull(response.body()).string();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            continue;
-                        }
-                        JsonObject jsonObject = JsonParser.parseString(result).getAsJsonObject();
-                        String result_message = getString(R.string.system_message_head) + "\n" + getString(R.string.error_stop_message) + "\n" + getString(R.string.error_message_head) + jsonObject.get("description").getAsString() + "\n" + "Code: " + response.code();
-                        sms.send_fallback_sms(context, result_message, -1);
-                        service.stopAllService(context);
-                        break;
-                    }
+                }else{
+                    log.writeLog(context, "Chat command response code: " + response.code());
                 }
+
             }
         }
     }
@@ -656,14 +641,13 @@ public class chat_command_service extends Service {
     }
 
 
-
     private class stopReceive extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, @NotNull Intent intent) {
             Log.d(TAG, "onReceive: " + intent.getAction());
             assert intent.getAction() != null;
             switch (intent.getAction()) {
-                case const_value.BROADCAST_STOP_SERVICE:
+                case constValue.BROADCAST_STOP_SERVICE:
                     Log.i(TAG, "Received stop signal, quitting now...");
                     stopSelf();
                     android.os.Process.killProcess(android.os.Process.myPid());

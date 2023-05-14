@@ -14,12 +14,12 @@ import androidx.annotation.Nullable;
 
 import com.google.gson.Gson;
 import com.qwe7002.telegram_sms.config.proxy;
-import com.qwe7002.telegram_sms.data_structure.request_message;
+import com.qwe7002.telegram_sms.data_structure.sendMessageBody;
 import com.qwe7002.telegram_sms.static_class.log;
 import com.qwe7002.telegram_sms.static_class.network;
 import com.qwe7002.telegram_sms.static_class.other;
-import com.qwe7002.telegram_sms.value.const_value;
-import com.qwe7002.telegram_sms.value.notify_id;
+import com.qwe7002.telegram_sms.value.constValue;
+import com.qwe7002.telegram_sms.value.notifyId;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,12 +44,12 @@ public class resend_service extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         resend_list = Paper.book().read(table_name, new ArrayList<>());
         Notification notification = other.getNotificationObj(context, getString(R.string.failed_resend));
-        startForeground(notify_id.RESEND_SERVICE, notification);
+        startForeground(notifyId.RESEND_SERVICE, notification);
         return START_NOT_STICKY;
     }
 
     private void network_progress_handle(String message, String chat_id, String message_thread_id, OkHttpClient okhttp_client) {
-        request_message request_body = new request_message();
+        sendMessageBody request_body = new sendMessageBody();
         request_body.chat_id = chat_id;
         request_body.message_thread_id = message_thread_id;
         request_body.text = message;
@@ -57,7 +57,7 @@ public class resend_service extends Service {
             request_body.parse_mode = "html";
         }
         String request_body_json = new Gson().toJson(request_body);
-        RequestBody body = RequestBody.create(request_body_json, const_value.JSON);
+        RequestBody body = RequestBody.create(request_body_json, constValue.JSON);
         Request request_obj = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request_obj);
         try {
@@ -79,7 +79,7 @@ public class resend_service extends Service {
         context = getApplicationContext();
         Paper.init(context);
         IntentFilter filter = new IntentFilter();
-        filter.addAction(const_value.BROADCAST_STOP_SERVICE);
+        filter.addAction(constValue.BROADCAST_STOP_SERVICE);
         receiver = new stop_notify_receiver();
         registerReceiver(receiver, filter);
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
@@ -126,7 +126,7 @@ public class resend_service extends Service {
     class stop_notify_receiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (Objects.equals(intent.getAction(), const_value.BROADCAST_STOP_SERVICE)) {
+            if (Objects.equals(intent.getAction(), constValue.BROADCAST_STOP_SERVICE)) {
                 Log.i("resend_loop", "Received stop signal, quitting now...");
                 stopSelf();
             }

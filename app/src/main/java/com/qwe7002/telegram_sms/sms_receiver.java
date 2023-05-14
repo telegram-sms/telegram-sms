@@ -20,7 +20,7 @@ import androidx.core.app.ActivityCompat;
 import com.github.sumimakito.codeauxlib.CodeauxLibPortable;
 import com.google.gson.Gson;
 import com.qwe7002.telegram_sms.config.proxy;
-import com.qwe7002.telegram_sms.data_structure.request_message;
+import com.qwe7002.telegram_sms.data_structure.sendMessageBody;
 import com.qwe7002.telegram_sms.static_class.log;
 import com.qwe7002.telegram_sms.static_class.network;
 import com.qwe7002.telegram_sms.static_class.other;
@@ -28,7 +28,7 @@ import com.qwe7002.telegram_sms.static_class.resend;
 import com.qwe7002.telegram_sms.static_class.service;
 import com.qwe7002.telegram_sms.static_class.sms;
 import com.qwe7002.telegram_sms.static_class.ussd;
-import com.qwe7002.telegram_sms.value.const_value;
+import com.qwe7002.telegram_sms.value.constValue;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -112,7 +112,7 @@ public class sms_receiver extends BroadcastReceiver {
         if (trusted_phone_number != null && trusted_phone_number.length() != 0) {
             isTrustedPhone = messageAddress.contains(trusted_phone_number);
         }
-        final request_message requestBody = new request_message();
+        final sendMessageBody requestBody = new sendMessageBody();
         requestBody.chat_id = chat_id;
         requestBody.message_thread_id = message_thread_id;
 
@@ -232,7 +232,7 @@ public class sms_receiver extends BroadcastReceiver {
         }
 
 
-        RequestBody body = RequestBody.create(new Gson().toJson(requestBody), const_value.JSON);
+        RequestBody body = RequestBody.create(new Gson().toJson(requestBody), constValue.JSON);
         OkHttpClient okhttpObj = network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttpObj.newCall(request);
@@ -243,7 +243,7 @@ public class sms_receiver extends BroadcastReceiver {
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
                 log.writeLog(context, errorHead + e.getMessage());
-                sms.send_fallback_sms(context, requestBodyText, subId);
+                sms.fallbackSMS(context, requestBodyText, subId);
                 resend.addResendLoop(context, requestBody.text);
             }
 
@@ -253,7 +253,7 @@ public class sms_receiver extends BroadcastReceiver {
                 String result = Objects.requireNonNull(response.body()).string();
                 if (response.code() != 200) {
                     log.writeLog(context, errorHead + response.code() + " " + result);
-                    sms.send_fallback_sms(context, requestBodyText, subId);
+                    sms.fallbackSMS(context, requestBodyText, subId);
                     resend.addResendLoop(context, requestBody.text);
                 } else {
                     if (!other.isPhoneNumber(messageAddress)) {
