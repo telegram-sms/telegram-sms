@@ -9,10 +9,6 @@
 [![GitHub Releases](https://img.shields.io/github/downloads/telegram-sms/telegram-sms/latest/app-release.apk?style=flat-square)](https://github.com/telegram-sms/telegram-sms/releases/latest)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=flat-square)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_shield)
 
-## We're in this together
-
-> Fight COVID-19. Stay at home. Save lives.
-
 ## News, Questions and Contributions
 
 You can follow the Telegram channel Telegram SMS Change Log for the latest news. [English](https://t.me/tg_sms_changelog_eng), [简体中文](https://t.me/tg_sms_changelog)
@@ -34,9 +30,6 @@ If you want to generate the configuration QR code in a fast way, please visit [q
 **NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK!**
 
 [Telegram SMS compat](https://github.com/telegram-sms/telegram-sms-compat)
-
-Android 5.0 or lower? Click [![Github Release](https://img.shields.io/github/downloads/telegram-sms/telegram-sms-compat/latest/app-release.apk?style=flat-square)](https://github.com/telegram-sms/telegram-sms-compat/releases/latest) to download the latest and greatest.
-
 
 ## Features
 
@@ -61,9 +54,6 @@ You can set this APP as the default SMS APP, which will stop popping up SMS noti
 ## User Manual
 
 - [English](https://get.telegram-sms.com/wiki/User_manual)
-- [简体中文](https://get.telegram-sms.com/wiki/用户手册)
-- [繁體中文](https://get.telegram-sms.com/wiki/用戶手冊)
-- [日本語](https://get.telegram-sms.com/wiki/マニュアル)
 
 ## Licenses
 
@@ -80,15 +70,6 @@ Copyright of the artwork belongs to [@walliant](https://www.pixiv.net/member.php
 Cover Author: [@YJBeetle](https://github.com/yjbeetle)
 
 Download resource file of the artwork: [mega.nz](https://mega.nz/#F!TmwQSYjD!XN-uVfciajwy3okjIdpCAQ)
-
-Character set：
-
-- Name: Fay (菲, フェイ)
-- Type: Gynoid
-- Birthday: 1st October, 2018
-- Place of birth: Fujian, China
-- Zodiac sign: Libra
-- Habits: Eat sweets, Maid dress, Listen Heavy metal music
 
 ## Acknowledgements
 
@@ -129,12 +110,3 @@ This APP uses the following public DNS service:
 - [1.1.1.1](https://1.1.1.1/)
 
 And finally, [sm.ms](https://sm.ms) for hosting images used in this page.
-
-## Buy me a cup of coffee to help maintain this project further?
-
-- [via Github](https://get.telegram-sms.com/donate/github)
-- [via Paypal](https://get.telegram-sms.com/donate/paypal)
-- [via Bitcoin](bitcoin:17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae) (**17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae**)
-- [via UnionPay (中国银联云闪付)](https://get.telegram-sms.com/donate/unionpay)
-
-Your donation will make me work better for this project.
