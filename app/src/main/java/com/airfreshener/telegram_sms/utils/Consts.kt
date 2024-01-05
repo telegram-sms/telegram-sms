@@ -22,4 +22,10 @@ object Consts {
         const val SEND_STATUS = 3
     }
 
+
+    object CALLBACK_DATA_VALUE {
+        const val SEND = "send"
+        const val CANCEL = "cancel"
+    }
+
 }
