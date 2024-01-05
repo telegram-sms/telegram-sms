@@ -11,8 +11,9 @@ import android.widget.EditText
 import android.widget.ListView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.airfreshener.telegram_sms.utils.PaperUtils.SYSTEM_BOOK
+import com.airfreshener.telegram_sms.utils.PaperUtils.tryRead
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import io.paperdb.Paper
 
 class SpamListActivity : AppCompatActivity() {
 
@@ -22,8 +23,7 @@ class SpamListActivity : AppCompatActivity() {
         val inflater = this.layoutInflater
         val fab = findViewById<FloatingActionButton>(R.id.spam_list_fab)
         val spamList = findViewById<ListView>(R.id.spam_list)
-        val blockKeywordList =
-            Paper.book("system_config").read("block_keyword_list", ArrayList<String>())!!
+        val blockKeywordList = SYSTEM_BOOK.tryRead("block_keyword_list", ArrayList<String>())
         val spamListAdapter = ArrayAdapter(
             this, android.R.layout.simple_list_item_1,
             blockKeywordList
@@ -65,7 +65,7 @@ class SpamListActivity : AppCompatActivity() {
 
     private fun saveAndFlush(blockKeywordList: ArrayList<String>, listAdapter: ArrayAdapter<String>) {
         Log.d("save_and_flush", blockKeywordList.toString())
-        Paper.book("system_config").write("block_keyword_list", blockKeywordList)
+        SYSTEM_BOOK.write("block_keyword_list", blockKeywordList)
         listAdapter.notifyDataSetChanged()
     }
 }

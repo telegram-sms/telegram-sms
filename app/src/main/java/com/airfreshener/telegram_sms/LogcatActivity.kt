@@ -11,18 +11,16 @@ import com.airfreshener.telegram_sms.utils.LogUtils
 
 class LogcatActivity : AppCompatActivity() {
 
-    private var context: Context? = null
     private var observer: LogcatFileObserver? = null
     private var logcatTextView: TextView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        context = applicationContext
         setContentView(R.layout.activity_logcat)
         val logcatTextView = findViewById<TextView>(R.id.logcat_textview).apply { logcatTextView = this }
         this.setTitle(R.string.logcat)
-        logcatTextView.text = LogUtils.readLog(context, LINES_COUNT)
-        observer = LogcatFileObserver(applicationContext, logcatTextView)
+        logcatTextView.text = LogUtils.readLog(applicationContext, LINES_COUNT)
+        observer = LogcatFileObserver(applicationContext.filesDir.absolutePath, logcatTextView)
     }
 
     public override fun onPause() {
@@ -32,7 +30,7 @@ class LogcatActivity : AppCompatActivity() {
 
     public override fun onResume() {
         super.onResume()
-        logcatTextView?.text = LogUtils.readLog(context, LINES_COUNT)
+        logcatTextView?.text = LogUtils.readLog(applicationContext, LINES_COUNT)
         observer?.startWatching()
     }
 
@@ -42,17 +40,17 @@ class LogcatActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        LogUtils.resetLogFile(context)
+        LogUtils.resetLogFile(applicationContext)
         return true
     }
 
     private inner class LogcatFileObserver(
-        private val context: Context,
+        path: String,
         private val logcat: TextView
-    ) : FileObserver(context.filesDir.absolutePath) {
+    ) : FileObserver(path) {
         override fun onEvent(event: Int, path: String?) {
             if (event == MODIFY && path?.contains("error.log") == true) {
-                runOnUiThread { logcat.text = LogUtils.readLog(context, LINES_COUNT) }
+                runOnUiThread { logcat.text = LogUtils.readLog(logcat.context, LINES_COUNT) }
             }
         }
     }

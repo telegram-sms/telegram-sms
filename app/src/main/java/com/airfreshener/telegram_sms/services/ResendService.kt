@@ -8,7 +8,6 @@ import android.content.IntentFilter
 import android.os.IBinder
 import android.util.Log
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.model.ProxyConfigV2
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.model.ServiceNotifyId
 import com.airfreshener.telegram_sms.utils.Consts
@@ -18,7 +17,10 @@ import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
 import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
-import io.paperdb.Paper
+import com.airfreshener.telegram_sms.utils.PaperUtils
+import com.airfreshener.telegram_sms.utils.PaperUtils.DEFAULT_BOOK
+import com.airfreshener.telegram_sms.utils.PaperUtils.tryRead
+import com.airfreshener.telegram_sms.utils.ServiceUtils.stopForeground
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -26,14 +28,13 @@ import java.io.IOException
 
 class ResendService : Service() {
 
-    var context: Context? = null
     var requestUri: String? = null
-    var receiver: StopNotifyReceiver? = null
+    private var receiver: StopNotifyReceiver? = null
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        resendList = Paper.book().read(table_name, ArrayList())
+        resendList = DEFAULT_BOOK.tryRead(table_name, ArrayList())
         val notification =
-            OtherUtils.getNotificationObj(context, getString(R.string.failed_resend))
+            OtherUtils.getNotificationObj(applicationContext, getString(R.string.failed_resend))
         startForeground(ServiceNotifyId.RESEND_SERVICE, notification)
         return START_NOT_STICKY
     }
@@ -56,12 +57,12 @@ class ResendService : Service() {
         try {
             val response = call.execute()
             if (response.code == 200) {
-                val resendListLocal = Paper.book().read(table_name, ArrayList<String>())!!
+                val resendListLocal = DEFAULT_BOOK.tryRead(table_name, ArrayList<String>())
                 resendListLocal.remove(message)
-                Paper.book().write(table_name, resendListLocal)
+                DEFAULT_BOOK.write(table_name, resendListLocal)
             }
         } catch (e: IOException) {
-            LogUtils.writeLog(context, "An error occurred while resending: " + e.message)
+            LogUtils.writeLog(applicationContext, "An error occurred while resending: " + e.message)
             e.printStackTrace()
         }
     }
@@ -69,32 +70,32 @@ class ResendService : Service() {
     override fun onCreate() {
         super.onCreate()
         val context = applicationContext
-        this.context = context
-        Paper.init(context)
-        val filter = IntentFilter()
-        filter.addAction(Consts.BROADCAST_STOP_SERVICE)
+        PaperUtils.init(context)
+        val filter = IntentFilter().apply {
+            addAction(Consts.BROADCAST_STOP_SERVICE)
+        }
         receiver = StopNotifyReceiver()
         registerReceiver(receiver, filter)
         val sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE)
         requestUri = getUrl(sharedPreferences.getString("bot_token", "")!!, "SendMessage")
         Thread {
-            resendList = Paper.book().read(table_name, ArrayList())
+            resendList = DEFAULT_BOOK.tryRead(table_name, ArrayList())
             while (true) {
                 if (checkNetworkStatus(context)) {
                     val sendList = resendList
                     val okHttpClient = getOkhttpObj(
                         sharedPreferences.getBoolean("doh_switch", true),
-                        Paper.book("system_config").read("proxy_config", ProxyConfigV2())!!
+                        PaperUtils.getProxyConfig()
                     )
-                    for (item in sendList!!) {
+                    for (item in sendList) {
                         networkProgressHandle(
                             item,
                             sharedPreferences.getString("chat_id", ""),
                             okHttpClient
                         )
                     }
-                    resendList = Paper.book().read(table_name, ArrayList())
-                    if (resendList === sendList || resendList!!.size == 0) {
+                    resendList = DEFAULT_BOOK.tryRead(table_name, ArrayList())
+                    if (resendList === sendList || resendList.isEmpty()) {
                         break
                     }
                 }
@@ -110,7 +111,7 @@ class ResendService : Service() {
     }
 
     override fun onDestroy() {
-        stopForeground(true)
+        stopForeground()
         unregisterReceiver(receiver)
         super.onDestroy()
     }
@@ -129,7 +130,7 @@ class ResendService : Service() {
     }
 
     companion object {
-        var resendList: ArrayList<String>? = null
+        var resendList: List<String> = emptyList()
         private const val table_name = "resend_list"
     }
 }

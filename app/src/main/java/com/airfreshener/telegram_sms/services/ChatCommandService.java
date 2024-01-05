@@ -27,11 +27,11 @@ import androidx.core.app.ActivityCompat;
 import com.airfreshener.telegram_sms.R;
 import com.airfreshener.telegram_sms.utils.Consts;
 import com.airfreshener.telegram_sms.utils.OkHttpUtils;
+import com.airfreshener.telegram_sms.utils.PaperUtils;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.airfreshener.telegram_sms.model.ProxyConfigV2;
 import com.airfreshener.telegram_sms.model.PollingJson;
 import com.airfreshener.telegram_sms.model.ReplyMarkupKeyboard;
 import com.airfreshener.telegram_sms.model.RequestMessage;
@@ -52,7 +52,6 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import io.paperdb.Paper;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -121,10 +120,10 @@ public class ChatCommandService extends Service {
             callbackData = callbackQuery.get("data").getAsString();
         }
         if (messageType.equals("callback_query") && sendSmsNextStatus != Consts.SEND_SMS_STATUS.STANDBY_STATUS) {
-            int slot = Paper.book("send_temp").read("slot", -1);
-            long messageId = Paper.book("send_temp").read("message_id", -1L);
-            String to = Paper.book("send_temp").read("to", "");
-            String content = Paper.book("send_temp").read("content", "");
+            int slot = PaperUtils.getSendTempBook().read("slot", -1);
+            long messageId = PaperUtils.getSendTempBook().read("message_id", -1L);
+            String to = PaperUtils.getSendTempBook().read("to", "");
+            String content = PaperUtils.getSendTempBook().read("content", "");
             assert callbackData != null;
             if (!callbackData.equals(CALLBACK_DATA_VALUE.SEND)) {
                 setSmsSendStatusStandby();
@@ -136,7 +135,7 @@ public class ChatCommandService extends Service {
                 RequestBody body = OkHttpUtils.INSTANCE.toRequestBody(requestBody);
                 OkHttpClient okhttpClient = NetworkUtils.getOkhttpObj(
                         sharedPreferences.getBoolean("doh_switch", true),
-                        Paper.book("system_config").read("proxy_config", new ProxyConfigV2())
+                        PaperUtils.getProxyConfig()
                 );
                 Request request = new Request.Builder().url(requestUri).method("POST", body).build();
                 Call call = okhttpClient.newCall(request);
@@ -191,7 +190,7 @@ public class ChatCommandService extends Service {
             requestMsg = messageObj.get("text").getAsString();
         }
         if (messageObj.has("reply_to_message")) {
-            SmsRequestInfo saveItem = Paper.book().read(
+            SmsRequestInfo saveItem = PaperUtils.getDefaultBook().read(
                     messageObj.get("reply_to_message").getAsJsonObject().get("message_id").getAsString(),
                     null
             );
@@ -199,9 +198,10 @@ public class ChatCommandService extends Service {
                 String phoneNumber = saveItem.phone;
                 int cardSlot = saveItem.card;
                 sendSmsNextStatus = Consts.SEND_SMS_STATUS.WAITING_TO_SEND_STATUS;
-                Paper.book("send_temp").write("slot", cardSlot);
-                Paper.book("send_temp").write("to", phoneNumber);
-                Paper.book("send_temp").write("content", requestMsg);
+                PaperUtils.getSendTempBook()
+                        .write("slot", cardSlot)
+                        .write("to", phoneNumber)
+                        .write("content", requestMsg);
             }
             if (!messageTypeIsPrivate) {
                 Log.i(TAG, "receive_handle: The message id could not be found, ignored.");
@@ -276,7 +276,7 @@ public class ChatCommandService extends Service {
                     }
                 }
                 String spamCount = "";
-                ArrayList<String> spamList = Paper.book().read("spam_sms_list", new ArrayList<>());
+                ArrayList<String> spamList = PaperUtils.getDefaultBook().read("spam_sms_list", new ArrayList<>());
                 if (spamList.size() != 0) {
                     spamCount = "\n" + getString(R.string.spam_count_title) + spamList.size();
                 }
@@ -319,7 +319,7 @@ public class ChatCommandService extends Service {
                 requestBody.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
                 break;
             case "/getspamsms":
-                ArrayList<String> spamSmsList = Paper.book().read("spam_sms_list", new ArrayList<>());
+                ArrayList<String> spamSmsList = PaperUtils.getDefaultBook().read("spam_sms_list", new ArrayList<>());
                 if (spamSmsList.size() == 0) {
                     requestBody.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.no_spam_history);
                     break;
@@ -328,7 +328,7 @@ public class ChatCommandService extends Service {
                     if (NetworkUtils.checkNetworkStatus(context)) {
                         OkHttpClient okhttpClient = NetworkUtils.getOkhttpObj(
                                 sharedPreferences.getBoolean("doh_switch", true),
-                                Paper.book("system_config").read("proxy_config", new ProxyConfigV2())
+                                PaperUtils.getProxyConfig()
                         );
                         for (String item : spamSmsList) {
                             RequestMessage sendSmsRequestBody = new RequestMessage();
@@ -351,9 +351,9 @@ public class ChatCommandService extends Service {
                                     Log.d(TAG, "onResponse: " + response.code());
                                 }
                             });
-                            ArrayList<String> resendListLocal = Paper.book().read("spam_sms_list", new ArrayList<>());
+                            ArrayList<String> resendListLocal = PaperUtils.getDefaultBook().read("spam_sms_list", new ArrayList<>());
                             resendListLocal.remove(item);
-                            Paper.book().write("spam_sms_list", resendListLocal);
+                            PaperUtils.getDefaultBook().write("spam_sms_list", resendListLocal);
                         }
                     }
                     LogUtils.writeLog(context, "Send spam message is complete.");
@@ -399,7 +399,7 @@ public class ChatCommandService extends Service {
                             sendSlot = 1;
                         }
                     }
-                    Paper.book("send_temp").write("slot", sendSlot);
+                    PaperUtils.getSendTempBook().write("slot", sendSlot);
                 }
                 requestBody.text = "[" + context.getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);
                 break;
@@ -418,7 +418,7 @@ public class ChatCommandService extends Service {
         if (!hasCommand && sendSmsNextStatus != -1) {
             Log.i(TAG, "receive_handle: Enter the interactive SMS sending mode.");
             String dualSim = "";
-            int sendSlotTemp = Paper.book("send_temp").read("slot", -1);
+            int sendSlotTemp = PaperUtils.getSendTempBook().read("slot", -1);
             if (sendSlotTemp != -1) {
                 dualSim = "SIM" + (sendSlotTemp + 1) + " ";
             }
@@ -433,7 +433,7 @@ public class ChatCommandService extends Service {
                 case Consts.SEND_SMS_STATUS.MESSAGE_INPUT_STATUS:
                     String tempTo = OtherUtils.getSendPhoneNumber(requestMsg);
                     if (OtherUtils.isPhoneNumber(tempTo)) {
-                        Paper.book("send_temp").write("to", tempTo);
+                        PaperUtils.getSendTempBook().write("to", tempTo);
                         resultSend = getString(R.string.enter_content);
                         sendSmsNextStatus = Consts.SEND_SMS_STATUS.WAITING_TO_SEND_STATUS;
                     } else {
@@ -442,15 +442,15 @@ public class ChatCommandService extends Service {
                     }
                     break;
                 case Consts.SEND_SMS_STATUS.WAITING_TO_SEND_STATUS:
-                    Paper.book("send_temp").write("content", requestMsg);
+                    PaperUtils.getSendTempBook().write("content", requestMsg);
                     ReplyMarkupKeyboard.KeyboardMarkup keyboardMarkup = new ReplyMarkupKeyboard.KeyboardMarkup();
                     ArrayList<ArrayList<ReplyMarkupKeyboard.InlineKeyboardButton>> inlineKeyboardButtons = new ArrayList<>();
                     inlineKeyboardButtons.add(ReplyMarkupKeyboard.getInlineKeyboardObj(context.getString(R.string.send_button), CALLBACK_DATA_VALUE.SEND));
                     inlineKeyboardButtons.add(ReplyMarkupKeyboard.getInlineKeyboardObj(context.getString(R.string.cancel_button), CALLBACK_DATA_VALUE.CANCEL));
                     keyboardMarkup.inline_keyboard = inlineKeyboardButtons;
                     requestBody.reply_markup = keyboardMarkup;
-                    resultSend = context.getString(R.string.to) + Paper.book("send_temp").read("to") + "\n"
-                            + context.getString(R.string.content) + Paper.book("send_temp").read("content", "");
+                    resultSend = context.getString(R.string.to) + PaperUtils.getSendTempBook().read("to") + "\n"
+                            + context.getString(R.string.content) + PaperUtils.getSendTempBook().read("content", "");
                     sendSmsNextStatus = Consts.SEND_SMS_STATUS.SEND_STATUS;
                     break;
             }
@@ -479,7 +479,7 @@ public class ChatCommandService extends Service {
                     ResendUtils.addResendLoop(context, requestBody.text);
                 }
                 if (sendSmsNextStatus == Consts.SEND_SMS_STATUS.SEND_STATUS) {
-                    Paper.book("send_temp").write("message_id", OtherUtils.getMessageId(responseString));
+                    PaperUtils.getSendTempBook().write("message_id", OtherUtils.getMessageId(responseString));
                 }
             }
         });
@@ -497,14 +497,14 @@ public class ChatCommandService extends Service {
     public void onCreate() {
         super.onCreate();
         context = getApplicationContext();
-        Paper.init(context);
+        PaperUtils.init(context);
         setSmsSendStatusStandby();
         sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
         chatId = sharedPreferences.getString("chat_id", "");
         botToken = sharedPreferences.getString("bot_token", "");
         okHttpClient = NetworkUtils.getOkhttpObj(
                 sharedPreferences.getBoolean("doh_switch", true),
-                Paper.book("system_config").read("proxy_config", new ProxyConfigV2())
+                PaperUtils.getProxyConfig()
         );
         privacyMode = sharedPreferences.getBoolean("privacy_mode", false);
         WifiManager wifiManager = ((WifiManager) Objects.requireNonNull(context.getApplicationContext().getSystemService(Context.WIFI_SERVICE)));
@@ -554,7 +554,7 @@ public class ChatCommandService extends Service {
             JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject();
             if (result_obj.get("ok").getAsBoolean()) {
                 botUsername = result_obj.get("result").getAsJsonObject().get("username").getAsString();
-                Paper.book().write("bot_username", botUsername);
+                PaperUtils.getDefaultBook().write("bot_username", botUsername);
                 Log.d(TAG, "bot_username: " + botUsername);
                 LogUtils.writeLog(context, "Get the bot username: " + botUsername);
             }
@@ -566,7 +566,7 @@ public class ChatCommandService extends Service {
     private void setSmsSendStatusStandby() {
         Log.d(TAG, "set_sms_send_status_standby: ");
         sendSmsNextStatus = Consts.SEND_SMS_STATUS.STANDBY_STATUS;
-        Paper.book("send_temp").destroy();
+        PaperUtils.getSendTempBook().destroy();
     }
 
     @Override
@@ -584,7 +584,7 @@ public class ChatCommandService extends Service {
         public void run() {
             Log.d(TAG, "run: thread main start");
             if (OtherUtils.parseStringToLong(chatId) < 0) {
-                botUsername = Paper.book().read("bot_username", null);
+                botUsername = PaperUtils.getDefaultBook().read("bot_username", null);
                 if (botUsername == null) {
                     while (!getMe()) {
                         LogUtils.writeLog(context, "Failed to get bot Username, Wait 5 seconds and try again.");

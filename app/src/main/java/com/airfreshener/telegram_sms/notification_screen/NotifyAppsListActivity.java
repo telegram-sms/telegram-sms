@@ -22,13 +22,12 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.airfreshener.telegram_sms.R;
+import com.airfreshener.telegram_sms.utils.PaperUtils;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import io.paperdb.Paper;
 
 public class NotifyAppsListActivity extends AppCompatActivity {
     private AppAdapter appAdapter;
@@ -63,7 +62,7 @@ public class NotifyAppsListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = getApplicationContext();
-        Paper.init(context);
+        PaperUtils.init(context);
         this.setTitle(getString(R.string.app_list));
         setContentView(R.layout.activity_notify_apps_list);
         final ListView appList = findViewById(R.id.app_listview);
@@ -127,7 +126,7 @@ public class NotifyAppsListActivity extends AppCompatActivity {
 
         AppAdapter(Context context) {
             this.context = context;
-            this.listenList = Paper.book("system_config").read("notify_listen_list", new ArrayList<>());
+            this.listenList = PaperUtils.getSystemBook().read("notify_listen_list", new ArrayList<>());
         }
 
         public List<AppInfo> getData() {
@@ -183,7 +182,7 @@ public class NotifyAppsListActivity extends AppCompatActivity {
             viewHolderObject.appCheckbox.setOnClickListener(v -> {
                 AppInfo itemInfo = (AppInfo) getItem(position);
                 String packageName = itemInfo.packageName;
-                List<String> listenListTemp = Paper.book("system_config").read("notify_listen_list", new ArrayList<>());
+                List<String> listenListTemp = PaperUtils.getSystemBook().read("notify_listen_list", new ArrayList<>());
                 if (viewHolderObject.appCheckbox.isChecked()) {
                     if (!listenListTemp.contains(packageName)) {
                         listenListTemp.add(packageName);
@@ -192,7 +191,7 @@ public class NotifyAppsListActivity extends AppCompatActivity {
                     listenListTemp.remove(packageName);
                 }
                 Log.d(TAG, "notify_listen_list: " + listenListTemp);
-                Paper.book("system_config").write("notify_listen_list", listenListTemp);
+                PaperUtils.getSystemBook().write("notify_listen_list", listenListTemp);
                 listenList = listenListTemp;
             });
             return convertView;

@@ -7,15 +7,14 @@ import android.content.Intent
 import android.telephony.SmsManager
 import android.util.Log
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.model.ProxyConfigV2
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.LogUtils
 import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
 import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
+import com.airfreshener.telegram_sms.utils.PaperUtils
 import com.airfreshener.telegram_sms.utils.ResendUtils.addResendLoop
 import com.airfreshener.telegram_sms.utils.SmsUtils
-import io.paperdb.Paper
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
@@ -24,7 +23,7 @@ import java.io.IOException
 
 class SmsSendReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        Paper.init(context)
+        PaperUtils.init(context)
         Log.d(TAG, "Receive action: " + intent.action)
         val extras = intent.extras!!
         val sub = extras.getInt("sub_id")
@@ -59,7 +58,7 @@ class SmsSendReceiver : BroadcastReceiver() {
         val body = requestBody.toRequestBody()
         val okHttpClient = getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),
-            Paper.book("system_config").read("proxy_config", ProxyConfigV2())!!
+            PaperUtils.getProxyConfig()
         )
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okHttpClient.newCall(request)

@@ -15,11 +15,11 @@ import androidx.annotation.NonNull;
 
 import com.airfreshener.telegram_sms.R;
 import com.airfreshener.telegram_sms.utils.OkHttpUtils;
-import com.airfreshener.telegram_sms.model.ProxyConfigV2;
 import com.airfreshener.telegram_sms.model.RequestMessage;
 import com.airfreshener.telegram_sms.utils.LogUtils;
 import com.airfreshener.telegram_sms.utils.NetworkUtils;
 import com.airfreshener.telegram_sms.utils.OtherUtils;
+import com.airfreshener.telegram_sms.utils.PaperUtils;
 import com.airfreshener.telegram_sms.utils.ResendUtils;
 import com.airfreshener.telegram_sms.model.ServiceNotifyId;
 
@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import io.paperdb.Paper;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -50,7 +49,7 @@ public class NotificationListenerService extends android.service.notification.No
     public void onCreate() {
         super.onCreate();
         context = getApplicationContext();
-        Paper.init(context);
+        PaperUtils.init(context);
         sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
         Notification notification = OtherUtils.getNotificationObj(getApplicationContext(), getString(R.string.Notification_Listener_title));
         startForeground(ServiceNotifyId.NOTIFICATION_LISTENER_SERVICE, notification);
@@ -77,7 +76,7 @@ public class NotificationListenerService extends android.service.notification.No
             return;
         }
 
-        List<String> listenList = Paper.book("system_config").read("notify_listen_list", new ArrayList<>());
+        List<String> listenList = PaperUtils.getSystemBook().read("notify_listen_list", new ArrayList<>());
         if (!listenList.contains(packageName)) {
             Log.i(TAG, "[" + packageName + "] Not in the list of listening packages.");
             return;
@@ -108,7 +107,10 @@ public class NotificationListenerService extends android.service.notification.No
         requestBody.chat_id = chatId;
         requestBody.text = getString(R.string.receive_notification_title) + "\n" + getString(R.string.app_name_title) + appName + "\n" + getString(R.string.title) + title + "\n" + getString(R.string.content) + content;
         RequestBody body = OkHttpUtils.INSTANCE.toRequestBody(requestBody);
-        OkHttpClient okhttpClient = NetworkUtils.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
+        OkHttpClient okhttpClient = NetworkUtils.getOkhttpObj(
+                sharedPreferences.getBoolean("doh_switch", true),
+                PaperUtils.getProxyConfig()
+        );
         Request request = new Request.Builder().url(requestUri).method("POST", body).build();
         Call call = okhttpClient.newCall(request);
         final String errorHead = "Send notification failed:";

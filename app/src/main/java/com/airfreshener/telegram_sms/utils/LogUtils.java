@@ -17,21 +17,19 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import io.paperdb.Paper;
-
 public class LogUtils {
     public static void writeLog(@Nullable Context context, String log) {
         Log.i("write_log", log);
         if (context == null) return;
         int newFileMode = Context.MODE_APPEND;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(context.getString(R.string.time_format), Locale.UK);
-        String write_string = "\n" + simpleDateFormat.format(new Date(System.currentTimeMillis())) + " " + log;
-        int logCount = Paper.book("system_config").read("log_count", 0);
+        String writeString = "\n" + simpleDateFormat.format(new Date(System.currentTimeMillis())) + " " + log;
+        int logCount = PaperUtils.getSystemBook().read("log_count", 0);
         if (logCount >= 50000) {
             resetLogFile(context);
         }
-        Paper.book("system_config").write("log_count", ++logCount);
-        writeLogFile(context, write_string, newFileMode);
+        PaperUtils.getSystemBook().write("log_count", ++logCount);
+        writeLogFile(context, writeString, newFileMode);
     }
 
     public static String readLog(@Nullable Context context, int line) {
@@ -81,7 +79,7 @@ public class LogUtils {
     }
 
     public static void resetLogFile(Context context) {
-        Paper.book("system_config").delete("log_count");
+        PaperUtils.getSystemBook().delete("log_count");
         writeLogFile(context, "", Context.MODE_PRIVATE);
     }
 

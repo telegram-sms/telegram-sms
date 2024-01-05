@@ -7,12 +7,12 @@ import android.telephony.PhoneStateListener
 import android.telephony.TelephonyManager
 import android.util.Log
 import com.airfreshener.telegram_sms.receivers.listeners.CallStatusListener
-import io.paperdb.Paper
+import com.airfreshener.telegram_sms.utils.PaperUtils
 import java.util.*
 
 class CallReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        Paper.init(context)
+        PaperUtils.init(context)
         Log.d(TAG, "Receive action: " + intent.action)
         when (Objects.requireNonNull(intent.action)) {
             PHONE_STATE -> {

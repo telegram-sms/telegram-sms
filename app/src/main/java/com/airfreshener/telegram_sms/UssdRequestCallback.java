@@ -9,10 +9,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import com.airfreshener.telegram_sms.utils.OkHttpUtils;
-import com.airfreshener.telegram_sms.model.ProxyConfigV2;
 import com.airfreshener.telegram_sms.model.RequestMessage;
 import com.airfreshener.telegram_sms.utils.LogUtils;
 import com.airfreshener.telegram_sms.utils.NetworkUtils;
+import com.airfreshener.telegram_sms.utils.PaperUtils;
 import com.airfreshener.telegram_sms.utils.ResendUtils;
 import com.airfreshener.telegram_sms.utils.SmsUtils;
 
@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.Objects;
 
-import io.paperdb.Paper;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -30,8 +29,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
-public
-class UssdRequestCallback extends TelephonyManager.UssdResponseCallback {
+public class UssdRequestCallback extends TelephonyManager.UssdResponseCallback {
     private final Context context;
     private final boolean dohSwitch;
     private String requestUri;
@@ -40,7 +38,7 @@ class UssdRequestCallback extends TelephonyManager.UssdResponseCallback {
 
     public UssdRequestCallback(Context context, @NotNull SharedPreferences sharedPreferences, long messageId) {
         this.context = context;
-        Paper.init(context);
+        PaperUtils.init(context);
         String chatId = sharedPreferences.getString("chat_id", "");
         this.dohSwitch = sharedPreferences.getBoolean("doh_switch", true);
         this.requestBody = new RequestMessage();
@@ -71,15 +69,15 @@ class UssdRequestCallback extends TelephonyManager.UssdResponseCallback {
     private void networkProgressHandle(String message) {
         requestBody.text = message;
         RequestBody body = OkHttpUtils.INSTANCE.toRequestBody(requestBody);
-        OkHttpClient okhttp_client = NetworkUtils.getOkhttpObj(dohSwitch, Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
-        Request request_obj = new Request.Builder().url(requestUri).method("POST", body).build();
-        Call call = okhttp_client.newCall(request_obj);
-        final String error_head = "Send USSD failed:";
+        OkHttpClient okHttpClient = NetworkUtils.getOkhttpObj(dohSwitch, PaperUtils.getProxyConfig());
+        Request requestObj = new Request.Builder().url(requestUri).method("POST", body).build();
+        Call call = okHttpClient.newCall(requestObj);
+        final String errorHead = "Send USSD failed:";
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
-                LogUtils.writeLog(context, error_head + e.getMessage());
+                LogUtils.writeLog(context, errorHead + e.getMessage());
                 SmsUtils.sendFallbackSms(context, requestBody.text, -1);
                 ResendUtils.addResendLoop(context, requestBody.text);
             }
@@ -88,7 +86,7 @@ class UssdRequestCallback extends TelephonyManager.UssdResponseCallback {
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
                     assert response.body() != null;
-                    LogUtils.writeLog(context, error_head + response.code() + " " + Objects.requireNonNull(response.body()).string());
+                    LogUtils.writeLog(context, errorHead + response.code() + " " + Objects.requireNonNull(response.body()).string());
                     SmsUtils.sendFallbackSms(context, requestBody.text, -1);
                     ResendUtils.addResendLoop(context, requestBody.text);
                 }
@@ -96,9 +94,9 @@ class UssdRequestCallback extends TelephonyManager.UssdResponseCallback {
         });
     }
 
-    private String getErrorCodeString(int error_code) {
+    private String getErrorCodeString(int errorCode) {
         String result;
-        switch (error_code) {
+        switch (errorCode) {
             case -1:
                 result = "Connection problem or invalid MMI code.";
                 break;
@@ -106,7 +104,7 @@ class UssdRequestCallback extends TelephonyManager.UssdResponseCallback {
                 result = "No service.";
                 break;
             default:
-                result = "An unknown error occurred (" + error_code + ")";
+                result = "An unknown error occurred (" + errorCode + ")";
                 break;
         }
         return result;

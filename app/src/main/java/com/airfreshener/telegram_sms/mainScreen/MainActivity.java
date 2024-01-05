@@ -41,7 +41,6 @@ import com.airfreshener.telegram_sms.QrCodeShowActivity;
 import com.airfreshener.telegram_sms.R;
 import com.airfreshener.telegram_sms.ScannerActivity;
 import com.airfreshener.telegram_sms.SpamListActivity;
-import com.airfreshener.telegram_sms.model.ProxyConfigV2;
 import com.airfreshener.telegram_sms.model.PollingJson;
 import com.airfreshener.telegram_sms.model.RequestMessage;
 import com.airfreshener.telegram_sms.migration.UpdateVersion1;
@@ -50,6 +49,7 @@ import com.airfreshener.telegram_sms.utils.LogUtils;
 import com.airfreshener.telegram_sms.utils.NetworkUtils;
 import com.airfreshener.telegram_sms.utils.OkHttpUtils;
 import com.airfreshener.telegram_sms.utils.OtherUtils;
+import com.airfreshener.telegram_sms.utils.PaperUtils;
 import com.airfreshener.telegram_sms.utils.ServiceUtils;
 import com.airfreshener.telegram_sms.utils.ui.MenuUtils;
 import com.google.android.material.snackbar.Snackbar;
@@ -66,7 +66,6 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import io.paperdb.Paper;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -82,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
     private Context context;
 
     private void checkVersionUpgrade(boolean reset_log) {
-        int versionCode = Paper.book("system_config").read("version_code", 0);
+        int versionCode = PaperUtils.getSystemBook().read("version_code", 0);
         PackageManager packageManager = context.getPackageManager();
         PackageInfo packageInfo;
         int currentVersionCode;
@@ -97,12 +96,12 @@ public class MainActivity extends AppCompatActivity {
             if (reset_log) {
                 LogUtils.resetLogFile(context);
             }
-            Paper.book("system_config").write("version_code", currentVersionCode);
+            PaperUtils.getSystemBook().write("version_code", currentVersionCode);
         }
     }
 
     private void updateConfig() {
-        int storeVersion = Paper.book("system_config").read("version", 0);
+        int storeVersion = PaperUtils.getSystemBook().read("version", 0);
         if (storeVersion == Consts.SYSTEM_CONFIG_VERSION) {
             new UpdateVersion1().checkError();
             return;
@@ -122,8 +121,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         context = getApplicationContext();
-        //load config
-        Paper.init(context);
+        PaperUtils.init(context);
         sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         privacyPolice = "/guide/" + context.getString(R.string.Lang) + "/privacy-policy";
 
@@ -225,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
 
         dohSwitch.setChecked(sharedPreferences.getBoolean("doh_switch", true));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            dohSwitch.setEnabled(!Paper.book("system_config").read("proxy_config", new ProxyConfigV2()).getEnable());
+            dohSwitch.setEnabled(!PaperUtils.getProxyConfig().getEnable());
         }
 
         privacyModeSwitch.setChecked(sharedPreferences.getBoolean("privacy_mode", false));
@@ -284,7 +282,7 @@ public class MainActivity extends AppCompatActivity {
             String requestUri = NetworkUtils.getUrl(botTokenEditview.getText().toString().trim(), "getUpdates");
             OkHttpClient okhttpClient = NetworkUtils.getOkhttpObj(
                     dohSwitch.isChecked(),
-                    Paper.book("system_config").read("proxy_config", new ProxyConfigV2())
+                    PaperUtils.getProxyConfig()
             )
                     .newBuilder()
                     .readTimeout(60, TimeUnit.SECONDS)
@@ -432,7 +430,7 @@ public class MainActivity extends AppCompatActivity {
             RequestBody body = OkHttpUtils.INSTANCE.toRequestBody(requestBody);
             OkHttpClient okhttpClient = NetworkUtils.getOkhttpObj(
                     dohSwitch.isChecked(),
-                    Paper.book("system_config").read("proxy_config", new ProxyConfigV2())
+                    PaperUtils.getProxyConfig()
             );
             Request request = new Request.Builder().url(requestUri).method("POST", body).build();
             Call call = okhttpClient.newCall(request);
@@ -466,9 +464,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                     if (!newBotToken.equals(botTokenSave)) {
                         Log.i(TAG, "onResponse: The current bot token does not match the saved bot token, clearing the message database.");
-                        Paper.book().destroy();
+                        PaperUtils.getDefaultBook().destroy();
                     }
-                    Paper.book("system_config").write("version", Consts.SYSTEM_CONFIG_VERSION);
+                    PaperUtils.getSystemBook().write("version", Consts.SYSTEM_CONFIG_VERSION);
                     checkVersionUpgrade(false);
                     SharedPreferences.Editor editor = sharedPreferences.edit().clear();
                     editor.putString("bot_token", newBotToken);

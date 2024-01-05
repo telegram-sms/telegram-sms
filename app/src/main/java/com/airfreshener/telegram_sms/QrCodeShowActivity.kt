@@ -34,7 +34,7 @@ class QrCodeShowActivity : AppCompatActivity() {
         )
     }
 
-    @Suppress("unused")
+    @Suppress("unused", "PropertyName")
     private class ConfigList(
         val bot_token: String?,
         val chat_id: String?,

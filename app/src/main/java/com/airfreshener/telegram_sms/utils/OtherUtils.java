@@ -23,9 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.paperdb.Paper;
-
-
 public class OtherUtils {
 
     public static String getNineKeyMapConvert(String input) {
@@ -208,7 +205,7 @@ public class OtherUtils {
         SmsRequestInfo item = new SmsRequestInfo();
         item.phone = phone;
         item.card = slot;
-        Paper.book().write(String.valueOf(message_id), item);
+        PaperUtils.getDefaultBook().write(String.valueOf(message_id), item);
         Log.d("add_message_list", "add_message_list: " + message_id);
     }
 

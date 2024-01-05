@@ -17,11 +17,12 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.airfreshener.telegram_sms.R;
 import com.airfreshener.telegram_sms.utils.OkHttpUtils;
+import com.airfreshener.telegram_sms.utils.PaperUtils;
 import com.github.sumimakito.codeauxlib.CodeauxLibPortable;
-import com.airfreshener.telegram_sms.model.ProxyConfigV2;
 import com.airfreshener.telegram_sms.model.RequestMessage;
 import com.airfreshener.telegram_sms.utils.LogUtils;
 import com.airfreshener.telegram_sms.utils.NetworkUtils;
@@ -38,7 +39,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
 
-import io.paperdb.Paper;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -47,11 +47,11 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class SmsReceiver extends BroadcastReceiver {
-    private final static CodeauxLibPortable code_aux_lib = new CodeauxLibPortable();
+    private final static CodeauxLibPortable codeAuxLib = new CodeauxLibPortable();
     final static String TAG = "sms_receiver";
 
     public void onReceive(final Context context, Intent intent) {
-        Paper.init(context);
+        PaperUtils.init(context);
         Log.d(TAG, "Receive action: " + intent.getAction());
         Bundle extras = intent.getExtras();
         assert extras != null;
@@ -60,28 +60,28 @@ public class SmsReceiver extends BroadcastReceiver {
             Log.i(TAG, "Uninitialized, SMS receiver is deactivated.");
             return;
         }
-        final boolean is_default_sms_app = Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName());
+        final boolean isDefaultSmsApp = Telephony.Sms.getDefaultSmsPackage(context).equals(context.getPackageName());
         assert intent.getAction() != null;
-        if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED") && is_default_sms_app) {
+        if (intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED") && isDefaultSmsApp) {
             //When it is the default application, it will receive two broadcasts.
             Log.i(TAG, "reject: android.provider.Telephony.SMS_RECEIVED.");
             return;
         }
-        String bot_token = sharedPreferences.getString("bot_token", "");
-        String chat_id = sharedPreferences.getString("chat_id", "");
-        String request_uri = NetworkUtils.getUrl(bot_token, "sendMessage");
+        String botToken = sharedPreferences.getString("bot_token", "");
+        String chatId = sharedPreferences.getString("chat_id", "");
+        String requestUri = NetworkUtils.getUrl(botToken, "sendMessage");
 
-        int intent_slot = extras.getInt("slot", -1);
-        final int sub_id = extras.getInt("subscription", -1);
-        if (OtherUtils.getActiveCard(context) >= 2 && intent_slot == -1) {
+        int intentSlot = extras.getInt("slot", -1);
+        final int subId = extras.getInt("subscription", -1);
+        if (OtherUtils.getActiveCard(context) >= 2 && intentSlot == -1) {
             SubscriptionManager manager = SubscriptionManager.from(context);
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                SubscriptionInfo info = manager.getActiveSubscriptionInfo(sub_id);
-                intent_slot = info.getSimSlotIndex();
+                SubscriptionInfo info = manager.getActiveSubscriptionInfo(subId);
+                intentSlot = info.getSimSlotIndex();
             }
         }
-        final int slot = intent_slot;
-        String dual_sim = OtherUtils.getDualSimCardDisplay(context, intent_slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
+        final int slot = intentSlot;
+        String dualSim = OtherUtils.getDualSimCardDisplay(context, intentSlot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
 
         Object[] pdus = (Object[]) extras.get("pdus");
         assert pdus != null;
@@ -98,70 +98,70 @@ public class SmsReceiver extends BroadcastReceiver {
             return;
         }
 
-        StringBuilder message_body_builder = new StringBuilder();
+        StringBuilder messageBodyBuilder = new StringBuilder();
         for (SmsMessage item : messages) {
-            message_body_builder.append(item.getMessageBody());
+            messageBodyBuilder.append(item.getMessageBody());
         }
-        final String message_body = message_body_builder.toString();
+        final String messageBody = messageBodyBuilder.toString();
 
-        final String message_address = messages[0].getOriginatingAddress();
-        assert message_address != null;
+        final String messageAddress = messages[0].getOriginatingAddress();
+        assert messageAddress != null;
 
-        if (is_default_sms_app) {
+        if (isDefaultSmsApp) {
             Log.i(TAG, "onReceive: Write to the system database.");
             new Thread(() -> {
                 ContentValues values = new ContentValues();
-                values.put(Telephony.Sms.ADDRESS, message_body);
-                values.put(Telephony.Sms.BODY, message_address);
-                values.put(Telephony.Sms.SUBSCRIPTION_ID, String.valueOf(sub_id));
+                values.put(Telephony.Sms.ADDRESS, messageBody);
+                values.put(Telephony.Sms.BODY, messageAddress);
+                values.put(Telephony.Sms.SUBSCRIPTION_ID, String.valueOf(subId));
                 values.put(Telephony.Sms.READ, "1");
                 context.getContentResolver().insert(Telephony.Sms.CONTENT_URI, values);
             }).start();
         }
 
-        String trusted_phone_number = sharedPreferences.getString("trusted_phone_number", null);
-        boolean is_trusted_phone = false;
-        if (trusted_phone_number != null && trusted_phone_number.length() != 0) {
-            is_trusted_phone = message_address.contains(trusted_phone_number);
+        String trustedPhoneNumber = sharedPreferences.getString("trusted_phone_number", null);
+        boolean isTrustedPhone = false;
+        if (trustedPhoneNumber != null && trustedPhoneNumber.length() != 0) {
+            isTrustedPhone = messageAddress.contains(trustedPhoneNumber);
         }
-        final RequestMessage request_body = new RequestMessage();
-        request_body.chat_id = chat_id;
+        final RequestMessage requestBody = new RequestMessage();
+        requestBody.chat_id = chatId;
 
-        String message_body_html = message_body;
-        final String message_head = "[" + dual_sim + context.getString(R.string.receive_sms_head) + "]" + "\n" + context.getString(R.string.from) + message_address + "\n" + context.getString(R.string.content);
-        String raw_request_body_text = message_head + message_body;
-        boolean is_verification_code = false;
-        if (sharedPreferences.getBoolean("verification_code", false) && !is_trusted_phone) {
-            if (message_body.length() <= 140) {
-                String verification = code_aux_lib.find(message_body);
+        String messageBodyHtml = messageBody;
+        final String messageHead = "[" + dualSim + context.getString(R.string.receive_sms_head) + "]" + "\n" + context.getString(R.string.from) + messageAddress + "\n" + context.getString(R.string.content);
+        String rawRequestBodyText = messageHead + messageBody;
+        boolean isVerificationCode = false;
+        if (sharedPreferences.getBoolean("verification_code", false) && !isTrustedPhone) {
+            if (messageBody.length() <= 140) {
+                String verification = codeAuxLib.find(messageBody);
                 if (verification != null) {
-                    request_body.parse_mode = "html";
-                    message_body_html = message_body
+                    requestBody.parse_mode = "html";
+                    messageBodyHtml = messageBody
                             .replace("<", "&lt;")
                             .replace(">", "&gt;")
                             .replace("&", "&amp;")
                             .replace(verification, "<code>" + verification + "</code>");
-                    is_verification_code = true;
+                    isVerificationCode = true;
                 }
             } else {
                 LogUtils.writeLog(context, "SMS exceeds 140 characters, no verification code is recognized.");
             }
         }
-        request_body.text = message_head + message_body_html;
-        if (is_trusted_phone) {
+        requestBody.text = messageHead + messageBodyHtml;
+        if (isTrustedPhone) {
             LogUtils.writeLog(context, "SMS from trusted mobile phone detected");
-            String message_command = message_body.toLowerCase().replace("_", "").replace("-", "");
-            String[] command_list = message_command.split("\n");
-            if (command_list.length > 0) {
-                String[] message_list = message_body.split("\n");
-                switch (command_list[0].trim()) {
+            String messageCommand = messageBody.toLowerCase().replace("_", "").replace("-", "");
+            String[] commandList = messageCommand.split("\n");
+            if (commandList.length > 0) {
+                String[] messageList = messageBody.split("\n");
+                switch (commandList[0].trim()) {
                     case "/restartservice":
                         new Thread(() -> {
                             ServiceUtils.stopAllService(context);
                             ServiceUtils.startService(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
                         }).start();
-                        raw_request_body_text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
-                        request_body.text = raw_request_body_text;
+                        rawRequestBodyText = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
+                        requestBody.text = rawRequestBodyText;
                         break;
                     case "/sendsms":
                     case "/sendsms1":
@@ -170,37 +170,37 @@ public class SmsReceiver extends BroadcastReceiver {
                             Log.i(TAG, "No SMS permission.");
                             break;
                         }
-                        String msg_send_to = OtherUtils.getSendPhoneNumber(message_list[1]);
-                        if (OtherUtils.isPhoneNumber(msg_send_to) && message_list.length > 2) {
-                            StringBuilder msg_send_content = new StringBuilder();
-                            for (int i = 2; i < message_list.length; ++i) {
+                        String msgSendTo = OtherUtils.getSendPhoneNumber(messageList[1]);
+                        if (OtherUtils.isPhoneNumber(msgSendTo) && messageList.length > 2) {
+                            StringBuilder msgSendContent = new StringBuilder();
+                            for (int i = 2; i < messageList.length; ++i) {
                                 if (i != 2) {
-                                    msg_send_content.append("\n");
+                                    msgSendContent.append("\n");
                                 }
-                                msg_send_content.append(message_list[i]);
+                                msgSendContent.append(messageList[i]);
                             }
-                            int send_slot = slot;
+                            int sendSlot = slot;
                             if (OtherUtils.getActiveCard(context) > 1) {
-                                switch (command_list[0].trim()) {
+                                switch (commandList[0].trim()) {
                                     case "/sendsms1":
-                                        send_slot = 0;
+                                        sendSlot = 0;
                                         break;
                                     case "/sendsms2":
-                                        send_slot = 1;
+                                        sendSlot = 1;
                                         break;
                                 }
                             }
-                            final int final_send_slot = send_slot;
-                            final int final_send_sub_id = OtherUtils.getSubId(context, final_send_slot);
-                            new Thread(() -> SmsUtils.sendSms(context, msg_send_to, msg_send_content.toString(), final_send_slot, final_send_sub_id)).start();
+                            final int finalSendSlot = sendSlot;
+                            final int finalSendSubId = OtherUtils.getSubId(context, finalSendSlot);
+                            new Thread(() -> SmsUtils.sendSms(context, msgSendTo, msgSendContent.toString(), finalSendSlot, finalSendSubId)).start();
                             return;
                         }
                         break;
                     case "/sendussd":
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                            if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
-                                if (message_list.length == 2) {
-                                    UssdUtils.sendUssd(context, message_list[1], sub_id);
+                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+                                if (messageList.length == 2) {
+                                    UssdUtils.sendUssd(context, messageList[1], subId);
                                     return;
                                 }
                             }
@@ -213,24 +213,23 @@ public class SmsReceiver extends BroadcastReceiver {
             }
         }
 
-        if (!is_verification_code && !is_trusted_phone) {
-            ArrayList<String> black_list_array = Paper.book("system_config").read("block_keyword_list", new ArrayList<>());
-            for (String black_list_item : black_list_array) {
-                if (black_list_item.isEmpty()) {
+        if (!isVerificationCode && !isTrustedPhone) {
+            ArrayList<String> blackListArray = PaperUtils.getSystemBook().read("block_keyword_list", new ArrayList<>());
+            for (String blackListItem : blackListArray) {
+                if (blackListItem.isEmpty()) {
                     continue;
                 }
 
-                if (message_body.contains(black_list_item)) {
+                if (messageBody.contains(blackListItem)) {
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat(context.getString(R.string.time_format), Locale.UK);
-                    String write_message = request_body.text + "\n" + context.getString(R.string.time) + simpleDateFormat.format(new Date(System.currentTimeMillis()));
-                    ArrayList<String> spam_sms_list;
-                    Paper.init(context);
-                    spam_sms_list = Paper.book().read("spam_sms_list", new ArrayList<>());
-                    if (spam_sms_list.size() >= 5) {
-                        spam_sms_list.remove(0);
+                    String writeMessage = requestBody.text + "\n" + context.getString(R.string.time) + simpleDateFormat.format(new Date(System.currentTimeMillis()));
+                    ArrayList<String> spamSmsList;
+                    spamSmsList = PaperUtils.getDefaultBook().read("spam_sms_list", new ArrayList<>());
+                    if (spamSmsList.size() >= 5) {
+                        spamSmsList.remove(0);
                     }
-                    spam_sms_list.add(write_message);
-                    Paper.book().write("spam_sms_list", spam_sms_list);
+                    spamSmsList.add(writeMessage);
+                    PaperUtils.getDefaultBook().write("spam_sms_list", spamSmsList);
                     Log.i(TAG, "Detected message contains blacklist keywords, add spam list");
                     return;
                 }
@@ -238,19 +237,22 @@ public class SmsReceiver extends BroadcastReceiver {
         }
 
 
-        RequestBody body = OkHttpUtils.INSTANCE.toRequestBody(request_body);
-        OkHttpClient okhttp_client = NetworkUtils.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
-        Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-        Call call = okhttp_client.newCall(request);
-        final String error_head = "Send SMS forward failed:";
-        final String final_raw_request_body_text = raw_request_body_text;
+        RequestBody body = OkHttpUtils.INSTANCE.toRequestBody(requestBody);
+        OkHttpClient okHttpClient = NetworkUtils.getOkhttpObj(
+                sharedPreferences.getBoolean("doh_switch", true),
+                PaperUtils.getProxyConfig()
+        );
+        Request request = new Request.Builder().url(requestUri).method("POST", body).build();
+        Call call = okHttpClient.newCall(request);
+        final String errorHead = "Send SMS forward failed:";
+        final String finalRawRequestBodyText = rawRequestBodyText;
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
-                LogUtils.writeLog(context, error_head + e.getMessage());
-                SmsUtils.sendFallbackSms(context, final_raw_request_body_text, sub_id);
-                ResendUtils.addResendLoop(context, request_body.text);
+                LogUtils.writeLog(context, errorHead + e.getMessage());
+                SmsUtils.sendFallbackSms(context, finalRawRequestBodyText, subId);
+                ResendUtils.addResendLoop(context, requestBody.text);
             }
 
             @Override
@@ -258,19 +260,17 @@ public class SmsReceiver extends BroadcastReceiver {
                 assert response.body() != null;
                 String result = Objects.requireNonNull(response.body()).string();
                 if (response.code() != 200) {
-                    LogUtils.writeLog(context, error_head + response.code() + " " + result);
-                    SmsUtils.sendFallbackSms(context, final_raw_request_body_text, sub_id);
-                    ResendUtils.addResendLoop(context, request_body.text);
+                    LogUtils.writeLog(context, errorHead + response.code() + " " + result);
+                    SmsUtils.sendFallbackSms(context, finalRawRequestBodyText, subId);
+                    ResendUtils.addResendLoop(context, requestBody.text);
                 } else {
-                    if (!OtherUtils.isPhoneNumber(message_address)) {
-                        LogUtils.writeLog(context, "[" + message_address + "] Not a regular phone number.");
+                    if (!OtherUtils.isPhoneNumber(messageAddress)) {
+                        LogUtils.writeLog(context, "[" + messageAddress + "] Not a regular phone number.");
                         return;
                     }
-                    OtherUtils.addMessageList(OtherUtils.getMessageId(result), message_address, slot);
+                    OtherUtils.addMessageList(OtherUtils.getMessageId(result), messageAddress, slot);
                 }
             }
         });
     }
 }
-
-

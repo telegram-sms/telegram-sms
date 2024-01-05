@@ -8,7 +8,8 @@ import android.view.LayoutInflater
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.model.ProxyConfigV2
+import com.airfreshener.telegram_sms.utils.PaperUtils
+import com.airfreshener.telegram_sms.utils.PaperUtils.SYSTEM_BOOK
 import com.airfreshener.telegram_sms.utils.ServiceUtils
 import com.google.android.material.switchmaterial.SwitchMaterial
 import io.paperdb.Paper
@@ -30,8 +31,8 @@ object MenuUtils {
         val proxyPortView = proxyDialogView.findViewById<EditText>(R.id.proxy_port_editview)
         val proxyUsernameView = proxyDialogView.findViewById<EditText>(R.id.proxy_username_editview)
         val proxyPasswordView = proxyDialogView.findViewById<EditText>(R.id.proxy_password_editview)
-        val proxyItem = Paper.book("system_config").read("proxy_config", ProxyConfigV2())
-        proxyEnableView.isChecked = proxyItem!!.enable
+        val proxyItem = PaperUtils.getProxyConfig()
+        proxyEnableView.isChecked = proxyItem.enable
         proxyDohSocks5View.isChecked = proxyItem.dns_over_socks5
         proxyHostView.setText(proxyItem.host)
         proxyPortView.setText(proxyItem.port.toString())
@@ -47,9 +48,9 @@ object MenuUtils {
                 proxyItem.port = proxyPortView.text.toString().toInt()
                 proxyItem.username = proxyUsernameView.text.toString()
                 proxyItem.password = proxyPasswordView.text.toString()
-                Paper.book("system_config").write("proxy_config", proxyItem)
+                SYSTEM_BOOK.write("proxy_config", proxyItem)
                 Thread {
-                    ServiceUtils.stopAllService(context!!)
+                    ServiceUtils.stopAllService(context)
                     if (sharedPreferences.getBoolean("initialized", false)) {
                         ServiceUtils.startService(
                             context,

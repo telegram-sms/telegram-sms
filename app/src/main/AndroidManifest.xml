@@ -65,6 +65,7 @@
             android:process=":command" />
         <service
             android:name=".services.BatteryService"
+            android:foregroundServiceType="shortService"
             android:enabled="true"
             android:exported="false"
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE"
@@ -91,6 +92,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </receiver>
+
         <receiver
             android:name=".receivers.SmsReceiver"
             android:enabled="true"
@@ -101,6 +103,7 @@
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>
+
         <receiver
             android:name=".receivers.WapReceiver"
             android:enabled="true"
@@ -112,6 +115,7 @@
                 <data android:mimeType="application/vnd.wap.mms-message" />
             </intent-filter>
         </receiver>
+
         <receiver android:name=".receivers.CallReceiver"
             android:exported="true">
             <intent-filter android:priority="2147483647">
