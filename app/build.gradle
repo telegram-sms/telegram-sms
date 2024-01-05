@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 android {
-    compileSdk 33
+    compileSdk 34
     defaultConfig {
-        applicationId "com.qwe7002.telegram_sms"
+        applicationId "com.aifreshener.telegram_sms"
         minSdkVersion 22
-        targetSdk 33
+        targetSdk 34
         versionCode System.getenv("VERSION_CODE") == null ? 1 : System.getenv("VERSION_CODE").toInteger()
         versionName System.getenv("VERSION_NAME") == null ? "Debug": System.getenv("VERSION_NAME").toString()
         ndk{
@@ -37,10 +37,10 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.4.2'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'com.google.android.material:material:1.6.1'
-    implementation 'androidx.browser:browser:1.4.0'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.browser:browser:1.7.0'
     implementation 'com.squareup.okio:okio:3.2.0'
     implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.2'
     implementation 'com.squareup.okhttp3:okhttp-dnsoverhttps:5.0.0-alpha.2'
@@ -48,6 +48,6 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.9.0'
     implementation 'io.github.pilgr:paperdb:2.7.2'
     implementation 'com.github.yuriy-budiyev:code-scanner:2.1.0'
-    implementation 'androidx.core:core-ktx:1.8.0'
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.10'
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.10'
 }
