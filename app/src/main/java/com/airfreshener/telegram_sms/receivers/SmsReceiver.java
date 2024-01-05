@@ -47,10 +47,11 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class SmsReceiver extends BroadcastReceiver {
-    final static CodeauxLibPortable code_aux_lib = new CodeauxLibPortable();
+    private final static CodeauxLibPortable code_aux_lib = new CodeauxLibPortable();
+    final static String TAG = "sms_receiver";
+
     public void onReceive(final Context context, Intent intent) {
         Paper.init(context);
-        final String TAG = "sms_receiver";
         Log.d(TAG, "Receive action: " + intent.getAction());
         Bundle extras = intent.getExtras();
         assert extras != null;
@@ -68,11 +69,11 @@ public class SmsReceiver extends BroadcastReceiver {
         }
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
-        String request_uri = NetworkUtils.get_url(bot_token, "sendMessage");
+        String request_uri = NetworkUtils.getUrl(bot_token, "sendMessage");
 
         int intent_slot = extras.getInt("slot", -1);
         final int sub_id = extras.getInt("subscription", -1);
-        if (OtherUtils.get_active_card(context) >= 2 && intent_slot == -1) {
+        if (OtherUtils.getActiveCard(context) >= 2 && intent_slot == -1) {
             SubscriptionManager manager = SubscriptionManager.from(context);
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                 SubscriptionInfo info = manager.getActiveSubscriptionInfo(sub_id);
@@ -80,7 +81,7 @@ public class SmsReceiver extends BroadcastReceiver {
             }
         }
         final int slot = intent_slot;
-        String dual_sim = OtherUtils.get_dual_sim_card_display(context, intent_slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
+        String dual_sim = OtherUtils.getDualSimCardDisplay(context, intent_slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
 
         Object[] pdus = (Object[]) extras.get("pdus");
         assert pdus != null;
@@ -93,7 +94,7 @@ public class SmsReceiver extends BroadcastReceiver {
             }
         }
         if (messages.length == 0) {
-            LogUtils.write_log(context, "Message length is equal to 0.");
+            LogUtils.writeLog(context, "Message length is equal to 0.");
             return;
         }
 
@@ -143,12 +144,12 @@ public class SmsReceiver extends BroadcastReceiver {
                     is_verification_code = true;
                 }
             } else {
-                LogUtils.write_log(context, "SMS exceeds 140 characters, no verification code is recognized.");
+                LogUtils.writeLog(context, "SMS exceeds 140 characters, no verification code is recognized.");
             }
         }
         request_body.text = message_head + message_body_html;
         if (is_trusted_phone) {
-            LogUtils.write_log(context, "SMS from trusted mobile phone detected");
+            LogUtils.writeLog(context, "SMS from trusted mobile phone detected");
             String message_command = message_body.toLowerCase().replace("_", "").replace("-", "");
             String[] command_list = message_command.split("\n");
             if (command_list.length > 0) {
@@ -156,8 +157,8 @@ public class SmsReceiver extends BroadcastReceiver {
                 switch (command_list[0].trim()) {
                     case "/restartservice":
                         new Thread(() -> {
-                            ServiceUtils.stop_all_service(context);
-                            ServiceUtils.start_service(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
+                            ServiceUtils.stopAllService(context);
+                            ServiceUtils.startService(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
                         }).start();
                         raw_request_body_text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
                         request_body.text = raw_request_body_text;
@@ -169,8 +170,8 @@ public class SmsReceiver extends BroadcastReceiver {
                             Log.i(TAG, "No SMS permission.");
                             break;
                         }
-                        String msg_send_to = OtherUtils.get_send_phone_number(message_list[1]);
-                        if (OtherUtils.is_phone_number(msg_send_to) && message_list.length > 2) {
+                        String msg_send_to = OtherUtils.getSendPhoneNumber(message_list[1]);
+                        if (OtherUtils.isPhoneNumber(msg_send_to) && message_list.length > 2) {
                             StringBuilder msg_send_content = new StringBuilder();
                             for (int i = 2; i < message_list.length; ++i) {
                                 if (i != 2) {
@@ -179,7 +180,7 @@ public class SmsReceiver extends BroadcastReceiver {
                                 msg_send_content.append(message_list[i]);
                             }
                             int send_slot = slot;
-                            if (OtherUtils.get_active_card(context) > 1) {
+                            if (OtherUtils.getActiveCard(context) > 1) {
                                 switch (command_list[0].trim()) {
                                     case "/sendsms1":
                                         send_slot = 0;
@@ -190,8 +191,8 @@ public class SmsReceiver extends BroadcastReceiver {
                                 }
                             }
                             final int final_send_slot = send_slot;
-                            final int final_send_sub_id = OtherUtils.get_sub_id(context, final_send_slot);
-                            new Thread(() -> SmsUtils.send_sms(context, msg_send_to, msg_send_content.toString(), final_send_slot, final_send_sub_id)).start();
+                            final int final_send_sub_id = OtherUtils.getSubId(context, final_send_slot);
+                            new Thread(() -> SmsUtils.sendSms(context, msg_send_to, msg_send_content.toString(), final_send_slot, final_send_sub_id)).start();
                             return;
                         }
                         break;
@@ -199,7 +200,7 @@ public class SmsReceiver extends BroadcastReceiver {
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                             if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
                                 if (message_list.length == 2) {
-                                    UssdUtils.send_ussd(context, message_list[1], sub_id);
+                                    UssdUtils.sendUssd(context, message_list[1], sub_id);
                                     return;
                                 }
                             }
@@ -238,7 +239,7 @@ public class SmsReceiver extends BroadcastReceiver {
 
 
         RequestBody body = OkHttpUtils.INSTANCE.toRequestBody(request_body);
-        OkHttpClient okhttp_client = NetworkUtils.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
+        OkHttpClient okhttp_client = NetworkUtils.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
         final String error_head = "Send SMS forward failed:";
@@ -247,9 +248,9 @@ public class SmsReceiver extends BroadcastReceiver {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
-                LogUtils.write_log(context, error_head + e.getMessage());
-                SmsUtils.send_fallback_sms(context, final_raw_request_body_text, sub_id);
-                ResendUtils.add_resend_loop(context, request_body.text);
+                LogUtils.writeLog(context, error_head + e.getMessage());
+                SmsUtils.sendFallbackSms(context, final_raw_request_body_text, sub_id);
+                ResendUtils.addResendLoop(context, request_body.text);
             }
 
             @Override
@@ -257,15 +258,15 @@ public class SmsReceiver extends BroadcastReceiver {
                 assert response.body() != null;
                 String result = Objects.requireNonNull(response.body()).string();
                 if (response.code() != 200) {
-                    LogUtils.write_log(context, error_head + response.code() + " " + result);
-                    SmsUtils.send_fallback_sms(context, final_raw_request_body_text, sub_id);
-                    ResendUtils.add_resend_loop(context, request_body.text);
+                    LogUtils.writeLog(context, error_head + response.code() + " " + result);
+                    SmsUtils.sendFallbackSms(context, final_raw_request_body_text, sub_id);
+                    ResendUtils.addResendLoop(context, request_body.text);
                 } else {
-                    if (!OtherUtils.is_phone_number(message_address)) {
-                        LogUtils.write_log(context, "[" + message_address + "] Not a regular phone number.");
+                    if (!OtherUtils.isPhoneNumber(message_address)) {
+                        LogUtils.writeLog(context, "[" + message_address + "] Not a regular phone number.");
                         return;
                     }
-                    OtherUtils.add_message_list(OtherUtils.get_message_id(result), message_address, slot);
+                    OtherUtils.addMessageList(OtherUtils.getMessageId(result), message_address, slot);
                 }
             }
         });

@@ -28,8 +28,8 @@ import io.paperdb.Paper;
 
 public class OtherUtils {
 
-    public static String get_nine_key_map_convert(String input) {
-        final Map<Character, Integer> nine_key_map = new HashMap<Character, Integer>() {
+    public static String getNineKeyMapConvert(String input) {
+        final Map<Character, Integer> nineKeyMap = new HashMap<Character, Integer>() {
             {
                 put('A', 2);
                 put('B', 2);
@@ -59,19 +59,19 @@ public class OtherUtils {
                 put('Z', 9);
             }
         };
-        StringBuilder result_stringbuilder = new StringBuilder();
+        StringBuilder stringBuilder = new StringBuilder();
         char[] phone_number_char_array = input.toUpperCase().toCharArray();
         for (char c : phone_number_char_array) {
             if (Character.isUpperCase(c)) {
-                result_stringbuilder.append(nine_key_map.get(c));
+                stringBuilder.append(nineKeyMap.get(c));
             } else {
-                result_stringbuilder.append(c);
+                stringBuilder.append(c);
             }
         }
-        return result_stringbuilder.toString();
+        return stringBuilder.toString();
     }
 
-    public static long parse_string_to_long(String content) {
+    public static long parseStringToLong(String content) {
         long result = 0;
         try {
             result = Long.parseLong(content);
@@ -82,8 +82,8 @@ public class OtherUtils {
     }
 
     @NotNull
-    public static String get_send_phone_number(@NotNull String phone_number) {
-        phone_number = get_nine_key_map_convert(phone_number);
+    public static String getSendPhoneNumber(@NotNull String phone_number) {
+        phone_number = getNineKeyMapConvert(phone_number);
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < phone_number.length(); ++i) {
             char c = phone_number.charAt(i);
@@ -94,22 +94,22 @@ public class OtherUtils {
         return result.toString();
     }
 
-    public static String get_dual_sim_card_display(Context context, int slot, boolean show_name) {
+    public static String getDualSimCardDisplay(Context context, int slot, boolean show_name) {
         String dual_sim = "";
         if (slot == -1) {
             return dual_sim;
         }
-        if (OtherUtils.get_active_card(context) >= 2) {
+        if (OtherUtils.getActiveCard(context) >= 2) {
             String result = "";
             if (show_name) {
-                result = "(" + get_sim_display_name(context, slot) + ")";
+                result = "(" + getSimDisplayName(context, slot) + ")";
             }
             dual_sim = "SIM" + (slot + 1) + result + " ";
         }
         return dual_sim;
     }
 
-    public static boolean is_phone_number(@NotNull String str) {
+    public static boolean isPhoneNumber(@NotNull String str) {
         for (int i = str.length(); --i >= 0; ) {
             char c = str.charAt(i);
             if (c == '+') {
@@ -124,13 +124,14 @@ public class OtherUtils {
     }
 
 
-    public static long get_message_id(String result) {
+    public static long getMessageId(String result) {
+        if (result == null) return -1;
         JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject().get("result").getAsJsonObject();
         return result_obj.get("message_id").getAsLong();
     }
 
     @NotNull
-    public static Notification get_notification_obj(Context context, String notification_name) {
+    public static Notification getNotificationObj(Context context, String notification_name) {
         Notification.Builder notification;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(notification_name, notification_name,
@@ -139,7 +140,7 @@ public class OtherUtils {
             assert manager != null;
             manager.createNotificationChannel(channel);
             notification = new Notification.Builder(context, notification_name);
-        } else {//Notification generation method after O
+        } else { // Notification generation method after O
             notification = new Notification.Builder(context).setPriority(Notification.PRIORITY_MIN);
         }
         notification.setAutoCancel(false)
@@ -151,8 +152,8 @@ public class OtherUtils {
         return notification.build();
     }
 
-    public static int get_sub_id(Context context, int slot) {
-        int active_card = OtherUtils.get_active_card(context);
+    public static int getSubId(Context context, int slot) {
+        int active_card = OtherUtils.getActiveCard(context);
         if (active_card >= 2) {
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
                 return -1;
@@ -164,7 +165,7 @@ public class OtherUtils {
         return -1;
     }
 
-    public static int get_active_card(Context context) {
+    public static int getActiveCard(Context context) {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             Log.d("get_active_card", "No permission.");
             return -1;
@@ -175,7 +176,7 @@ public class OtherUtils {
     }
 
 
-    public static String get_sim_display_name(Context context, int slot) {
+    public static String getSimDisplayName(Context context, int slot) {
         final String TAG = "get_sim_display_name";
         String result = "Unknown";
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
@@ -187,7 +188,7 @@ public class OtherUtils {
         SubscriptionInfo info = subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(slot);
         if (info == null) {
             Log.d(TAG, "The active card is in the second card slot.");
-            if (get_active_card(context) == 1 && slot == 0) {
+            if (getActiveCard(context) == 1 && slot == 0) {
                 info = subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(1);
             }
             if (info == null) {
@@ -203,7 +204,7 @@ public class OtherUtils {
     }
 
 
-    public static void add_message_list(long message_id, String phone, int slot) {
+    public static void addMessageList(long message_id, String phone, int slot) {
         SmsRequestInfo item = new SmsRequestInfo();
         item.phone = phone;
         item.card = slot;

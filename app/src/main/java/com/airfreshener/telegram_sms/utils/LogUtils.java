@@ -20,30 +20,30 @@ import java.util.Locale;
 import io.paperdb.Paper;
 
 public class LogUtils {
-    public static void write_log(@Nullable Context context, String log) {
+    public static void writeLog(@Nullable Context context, String log) {
         Log.i("write_log", log);
         if (context == null) return;
-        int new_file_mode = Context.MODE_APPEND;
+        int newFileMode = Context.MODE_APPEND;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(context.getString(R.string.time_format), Locale.UK);
         String write_string = "\n" + simpleDateFormat.format(new Date(System.currentTimeMillis())) + " " + log;
-        int log_count = Paper.book("system_config").read("log_count", 0);
-        if (log_count >= 50000) {
-            reset_log_file(context);
+        int logCount = Paper.book("system_config").read("log_count", 0);
+        if (logCount >= 50000) {
+            resetLogFile(context);
         }
-        Paper.book("system_config").write("log_count", ++log_count);
-        write_log_file(context, write_string, new_file_mode);
+        Paper.book("system_config").write("log_count", ++logCount);
+        writeLogFile(context, write_string, newFileMode);
     }
 
-    public static String read_log(@Nullable Context context, int line) {
+    public static String readLog(@Nullable Context context, int line) {
         if (context == null) return "";
         String result = context.getString(R.string.no_logs);
         String TAG = "read_file_last_line";
         StringBuilder builder = new StringBuilder();
-        FileInputStream file_stream = null;
+        FileInputStream inputStream = null;
         FileChannel channel = null;
         try {
-            file_stream = context.openFileInput("error.log");
-            channel = file_stream.getChannel();
+            inputStream = context.openFileInput("error.log");
+            channel = inputStream.getChannel();
             ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
             buffer.position((int) channel.size());
             int count = 0;
@@ -68,8 +68,8 @@ public class LogUtils {
             return result;
         } finally {
             try {
-                if (file_stream != null) {
-                    file_stream.close();
+                if (inputStream != null) {
+                    inputStream.close();
                 }
                 if (channel != null) {
                     channel.close();
@@ -80,23 +80,23 @@ public class LogUtils {
         }
     }
 
-    public static void reset_log_file(Context context) {
+    public static void resetLogFile(Context context) {
         Paper.book("system_config").delete("log_count");
-        write_log_file(context, "", Context.MODE_PRIVATE);
+        writeLogFile(context, "", Context.MODE_PRIVATE);
     }
 
-    private static void write_log_file(@NotNull Context context, @NotNull String write_string, int mode) {
-        FileOutputStream file_stream = null;
+    private static void writeLogFile(@NotNull Context context, @NotNull String writeString, int mode) {
+        FileOutputStream outputStream = null;
         try {
-            file_stream = context.openFileOutput("error.log", mode);
-            byte[] bytes = write_string.getBytes();
-            file_stream.write(bytes);
+            outputStream = context.openFileOutput("error.log", mode);
+            byte[] bytes = writeString.getBytes();
+            outputStream.write(bytes);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if (file_stream != null) {
+            if (outputStream != null) {
                 try {
-                    file_stream.close();
+                    outputStream.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

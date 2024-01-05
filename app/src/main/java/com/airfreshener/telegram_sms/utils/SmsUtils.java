@@ -31,84 +31,91 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class SmsUtils {
-    public static void send_sms(Context context, String send_to, String content, int slot, int sub_id) {
-        send_sms(context, send_to, content, slot, sub_id, -1);
+    public static void sendSms(Context context, String send_to, String content, int slot, int sub_id) {
+        sendSms(context, send_to, content, slot, sub_id, -1);
     }
 
     @SuppressLint("UnspecifiedImmutableFlag")
-    public static void send_sms(Context context, String send_to, String content, int slot, int sub_id, long message_id) {
+    public static void sendSms(
+            Context context,
+            String sendTo,
+            String content,
+            int slot,
+            int sub_id,
+            long messageId
+    ) {
         if (PermissionChecker.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PermissionChecker.PERMISSION_GRANTED) {
             Log.d("send_sms", "No permission.");
             return;
         }
-        if (!OtherUtils.is_phone_number(send_to)) {
-            LogUtils.write_log(context, "[" + send_to + "] is an illegal phone number");
+        if (!OtherUtils.isPhoneNumber(sendTo)) {
+            LogUtils.writeLog(context, "[" + sendTo + "] is an illegal phone number");
             return;
         }
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
-        String bot_token = sharedPreferences.getString("bot_token", "");
-        String chat_id = sharedPreferences.getString("chat_id", "");
-        String request_uri = NetworkUtils.get_url(bot_token, "sendMessage");
-        if (message_id != -1) {
+        String botToken = sharedPreferences.getString("bot_token", "");
+        String chatId = sharedPreferences.getString("chat_id", "");
+        String requestUri = NetworkUtils.getUrl(botToken, "sendMessage");
+        if (messageId != -1) {
             Log.d("send_sms", "Find the message_id and switch to edit mode.");
-            request_uri = NetworkUtils.get_url(bot_token, "editMessageText");
+            requestUri = NetworkUtils.getUrl(botToken, "editMessageText");
         }
-        RequestMessage request_body = new RequestMessage();
-        request_body.chat_id = chat_id;
-        SmsManager sms_manager;
+        RequestMessage requestBody = new RequestMessage();
+        requestBody.chat_id = chatId;
+        SmsManager smsManager;
         if (sub_id == -1) {
-            sms_manager = SmsManager.getDefault();
+            smsManager = SmsManager.getDefault();
         } else {
-            sms_manager = SmsManager.getSmsManagerForSubscriptionId(sub_id);
+            smsManager = SmsManager.getSmsManagerForSubscriptionId(sub_id);
         }
-        String dual_sim = OtherUtils.get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
-        String send_content = "[" + dual_sim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + send_to + "\n" + context.getString(R.string.content) + content;
-        request_body.text = send_content + "\n" + context.getString(R.string.status) + context.getString(R.string.sending);
-        request_body.message_id = message_id;
-        RequestBody body = OkHttpUtils.INSTANCE.toRequestBody(request_body);
-        OkHttpClient okhttp_client = NetworkUtils.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
-        Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-        Call call = okhttp_client.newCall(request);
+        String dualSim = OtherUtils.getDualSimCardDisplay(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
+        String sendContent = "[" + dualSim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + sendTo + "\n" + context.getString(R.string.content) + content;
+        requestBody.text = sendContent + "\n" + context.getString(R.string.status) + context.getString(R.string.sending);
+        requestBody.message_id = messageId;
+        RequestBody body = OkHttpUtils.INSTANCE.toRequestBody(requestBody);
+        OkHttpClient okHttpClient = NetworkUtils.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
+        Request request = new Request.Builder().url(requestUri).method("POST", body).build();
+        Call call = okHttpClient.newCall(request);
         try {
             Response response = call.execute();
             if (response.code() != 200 || response.body() == null) {
                 throw new IOException(String.valueOf(response.code()));
             }
-            if (message_id == -1) {
-                message_id = OtherUtils.get_message_id(Objects.requireNonNull(response.body()).string());
+            if (messageId == -1) {
+                messageId = OtherUtils.getMessageId(Objects.requireNonNull(response.body()).string());
             }
         } catch (IOException e) {
             e.printStackTrace();
-            LogUtils.write_log(context, "failed to send message:" + e.getMessage());
+            LogUtils.writeLog(context, "failed to send message:" + e.getMessage());
         }
-        ArrayList<String> divideContents = sms_manager.divideMessage(content);
-        ArrayList<PendingIntent> send_receiver_list = new ArrayList<>();
+        ArrayList<String> divideContents = smsManager.divideMessage(content);
+        ArrayList<PendingIntent> sendReceiverList = new ArrayList<>();
         IntentFilter filter = new IntentFilter("send_sms");
         BroadcastReceiver receiver = new SmsSendReceiver();
         context.getApplicationContext().registerReceiver(receiver, filter);
-        Intent sent_intent = new Intent("send_sms");
-        sent_intent.putExtra("message_id", message_id);
-        sent_intent.putExtra("message_text", send_content);
-        sent_intent.putExtra("sub_id", sms_manager.getSubscriptionId());
-        PendingIntent sentIntent;
+        Intent sentIntent = new Intent("send_sms");
+        sentIntent.putExtra("message_id", messageId);
+        sentIntent.putExtra("message_text", sendContent);
+        sentIntent.putExtra("sub_id", smsManager.getSubscriptionId());
+        PendingIntent pendingIntent;
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            sentIntent = PendingIntent.getBroadcast(context, 0, sent_intent, PendingIntent.FLAG_IMMUTABLE);
+            pendingIntent = PendingIntent.getBroadcast(context, 0, sentIntent, PendingIntent.FLAG_IMMUTABLE);
         }else{
-            sentIntent = PendingIntent.getBroadcast(context, 0, sent_intent, PendingIntent.FLAG_CANCEL_CURRENT);
+            pendingIntent = PendingIntent.getBroadcast(context, 0, sentIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         }
-        send_receiver_list.add(sentIntent);
-        sms_manager.sendMultipartTextMessage(send_to, null, divideContents, send_receiver_list, null);
+        sendReceiverList.add(pendingIntent);
+        smsManager.sendMultipartTextMessage(sendTo, null, divideContents, sendReceiverList, null);
     }
 
-    public static void send_fallback_sms(Context context, String content, int sub_id) {
+    public static void sendFallbackSms(Context context, String content, int sub_id) {
         final String TAG = "send_fallback_sms";
         if (PermissionChecker.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PermissionChecker.PERMISSION_GRANTED) {
             Log.d(TAG, "No permission.");
             return;
         }
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
-        String trust_number = sharedPreferences.getString("trusted_phone_number", null);
-        if (trust_number == null) {
+        String trustedPhoneNumber = sharedPreferences.getString("trusted_phone_number", null);
+        if (trustedPhoneNumber == null) {
             Log.i(TAG, "The trusted number is empty.");
             return;
         }
@@ -116,14 +123,13 @@ public class SmsUtils {
             Log.i(TAG, "SMS fallback is not turned on.");
             return;
         }
-        SmsManager sms_manager;
+        SmsManager smsManager;
         if (sub_id == -1) {
-            sms_manager = SmsManager.getDefault();
+            smsManager = SmsManager.getDefault();
         } else {
-            sms_manager = SmsManager.getSmsManagerForSubscriptionId(sub_id);
+            smsManager = SmsManager.getSmsManagerForSubscriptionId(sub_id);
         }
-        ArrayList<String> divideContents = sms_manager.divideMessage(content);
-        sms_manager.sendMultipartTextMessage(trust_number, null, divideContents, null, null);
-
+        ArrayList<String> divideContents = smsManager.divideMessage(content);
+        smsManager.sendMultipartTextMessage(trustedPhoneNumber, null, divideContents, null, null);
     }
 }

@@ -1,8 +1,8 @@
 package com.airfreshener.telegram_sms.model
 
 class SmsRequestInfo {
-    @kotlin.jvm.JvmField
+    @JvmField
     var phone: String? = null
-    @kotlin.jvm.JvmField
+    @JvmField
     var card = 0
 }

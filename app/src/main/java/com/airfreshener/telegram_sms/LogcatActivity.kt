@@ -10,28 +10,29 @@ import androidx.appcompat.app.AppCompatActivity
 import com.airfreshener.telegram_sms.utils.LogUtils
 
 class LogcatActivity : AppCompatActivity() {
+
     private var context: Context? = null
-    private var observer: file_observer? = null
-    private var logcat_textview: TextView? = null
-    private val line = 100
+    private var observer: LogcatFileObserver? = null
+    private var logcatTextView: TextView? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         context = applicationContext
         setContentView(R.layout.activity_logcat)
-        logcat_textview = findViewById(R.id.logcat_textview)
+        val logcatTextView = findViewById<TextView>(R.id.logcat_textview).apply { logcatTextView = this }
         this.setTitle(R.string.logcat)
-        logcat_textview?.setText(LogUtils.read_log(context, line))
-        observer = file_observer(applicationContext, logcat_textview)
+        logcatTextView.text = LogUtils.readLog(context, LINES_COUNT)
+        observer = LogcatFileObserver(applicationContext, logcatTextView)
     }
 
     public override fun onPause() {
         super.onPause()
-        observer!!.stopWatching()
+        observer?.stopWatching()
     }
 
     public override fun onResume() {
         super.onResume()
-        logcat_textview?.text = LogUtils.read_log(context, line)
+        logcatTextView?.text = LogUtils.readLog(context, LINES_COUNT)
         observer?.startWatching()
     }
 
@@ -41,18 +42,22 @@ class LogcatActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        LogUtils.reset_log_file(context)
+        LogUtils.resetLogFile(context)
         return true
     }
 
-    private inner class file_observer(
+    private inner class LogcatFileObserver(
         private val context: Context,
-        private val logcat: TextView?
+        private val logcat: TextView
     ) : FileObserver(context.filesDir.absolutePath) {
         override fun onEvent(event: Int, path: String?) {
-            if (event == MODIFY && path!!.contains("error.log")) {
-                runOnUiThread { logcat!!.text = LogUtils.read_log(context, line) }
+            if (event == MODIFY && path?.contains("error.log") == true) {
+                runOnUiThread { logcat.text = LogUtils.readLog(context, LINES_COUNT) }
             }
         }
+    }
+
+    companion object {
+        private const val LINES_COUNT = 100
     }
 }

@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Set;
 
 public class ServiceUtils {
-    public static void stop_all_service(@NotNull Context context) {
+    public static void stopAllService(@NotNull Context context) {
         Intent intent = new Intent(Consts.BROADCAST_STOP_SERVICE);
         context.sendBroadcast(intent);
         try {
@@ -28,10 +28,14 @@ public class ServiceUtils {
         }
     }
 
-    public static void start_service(Context context, Boolean battery_switch, Boolean chat_command_switch) {
-        Intent battery_service = new Intent(context, BatteryService.class);
-        Intent chat_long_polling_service = new Intent(context, ChatCommandService.class);
-        if (is_notify_listener(context)) {
+    public static void startService(
+            Context context,
+            Boolean batterySwitch,
+            Boolean chatCommandSwitch
+    ) {
+        Intent batteryService = new Intent(context, BatteryService.class);
+        Intent chatPollingService = new Intent(context, ChatCommandService.class);
+        if (isNotifyListener(context)) {
             Log.d("start_service", "start_service: ");
             ComponentName thisComponent = new ComponentName(context, NotificationListenerService.class);
             PackageManager pm = context.getPackageManager();
@@ -39,23 +43,23 @@ public class ServiceUtils {
             pm.setComponentEnabledSetting(thisComponent, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (battery_switch) {
-                context.startForegroundService(battery_service);
+            if (batterySwitch) {
+                context.startForegroundService(batteryService);
             }
-            if (chat_command_switch) {
-                context.startForegroundService(chat_long_polling_service);
+            if (chatCommandSwitch) {
+                context.startForegroundService(chatPollingService);
             }
         } else {
-            if (battery_switch) {
-                context.startService(battery_service);
+            if (batterySwitch) {
+                context.startService(batteryService);
             }
-            if (chat_command_switch) {
-                context.startService(chat_long_polling_service);
+            if (chatCommandSwitch) {
+                context.startService(chatPollingService);
             }
         }
     }
 
-    public static boolean is_notify_listener(Context context) {
+    public static boolean isNotifyListener(Context context) {
         Set<String> packageNames = NotificationManagerCompat.getEnabledListenerPackages(context);
         return packageNames.contains(context.getPackageName());
     }

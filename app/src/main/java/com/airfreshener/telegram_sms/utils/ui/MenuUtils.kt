@@ -22,36 +22,36 @@ object MenuUtils {
         sharedPreferences: SharedPreferences,
         onOkCallback: OkCallback
     ) {
-        val proxy_dialog_view = inflater.inflate(R.layout.set_proxy_layout, null)
-        val proxy_enable = proxy_dialog_view.findViewById<SwitchMaterial>(R.id.proxy_enable_switch)
-        val proxy_doh_socks5 =
-            proxy_dialog_view.findViewById<SwitchMaterial>(R.id.doh_over_socks5_switch)
-        val proxy_host = proxy_dialog_view.findViewById<EditText>(R.id.proxy_host_editview)
-        val proxy_port = proxy_dialog_view.findViewById<EditText>(R.id.proxy_port_editview)
-        val proxy_username = proxy_dialog_view.findViewById<EditText>(R.id.proxy_username_editview)
-        val proxy_password = proxy_dialog_view.findViewById<EditText>(R.id.proxy_password_editview)
-        val proxy_item = Paper.book("system_config").read("proxy_config", ProxyConfigV2())
-        proxy_enable.isChecked = proxy_item!!.enable
-        proxy_doh_socks5.isChecked = proxy_item.dns_over_socks5
-        proxy_host.setText(proxy_item.host)
-        proxy_port.setText(proxy_item.port.toString())
-        proxy_username.setText(proxy_item.username)
-        proxy_password.setText(proxy_item.password)
+        val proxyDialogView = inflater.inflate(R.layout.set_proxy_layout, null)
+        val proxyEnableView = proxyDialogView.findViewById<SwitchMaterial>(R.id.proxy_enable_switch)
+        val proxyDohSocks5View =
+            proxyDialogView.findViewById<SwitchMaterial>(R.id.doh_over_socks5_switch)
+        val proxyHostView = proxyDialogView.findViewById<EditText>(R.id.proxy_host_editview)
+        val proxyPortView = proxyDialogView.findViewById<EditText>(R.id.proxy_port_editview)
+        val proxyUsernameView = proxyDialogView.findViewById<EditText>(R.id.proxy_username_editview)
+        val proxyPasswordView = proxyDialogView.findViewById<EditText>(R.id.proxy_password_editview)
+        val proxyItem = Paper.book("system_config").read("proxy_config", ProxyConfigV2())
+        proxyEnableView.isChecked = proxyItem!!.enable
+        proxyDohSocks5View.isChecked = proxyItem.dns_over_socks5
+        proxyHostView.setText(proxyItem.host)
+        proxyPortView.setText(proxyItem.port.toString())
+        proxyUsernameView.setText(proxyItem.username)
+        proxyPasswordView.setText(proxyItem.password)
         AlertDialog.Builder(activity).setTitle(R.string.proxy_dialog_title)
-            .setView(proxy_dialog_view)
+            .setView(proxyDialogView)
             .setPositiveButton(R.string.ok_button) { dialog: DialogInterface?, which: Int ->
-                onOkCallback.onOkClicked(proxy_enable.isChecked)
-                proxy_item.enable = proxy_enable.isChecked
-                proxy_item.dns_over_socks5 = proxy_doh_socks5.isChecked
-                proxy_item.host = proxy_host.text.toString()
-                proxy_item.port = proxy_port.text.toString().toInt()
-                proxy_item.username = proxy_username.text.toString()
-                proxy_item.password = proxy_password.text.toString()
-                Paper.book("system_config").write("proxy_config", proxy_item)
+                onOkCallback.onOkClicked(proxyEnableView.isChecked)
+                proxyItem.enable = proxyEnableView.isChecked
+                proxyItem.dns_over_socks5 = proxyDohSocks5View.isChecked
+                proxyItem.host = proxyHostView.text.toString()
+                proxyItem.port = proxyPortView.text.toString().toInt()
+                proxyItem.username = proxyUsernameView.text.toString()
+                proxyItem.password = proxyPasswordView.text.toString()
+                Paper.book("system_config").write("proxy_config", proxyItem)
                 Thread {
-                    ServiceUtils.stop_all_service(context!!)
+                    ServiceUtils.stopAllService(context!!)
                     if (sharedPreferences.getBoolean("initialized", false)) {
-                        ServiceUtils.start_service(
+                        ServiceUtils.startService(
                             context,
                             sharedPreferences.getBoolean("battery_monitoring_switch", false),
                             sharedPreferences.getBoolean("chat_command", false)

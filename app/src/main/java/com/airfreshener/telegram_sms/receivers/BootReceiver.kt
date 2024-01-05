@@ -11,29 +11,27 @@ import io.paperdb.Paper
 
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val TAG = "boot_receiver"
         Log.d(TAG, "Receive action: " + intent.action)
         val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
         if (sharedPreferences.getBoolean("initialized", false)) {
             Paper.init(context)
-            LogUtils.write_log(
+            LogUtils.writeLog(
                 context,
-                "Received [" + intent.action + "] broadcast, starting background service."
+                "Received [${intent.action}] broadcast, starting background service."
             )
-            ServiceUtils.start_service(
+            ServiceUtils.startService(
                 context,
                 sharedPreferences.getBoolean("battery_monitoring_switch", false),
                 sharedPreferences.getBoolean("chat_command", false)
             )
-            if (Paper.book()
-                    .read("resend_list", ArrayList<Any>())!!.size != 0
-            ) {
-                Log.d(
-                    TAG,
-                    "An unsent message was detected, and the automatic resend process was initiated."
-                )
-                ResendUtils.start_resend(context)
+            if (Paper.book().read("resend_list", ArrayList<Any>())!!.size != 0) {
+                Log.d(TAG, "An unsent message was detected, and the automatic resend process was initiated.")
+                ResendUtils.startResend(context)
             }
         }
+    }
+
+    companion object {
+        private const val TAG = "boot_receiver"
     }
 }

@@ -7,7 +7,7 @@ import io.paperdb.Paper
 
 class UpdateVersion1 {
 
-    fun check_error() {
+    fun checkError() {
         try {
             Paper.book("system_config").read("proxy_config", ProxyConfigV2())
         } catch (e: Exception) {
@@ -19,20 +19,22 @@ class UpdateVersion1 {
 
     fun update() {
         Log.i(TAG, "onReceive: Start the configuration file conversion")
-        val notify_listen_list: List<String> =
+        val notifyListenList: List<String> =
             Paper.book().read("notify_listen_list", ArrayList())!!
-        val black_keyword_list = Paper.book().read("black_keyword_list", ArrayList<String>())!!
-        val outdated_proxy_item = Paper.book().read("proxy_config", ProxyConfigV1())
+        val blackKeywordList = Paper.book().read("black_keyword_list", ArrayList<String>())!!
+        val outdatedProxyItem = Paper.book().read("proxy_config", ProxyConfigV1())
         //Replacement object
-        val proxy_item = ProxyConfigV2()
-        proxy_item.dns_over_socks5 = outdated_proxy_item!!.dns_over_socks5
-        proxy_item.enable = outdated_proxy_item.enable
-        proxy_item.password = outdated_proxy_item.password
-        proxy_item.username = outdated_proxy_item.username
-        proxy_item.host = outdated_proxy_item.proxy_host
-        proxy_item.port = outdated_proxy_item.proxy_port
-        Paper.book("system_config").write("notify_listen_list", notify_listen_list)
-            .write("block_keyword_list", black_keyword_list).write("proxy_config", proxy_item)
+        val proxyItem = ProxyConfigV2()
+        proxyItem.dns_over_socks5 = outdatedProxyItem!!.dns_over_socks5
+        proxyItem.enable = outdatedProxyItem.enable
+        proxyItem.password = outdatedProxyItem.password
+        proxyItem.username = outdatedProxyItem.username
+        proxyItem.host = outdatedProxyItem.proxy_host
+        proxyItem.port = outdatedProxyItem.proxy_port
+        Paper.book("system_config")
+            .write("notify_listen_list", notifyListenList)
+            .write("block_keyword_list", blackKeywordList)
+            .write("proxy_config", proxyItem)
         Paper.book("system_config").write("version", 1)
         Paper.book().destroy()
     }

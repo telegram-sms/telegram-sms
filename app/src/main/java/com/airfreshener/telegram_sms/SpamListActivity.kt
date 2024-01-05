@@ -15,56 +15,57 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import io.paperdb.Paper
 
 class SpamListActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_spam_list)
         val inflater = this.layoutInflater
         val fab = findViewById<FloatingActionButton>(R.id.spam_list_fab)
-        val spam_list = findViewById<ListView>(R.id.spam_list)
-        val block_keyword_list =
+        val spamList = findViewById<ListView>(R.id.spam_list)
+        val blockKeywordList =
             Paper.book("system_config").read("block_keyword_list", ArrayList<String>())!!
-        val spam_list_adapter = ArrayAdapter(
+        val spamListAdapter = ArrayAdapter(
             this, android.R.layout.simple_list_item_1,
-            block_keyword_list
+            blockKeywordList
         )
-        spam_list.adapter = spam_list_adapter
-        spam_list.onItemClickListener =
+        spamList.adapter = spamListAdapter
+        spamList.onItemClickListener =
             OnItemClickListener { parent: AdapterView<*>?, view: View?, position: Int, id: Long ->
-                val spam_dialog_view = inflater.inflate(R.layout.set_keyword_layout, null)
+                val spamDialogView = inflater.inflate(R.layout.set_keyword_layout, null)
                 val editText =
-                    spam_dialog_view.findViewById<EditText>(R.id.spam_sms_keyword_editview)
-                editText.setText(block_keyword_list[position])
+                    spamDialogView.findViewById<EditText>(R.id.spam_sms_keyword_editview)
+                editText.setText(blockKeywordList[position])
                 AlertDialog.Builder(this@SpamListActivity)
                     .setTitle(R.string.spam_keyword_edit_title)
-                    .setView(spam_dialog_view)
+                    .setView(spamDialogView)
                     .setPositiveButton(R.string.ok_button) { dialog: DialogInterface?, which: Int ->
-                        block_keyword_list[position] = editText.text.toString()
-                        save_and_flush(block_keyword_list, spam_list_adapter)
+                        blockKeywordList[position] = editText.text.toString()
+                        saveAndFlush(blockKeywordList, spamListAdapter)
                     }
                     .setNeutralButton(R.string.cancel_button, null)
                     .setNegativeButton(R.string.delete_button) { dialog: DialogInterface?, which: Int ->
-                        block_keyword_list.removeAt(position)
-                        save_and_flush(block_keyword_list, spam_list_adapter)
+                        blockKeywordList.removeAt(position)
+                        saveAndFlush(blockKeywordList, spamListAdapter)
                     }
                     .show()
             }
         fab.setOnClickListener { v: View? ->
-            val spam_dialog_view = inflater.inflate(R.layout.set_keyword_layout, null)
-            val editText = spam_dialog_view.findViewById<EditText>(R.id.spam_sms_keyword_editview)
+            val spamDialogView = inflater.inflate(R.layout.set_keyword_layout, null)
+            val editText = spamDialogView.findViewById<EditText>(R.id.spam_sms_keyword_editview)
             AlertDialog.Builder(this@SpamListActivity).setTitle(R.string.spam_keyword_add_title)
-                .setView(spam_dialog_view)
+                .setView(spamDialogView)
                 .setPositiveButton(R.string.ok_button) { dialog: DialogInterface?, which: Int ->
-                    block_keyword_list.add(editText.text.toString())
-                    save_and_flush(block_keyword_list, spam_list_adapter)
+                    blockKeywordList.add(editText.text.toString())
+                    saveAndFlush(blockKeywordList, spamListAdapter)
                 }
                 .setNeutralButton(R.string.cancel_button, null)
                 .show()
         }
     }
 
-    private fun save_and_flush(block_keyword_list: ArrayList<String>, list_adapter: ArrayAdapter<String>) {
-        Log.d("save_and_flush", block_keyword_list.toString())
-        Paper.book("system_config").write("block_keyword_list", block_keyword_list)
-        list_adapter.notifyDataSetChanged()
+    private fun saveAndFlush(blockKeywordList: ArrayList<String>, listAdapter: ArrayAdapter<String>) {
+        Log.d("save_and_flush", blockKeywordList.toString())
+        Paper.book("system_config").write("block_keyword_list", blockKeywordList)
+        listAdapter.notifyDataSetChanged()
     }
 }

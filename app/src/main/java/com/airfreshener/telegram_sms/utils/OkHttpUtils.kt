@@ -7,8 +7,8 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 
 object OkHttpUtils {
-    val JSON: MediaType = "application/json; charset=utf-8".toMediaTypeOrNull()!!
-    val gson = Gson()
+    private val JSON: MediaType = "application/json; charset=utf-8".toMediaTypeOrNull()!!
+    private val gson = Gson()
 
     fun Any.toRequestBody(): RequestBody = gson.toJson(this).toRequestBody(JSON)
 }

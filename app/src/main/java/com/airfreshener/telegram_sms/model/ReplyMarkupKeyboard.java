@@ -2,18 +2,18 @@ package com.airfreshener.telegram_sms.model;
 
 import java.util.ArrayList;
 
-@SuppressWarnings({"unused", "RedundantSuppression"})
 public class ReplyMarkupKeyboard {
-    public static ArrayList<InlineKeyboardButton> get_inline_keyboard_obj(String text, String callback_data) {
+    public static ArrayList<InlineKeyboardButton> getInlineKeyboardObj(String text, String callbackData) {
         InlineKeyboardButton button = new InlineKeyboardButton();
         button.text = text;
-        button.callback_data = callback_data;
-        ArrayList<InlineKeyboardButton> button_ArrayList = new ArrayList<>();
-        button_ArrayList.add(button);
-        return button_ArrayList;
+        button.callback_data = callbackData;
+        ArrayList<InlineKeyboardButton> buttonArraylist = new ArrayList<>();
+        buttonArraylist.add(button);
+        return buttonArraylist;
     }
 
-    public static class keyboard_markup {
+    @SuppressWarnings("unused")
+    public static class KeyboardMarkup {
         public ArrayList<ArrayList<InlineKeyboardButton>> inline_keyboard;
         boolean one_time_keyboard = true;
     }

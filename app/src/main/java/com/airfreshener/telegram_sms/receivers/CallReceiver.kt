@@ -13,25 +13,27 @@ import java.util.*
 class CallReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         Paper.init(context)
-        Log.d("call_receiver", "Receive action: " + intent.action)
+        Log.d(TAG, "Receive action: " + intent.action)
         when (Objects.requireNonNull(intent.action)) {
-            "android.intent.action.PHONE_STATE" -> {
+            PHONE_STATE -> {
                 if (intent.getStringExtra("incoming_number") != null) {
-                    incoming_number = intent.getStringExtra("incoming_number")
+                    incomingNumber = intent.getStringExtra("incoming_number")
                 }
                 val telephony = context
-                    .getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-                val custom_phone_listener = CallStatusListener(context, slot, incoming_number)
-                assert(telephony != null)
-                telephony.listen(custom_phone_listener, PhoneStateListener.LISTEN_CALL_STATE)
+                    .getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+                val customPhoneListener = CallStatusListener(context, slot, incomingNumber)
+                telephony?.listen(customPhoneListener, PhoneStateListener.LISTEN_CALL_STATE)
             }
-            "android.intent.action.SUBSCRIPTION_PHONE_STATE" -> slot =
-                intent.getIntExtra("slot", -1)
+            SUBSCRIPTION_PHONE_STATE -> slot = intent.getIntExtra("slot", -1)
         }
     }
 
     companion object {
         private var slot = 0
-        private var incoming_number: String? = null
+        private var incomingNumber: String? = null
+
+        private const val PHONE_STATE = "android.intent.action.PHONE_STATE"
+        private const val SUBSCRIPTION_PHONE_STATE = "android.intent.action.SUBSCRIPTION_PHONE_STATE"
+        private const val TAG = "CallReceiver"
     }
 }
