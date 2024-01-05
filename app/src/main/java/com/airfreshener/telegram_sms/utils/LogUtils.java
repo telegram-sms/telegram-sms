@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms.static_class;
+package com.airfreshener.telegram_sms.utils;
 
 import android.content.Context;
 import android.util.Log;
@@ -6,6 +6,7 @@ import android.util.Log;
 import com.airfreshener.telegram_sms.R;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -18,9 +19,10 @@ import java.util.Locale;
 
 import io.paperdb.Paper;
 
-public class log_func {
-    public static void write_log(@NotNull Context context, String log) {
+public class LogUtils {
+    public static void write_log(@Nullable Context context, String log) {
         Log.i("write_log", log);
+        if (context == null) return;
         int new_file_mode = Context.MODE_APPEND;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(context.getString(R.string.time_format), Locale.UK);
         String write_string = "\n" + simpleDateFormat.format(new Date(System.currentTimeMillis())) + " " + log;
@@ -32,7 +34,8 @@ public class log_func {
         write_log_file(context, write_string, new_file_mode);
     }
 
-    public static String read_log(@NotNull Context context, int line) {
+    public static String read_log(@Nullable Context context, int line) {
+        if (context == null) return "";
         String result = context.getString(R.string.no_logs);
         String TAG = "read_file_last_line";
         StringBuilder builder = new StringBuilder();

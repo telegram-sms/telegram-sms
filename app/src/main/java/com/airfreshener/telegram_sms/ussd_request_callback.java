@@ -9,12 +9,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import com.google.gson.Gson;
-import com.airfreshener.telegram_sms.config.proxy;
-import com.airfreshener.telegram_sms.data_structure.request_message;
-import com.airfreshener.telegram_sms.static_class.log_func;
-import com.airfreshener.telegram_sms.static_class.network_func;
-import com.airfreshener.telegram_sms.static_class.resend_func;
-import com.airfreshener.telegram_sms.static_class.sms_func;
+import com.airfreshener.telegram_sms.config.ProxyConfigV2;
+import com.airfreshener.telegram_sms.model.RequestMessage;
+import com.airfreshener.telegram_sms.utils.LogUtils;
+import com.airfreshener.telegram_sms.utils.NetworkUtils;
+import com.airfreshener.telegram_sms.utils.ResendUtils;
+import com.airfreshener.telegram_sms.utils.SmsUtils;
 import com.airfreshener.telegram_sms.value.const_value;
 
 import org.jetbrains.annotations.NotNull;
@@ -37,19 +37,19 @@ class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
     private final boolean doh_switch;
     private String request_uri;
     private final String message_header;
-    private final request_message request_body;
+    private final RequestMessage request_body;
 
     public ussd_request_callback(Context context, @NotNull SharedPreferences sharedPreferences, long message_id) {
         this.context = context;
         Paper.init(context);
         String chat_id = sharedPreferences.getString("chat_id", "");
         this.doh_switch = sharedPreferences.getBoolean("doh_switch", true);
-        this.request_body = new request_message();
+        this.request_body = new RequestMessage();
         this.request_body.chat_id = chat_id;
         String bot_token = sharedPreferences.getString("bot_token", "");
-        this.request_uri = network_func.get_url(bot_token, "SendMessage");
+        this.request_uri = NetworkUtils.get_url(bot_token, "SendMessage");
         if (message_id != -1) {
-            this.request_uri = network_func.get_url(bot_token, "editMessageText");
+            this.request_uri = NetworkUtils.get_url(bot_token, "editMessageText");
             this.request_body.message_id = message_id;
         }
         this.message_header = context.getString(R.string.send_ussd_head);
@@ -73,7 +73,7 @@ class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
         request_body.text = message;
         String request_body_json = new Gson().toJson(request_body);
         RequestBody body = RequestBody.create(request_body_json, const_value.JSON);
-        OkHttpClient okhttp_client = network_func.get_okhttp_obj(doh_switch, Paper.book("system_config").read("proxy_config", new proxy()));
+        OkHttpClient okhttp_client = NetworkUtils.get_okhttp_obj(doh_switch, Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
         Request request_obj = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request_obj);
         final String error_head = "Send USSD failed:";
@@ -81,18 +81,18 @@ class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
-                log_func.write_log(context, error_head + e.getMessage());
-                sms_func.send_fallback_sms(context, request_body.text, -1);
-                resend_func.add_resend_loop(context, request_body.text);
+                LogUtils.write_log(context, error_head + e.getMessage());
+                SmsUtils.send_fallback_sms(context, request_body.text, -1);
+                ResendUtils.add_resend_loop(context, request_body.text);
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
                     assert response.body() != null;
-                    log_func.write_log(context, error_head + response.code() + " " + Objects.requireNonNull(response.body()).string());
-                    sms_func.send_fallback_sms(context, request_body.text, -1);
-                    resend_func.add_resend_loop(context, request_body.text);
+                    LogUtils.write_log(context, error_head + response.code() + " " + Objects.requireNonNull(response.body()).string());
+                    SmsUtils.send_fallback_sms(context, request_body.text, -1);
+                    ResendUtils.add_resend_loop(context, request_body.text);
                 }
             }
         });

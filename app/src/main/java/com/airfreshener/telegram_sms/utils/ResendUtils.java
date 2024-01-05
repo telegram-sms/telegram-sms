@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms.static_class;
+package com.airfreshener.telegram_sms.utils;
 
 import android.content.Context;
 import android.content.Intent;
@@ -14,8 +14,7 @@ import java.util.Locale;
 
 import io.paperdb.Paper;
 
-public class
-resend_func {
+public class ResendUtils {
     public static void add_resend_loop(Context context, String message) {
         ArrayList<String> resend_list;
         Paper.init(context);

@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms.static_class;
+package com.airfreshener.telegram_sms.utils;
 
 import android.Manifest;
 import android.app.Notification;
@@ -16,7 +16,7 @@ import androidx.core.app.ActivityCompat;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.airfreshener.telegram_sms.R;
-import com.airfreshener.telegram_sms.data_structure.sms_request_info;
+import com.airfreshener.telegram_sms.model.SmsRequestInfo;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +26,7 @@ import java.util.Map;
 import io.paperdb.Paper;
 
 
-public class other_func {
+public class OtherUrils {
 
     public static String get_nine_key_map_convert(String input) {
         final Map<Character, Integer> nine_key_map = new HashMap<Character, Integer>() {
@@ -99,7 +99,7 @@ public class other_func {
         if (slot == -1) {
             return dual_sim;
         }
-        if (other_func.get_active_card(context) >= 2) {
+        if (OtherUrils.get_active_card(context) >= 2) {
             String result = "";
             if (show_name) {
                 result = "(" + get_sim_display_name(context, slot) + ")";
@@ -152,7 +152,7 @@ public class other_func {
     }
 
     public static int get_sub_id(Context context, int slot) {
-        int active_card = other_func.get_active_card(context);
+        int active_card = OtherUrils.get_active_card(context);
         if (active_card >= 2) {
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
                 return -1;
@@ -204,7 +204,7 @@ public class other_func {
 
 
     public static void add_message_list(long message_id, String phone, int slot) {
-        sms_request_info item = new sms_request_info();
+        SmsRequestInfo item = new SmsRequestInfo();
         item.phone = phone;
         item.card = slot;
         Paper.book().write(String.valueOf(message_id), item);

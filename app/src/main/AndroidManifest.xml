@@ -121,7 +121,7 @@
         </receiver>
 
         <activity
-            android:name=".qrcode_show_activity"
+            android:name=".QrCodeShowActivity"
             android:label="@string/transfer_configuration"
             android:exported="false" />
         <activity android:name=".logcat_activity"

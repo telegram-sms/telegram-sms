@@ -1,6 +1,6 @@
 package com.airfreshener.telegram_sms.config
 
-class proxy {
+class ProxyConfigV2 {
     var port = 1080
     var host = ""
     var username = ""

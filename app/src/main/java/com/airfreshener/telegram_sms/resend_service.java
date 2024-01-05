@@ -13,13 +13,13 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.google.gson.Gson;
-import com.airfreshener.telegram_sms.config.proxy;
-import com.airfreshener.telegram_sms.data_structure.request_message;
-import com.airfreshener.telegram_sms.static_class.log_func;
-import com.airfreshener.telegram_sms.static_class.network_func;
-import com.airfreshener.telegram_sms.static_class.other_func;
+import com.airfreshener.telegram_sms.config.ProxyConfigV2;
+import com.airfreshener.telegram_sms.model.RequestMessage;
+import com.airfreshener.telegram_sms.utils.LogUtils;
+import com.airfreshener.telegram_sms.utils.NetworkUtils;
+import com.airfreshener.telegram_sms.utils.OtherUrils;
 import com.airfreshener.telegram_sms.value.const_value;
-import com.airfreshener.telegram_sms.value.notify_id;
+import com.airfreshener.telegram_sms.value.ServiceNotifyId;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,13 +43,13 @@ public class resend_service extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         resend_list = Paper.book().read(table_name, new ArrayList<>());
-        Notification notification = other_func.get_notification_obj(context, getString(R.string.failed_resend));
-        startForeground(notify_id.RESEND_SERVICE, notification);
+        Notification notification = OtherUrils.get_notification_obj(context, getString(R.string.failed_resend));
+        startForeground(ServiceNotifyId.RESEND_SERVICE, notification);
         return START_NOT_STICKY;
     }
 
     private void network_progress_handle(String message, String chat_id, OkHttpClient okhttp_client) {
-        request_message request_body = new request_message();
+        RequestMessage request_body = new RequestMessage();
         request_body.chat_id = chat_id;
         request_body.text = message;
         if (message.contains("<code>") && message.contains("</code>")) {
@@ -67,7 +67,7 @@ public class resend_service extends Service {
                 Paper.book().write(table_name, resend_list_local);
             }
         } catch (IOException e) {
-            log_func.write_log(context, "An error occurred while resending: " + e.getMessage());
+            LogUtils.write_log(context, "An error occurred while resending: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -82,13 +82,13 @@ public class resend_service extends Service {
         receiver = new stop_notify_receiver();
         registerReceiver(receiver, filter);
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-        request_uri = network_func.get_url(sharedPreferences.getString("bot_token", ""), "SendMessage");
+        request_uri = NetworkUtils.get_url(sharedPreferences.getString("bot_token", ""), "SendMessage");
         new Thread(() -> {
             resend_list = Paper.book().read(table_name, new ArrayList<>());
             while (true) {
-                if (network_func.check_network_status(context)) {
+                if (NetworkUtils.check_network_status(context)) {
                     ArrayList<String> send_list = resend_list;
-                    OkHttpClient okhttp_client = network_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+                    OkHttpClient okhttp_client = NetworkUtils.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
                     for (String item : send_list) {
                         network_progress_handle(item, sharedPreferences.getString("chat_id", ""), okhttp_client);
                     }
@@ -104,7 +104,7 @@ public class resend_service extends Service {
                     e.printStackTrace();
                 }
             }
-            log_func.write_log(context, "The resend failure message is complete.");
+            LogUtils.write_log(context, "The resend failure message is complete.");
             stopSelf();
         }).start();
     }

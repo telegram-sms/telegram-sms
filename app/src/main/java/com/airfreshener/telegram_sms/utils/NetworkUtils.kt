@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms.static_class
+package com.airfreshener.telegram_sms.utils
 
 import android.content.Context
 import android.net.ConnectivityManager
@@ -6,7 +6,7 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
-import com.airfreshener.telegram_sms.config.proxy
+import com.airfreshener.telegram_sms.config.ProxyConfigV2
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.dnsoverhttps.DnsOverHttps
@@ -18,7 +18,7 @@ import java.net.Proxy
 import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 
-object network_func {
+object NetworkUtils {
 
     private const val TELEGRAM_API_DOMAIN = "api.telegram.org"
     private const val DNS_OVER_HTTP_ADDRSS = "https://cloudflare-dns.com/dns-query"
@@ -45,7 +45,7 @@ object network_func {
     }
 
     @JvmStatic
-    fun get_okhttp_obj(doh_switch: Boolean, proxy_item: proxy): OkHttpClient {
+    fun get_okhttp_obj(doh_switch: Boolean, proxy_item: ProxyConfigV2): OkHttpClient {
         var doh_switch = doh_switch
         val okhttp: OkHttpClient.Builder = OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)

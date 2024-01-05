@@ -12,12 +12,12 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
-import com.airfreshener.telegram_sms.config.proxy;
-import com.airfreshener.telegram_sms.data_structure.request_message;
-import com.airfreshener.telegram_sms.static_class.log_func;
-import com.airfreshener.telegram_sms.static_class.network_func;
-import com.airfreshener.telegram_sms.static_class.resend_func;
-import com.airfreshener.telegram_sms.static_class.sms_func;
+import com.airfreshener.telegram_sms.config.ProxyConfigV2;
+import com.airfreshener.telegram_sms.model.RequestMessage;
+import com.airfreshener.telegram_sms.utils.LogUtils;
+import com.airfreshener.telegram_sms.utils.NetworkUtils;
+import com.airfreshener.telegram_sms.utils.ResendUtils;
+import com.airfreshener.telegram_sms.utils.SmsUtils;
 import com.airfreshener.telegram_sms.value.const_value;
 
 import org.jetbrains.annotations.NotNull;
@@ -52,13 +52,13 @@ public class sms_send_receiver extends BroadcastReceiver {
         }
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
-        final request_message request_body = new request_message();
+        final RequestMessage request_body = new RequestMessage();
         request_body.chat_id = chat_id;
-        String request_uri = network_func.get_url(bot_token, "sendMessage");
+        String request_uri = NetworkUtils.get_url(bot_token, "sendMessage");
         long message_id = extras.getLong("message_id");
         if (message_id != -1) {
             Log.d(TAG, "Find the message_id and switch to edit mode.");
-            request_uri = network_func.get_url(bot_token, "editMessageText");
+            request_uri = NetworkUtils.get_url(bot_token, "editMessageText");
             request_body.message_id = message_id;
         }
         String result_status = "Unknown";
@@ -79,7 +79,7 @@ public class sms_send_receiver extends BroadcastReceiver {
         request_body.text = extras.getString("message_text") + "\n" + context.getString(R.string.status) + result_status;
         String request_body_raw = new Gson().toJson(request_body);
         RequestBody body = RequestBody.create(request_body_raw, const_value.JSON);
-        OkHttpClient okhttp_client = network_func.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+        OkHttpClient okhttp_client = NetworkUtils.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
         final String error_head = "Send SMS status failed:";
@@ -87,17 +87,17 @@ public class sms_send_receiver extends BroadcastReceiver {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
-                log_func.write_log(context, error_head + e.getMessage());
-                sms_func.send_fallback_sms(context, request_body.text, sub);
-                resend_func.add_resend_loop(context, request_body.text);
+                LogUtils.write_log(context, error_head + e.getMessage());
+                SmsUtils.send_fallback_sms(context, request_body.text, sub);
+                ResendUtils.add_resend_loop(context, request_body.text);
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
                     assert response.body() != null;
-                    log_func.write_log(context, error_head + response.code() + " " + Objects.requireNonNull(response.body()).string());
-                    resend_func.add_resend_loop(context, request_body.text);
+                    LogUtils.write_log(context, error_head + response.code() + " " + Objects.requireNonNull(response.body()).string());
+                    ResendUtils.add_resend_loop(context, request_body.text);
                 }
             }
         });

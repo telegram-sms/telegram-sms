@@ -1,15 +1,14 @@
-package com.airfreshener.telegram_sms
+package com.airfreshener.telegram_sms.upgrade_data
 
 import android.util.Log
-import com.airfreshener.telegram_sms.config.proxy
-import com.airfreshener.telegram_sms.upgrade_data.proxy_config
+import com.airfreshener.telegram_sms.config.ProxyConfigV2
 import io.paperdb.Paper
 
-class update_to_version1 {
-    private val TAG = "update_to_version1"
+class UpdateVersion1 {
+
     fun check_error() {
         try {
-            Paper.book("system_config").read("proxy_config", proxy())
+            Paper.book("system_config").read("proxy_config", ProxyConfigV2())
         } catch (e: Exception) {
             e.printStackTrace()
             Paper.book("system_config").delete("proxy_config")
@@ -22,9 +21,9 @@ class update_to_version1 {
         val notify_listen_list: List<String> =
             Paper.book().read("notify_listen_list", ArrayList())!!
         val black_keyword_list = Paper.book().read("black_keyword_list", ArrayList<String>())!!
-        val outdated_proxy_item = Paper.book().read("proxy_config", proxy_config())
+        val outdated_proxy_item = Paper.book().read("proxy_config", ProxyConfigV1())
         //Replacement object
-        val proxy_item = proxy()
+        val proxy_item = ProxyConfigV2()
         proxy_item.dns_over_socks5 = outdated_proxy_item!!.dns_over_socks5
         proxy_item.enable = outdated_proxy_item.enable
         proxy_item.password = outdated_proxy_item.password
@@ -35,5 +34,9 @@ class update_to_version1 {
             .write("block_keyword_list", black_keyword_list).write("proxy_config", proxy_item)
         Paper.book("system_config").write("version", 1)
         Paper.book().destroy()
+    }
+
+    companion object {
+        private const val TAG = "update_to_version1"
     }
 }

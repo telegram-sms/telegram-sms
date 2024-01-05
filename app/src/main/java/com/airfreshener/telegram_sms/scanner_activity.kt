@@ -1,71 +1,74 @@
-package com.airfreshener.telegram_sms;
+package com.airfreshener.telegram_sms
 
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Bundle;
-import android.util.Log;
-import android.widget.Toast;
+import android.app.Activity
+import android.content.Intent
+import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.widget.Toast
+import com.airfreshener.telegram_sms.value.const_value
+import com.budiyev.android.codescanner.CodeScanner
+import com.budiyev.android.codescanner.CodeScannerView
+import com.budiyev.android.codescanner.DecodeCallback
+import com.google.gson.JsonElement
+import com.google.gson.JsonParser
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.Result
 
-import com.budiyev.android.codescanner.CodeScanner;
-import com.budiyev.android.codescanner.CodeScannerView;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.google.zxing.BarcodeFormat;
-import com.airfreshener.telegram_sms.value.const_value;
-
-import java.util.ArrayList;
-
-
-public class scanner_activity extends Activity {
-
-    private CodeScanner mCodeScanner;
-    @Override
-    public void onCreate(Bundle state) {
-        super.onCreate(state);
-        setContentView(R.layout.activity_scanner);
-        CodeScannerView scannerView = findViewById(R.id.scanner_view);
-        mCodeScanner = new CodeScanner(this, scannerView);
-        mCodeScanner.setFormats(new ArrayList<BarcodeFormat>(){{add(BarcodeFormat.QR_CODE);}});
-        mCodeScanner.setDecodeCallback(result -> runOnUiThread(() -> {
-            String TAG = "activity_scanner";
-            Log.d(TAG, "format: " + result.getBarcodeFormat().toString() + " content: " + result.getText());
-            if (!json_validate(result.getText())) {
-                Toast.makeText(scanner_activity.this, "The QR code is not legal", Toast.LENGTH_SHORT).show();
-                mCodeScanner.startPreview();
-                return;
+class scanner_activity : Activity() {
+    private var mCodeScanner: CodeScanner? = null
+    public override fun onCreate(state: Bundle?) {
+        super.onCreate(state)
+        setContentView(R.layout.activity_scanner)
+        val scannerView = findViewById<CodeScannerView>(R.id.scanner_view)
+        mCodeScanner = CodeScanner(this, scannerView)
+        mCodeScanner!!.formats = object : ArrayList<BarcodeFormat?>() {
+            init {
+                add(BarcodeFormat.QR_CODE)
             }
-            Intent intent = new Intent().putExtra("config_json", result.getText());
-            setResult(const_value.RESULT_CONFIG_JSON, intent);
-            finish();
-        }));
-        scannerView.setOnClickListener(view -> mCodeScanner.startPreview());
-    }
-
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        mCodeScanner.startPreview();
-    }
-
-    @Override
-    public void onPause() {
-        mCodeScanner.releaseResources();
-        super.onPause();
-    }
-
-    boolean json_validate(String jsonStr) {
-        JsonElement jsonElement;
-        try {
-            jsonElement = JsonParser.parseString(jsonStr);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
         }
-        if (jsonElement == null) {
-            return false;
+        mCodeScanner!!.decodeCallback = DecodeCallback { result: Result ->
+            runOnUiThread {
+                val TAG = "activity_scanner"
+                Log.d(
+                    TAG,
+                    "format: " + result.barcodeFormat.toString() + " content: " + result.text
+                )
+                if (!json_validate(result.text)) {
+                    Toast.makeText(
+                        this@scanner_activity,
+                        "The QR code is not legal",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    mCodeScanner!!.startPreview()
+                    return@runOnUiThread
+                }
+                val intent = Intent().putExtra("config_json", result.text)
+                setResult(const_value.RESULT_CONFIG_JSON, intent)
+                finish()
+            }
         }
-        return jsonElement.isJsonObject();
+        scannerView.setOnClickListener { view: View? -> mCodeScanner!!.startPreview() }
     }
 
+    public override fun onResume() {
+        super.onResume()
+        mCodeScanner?.startPreview()
+    }
+
+    public override fun onPause() {
+        mCodeScanner?.releaseResources()
+        super.onPause()
+    }
+
+    fun json_validate(jsonStr: String?): Boolean {
+        val jsonElement: JsonElement?
+        jsonElement = try {
+            JsonParser.parseString(jsonStr)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
+        }
+        return jsonElement?.isJsonObject ?: false
+    }
 }

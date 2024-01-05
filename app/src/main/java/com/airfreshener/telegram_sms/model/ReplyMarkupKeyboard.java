@@ -1,9 +1,9 @@
-package com.airfreshener.telegram_sms.data_structure;
+package com.airfreshener.telegram_sms.model;
 
 import java.util.ArrayList;
 
 @SuppressWarnings({"unused", "RedundantSuppression"})
-public class reply_markup_keyboard {
+public class ReplyMarkupKeyboard {
     public static ArrayList<InlineKeyboardButton> get_inline_keyboard_obj(String text, String callback_data) {
         InlineKeyboardButton button = new InlineKeyboardButton();
         button.text = text;

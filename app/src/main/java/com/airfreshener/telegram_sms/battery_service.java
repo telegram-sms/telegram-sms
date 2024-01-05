@@ -12,14 +12,14 @@ import android.os.IBinder;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.airfreshener.telegram_sms.config.proxy;
-import com.airfreshener.telegram_sms.data_structure.request_message;
-import com.airfreshener.telegram_sms.static_class.log_func;
-import com.airfreshener.telegram_sms.static_class.network_func;
-import com.airfreshener.telegram_sms.static_class.other_func;
-import com.airfreshener.telegram_sms.static_class.sms_func;
+import com.airfreshener.telegram_sms.config.ProxyConfigV2;
+import com.airfreshener.telegram_sms.model.RequestMessage;
+import com.airfreshener.telegram_sms.utils.LogUtils;
+import com.airfreshener.telegram_sms.utils.NetworkUtils;
+import com.airfreshener.telegram_sms.utils.OtherUrils;
+import com.airfreshener.telegram_sms.utils.SmsUtils;
 import com.airfreshener.telegram_sms.value.const_value;
-import com.airfreshener.telegram_sms.value.notify_id;
+import com.airfreshener.telegram_sms.value.ServiceNotifyId;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -46,8 +46,8 @@ public class battery_service extends Service {
     private static ArrayList<send_obj> send_loop_list;
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Notification notification = other_func.get_notification_obj(context, getString(R.string.battery_monitoring_notify));
-        startForeground(notify_id.BATTERY, notification);
+        Notification notification = OtherUrils.get_notification_obj(context, getString(R.string.battery_monitoring_notify));
+        startForeground(ServiceNotifyId.BATTERY, notification);
         return START_STICKY;
     }
 
@@ -96,17 +96,17 @@ public class battery_service extends Service {
 
     private void network_handle(send_obj obj) {
         String TAG = "network_handle";
-        final request_message request_body = new request_message();
+        final RequestMessage request_body = new RequestMessage();
         request_body.chat_id = battery_service.chat_id;
         request_body.text = obj.content;
-        String request_uri = network_func.get_url(battery_service.bot_token, "sendMessage");
+        String request_uri = NetworkUtils.get_url(battery_service.bot_token, "sendMessage");
         if ((System.currentTimeMillis() - last_receive_time) <= 5000L && last_receive_message_id != -1) {
-            request_uri = network_func.get_url(bot_token, "editMessageText");
+            request_uri = NetworkUtils.get_url(bot_token, "editMessageText");
             request_body.message_id = last_receive_message_id;
             Log.d(TAG, "onReceive: edit_mode");
         }
         last_receive_time = System.currentTimeMillis();
-        OkHttpClient okhttp_client = network_func.get_okhttp_obj(battery_service.doh_switch, Paper.book("system_config").read("proxy_config", new proxy()));
+        OkHttpClient okhttp_client = NetworkUtils.get_okhttp_obj(battery_service.doh_switch, Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
         String request_body_raw = new Gson().toJson(request_body);
         RequestBody body = RequestBody.create(request_body_raw, const_value.JSON);
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
@@ -115,19 +115,19 @@ public class battery_service extends Service {
         try {
             Response response = call.execute();
             if (response.code() == 200) {
-                last_receive_message_id = other_func.get_message_id(Objects.requireNonNull(response.body()).string());
+                last_receive_message_id = OtherUrils.get_message_id(Objects.requireNonNull(response.body()).string());
             } else {
                 assert response.body() != null;
                 last_receive_message_id = -1;
                 if (obj.action.equals(Intent.ACTION_BATTERY_LOW)) {
-                    sms_func.send_fallback_sms(context, request_body.text, -1);
+                    SmsUtils.send_fallback_sms(context, request_body.text, -1);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
-            log_func.write_log(context, error_head + e.getMessage());
+            LogUtils.write_log(context, error_head + e.getMessage());
             if (obj.action.equals(Intent.ACTION_BATTERY_LOW)) {
-                sms_func.send_fallback_sms(context, request_body.text, -1);
+                SmsUtils.send_fallback_sms(context, request_body.text, -1);
             }
         }
     }

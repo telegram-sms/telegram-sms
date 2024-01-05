@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms.static_class;
+package com.airfreshener.telegram_sms.utils;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public class service_func {
+public class ServiceUtils {
     public static void stop_all_service(@NotNull Context context) {
         Intent intent = new Intent(const_value.BROADCAST_STOP_SERVICE);
         context.sendBroadcast(intent);

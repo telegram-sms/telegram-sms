@@ -1,6 +1,6 @@
 package com.airfreshener.telegram_sms.value;
 
-public class notify_id {
+public class ServiceNotifyId {
     public static final int BATTERY = 1;
     public static final int CHAT_COMMAND = 2;
     public static final int NOTIFICATION_LISTENER_SERVICE = 3;

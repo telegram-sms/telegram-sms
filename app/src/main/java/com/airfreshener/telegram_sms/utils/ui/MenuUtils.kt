@@ -8,8 +8,8 @@ import android.view.LayoutInflater
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.config.proxy
-import com.airfreshener.telegram_sms.static_class.service_func
+import com.airfreshener.telegram_sms.config.ProxyConfigV2
+import com.airfreshener.telegram_sms.utils.ServiceUtils
 import com.google.android.material.switchmaterial.SwitchMaterial
 import io.paperdb.Paper
 
@@ -30,7 +30,7 @@ object MenuUtils {
         val proxy_port = proxy_dialog_view.findViewById<EditText>(R.id.proxy_port_editview)
         val proxy_username = proxy_dialog_view.findViewById<EditText>(R.id.proxy_username_editview)
         val proxy_password = proxy_dialog_view.findViewById<EditText>(R.id.proxy_password_editview)
-        val proxy_item = Paper.book("system_config").read("proxy_config", proxy())
+        val proxy_item = Paper.book("system_config").read("proxy_config", ProxyConfigV2())
         proxy_enable.isChecked = proxy_item!!.enable
         proxy_doh_socks5.isChecked = proxy_item.dns_over_socks5
         proxy_host.setText(proxy_item.host)
@@ -49,9 +49,9 @@ object MenuUtils {
                 proxy_item.password = proxy_password.text.toString()
                 Paper.book("system_config").write("proxy_config", proxy_item)
                 Thread {
-                    service_func.stop_all_service(context!!)
+                    ServiceUtils.stop_all_service(context!!)
                     if (sharedPreferences.getBoolean("initialized", false)) {
-                        service_func.start_service(
+                        ServiceUtils.start_service(
                             context,
                             sharedPreferences.getBoolean("battery_monitoring_switch", false),
                             sharedPreferences.getBoolean("chat_command", false)
