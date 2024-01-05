@@ -1,26 +1,30 @@
-package com.airfreshener.telegram_sms.model;
+package com.airfreshener.telegram_sms.model
 
-import java.util.ArrayList;
-
-public class ReplyMarkupKeyboard {
-    public static ArrayList<InlineKeyboardButton> getInlineKeyboardObj(String text, String callbackData) {
-        InlineKeyboardButton button = new InlineKeyboardButton();
-        button.text = text;
-        button.callback_data = callbackData;
-        ArrayList<InlineKeyboardButton> buttonArraylist = new ArrayList<>();
-        buttonArraylist.add(button);
-        return buttonArraylist;
+object ReplyMarkupKeyboard {
+    @JvmStatic
+    fun getInlineKeyboardObj(
+        text: String?,
+        callbackData: String?
+    ): ArrayList<InlineKeyboardButton> {
+        val button = InlineKeyboardButton()
+        button.text = text
+        button.callback_data = callbackData
+        val buttonArraylist = ArrayList<InlineKeyboardButton>()
+        buttonArraylist.add(button)
+        return buttonArraylist
     }
 
-    @SuppressWarnings("unused")
-    public static class KeyboardMarkup {
-        public ArrayList<ArrayList<InlineKeyboardButton>> inline_keyboard;
-        boolean one_time_keyboard = true;
+    @Suppress("PropertyName", "unused")
+    class KeyboardMarkup {
+        @JvmField
+        var inline_keyboard: ArrayList<ArrayList<InlineKeyboardButton>>? = null
+        @JvmField
+        var one_time_keyboard = true
     }
 
-    public static class InlineKeyboardButton {
-        String text;
-        String callback_data;
+    @Suppress("PropertyName")
+    class InlineKeyboardButton {
+        var text: String? = null
+        var callback_data: String? = null
     }
 }
-

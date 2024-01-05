@@ -9,7 +9,6 @@ import android.os.IBinder
 import android.util.Log
 import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.model.RequestMessage
-import com.airfreshener.telegram_sms.model.ServiceNotifyId
 import com.airfreshener.telegram_sms.utils.Consts
 import com.airfreshener.telegram_sms.utils.LogUtils
 import com.airfreshener.telegram_sms.utils.NetworkUtils.checkNetworkStatus
@@ -35,7 +34,7 @@ class ResendService : Service() {
         resendList = DEFAULT_BOOK.tryRead(table_name, ArrayList())
         val notification =
             OtherUtils.getNotificationObj(applicationContext, getString(R.string.failed_resend))
-        startForeground(ServiceNotifyId.RESEND_SERVICE, notification)
+        startForeground(Consts.ServiceNotifyId.RESEND_SERVICE, notification)
         return START_NOT_STICKY
     }
 

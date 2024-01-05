@@ -43,7 +43,6 @@ import com.airfreshener.telegram_sms.utils.ResendUtils;
 import com.airfreshener.telegram_sms.utils.ServiceUtils;
 import com.airfreshener.telegram_sms.utils.SmsUtils;
 import com.airfreshener.telegram_sms.utils.UssdUtils;
-import com.airfreshener.telegram_sms.model.ServiceNotifyId;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -488,7 +487,7 @@ public class ChatCommandService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = OtherUtils.getNotificationObj(getApplicationContext(), getString(R.string.chat_command_service_name));
-        startForeground(ServiceNotifyId.CHAT_COMMAND, notification);
+        startForeground(Consts.ServiceNotifyId.CHAT_COMMAND, notification);
         return START_STICKY;
     }
 

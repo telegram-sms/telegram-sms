@@ -21,7 +21,7 @@ object MenuUtils {
         activity: Activity,
         context: Context,
         sharedPreferences: SharedPreferences,
-        onOkCallback: OkCallback
+        onOkCallback: (isChecked: Boolean) -> Unit
     ) {
         val proxyDialogView = inflater.inflate(R.layout.set_proxy_layout, null)
         val proxyEnableView = proxyDialogView.findViewById<SwitchMaterial>(R.id.proxy_enable_switch)
@@ -41,7 +41,7 @@ object MenuUtils {
         AlertDialog.Builder(activity).setTitle(R.string.proxy_dialog_title)
             .setView(proxyDialogView)
             .setPositiveButton(R.string.ok_button) { dialog: DialogInterface?, which: Int ->
-                onOkCallback.onOkClicked(proxyEnableView.isChecked)
+                onOkCallback(proxyEnableView.isChecked)
                 proxyItem.enable = proxyEnableView.isChecked
                 proxyItem.dns_over_socks5 = proxyDohSocks5View.isChecked
                 proxyItem.host = proxyHostView.text.toString()
@@ -63,7 +63,4 @@ object MenuUtils {
             .show()
     }
 
-    interface OkCallback {
-        fun onOkClicked(isChecked: Boolean)
-    }
 }

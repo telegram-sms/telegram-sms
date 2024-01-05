@@ -1,9 +1,11 @@
-package com.airfreshener.telegram_sms.model;
+package com.airfreshener.telegram_sms.model
 
-public class PollingJson {
+class PollingJson {
     //Predefined types that accept return
-    @SuppressWarnings({"unused", "RedundantSuppression"})
-    public final String[] allowed_updates = {"message", "channel_post", "callback_query"};
-    public long offset;
-    public int timeout;
+    @Suppress("unused", "PropertyName")
+    val allowed_updates = arrayOf("message", "channel_post", "callback_query")
+    @JvmField
+    var offset: Long = 0
+    @JvmField
+    var timeout = 0
 }

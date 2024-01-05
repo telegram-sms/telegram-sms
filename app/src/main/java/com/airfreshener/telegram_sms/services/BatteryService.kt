@@ -26,7 +26,6 @@ import java.util.Objects
 
 class BatteryService : Service() {
 
-    private var context: Context? = null
     private var batteryReceiver: BatteryReceiver? = null
 
     override fun onDestroy() {
@@ -39,7 +38,7 @@ class BatteryService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val notification = OtherUtils.getNotificationObj(
-            context,
+            applicationContext,
             getString(R.string.battery_monitoring_notify)
         )
         startForeground(Consts.ServiceNotifyId.BATTERY, notification)
@@ -49,7 +48,6 @@ class BatteryService : Service() {
     override fun onCreate() {
         super.onCreate()
         val context = applicationContext
-        this.context = context
         PaperUtils.init(context)
         val sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE)
         chatId = sharedPreferences.getString("chat_id", "")
@@ -112,14 +110,14 @@ class BatteryService : Service() {
                 assert(response.body != null)
                 lastReceiveMessageId = -1
                 if (obj.action == Intent.ACTION_BATTERY_LOW) {
-                    SmsUtils.sendFallbackSms(context, requestBody.text, -1)
+                    SmsUtils.sendFallbackSms(applicationContext, requestBody.text, -1)
                 }
             }
         } catch (e: IOException) {
             e.printStackTrace()
-            LogUtils.writeLog(context, errorHead + e.message)
+            LogUtils.writeLog(applicationContext, errorHead + e.message)
             if (obj.action == Intent.ACTION_BATTERY_LOW) {
-                SmsUtils.sendFallbackSms(context, requestBody.text, -1)
+                SmsUtils.sendFallbackSms(applicationContext, requestBody.text, -1)
             }
         }
     }

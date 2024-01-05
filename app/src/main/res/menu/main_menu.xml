@@ -41,10 +41,6 @@
         android:title="@string/logcat"
         app:showAsAction="never" />
     <item
-        android:id="@+id/donate_menu_item"
-        android:title="@string/donate"
-        app:showAsAction="never" />
-    <item
         android:id="@+id/about_menu_item"
         android:title="@string/about_title"
         app:showAsAction="never" />
