@@ -9,7 +9,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.airfreshener.telegram_sms.utils.LogUtils
 
-class logcat_activity : AppCompatActivity() {
+class LogcatActivity : AppCompatActivity() {
     private var context: Context? = null
     private var observer: file_observer? = null
     private var logcat_textview: TextView? = null

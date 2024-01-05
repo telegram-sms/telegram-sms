@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms
+package com.airfreshener.telegram_sms.receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context

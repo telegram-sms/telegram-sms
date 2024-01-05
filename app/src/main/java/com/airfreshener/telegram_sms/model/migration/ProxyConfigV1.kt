@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms.upgrade_data
+package com.airfreshener.telegram_sms.model.migration
 
 class ProxyConfigV1 {
     var proxy_port = 1080

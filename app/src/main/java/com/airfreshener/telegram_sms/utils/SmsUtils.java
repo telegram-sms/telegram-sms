@@ -14,12 +14,10 @@ import android.util.Log;
 
 import androidx.core.content.PermissionChecker;
 
-import com.google.gson.Gson;
 import com.airfreshener.telegram_sms.R;
-import com.airfreshener.telegram_sms.config.ProxyConfigV2;
+import com.airfreshener.telegram_sms.model.ProxyConfigV2;
 import com.airfreshener.telegram_sms.model.RequestMessage;
-import com.airfreshener.telegram_sms.sms_send_receiver;
-import com.airfreshener.telegram_sms.value.const_value;
+import com.airfreshener.telegram_sms.receivers.SmsSendReceiver;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,7 +41,7 @@ public class SmsUtils {
             Log.d("send_sms", "No permission.");
             return;
         }
-        if (!OtherUrils.is_phone_number(send_to)) {
+        if (!OtherUtils.is_phone_number(send_to)) {
             LogUtils.write_log(context, "[" + send_to + "] is an illegal phone number");
             return;
         }
@@ -63,13 +61,11 @@ public class SmsUtils {
         } else {
             sms_manager = SmsManager.getSmsManagerForSubscriptionId(sub_id);
         }
-        String dual_sim = OtherUrils.get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
+        String dual_sim = OtherUtils.get_dual_sim_card_display(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
         String send_content = "[" + dual_sim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + send_to + "\n" + context.getString(R.string.content) + content;
         request_body.text = send_content + "\n" + context.getString(R.string.status) + context.getString(R.string.sending);
         request_body.message_id = message_id;
-        Gson gson = new Gson();
-        String request_body_raw = gson.toJson(request_body);
-        RequestBody body = RequestBody.create(request_body_raw, const_value.JSON);
+        RequestBody body = OkHttpUtils.INSTANCE.toRequestBody(request_body);
         OkHttpClient okhttp_client = NetworkUtils.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
@@ -79,7 +75,7 @@ public class SmsUtils {
                 throw new IOException(String.valueOf(response.code()));
             }
             if (message_id == -1) {
-                message_id = OtherUrils.get_message_id(Objects.requireNonNull(response.body()).string());
+                message_id = OtherUtils.get_message_id(Objects.requireNonNull(response.body()).string());
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -88,7 +84,7 @@ public class SmsUtils {
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
         ArrayList<PendingIntent> send_receiver_list = new ArrayList<>();
         IntentFilter filter = new IntentFilter("send_sms");
-        BroadcastReceiver receiver = new sms_send_receiver();
+        BroadcastReceiver receiver = new SmsSendReceiver();
         context.getApplicationContext().registerReceiver(receiver, filter);
         Intent sent_intent = new Intent("send_sms");
         sent_intent.putExtra("message_id", message_id);

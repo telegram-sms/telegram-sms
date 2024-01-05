@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms;
+package com.airfreshener.telegram_sms.notification_screen;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
@@ -21,6 +21,8 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.airfreshener.telegram_sms.R;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -28,7 +30,7 @@ import java.util.List;
 
 import io.paperdb.Paper;
 
-public class notify_apps_list_activity extends AppCompatActivity {
+public class NotifyAppsListActivity extends AppCompatActivity {
     private app_adapter app_adapter;
     private Context context;
 
@@ -84,7 +86,7 @@ public class notify_apps_list_activity extends AppCompatActivity {
 
         app_list.setAdapter(app_adapter);
         new Thread(() -> {
-            final List<app_info> app_info_list = scan_app_list(notify_apps_list_activity.this.getPackageManager());
+            final List<app_info> app_info_list = scan_app_list(NotifyAppsListActivity.this.getPackageManager());
             runOnUiThread(() -> {
                 ProgressBar scan_label = findViewById(R.id.progress_view);
                 scan_label.setVisibility(View.GONE);
@@ -172,7 +174,7 @@ public class notify_apps_list_activity extends AppCompatActivity {
                 view_holder_object.app_checkbox = convert_view.findViewById(R.id.select_checkbox);
                 convert_view.setTag(view_holder_object);
             } else {
-                view_holder_object = (notify_apps_list_activity.app_adapter.view_holder) convert_view.getTag();
+                view_holder_object = (NotifyAppsListActivity.app_adapter.view_holder) convert_view.getTag();
             }
             view_holder_object.app_icon.setImageDrawable(app_info.app_icon);
             view_holder_object.app_name.setText(app_info.app_name);

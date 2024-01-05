@@ -8,7 +8,7 @@ import android.view.LayoutInflater
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.config.ProxyConfigV2
+import com.airfreshener.telegram_sms.model.ProxyConfigV2
 import com.airfreshener.telegram_sms.utils.ServiceUtils
 import com.google.android.material.switchmaterial.SwitchMaterial
 import io.paperdb.Paper

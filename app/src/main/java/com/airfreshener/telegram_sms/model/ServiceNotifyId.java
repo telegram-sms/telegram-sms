@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms.value;
+package com.airfreshener.telegram_sms.model;
 
 public class ServiceNotifyId {
     public static final int BATTERY = 1;

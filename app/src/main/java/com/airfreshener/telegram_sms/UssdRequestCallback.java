@@ -8,14 +8,13 @@ import android.telephony.TelephonyManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
-import com.google.gson.Gson;
-import com.airfreshener.telegram_sms.config.ProxyConfigV2;
+import com.airfreshener.telegram_sms.utils.OkHttpUtils;
+import com.airfreshener.telegram_sms.model.ProxyConfigV2;
 import com.airfreshener.telegram_sms.model.RequestMessage;
 import com.airfreshener.telegram_sms.utils.LogUtils;
 import com.airfreshener.telegram_sms.utils.NetworkUtils;
 import com.airfreshener.telegram_sms.utils.ResendUtils;
 import com.airfreshener.telegram_sms.utils.SmsUtils;
-import com.airfreshener.telegram_sms.value.const_value;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -32,14 +31,14 @@ import okhttp3.Response;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public
-class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
+class UssdRequestCallback extends TelephonyManager.UssdResponseCallback {
     private final Context context;
     private final boolean doh_switch;
     private String request_uri;
     private final String message_header;
     private final RequestMessage request_body;
 
-    public ussd_request_callback(Context context, @NotNull SharedPreferences sharedPreferences, long message_id) {
+    public UssdRequestCallback(Context context, @NotNull SharedPreferences sharedPreferences, long message_id) {
         this.context = context;
         Paper.init(context);
         String chat_id = sharedPreferences.getString("chat_id", "");
@@ -71,8 +70,7 @@ class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
 
     private void network_progress_handle(String message) {
         request_body.text = message;
-        String request_body_json = new Gson().toJson(request_body);
-        RequestBody body = RequestBody.create(request_body_json, const_value.JSON);
+        RequestBody body = OkHttpUtils.INSTANCE.toRequestBody(request_body);
         OkHttpClient okhttp_client = NetworkUtils.get_okhttp_obj(doh_switch, Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
         Request request_obj = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request_obj);

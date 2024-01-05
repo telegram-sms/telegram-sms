@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms;
+package com.airfreshener.telegram_sms.receivers;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -11,14 +11,14 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.google.gson.Gson;
-import com.airfreshener.telegram_sms.config.ProxyConfigV2;
+import com.airfreshener.telegram_sms.R;
+import com.airfreshener.telegram_sms.utils.OkHttpUtils;
+import com.airfreshener.telegram_sms.model.ProxyConfigV2;
 import com.airfreshener.telegram_sms.model.RequestMessage;
 import com.airfreshener.telegram_sms.utils.LogUtils;
 import com.airfreshener.telegram_sms.utils.NetworkUtils;
 import com.airfreshener.telegram_sms.utils.ResendUtils;
 import com.airfreshener.telegram_sms.utils.SmsUtils;
-import com.airfreshener.telegram_sms.value.const_value;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +35,7 @@ import okhttp3.Response;
 
 import static android.content.Context.MODE_PRIVATE;
 
-public class sms_send_receiver extends BroadcastReceiver {
+public class SmsSendReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, @NotNull Intent intent) {
         Paper.init(context);
@@ -77,8 +77,7 @@ public class sms_send_receiver extends BroadcastReceiver {
                 break;
         }
         request_body.text = extras.getString("message_text") + "\n" + context.getString(R.string.status) + result_status;
-        String request_body_raw = new Gson().toJson(request_body);
-        RequestBody body = RequestBody.create(request_body_raw, const_value.JSON);
+        RequestBody body = OkHttpUtils.INSTANCE.toRequestBody(request_body);
         OkHttpClient okhttp_client = NetworkUtils.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);

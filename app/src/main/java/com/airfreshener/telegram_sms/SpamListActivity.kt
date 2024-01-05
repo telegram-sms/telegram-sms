@@ -14,7 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import io.paperdb.Paper
 
-class spam_list_activity : AppCompatActivity() {
+class SpamListActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_spam_list)
@@ -34,7 +34,7 @@ class spam_list_activity : AppCompatActivity() {
                 val editText =
                     spam_dialog_view.findViewById<EditText>(R.id.spam_sms_keyword_editview)
                 editText.setText(block_keyword_list[position])
-                AlertDialog.Builder(this@spam_list_activity)
+                AlertDialog.Builder(this@SpamListActivity)
                     .setTitle(R.string.spam_keyword_edit_title)
                     .setView(spam_dialog_view)
                     .setPositiveButton(R.string.ok_button) { dialog: DialogInterface?, which: Int ->
@@ -51,7 +51,7 @@ class spam_list_activity : AppCompatActivity() {
         fab.setOnClickListener { v: View? ->
             val spam_dialog_view = inflater.inflate(R.layout.set_keyword_layout, null)
             val editText = spam_dialog_view.findViewById<EditText>(R.id.spam_sms_keyword_editview)
-            AlertDialog.Builder(this@spam_list_activity).setTitle(R.string.spam_keyword_add_title)
+            AlertDialog.Builder(this@SpamListActivity).setTitle(R.string.spam_keyword_add_title)
                 .setView(spam_dialog_view)
                 .setPositiveButton(R.string.ok_button) { dialog: DialogInterface?, which: Int ->
                     block_keyword_list.add(editText.text.toString())

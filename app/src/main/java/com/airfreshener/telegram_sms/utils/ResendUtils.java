@@ -5,7 +5,7 @@ import android.content.Intent;
 import android.os.Build;
 
 import com.airfreshener.telegram_sms.R;
-import com.airfreshener.telegram_sms.resend_service;
+import com.airfreshener.telegram_sms.services.ResendService;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ public class ResendUtils {
     }
 
     public static void start_resend(Context context) {
-        Intent intent = new Intent(context, resend_service.class);
+        Intent intent = new Intent(context, ResendService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(intent);
         } else {

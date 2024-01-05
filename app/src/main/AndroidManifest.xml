@@ -35,21 +35,21 @@
         tools:targetApi="n">
 
         <activity
-            android:name=".spam_list_activity"
+            android:name=".SpamListActivity"
             android:label="@string/spam_sms_keyword_title"
             android:exported="true" />
 
 
-        <service android:name=".resend_service"
+        <service android:name=".services.ResendService"
             android:exported="false"/>
 
         <activity
-            android:name=".notify_apps_list_activity"
+            android:name=".notification_screen.NotifyAppsListActivity"
             android:windowSoftInputMode="adjustPan"
             android:exported="false" />
 
         <service
-            android:name=".notification_listener_service"
+            android:name=".services.NotificationListenerService"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:exported="true">
@@ -58,13 +58,13 @@
             </intent-filter>
         </service>
         <service
-            android:name=".chat_command_service"
+            android:name=".services.ChatCommandService"
             android:enabled="true"
             android:exported="false"
             android:permission="android.permission.INTERNET"
             android:process=":command" />
         <service
-            android:name=".battery_service"
+            android:name=".services.BatteryService"
             android:enabled="true"
             android:exported="false"
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE"
@@ -81,7 +81,7 @@
             </intent-filter>
         </service>
 
-        <receiver android:name=".boot_receiver"
+        <receiver android:name=".receivers.BootReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -92,7 +92,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".sms_receiver"
+            android:name=".receivers.SmsReceiver"
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
@@ -102,7 +102,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".WapReceiver"
+            android:name=".receivers.WapReceiver"
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.BROADCAST_WAP_PUSH">
@@ -112,7 +112,7 @@
                 <data android:mimeType="application/vnd.wap.mms-message" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".call_receiver"
+        <receiver android:name=".receivers.CallReceiver"
             android:exported="true">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.intent.action.PHONE_STATE" />
@@ -124,12 +124,12 @@
             android:name=".QrCodeShowActivity"
             android:label="@string/transfer_configuration"
             android:exported="false" />
-        <activity android:name=".logcat_activity"
+        <activity android:name=".LogcatActivity"
             android:exported="false" />
-        <activity android:name=".scanner_activity"
+        <activity android:name=".ScannerActivity"
             android:exported="false"/>
         <activity
-            android:name=".main_activity"
+            android:name=".mainScreen.MainActivity"
             android:windowSoftInputMode="adjustPan"
             android:exported="true"
             tools:ignore="Instantiatable,IntentFilterExportedReceiver">

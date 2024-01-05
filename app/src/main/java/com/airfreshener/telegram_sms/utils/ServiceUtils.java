@@ -9,9 +9,9 @@ import android.util.Log;
 
 import androidx.core.app.NotificationManagerCompat;
 
-import com.airfreshener.telegram_sms.chat_command_service;
-import com.airfreshener.telegram_sms.notification_listener_service;
-import com.airfreshener.telegram_sms.value.const_value;
+import com.airfreshener.telegram_sms.services.BatteryService;
+import com.airfreshener.telegram_sms.services.ChatCommandService;
+import com.airfreshener.telegram_sms.services.NotificationListenerService;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -19,7 +19,7 @@ import java.util.Set;
 
 public class ServiceUtils {
     public static void stop_all_service(@NotNull Context context) {
-        Intent intent = new Intent(const_value.BROADCAST_STOP_SERVICE);
+        Intent intent = new Intent(Consts.BROADCAST_STOP_SERVICE);
         context.sendBroadcast(intent);
         try {
             Thread.sleep(1000);
@@ -29,11 +29,11 @@ public class ServiceUtils {
     }
 
     public static void start_service(Context context, Boolean battery_switch, Boolean chat_command_switch) {
-        Intent battery_service = new Intent(context, com.airfreshener.telegram_sms.battery_service.class);
-        Intent chat_long_polling_service = new Intent(context, chat_command_service.class);
+        Intent battery_service = new Intent(context, BatteryService.class);
+        Intent chat_long_polling_service = new Intent(context, ChatCommandService.class);
         if (is_notify_listener(context)) {
             Log.d("start_service", "start_service: ");
-            ComponentName thisComponent = new ComponentName(context, notification_listener_service.class);
+            ComponentName thisComponent = new ComponentName(context, NotificationListenerService.class);
             PackageManager pm = context.getPackageManager();
             pm.setComponentEnabledSetting(thisComponent, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
             pm.setComponentEnabledSetting(thisComponent, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);

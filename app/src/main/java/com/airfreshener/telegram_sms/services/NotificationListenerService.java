@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms;
+package com.airfreshener.telegram_sms.services;
 
 import android.app.Notification;
 import android.content.Context;
@@ -8,21 +8,20 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.google.gson.Gson;
-import com.airfreshener.telegram_sms.config.ProxyConfigV2;
+import com.airfreshener.telegram_sms.R;
+import com.airfreshener.telegram_sms.utils.OkHttpUtils;
+import com.airfreshener.telegram_sms.model.ProxyConfigV2;
 import com.airfreshener.telegram_sms.model.RequestMessage;
 import com.airfreshener.telegram_sms.utils.LogUtils;
 import com.airfreshener.telegram_sms.utils.NetworkUtils;
-import com.airfreshener.telegram_sms.utils.OtherUrils;
+import com.airfreshener.telegram_sms.utils.OtherUtils;
 import com.airfreshener.telegram_sms.utils.ResendUtils;
-import com.airfreshener.telegram_sms.value.const_value;
-import com.airfreshener.telegram_sms.value.ServiceNotifyId;
+import com.airfreshener.telegram_sms.model.ServiceNotifyId;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -41,7 +40,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class notification_listener_service extends NotificationListenerService {
+public class NotificationListenerService extends android.service.notification.NotificationListenerService {
     static Map<String, String> app_name_list = new HashMap<>();
     final String TAG = "notification_receiver";
     Context context;
@@ -53,7 +52,7 @@ public class notification_listener_service extends NotificationListenerService {
         context = getApplicationContext();
         Paper.init(context);
         sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
-        Notification notification = OtherUrils.get_notification_obj(getApplicationContext(), getString(R.string.Notification_Listener_title));
+        Notification notification = OtherUtils.get_notification_obj(getApplicationContext(), getString(R.string.Notification_Listener_title));
         startForeground(ServiceNotifyId.NOTIFICATION_LISTENER_SERVICE, notification);
     }
 
@@ -108,7 +107,7 @@ public class notification_listener_service extends NotificationListenerService {
         RequestMessage request_body = new RequestMessage();
         request_body.chat_id = chat_id;
         request_body.text = getString(R.string.receive_notification_title) + "\n" + getString(R.string.app_name_title) + app_name + "\n" + getString(R.string.title) + title + "\n" + getString(R.string.content) + content;
-        RequestBody body = RequestBody.create(new Gson().toJson(request_body), const_value.JSON);
+        RequestBody body = OkHttpUtils.INSTANCE.toRequestBody(request_body);
         OkHttpClient okhttp_client = NetworkUtils.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);

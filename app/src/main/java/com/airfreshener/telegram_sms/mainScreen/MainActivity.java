@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms;
+package com.airfreshener.telegram_sms.mainScreen;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -35,19 +35,25 @@ import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.airfreshener.telegram_sms.config.ProxyConfigV2;
+import com.airfreshener.telegram_sms.LogcatActivity;
+import com.airfreshener.telegram_sms.notification_screen.NotifyAppsListActivity;
+import com.airfreshener.telegram_sms.QrCodeShowActivity;
+import com.airfreshener.telegram_sms.R;
+import com.airfreshener.telegram_sms.ScannerActivity;
+import com.airfreshener.telegram_sms.SpamListActivity;
+import com.airfreshener.telegram_sms.model.ProxyConfigV2;
 import com.airfreshener.telegram_sms.model.PollingJson;
 import com.airfreshener.telegram_sms.model.RequestMessage;
-import com.airfreshener.telegram_sms.upgrade_data.UpdateVersion1;
+import com.airfreshener.telegram_sms.migration.UpdateVersion1;
+import com.airfreshener.telegram_sms.utils.Consts;
 import com.airfreshener.telegram_sms.utils.LogUtils;
 import com.airfreshener.telegram_sms.utils.NetworkUtils;
-import com.airfreshener.telegram_sms.utils.OtherUrils;
+import com.airfreshener.telegram_sms.utils.OkHttpUtils;
+import com.airfreshener.telegram_sms.utils.OtherUtils;
 import com.airfreshener.telegram_sms.utils.ServiceUtils;
 import com.airfreshener.telegram_sms.utils.ui.MenuUtils;
-import com.airfreshener.telegram_sms.value.const_value;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -68,7 +74,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class main_activity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity {
     private static boolean set_permission_back = false;
     private final String TAG = "main_activity";
     private SharedPreferences sharedPreferences;
@@ -97,7 +103,7 @@ public class main_activity extends AppCompatActivity {
 
     private void update_config() {
         int store_version = Paper.book("system_config").read("version", 0);
-        if (store_version == const_value.SYSTEM_CONFIG_VERSION) {
+        if (store_version == Consts.SYSTEM_CONFIG_VERSION) {
             new UpdateVersion1().check_error();
             return;
         }
@@ -143,7 +149,7 @@ public class main_activity extends AppCompatActivity {
         String bot_token_save = sharedPreferences.getString("bot_token", "");
         String chat_id_save = sharedPreferences.getString("chat_id", "");
 
-        if (OtherUrils.parse_string_to_long(chat_id_save) < 0) {
+        if (OtherUtils.parse_string_to_long(chat_id_save) < 0) {
             privacy_mode_switch.setVisibility(View.VISIBLE);
         } else {
             privacy_mode_switch.setVisibility(View.GONE);
@@ -157,7 +163,7 @@ public class main_activity extends AppCompatActivity {
         }
         boolean display_dual_sim_display_name_config = sharedPreferences.getBoolean("display_dual_sim_display_name", false);
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-            if (OtherUrils.get_active_card(context) < 2) {
+            if (OtherUtils.get_active_card(context) < 2) {
                 display_dual_sim_display_name_switch.setEnabled(false);
                 display_dual_sim_display_name_config = false;
             }
@@ -239,7 +245,7 @@ public class main_activity extends AppCompatActivity {
                 display_dual_sim_display_name_switch.setChecked(false);
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
             } else {
-                if (OtherUrils.get_active_card(context) < 2) {
+                if (OtherUtils.get_active_card(context) < 2) {
                     display_dual_sim_display_name_switch.setEnabled(false);
                     display_dual_sim_display_name_switch.setChecked(false);
                 }
@@ -271,7 +277,7 @@ public class main_activity extends AppCompatActivity {
                 return;
             }
             new Thread(() -> ServiceUtils.stop_all_service(context)).start();
-            final ProgressDialog progress_dialog = new ProgressDialog(main_activity.this);
+            final ProgressDialog progress_dialog = new ProgressDialog(MainActivity.this);
             progress_dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             progress_dialog.setTitle(getString(R.string.get_recent_chat_title));
             progress_dialog.setMessage(getString(R.string.get_recent_chat_message));
@@ -285,7 +291,7 @@ public class main_activity extends AppCompatActivity {
                     .build();
             PollingJson request_body = new PollingJson();
             request_body.timeout = 60;
-            RequestBody body = RequestBody.create(new Gson().toJson(request_body), const_value.JSON);
+            RequestBody body = OkHttpUtils.INSTANCE.toRequestBody(request_body);
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
             progress_dialog.setOnKeyListener((dialogInterface, i, keyEvent) -> {
@@ -367,7 +373,7 @@ public class main_activity extends AppCompatActivity {
                             }
                         }
                     }
-                    main_activity.this.runOnUiThread(() -> new AlertDialog.Builder(v.getContext()).setTitle(R.string.select_chat).setItems(chat_name_list.toArray(new String[0]), (dialogInterface, i) -> chat_id_editview.setText(chat_id_list.get(i))).setPositiveButton(context.getString(R.string.cancel_button), null).show());
+                    MainActivity.this.runOnUiThread(() -> new AlertDialog.Builder(v.getContext()).setTitle(R.string.select_chat).setItems(chat_name_list.toArray(new String[0]), (dialogInterface, i) -> chat_id_editview.setText(chat_id_list.get(i))).setPositiveButton(context.getString(R.string.cancel_button), null).show());
                 }
             });
         });
@@ -386,7 +392,7 @@ public class main_activity extends AppCompatActivity {
                 return;
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.CALL_PHONE, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG}, 1);
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.CALL_PHONE, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG}, 1);
 
                 PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
                 assert powerManager != null;
@@ -399,7 +405,7 @@ public class main_activity extends AppCompatActivity {
                 }
             }
 
-            final ProgressDialog progress_dialog = new ProgressDialog(main_activity.this);
+            final ProgressDialog progress_dialog = new ProgressDialog(MainActivity.this);
             progress_dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             progress_dialog.setTitle(getString(R.string.connect_wait_title));
             progress_dialog.setMessage(getString(R.string.connect_wait_message));
@@ -411,9 +417,7 @@ public class main_activity extends AppCompatActivity {
             RequestMessage request_body = new RequestMessage();
             request_body.chat_id = chat_id_editview.getText().toString().trim();
             request_body.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
-            Gson gson = new Gson();
-            String request_body_raw = gson.toJson(request_body);
-            RequestBody body = RequestBody.create(request_body_raw, const_value.JSON);
+            RequestBody body = OkHttpUtils.INSTANCE.toRequestBody(request_body);
             OkHttpClient okhttp_client = NetworkUtils.get_okhttp_obj(doh_switch.isChecked(), Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
             Request request = new Request.Builder().url(request_uri).method("POST", body).build();
             Call call = okhttp_client.newCall(request);
@@ -450,7 +454,7 @@ public class main_activity extends AppCompatActivity {
                         Log.i(TAG, "onResponse: The current bot token does not match the saved bot token, clearing the message database.");
                         Paper.book().destroy();
                     }
-                    Paper.book("system_config").write("version", const_value.SYSTEM_CONFIG_VERSION);
+                    Paper.book("system_config").write("version", Consts.SYSTEM_CONFIG_VERSION);
                     check_version_upgrade(false);
                     SharedPreferences.Editor editor = sharedPreferences.edit().clear();
                     editor.putString("bot_token", new_bot_token);
@@ -488,7 +492,7 @@ public class main_activity extends AppCompatActivity {
             privacy_mode_switch.setChecked(false);
             return;
         }
-        if (OtherUrils.parse_string_to_long(chat_id) < 0) {
+        if (OtherUtils.parse_string_to_long(chat_id) < 0) {
             privacy_mode_switch.setVisibility(View.VISIBLE);
         } else {
             privacy_mode_switch.setVisibility(View.GONE);
@@ -531,7 +535,7 @@ public class main_activity extends AppCompatActivity {
         set_permission_back = false;
         if (back_status) {
             if (ServiceUtils.is_notify_listener(context)) {
-                startActivity(new Intent(main_activity.this, notify_apps_list_activity.class));
+                startActivity(new Intent(MainActivity.this, NotifyAppsListActivity.class));
             }
         }
     }
@@ -546,7 +550,7 @@ public class main_activity extends AppCompatActivity {
                     Snackbar.make(findViewById(R.id.bot_token_editview), R.string.no_camera_permission, Snackbar.LENGTH_LONG).show();
                     return;
                 }
-                Intent intent = new Intent(context, scanner_activity.class);
+                Intent intent = new Intent(context, ScannerActivity.class);
                 //noinspection deprecation
                 startActivityForResult(intent, 1);
                 break;
@@ -556,7 +560,7 @@ public class main_activity extends AppCompatActivity {
                     if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                         TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
                         assert tm != null;
-                        if (tm.getPhoneCount() <= 1 || OtherUrils.get_active_card(context) < 2) {
+                        if (tm.getPhoneCount() <= 1 || OtherUtils.get_active_card(context) < 2) {
                             display_dual_sim_display_name.setEnabled(false);
                             display_dual_sim_display_name.setChecked(false);
                         }
@@ -604,7 +608,7 @@ public class main_activity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 0);
                 return true;
             case R.id.logcat_menu_item:
-                Intent logcat_intent = new Intent(this, logcat_activity.class);
+                Intent logcat_intent = new Intent(this, LogcatActivity.class);
                 startActivity(logcat_intent);
                 return true;
             case R.id.config_qrcode_menu_item:
@@ -622,10 +626,10 @@ public class main_activity extends AppCompatActivity {
                     set_permission_back = true;
                     return false;
                 }
-                startActivity(new Intent(this, notify_apps_list_activity.class));
+                startActivity(new Intent(this, NotifyAppsListActivity.class));
                 return true;
             case R.id.spam_sms_keyword_menu_item:
-                startActivity(new Intent(this, spam_list_activity.class));
+                startActivity(new Intent(this, SpamListActivity.class));
                 return true;
             case R.id.set_proxy_menu_item:
                 final SwitchMaterial doh_switch = findViewById(R.id.doh_switch);
@@ -675,7 +679,7 @@ public class main_activity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
-            if (resultCode == const_value.RESULT_CONFIG_JSON) {
+            if (resultCode == Consts.RESULT_CONFIG_JSON) {
                 JsonObject json_config = JsonParser.parseString(Objects.requireNonNull(data.getStringExtra("config_json"))).getAsJsonObject();
                 ((EditText) findViewById(R.id.bot_token_editview)).setText(json_config.get("bot_token").getAsString());
                 ((EditText) findViewById(R.id.chat_id_editview)).setText(json_config.get("chat_id").getAsString());

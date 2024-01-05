@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms.config
+package com.airfreshener.telegram_sms.model
 
 class ProxyConfigV2 {
     var port = 1080

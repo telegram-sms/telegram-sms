@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms
+package com.airfreshener.telegram_sms.receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -9,7 +9,7 @@ import com.airfreshener.telegram_sms.utils.ResendUtils
 import com.airfreshener.telegram_sms.utils.ServiceUtils
 import io.paperdb.Paper
 
-class boot_receiver : BroadcastReceiver() {
+class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val TAG = "boot_receiver"
         Log.d(TAG, "Receive action: " + intent.action)

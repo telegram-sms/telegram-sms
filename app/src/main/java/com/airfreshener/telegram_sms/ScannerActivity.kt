@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import com.airfreshener.telegram_sms.value.const_value
+import com.airfreshener.telegram_sms.utils.Consts
 import com.budiyev.android.codescanner.CodeScanner
 import com.budiyev.android.codescanner.CodeScannerView
 import com.budiyev.android.codescanner.DecodeCallback
@@ -15,7 +15,7 @@ import com.google.gson.JsonParser
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.Result
 
-class scanner_activity : Activity() {
+class ScannerActivity : Activity() {
     private var mCodeScanner: CodeScanner? = null
     public override fun onCreate(state: Bundle?) {
         super.onCreate(state)
@@ -36,7 +36,7 @@ class scanner_activity : Activity() {
                 )
                 if (!json_validate(result.text)) {
                     Toast.makeText(
-                        this@scanner_activity,
+                        this@ScannerActivity,
                         "The QR code is not legal",
                         Toast.LENGTH_SHORT
                     ).show()
@@ -44,7 +44,7 @@ class scanner_activity : Activity() {
                     return@runOnUiThread
                 }
                 val intent = Intent().putExtra("config_json", result.text)
-                setResult(const_value.RESULT_CONFIG_JSON, intent)
+                setResult(Consts.RESULT_CONFIG_JSON, intent)
                 finish()
             }
         }

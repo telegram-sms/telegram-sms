@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms;
+package com.airfreshener.telegram_sms.receivers;
 
 import android.Manifest;
 import android.content.BroadcastReceiver;
@@ -18,18 +18,18 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
+import com.airfreshener.telegram_sms.R;
+import com.airfreshener.telegram_sms.utils.OkHttpUtils;
 import com.github.sumimakito.codeauxlib.CodeauxLibPortable;
-import com.google.gson.Gson;
-import com.airfreshener.telegram_sms.config.ProxyConfigV2;
+import com.airfreshener.telegram_sms.model.ProxyConfigV2;
 import com.airfreshener.telegram_sms.model.RequestMessage;
 import com.airfreshener.telegram_sms.utils.LogUtils;
 import com.airfreshener.telegram_sms.utils.NetworkUtils;
-import com.airfreshener.telegram_sms.utils.OtherUrils;
+import com.airfreshener.telegram_sms.utils.OtherUtils;
 import com.airfreshener.telegram_sms.utils.ResendUtils;
 import com.airfreshener.telegram_sms.utils.ServiceUtils;
 import com.airfreshener.telegram_sms.utils.SmsUtils;
 import com.airfreshener.telegram_sms.utils.UssdUtils;
-import com.airfreshener.telegram_sms.value.const_value;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -46,7 +46,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class sms_receiver extends BroadcastReceiver {
+public class SmsReceiver extends BroadcastReceiver {
     final static CodeauxLibPortable code_aux_lib = new CodeauxLibPortable();
     public void onReceive(final Context context, Intent intent) {
         Paper.init(context);
@@ -72,7 +72,7 @@ public class sms_receiver extends BroadcastReceiver {
 
         int intent_slot = extras.getInt("slot", -1);
         final int sub_id = extras.getInt("subscription", -1);
-        if (OtherUrils.get_active_card(context) >= 2 && intent_slot == -1) {
+        if (OtherUtils.get_active_card(context) >= 2 && intent_slot == -1) {
             SubscriptionManager manager = SubscriptionManager.from(context);
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                 SubscriptionInfo info = manager.getActiveSubscriptionInfo(sub_id);
@@ -80,7 +80,7 @@ public class sms_receiver extends BroadcastReceiver {
             }
         }
         final int slot = intent_slot;
-        String dual_sim = OtherUrils.get_dual_sim_card_display(context, intent_slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
+        String dual_sim = OtherUtils.get_dual_sim_card_display(context, intent_slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
 
         Object[] pdus = (Object[]) extras.get("pdus");
         assert pdus != null;
@@ -169,8 +169,8 @@ public class sms_receiver extends BroadcastReceiver {
                             Log.i(TAG, "No SMS permission.");
                             break;
                         }
-                        String msg_send_to = OtherUrils.get_send_phone_number(message_list[1]);
-                        if (OtherUrils.is_phone_number(msg_send_to) && message_list.length > 2) {
+                        String msg_send_to = OtherUtils.get_send_phone_number(message_list[1]);
+                        if (OtherUtils.is_phone_number(msg_send_to) && message_list.length > 2) {
                             StringBuilder msg_send_content = new StringBuilder();
                             for (int i = 2; i < message_list.length; ++i) {
                                 if (i != 2) {
@@ -179,7 +179,7 @@ public class sms_receiver extends BroadcastReceiver {
                                 msg_send_content.append(message_list[i]);
                             }
                             int send_slot = slot;
-                            if (OtherUrils.get_active_card(context) > 1) {
+                            if (OtherUtils.get_active_card(context) > 1) {
                                 switch (command_list[0].trim()) {
                                     case "/sendsms1":
                                         send_slot = 0;
@@ -190,7 +190,7 @@ public class sms_receiver extends BroadcastReceiver {
                                 }
                             }
                             final int final_send_slot = send_slot;
-                            final int final_send_sub_id = OtherUrils.get_sub_id(context, final_send_slot);
+                            final int final_send_sub_id = OtherUtils.get_sub_id(context, final_send_slot);
                             new Thread(() -> SmsUtils.send_sms(context, msg_send_to, msg_send_content.toString(), final_send_slot, final_send_sub_id)).start();
                             return;
                         }
@@ -237,7 +237,7 @@ public class sms_receiver extends BroadcastReceiver {
         }
 
 
-        RequestBody body = RequestBody.create(new Gson().toJson(request_body), const_value.JSON);
+        RequestBody body = OkHttpUtils.INSTANCE.toRequestBody(request_body);
         OkHttpClient okhttp_client = NetworkUtils.get_okhttp_obj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
@@ -261,11 +261,11 @@ public class sms_receiver extends BroadcastReceiver {
                     SmsUtils.send_fallback_sms(context, final_raw_request_body_text, sub_id);
                     ResendUtils.add_resend_loop(context, request_body.text);
                 } else {
-                    if (!OtherUrils.is_phone_number(message_address)) {
+                    if (!OtherUtils.is_phone_number(message_address)) {
                         LogUtils.write_log(context, "[" + message_address + "] Not a regular phone number.");
                         return;
                     }
-                    OtherUrils.add_message_list(OtherUrils.get_message_id(result), message_address, slot);
+                    OtherUtils.add_message_list(OtherUtils.get_message_id(result), message_address, slot);
                 }
             }
         });

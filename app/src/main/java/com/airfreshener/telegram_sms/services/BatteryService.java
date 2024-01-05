@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms;
+package com.airfreshener.telegram_sms.services;
 
 import android.app.Notification;
 import android.app.Service;
@@ -11,15 +11,16 @@ import android.os.BatteryManager;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.google.gson.Gson;
-import com.airfreshener.telegram_sms.config.ProxyConfigV2;
+import com.airfreshener.telegram_sms.R;
+import com.airfreshener.telegram_sms.model.ProxyConfigV2;
 import com.airfreshener.telegram_sms.model.RequestMessage;
+import com.airfreshener.telegram_sms.utils.Consts;
 import com.airfreshener.telegram_sms.utils.LogUtils;
 import com.airfreshener.telegram_sms.utils.NetworkUtils;
-import com.airfreshener.telegram_sms.utils.OtherUrils;
+import com.airfreshener.telegram_sms.utils.OkHttpUtils;
+import com.airfreshener.telegram_sms.utils.OtherUtils;
 import com.airfreshener.telegram_sms.utils.SmsUtils;
-import com.airfreshener.telegram_sms.value.const_value;
-import com.airfreshener.telegram_sms.value.ServiceNotifyId;
+import com.airfreshener.telegram_sms.model.ServiceNotifyId;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +35,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class battery_service extends Service {
+public class BatteryService extends Service {
     static String bot_token;
     static String chat_id;
     static boolean doh_switch;
@@ -46,7 +47,7 @@ public class battery_service extends Service {
     private static ArrayList<send_obj> send_loop_list;
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Notification notification = OtherUrils.get_notification_obj(context, getString(R.string.battery_monitoring_notify));
+        Notification notification = OtherUtils.get_notification_obj(context, getString(R.string.battery_monitoring_notify));
         startForeground(ServiceNotifyId.BATTERY, notification);
         return START_STICKY;
     }
@@ -69,7 +70,7 @@ public class battery_service extends Service {
             filter.addAction(Intent.ACTION_POWER_CONNECTED);
             filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
         }
-        filter.addAction(const_value.BROADCAST_STOP_SERVICE);
+        filter.addAction(Consts.BROADCAST_STOP_SERVICE);
         registerReceiver(battery_receiver, filter);
         send_loop_list = new ArrayList<>();
         new Thread(() -> {
@@ -97,25 +98,24 @@ public class battery_service extends Service {
     private void network_handle(send_obj obj) {
         String TAG = "network_handle";
         final RequestMessage request_body = new RequestMessage();
-        request_body.chat_id = battery_service.chat_id;
+        request_body.chat_id = BatteryService.chat_id;
         request_body.text = obj.content;
-        String request_uri = NetworkUtils.get_url(battery_service.bot_token, "sendMessage");
+        String request_uri = NetworkUtils.get_url(BatteryService.bot_token, "sendMessage");
         if ((System.currentTimeMillis() - last_receive_time) <= 5000L && last_receive_message_id != -1) {
             request_uri = NetworkUtils.get_url(bot_token, "editMessageText");
             request_body.message_id = last_receive_message_id;
             Log.d(TAG, "onReceive: edit_mode");
         }
         last_receive_time = System.currentTimeMillis();
-        OkHttpClient okhttp_client = NetworkUtils.get_okhttp_obj(battery_service.doh_switch, Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
-        String request_body_raw = new Gson().toJson(request_body);
-        RequestBody body = RequestBody.create(request_body_raw, const_value.JSON);
+        OkHttpClient okhttp_client = NetworkUtils.get_okhttp_obj(BatteryService.doh_switch, Paper.book("system_config").read("proxy_config", new ProxyConfigV2()));
+        RequestBody body = OkHttpUtils.INSTANCE.toRequestBody(request_body);
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
         Call call = okhttp_client.newCall(request);
         final String error_head = "Send battery info failed:";
         try {
             Response response = call.execute();
             if (response.code() == 200) {
-                last_receive_message_id = OtherUrils.get_message_id(Objects.requireNonNull(response.body()).string());
+                last_receive_message_id = OtherUtils.get_message_id(Objects.requireNonNull(response.body()).string());
             } else {
                 assert response.body() != null;
                 last_receive_message_id = -1;
@@ -156,7 +156,7 @@ public class battery_service extends Service {
             String TAG = "battery_receiver";
             assert intent.getAction() != null;
             Log.d(TAG, "Receive action: " + intent.getAction());
-            if (intent.getAction().equals(const_value.BROADCAST_STOP_SERVICE)) {
+            if (intent.getAction().equals(Consts.BROADCAST_STOP_SERVICE)) {
                 Log.i(TAG, "Received stop signal, quitting now...");
                 stopSelf();
                 android.os.Process.killProcess(android.os.Process.myPid());

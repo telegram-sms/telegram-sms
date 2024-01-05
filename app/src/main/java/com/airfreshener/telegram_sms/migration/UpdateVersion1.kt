@@ -1,7 +1,8 @@
-package com.airfreshener.telegram_sms.upgrade_data
+package com.airfreshener.telegram_sms.migration
 
 import android.util.Log
-import com.airfreshener.telegram_sms.config.ProxyConfigV2
+import com.airfreshener.telegram_sms.model.ProxyConfigV2
+import com.airfreshener.telegram_sms.model.migration.ProxyConfigV1
 import io.paperdb.Paper
 
 class UpdateVersion1 {
