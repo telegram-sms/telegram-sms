@@ -24,19 +24,23 @@ import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.airfreshener.telegram_sms.LogcatActivity
 import com.airfreshener.telegram_sms.QrCodeShowActivity
 import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.ScannerActivity
 import com.airfreshener.telegram_sms.SpamListActivity
+import com.airfreshener.telegram_sms.common.PrefsRepository
+import com.airfreshener.telegram_sms.common.SharedPrefsRepository
+import com.airfreshener.telegram_sms.databinding.ActivityMainBinding
 import com.airfreshener.telegram_sms.migration.UpdateVersion1
 import com.airfreshener.telegram_sms.model.PollingJson
 import com.airfreshener.telegram_sms.model.RequestMessage
@@ -66,142 +70,125 @@ import okhttp3.Response
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
-    private var sharedPreferences: SharedPreferences? = null
+    private val viewModel: MainViewModel by viewModels { MainViewModelFactory(applicationContext) }
+    private val binding by viewBinding(ActivityMainBinding::bind)
+    private val sharedPreferences: SharedPreferences by lazy {
+        getSharedPreferences(
+            "data",
+            MODE_PRIVATE
+        )
+    }
+    private val prefsRepository: PrefsRepository by lazy { SharedPrefsRepository(sharedPreferences) }
     private var privacyPolice: String? = null
 
     @SuppressLint("BatteryLife")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
         val appContext = applicationContext
         PaperUtils.init(appContext)
-        val sharedPreferences = getSharedPreferences("data", MODE_PRIVATE).apply {
-            sharedPreferences = this
-        }
         privacyPolice = "/guide/" + appContext.getString(R.string.Lang) + "/privacy-policy"
-        val chatIdEditview = findViewById<EditText>(R.id.chat_id_editview)
-        val botTokenEditview = findViewById<EditText>(R.id.bot_token_editview)
-        val trustedPhoneNumberEditview = findViewById<EditText>(R.id.trusted_phone_number_editview)
-        val chatCommandSwitch = findViewById<SwitchMaterial>(R.id.chat_command_switch)
-        val fallbackSmsSwitch = findViewById<SwitchMaterial>(R.id.fallback_sms_switch)
-        val batteryMonitoringSwitch = findViewById<SwitchMaterial>(R.id.battery_monitoring_switch)
-        val chargerStatusSwitch = findViewById<SwitchMaterial>(R.id.charger_status_switch)
-        val dohSwitch = findViewById<SwitchMaterial>(R.id.doh_switch)
-        val verificationCodeSwitch = findViewById<SwitchMaterial>(R.id.verification_code_switch)
-        val privacyModeSwitch = findViewById<SwitchMaterial>(R.id.privacy_switch)
-        val displayDualSimDisplayNameSwitch =
-            findViewById<SwitchMaterial>(R.id.display_dual_sim_switch)
-        val saveButton = findViewById<Button>(R.id.save_button)
-        val getIdButton = findViewById<Button>(R.id.get_id_button)
-        if (!sharedPreferences.getBoolean("privacy_dialog_agree", false)) {
+        if (!prefsRepository.getPrivacyDialogAgree()) {
             showPrivacyDialog()
         }
-        val botTokenSave = sharedPreferences.getString("bot_token", "")
-        val chatIdSave = sharedPreferences.getString("chat_id", "")
-        if (parseStringToLong(chatIdSave!!) < 0) {
-            privacyModeSwitch.visibility = View.VISIBLE
-        } else {
-            privacyModeSwitch.visibility = View.GONE
-        }
-        if (sharedPreferences.getBoolean("initialized", false)) {
+        val botTokenSave = prefsRepository.getBotToken()
+        val chatIdSave = prefsRepository.getChatId()
+        binding.privacySwitch.isVisible = parseStringToLong(chatIdSave) < 0
+        if (prefsRepository.getInitialized()) {
             updateConfig()
             checkVersionUpgrade(appContext, true)
             startService(
                 appContext,
-                sharedPreferences.getBoolean("battery_monitoring_switch", false),
-                sharedPreferences.getBoolean("chat_command", false)
+                prefsRepository.getBatteryMonitoring(),
+                prefsRepository.getChatCommand()
             )
         }
-        var displayDualSimDisplayNameConfig =
-            sharedPreferences.getBoolean("display_dual_sim_display_name", false)
+        var displayDualSimDisplayNameConfig = prefsRepository.getDisplayDualSim()
         if (ContextCompat.checkSelfPermission(
                 appContext,
                 Manifest.permission.READ_PHONE_STATE
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             if (getActiveCard(appContext) < 2) {
-                displayDualSimDisplayNameSwitch.isEnabled = false
+                binding.displayDualSimSwitch.isEnabled = false
                 displayDualSimDisplayNameConfig = false
             }
-            displayDualSimDisplayNameSwitch.isChecked = displayDualSimDisplayNameConfig
+            binding.displayDualSimSwitch.isChecked = displayDualSimDisplayNameConfig
         }
-        botTokenEditview.setText(botTokenSave)
-        chatIdEditview.setText(chatIdSave)
-        trustedPhoneNumberEditview.setText(sharedPreferences.getString("trusted_phone_number", ""))
-        batteryMonitoringSwitch.isChecked =
-            sharedPreferences.getBoolean("battery_monitoring_switch", false)
-        chargerStatusSwitch.isChecked = sharedPreferences.getBoolean("charger_status", false)
-        if (!batteryMonitoringSwitch.isChecked) {
-            chargerStatusSwitch.isChecked = false
-            chargerStatusSwitch.visibility = View.GONE
+        binding.botTokenEditview.setText(botTokenSave)
+        binding.chatIdEditview.setText(chatIdSave)
+        binding.trustedPhoneNumberEditview.setText(prefsRepository.getTrustedPhoneNumber())
+        binding.batteryMonitoringSwitch.isChecked = prefsRepository.getBatteryMonitoring()
+        binding.chargerStatusSwitch.isChecked = prefsRepository.getChargerStatus()
+        if (!binding.batteryMonitoringSwitch.isChecked) {
+            binding.chargerStatusSwitch.isChecked = false
+            binding.chargerStatusSwitch.visibility = View.GONE
         }
-        batteryMonitoringSwitch.setOnClickListener {
-            if (batteryMonitoringSwitch.isChecked) {
-                chargerStatusSwitch.visibility = View.VISIBLE
-                chargerStatusSwitch.isEnabled = true
+        binding.batteryMonitoringSwitch.setOnClickListener {
+            if (binding.batteryMonitoringSwitch.isChecked) {
+                binding.chargerStatusSwitch.visibility = View.VISIBLE
+                binding.chargerStatusSwitch.isEnabled = true
             } else {
-                chargerStatusSwitch.isEnabled = false
-                chargerStatusSwitch.isChecked = false
+                binding.chargerStatusSwitch.isEnabled = false
+                binding.chargerStatusSwitch.isChecked = false
             }
         }
-        fallbackSmsSwitch.isChecked = sharedPreferences.getBoolean("fallback_sms", false)
-        if (trustedPhoneNumberEditview.length() == 0) {
-            fallbackSmsSwitch.visibility = View.GONE
-            fallbackSmsSwitch.isChecked = false
+        binding.fallbackSmsSwitch.isChecked = prefsRepository.getFallbackSms()
+        if (binding.trustedPhoneNumberEditview.length() == 0) {
+            binding.fallbackSmsSwitch.visibility = View.GONE
+            binding.fallbackSmsSwitch.isChecked = false
         }
-        trustedPhoneNumberEditview.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
-                //ignore
-            }
+        binding.trustedPhoneNumberEditview.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) =
+                Unit
 
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                //ignore
-            }
-
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) = Unit
             override fun afterTextChanged(s: Editable) {
-                if (trustedPhoneNumberEditview.length() != 0) {
-                    fallbackSmsSwitch.visibility = View.VISIBLE
-                    fallbackSmsSwitch.isEnabled = true
+                if (binding.trustedPhoneNumberEditview.length() != 0) {
+                    binding.fallbackSmsSwitch.visibility = View.VISIBLE
+                    binding.fallbackSmsSwitch.isEnabled = true
                 } else {
-                    // fallback_sms_switch.setVisibility(View.GONE);
-                    fallbackSmsSwitch.isEnabled = false
-                    fallbackSmsSwitch.isChecked = false
+                    // binding.fallbackSmsSwitch.setVisibility(View.GONE);
+                    binding.fallbackSmsSwitch.isEnabled = false
+                    binding.fallbackSmsSwitch.isChecked = false
                 }
             }
         })
-        chatCommandSwitch.isChecked = sharedPreferences.getBoolean("chat_command", false)
-        chatCommandSwitch.setOnClickListener { v: View? ->
+        binding.chatCommandSwitch.isChecked = prefsRepository.getChatCommand()
+        binding.chatCommandSwitch.setOnClickListener {
             setPrivacyModeCheckbox(
-                chatIdEditview.text.toString(),
-                chatCommandSwitch,
-                privacyModeSwitch
+                binding.chatIdEditview.text.toString(),
+                binding.chatCommandSwitch.isChecked,
+                binding.privacySwitch
             )
         }
-        verificationCodeSwitch.isChecked = sharedPreferences.getBoolean("verification_code", false)
-        dohSwitch.isChecked = sharedPreferences.getBoolean("doh_switch", true)
+        binding.verificationCodeSwitch.isChecked = prefsRepository.getVerificationCode()
+        binding.dohSwitch.isChecked = prefsRepository.getDohSwitch()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            dohSwitch.isEnabled = !PaperUtils.getProxyConfig().enable
+            binding.dohSwitch.isEnabled = !PaperUtils.getProxyConfig().enable
         }
-        privacyModeSwitch.isChecked = sharedPreferences.getBoolean("privacy_mode", false)
+        binding.privacySwitch.isChecked = prefsRepository.getPrivacyMode()
         if (
-            ContextCompat.checkSelfPermission(appContext, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(
+                appContext,
+                Manifest.permission.READ_PHONE_STATE
+            ) == PackageManager.PERMISSION_GRANTED
         ) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 val tm = (getSystemService(TELEPHONY_SERVICE) as TelephonyManager)
                 if (tm.phoneCount <= 1) {
-                    displayDualSimDisplayNameSwitch.visibility = View.GONE
+                    binding.displayDualSimSwitch.visibility = View.GONE
                 }
             }
         }
-        displayDualSimDisplayNameSwitch.setOnClickListener { v: View? ->
+        binding.displayDualSimSwitch.setOnClickListener {
             if (ContextCompat.checkSelfPermission(
                     appContext,
                     Manifest.permission.READ_PHONE_STATE
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                displayDualSimDisplayNameSwitch.isChecked = false
+                binding.displayDualSimSwitch.isChecked = false
                 ActivityCompat.requestPermissions(
                     this,
                     arrayOf(Manifest.permission.READ_PHONE_STATE),
@@ -209,24 +196,26 @@ class MainActivity : AppCompatActivity() {
                 )
             } else {
                 if (getActiveCard(appContext) < 2) {
-                    displayDualSimDisplayNameSwitch.isEnabled = false
-                    displayDualSimDisplayNameSwitch.isChecked = false
+                    binding.displayDualSimSwitch.isEnabled = false
+                    binding.displayDualSimSwitch.isChecked = false
                 }
             }
         }
-        chatIdEditview.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) = Unit
+        binding.chatIdEditview.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) =
+                Unit
+
             override fun afterTextChanged(s: Editable) = Unit
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
                 setPrivacyModeCheckbox(
-                    chatIdEditview.text.toString(),
-                    chatCommandSwitch,
-                    privacyModeSwitch
+                    binding.chatIdEditview.text.toString(),
+                    binding.chatCommandSwitch.isChecked,
+                    binding.privacySwitch
                 )
             }
         })
-        getIdButton.setOnClickListener { v: View ->
-            if (botTokenEditview.text.toString().isEmpty()) {
+        binding.getIdButton.setOnClickListener { v: View ->
+            if (binding.botTokenEditview.text.toString().isEmpty()) {
                 Snackbar.make(v, R.string.token_not_configure, Snackbar.LENGTH_LONG).show()
                 return@setOnClickListener
             }
@@ -239,11 +228,12 @@ class MainActivity : AppCompatActivity() {
             progressDialog.setCancelable(false)
             progressDialog.show()
             val requestUri =
-                getUrl(botTokenEditview.text.toString().trim { it <= ' ' }, "getUpdates")
-            val okhttpClient = getOkhttpObj(dohSwitch.isChecked, PaperUtils.getProxyConfig())
-                .newBuilder()
-                .readTimeout(60, TimeUnit.SECONDS)
-                .build()
+                getUrl(binding.botTokenEditview.text.toString().trim { it <= ' ' }, "getUpdates")
+            val okhttpClient =
+                getOkhttpObj(binding.dohSwitch.isChecked, PaperUtils.getProxyConfig())
+                    .newBuilder()
+                    .readTimeout(60, TimeUnit.SECONDS)
+                    .build()
             val requestBody = PollingJson()
             requestBody.timeout = 60
             val body = requestBody.toRequestBody()
@@ -331,7 +321,7 @@ class MainActivity : AppCompatActivity() {
                             .setItems(
                                 chatNameList.toTypedArray<String>()
                             ) { _: DialogInterface?, i: Int ->
-                                chatIdEditview.setText(chatIdList[i])
+                                binding.chatIdEditview.setText(chatIdList[i])
                             }
                             .setPositiveButton(appContext.getString(R.string.cancel_button), null)
                             .show()
@@ -339,146 +329,154 @@ class MainActivity : AppCompatActivity() {
                 }
             })
         }
-        saveButton.setOnClickListener { v: View ->
-            if (botTokenEditview.text.toString().isEmpty() || chatIdEditview.text.toString()
-                    .isEmpty()
-            ) {
-                Snackbar.make(v, R.string.chat_id_or_token_not_config, Snackbar.LENGTH_LONG)
-                    .show()
-                return@setOnClickListener
-            }
-            if (fallbackSmsSwitch.isChecked && trustedPhoneNumberEditview.text.toString()
-                    .isEmpty()
-            ) {
-                Snackbar.make(v, R.string.trusted_phone_number_empty, Snackbar.LENGTH_LONG).show()
-                return@setOnClickListener
-            }
-            if (!sharedPreferences.getBoolean("privacy_dialog_agree", false)) {
-                showPrivacyDialog()
-                return@setOnClickListener
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                ActivityCompat.requestPermissions(
-                    this@MainActivity, arrayOf(
-                        Manifest.permission.READ_SMS,
-                        Manifest.permission.SEND_SMS,
-                        Manifest.permission.RECEIVE_SMS,
-                        Manifest.permission.CALL_PHONE,
-                        Manifest.permission.READ_PHONE_STATE,
-                        Manifest.permission.READ_CALL_LOG
-                    ),
-                    1
-                )
-                val powerManager = (getSystemService(POWER_SERVICE) as PowerManager)
-                val hasIgnored = powerManager.isIgnoringBatteryOptimizations(packageName)
-                if (!hasIgnored) {
-                    val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-                        .setData(Uri.parse("package:$packageName"))
-                    if (intent.resolveActivityInfo(
-                            packageManager,
-                            PackageManager.MATCH_DEFAULT_ONLY
-                        ) != null
-                    ) {
-                        startActivity(intent)
-                    }
+        binding.saveButton.setOnClickListener { v: View -> onSaveClicked(v) }
+    }
+
+    private fun onSaveClicked(view: View) {
+        val appContext = view.context.applicationContext
+        val chatId = binding.chatIdEditview.text.toString()
+        val botToken = binding.botTokenEditview.text.toString()
+        val botTokenSave = prefsRepository.getBotToken()
+
+        if (botToken.isEmpty() || chatId.isEmpty()) {
+            Snackbar.make(view, R.string.chat_id_or_token_not_config, Snackbar.LENGTH_LONG)
+                .show()
+            return
+        }
+        if (binding.fallbackSmsSwitch.isChecked && binding.trustedPhoneNumberEditview.text.toString()
+                .isEmpty()
+        ) {
+            Snackbar.make(view, R.string.trusted_phone_number_empty, Snackbar.LENGTH_LONG).show()
+            return
+        }
+        if (!prefsRepository.getPrivacyDialogAgree()) {
+            showPrivacyDialog()
+            return
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            ActivityCompat.requestPermissions(
+                this@MainActivity, arrayOf(
+                    Manifest.permission.READ_SMS,
+                    Manifest.permission.SEND_SMS,
+                    Manifest.permission.RECEIVE_SMS,
+                    Manifest.permission.CALL_PHONE,
+                    Manifest.permission.READ_PHONE_STATE,
+                    Manifest.permission.READ_CALL_LOG
+                ),
+                1
+            )
+            val powerManager = (getSystemService(POWER_SERVICE) as PowerManager)
+            val hasIgnored = powerManager.isIgnoringBatteryOptimizations(packageName)
+            if (!hasIgnored) {
+                val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                    .setData(Uri.parse("package:$packageName"))
+                if (intent.resolveActivityInfo(
+                        packageManager,
+                        PackageManager.MATCH_DEFAULT_ONLY
+                    ) != null
+                ) {
+                    startActivity(intent)
                 }
             }
-            val progressDialog = ProgressDialog(this@MainActivity)
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
-            progressDialog.setTitle(getString(R.string.connect_wait_title))
-            progressDialog.setMessage(getString(R.string.connect_wait_message))
-            progressDialog.isIndeterminate = false
-            progressDialog.setCancelable(false)
-            progressDialog.show()
-            val requestUri =
-                getUrl(botTokenEditview.text.toString().trim { it <= ' ' }, "sendMessage")
-            val requestBody = RequestMessage()
-            requestBody.chat_id = chatIdEditview.text.toString().trim { it <= ' ' }
-            requestBody.text = """
+        }
+        val progressDialog = ProgressDialog(this@MainActivity)
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
+        progressDialog.setTitle(getString(R.string.connect_wait_title))
+        progressDialog.setMessage(getString(R.string.connect_wait_message))
+        progressDialog.isIndeterminate = false
+        progressDialog.setCancelable(false)
+        progressDialog.show()
+        val requestUri =
+            getUrl(binding.botTokenEditview.text.toString().trim { it <= ' ' }, "sendMessage")
+        val requestBody = RequestMessage()
+        requestBody.chat_id = binding.chatIdEditview.text.toString().trim { it <= ' ' }
+        requestBody.text = """
                 ${getString(R.string.system_message_head)}
                 ${getString(R.string.success_connect)}
                 """.trimIndent()
-            val body = requestBody.toRequestBody()
-            val okhttpClient = getOkhttpObj(
-                dohSwitch.isChecked,
-                PaperUtils.getProxyConfig()
-            )
-            val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
-            val call = okhttpClient.newCall(request)
-            val errorHead = "Send message failed: "
-            call.enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    e.printStackTrace()
-                    progressDialog.cancel()
-                    val errorMessage = errorHead + e.message
+        val body = requestBody.toRequestBody()
+        val okhttpClient = getOkhttpObj(
+            binding.dohSwitch.isChecked,
+            PaperUtils.getProxyConfig()
+        )
+        val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
+        val call = okhttpClient.newCall(request)
+        val errorHead = "Send message failed: "
+        call.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                e.printStackTrace()
+                progressDialog.cancel()
+                val errorMessage = errorHead + e.message
+                LogUtils.writeLog(appContext, errorMessage)
+                Looper.prepare()
+                Snackbar.make(view, errorMessage, Snackbar.LENGTH_LONG).show()
+                Looper.loop()
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                progressDialog.cancel()
+                val newBotToken = binding.botTokenEditview.text.toString().trim { it <= ' ' }
+                if (response.code != 200) {
+                    val responseBody = response.body ?: return
+                    val result = responseBody.string()
+                    val resultObj = JsonParser.parseString(result).asJsonObject
+                    val errorMessage = errorHead + resultObj["description"]
                     LogUtils.writeLog(appContext, errorMessage)
                     Looper.prepare()
-                    Snackbar.make(v, errorMessage, Snackbar.LENGTH_LONG).show()
+                    Snackbar.make(view, errorMessage, Snackbar.LENGTH_LONG).show()
                     Looper.loop()
+                    return
                 }
-
-                override fun onResponse(call: Call, response: Response) {
-                    progressDialog.cancel()
-                    val newBotToken = botTokenEditview.text.toString().trim { it <= ' ' }
-                    if (response.code != 200) {
-                        val responseBody = response.body ?: return
-                        val result = responseBody.string()
-                        val resultObj = JsonParser.parseString(result).asJsonObject
-                        val errorMessage = errorHead + resultObj["description"]
-                        LogUtils.writeLog(appContext, errorMessage)
-                        Looper.prepare()
-                        Snackbar.make(v, errorMessage, Snackbar.LENGTH_LONG).show()
-                        Looper.loop()
-                        return
-                    }
-                    if (newBotToken != botTokenSave) {
-                        Log.i(
-                            TAG,
-                            "onResponse: The current bot token does not match the saved bot token, clearing the message database."
-                        )
-                        DEFAULT_BOOK.destroy()
-                    }
-                    SYSTEM_BOOK.write("version", Consts.SYSTEM_CONFIG_VERSION)
-                    checkVersionUpgrade(appContext, false)
-                    val editor = sharedPreferences.edit().clear()
-                    editor.putString("bot_token", newBotToken)
-                    editor.putString("chat_id", chatIdEditview.text.toString().trim { it <= ' ' })
-                    if (trustedPhoneNumberEditview.text.toString().trim { it <= ' ' }.isNotEmpty()) {
-                        editor.putString(
-                            "trusted_phone_number",
-                            trustedPhoneNumberEditview.text.toString().trim { it <= ' ' })
-                    }
-                    editor.putBoolean("fallback_sms", fallbackSmsSwitch.isChecked)
-                    editor.putBoolean("chat_command", chatCommandSwitch.isChecked)
-                    editor.putBoolean(
-                        "battery_monitoring_switch",
-                        batteryMonitoringSwitch.isChecked
+                if (newBotToken != botTokenSave) {
+                    Log.i(
+                        TAG,
+                        "onResponse: The current bot token does not match the saved bot token, clearing the message database."
                     )
-                    editor.putBoolean("charger_status", chargerStatusSwitch.isChecked)
-                    editor.putBoolean(
-                        "display_dual_sim_display_name",
-                        displayDualSimDisplayNameSwitch.isChecked
-                    )
-                    editor.putBoolean("verification_code", verificationCodeSwitch.isChecked)
-                    editor.putBoolean("doh_switch", dohSwitch.isChecked)
-                    editor.putBoolean("privacy_mode", privacyModeSwitch.isChecked)
-                    editor.putBoolean("initialized", true)
-                    editor.putBoolean("privacy_dialog_agree", true)
-                    editor.apply()
-                    Thread {
-                        stopAllService(appContext)
-                        startService(
-                            appContext,
-                            batteryMonitoringSwitch.isChecked,
-                            chatCommandSwitch.isChecked
-                        )
-                    }.start()
-                    Looper.prepare()
-                    Snackbar.make(v, R.string.success, Snackbar.LENGTH_LONG).show()
-                    Looper.loop()
+                    DEFAULT_BOOK.destroy()
                 }
-            })
-        }
+                SYSTEM_BOOK.write("version", Consts.SYSTEM_CONFIG_VERSION)
+                checkVersionUpgrade(appContext, false)
+                val editor = sharedPreferences.edit().clear()
+                editor.putString("bot_token", newBotToken)
+                editor.putString(
+                    "chat_id",
+                    binding.chatIdEditview.text.toString().trim { it <= ' ' })
+                if (binding.trustedPhoneNumberEditview.text.toString().trim { it <= ' ' }
+                        .isNotEmpty()) {
+                    editor.putString(
+                        "trusted_phone_number",
+                        binding.trustedPhoneNumberEditview.text.toString().trim { it <= ' ' })
+                }
+                editor.putBoolean("fallback_sms", binding.fallbackSmsSwitch.isChecked)
+                editor.putBoolean("chat_command", binding.chatCommandSwitch.isChecked)
+                editor.putBoolean(
+                    "battery_monitoring_switch",
+                    binding.batteryMonitoringSwitch.isChecked
+                )
+                editor.putBoolean("charger_status", binding.chargerStatusSwitch.isChecked)
+                editor.putBoolean(
+                    "display_dual_sim_display_name",
+                    binding.displayDualSimSwitch.isChecked
+                )
+                editor.putBoolean("verification_code", binding.verificationCodeSwitch.isChecked)
+                editor.putBoolean("doh_switch", binding.dohSwitch.isChecked)
+                editor.putBoolean("privacy_mode", binding.privacySwitch.isChecked)
+                editor.putBoolean("initialized", true)
+                editor.putBoolean("privacy_dialog_agree", true)
+                editor.apply()
+                Thread {
+                    stopAllService(appContext)
+                    startService(
+                        appContext,
+                        binding.batteryMonitoringSwitch.isChecked,
+                        binding.chatCommandSwitch.isChecked
+                    )
+                }.start()
+                Looper.prepare()
+                Snackbar.make(view, R.string.success, Snackbar.LENGTH_LONG).show()
+                Looper.loop()
+            }
+        })
     }
 
     private fun showPrivacyDialog() {
@@ -486,34 +484,32 @@ class MainActivity : AppCompatActivity() {
         builder.setTitle(R.string.privacy_reminder_title)
         builder.setMessage(R.string.privacy_reminder_information)
         builder.setCancelable(false)
-        builder.setPositiveButton(R.string.agree) { dialog: DialogInterface?, which: Int ->
-            sharedPreferences!!.edit().putBoolean("privacy_dialog_agree", true).apply()
+        builder.setPositiveButton(R.string.agree) { _: DialogInterface?, _: Int ->
+            prefsRepository.setPrivacyDialogAgree(true)
         }
-        builder.setNegativeButton(R.string.decline, null)
-        builder.setNeutralButton(R.string.visit_page) { dialog: DialogInterface?, which: Int ->
+        builder.setNeutralButton(R.string.visit_page) { _: DialogInterface?, _: Int ->
             val uri = Uri.parse("https://get.telegram-sms.com$privacyPolice")
-            val privacy_builder = CustomTabsIntent.Builder()
-            privacy_builder.setToolbarColor(
+            val privacyBuilder = CustomTabsIntent.Builder()
+            privacyBuilder.setToolbarColor(
                 ContextCompat.getColor(applicationContext, R.color.colorPrimary)
             )
-            val customTabsIntent = privacy_builder.build()
+            val customTabsIntent = privacyBuilder.build()
             customTabsIntent.intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             try {
                 customTabsIntent.launchUrl(applicationContext, uri)
             } catch (e: ActivityNotFoundException) {
                 e.printStackTrace()
                 Snackbar.make(
-                    findViewById(R.id.bot_token_editview),
+                    binding.botTokenEditview,
                     "Browser not found.",
                     Snackbar.LENGTH_LONG
                 ).show()
             }
         }
-        val dialog = builder.create()
-        dialog.show()
-        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).isAllCaps = false
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).isAllCaps = false
-        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).isAllCaps = false
+        builder.create().apply {
+            getButton(AlertDialog.BUTTON_POSITIVE).isAllCaps = false
+            getButton(AlertDialog.BUTTON_NEUTRAL).isAllCaps = false
+        }.show()
     }
 
     override fun onResume() {
@@ -538,7 +534,7 @@ class MainActivity : AppCompatActivity() {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                     Log.d(TAG, "onRequestPermissionsResult: No camera permissions.")
                     Snackbar.make(
-                        findViewById(R.id.bot_token_editview),
+                        binding.botTokenEditview,
                         R.string.no_camera_permission,
                         Snackbar.LENGTH_LONG
                     ).show()
@@ -549,14 +545,12 @@ class MainActivity : AppCompatActivity() {
             }
 
             1 -> {
-                val displayDualSimDisplayName =
-                    findViewById<SwitchMaterial>(R.id.display_dual_sim_switch)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                         val tm = (getSystemService(TELEPHONY_SERVICE) as TelephonyManager)
                         if (tm.phoneCount <= 1 || getActiveCard(applicationContext) < 2) {
-                            displayDualSimDisplayName.isEnabled = false
-                            displayDualSimDisplayName.isChecked = false
+                            binding.displayDualSimSwitch.isEnabled = false
+                            binding.displayDualSimSwitch.isChecked = false
                         }
                     }
                 }
@@ -576,7 +570,6 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("NonConstantResourceId")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val appContext = applicationContext
-        val inflater = this.layoutInflater
         var fileName: String? = null
         val lang = appContext.getString(R.string.Lang)
         when (item.itemId) {
@@ -597,11 +590,11 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.config_qrcode_menu_item -> {
-                if (sharedPreferences!!.getBoolean("initialized", false)) {
+                if (prefsRepository.getInitialized()) {
                     startActivity(Intent(this, QrCodeShowActivity::class.java))
                 } else {
                     Snackbar.make(
-                        findViewById(R.id.bot_token_editview),
+                        binding.botTokenEditview,
                         "Uninitialized.",
                         Snackbar.LENGTH_LONG
                     ).show()
@@ -627,17 +620,16 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.set_proxy_menu_item -> {
-                val dohSwitch = findViewById<SwitchMaterial>(R.id.doh_switch)
                 showProxySettingsDialog(
-                    inflater,
-                    this,
-                    appContext,
-                    sharedPreferences!!,
+                    inflater = layoutInflater,
+                    activity = this,
+                    context = appContext,
+                    prefsRepository = prefsRepository,
                     onOkCallback = { isChecked: Boolean ->
-                        if (!dohSwitch.isChecked) {
-                            dohSwitch.isChecked = true
+                        if (!binding.dohSwitch.isChecked) {
+                            binding.dohSwitch.isChecked = true
                         }
-                        dohSwitch.isEnabled = !isChecked
+                        binding.dohSwitch.isEnabled = !isChecked
                     }
                 )
                 return true
@@ -661,7 +653,7 @@ class MainActivity : AppCompatActivity() {
         } catch (e: ActivityNotFoundException) {
             e.printStackTrace()
             Snackbar.make(
-                findViewById(R.id.bot_token_editview),
+                binding.botTokenEditview,
                 "Browser not found.",
                 Snackbar.LENGTH_LONG
             ).show()
@@ -688,48 +680,41 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (data == null) {
+            Log.d(TAG, "onActivityResult: data is null")
+            return
+        }
         if (requestCode == 1) {
             if (resultCode == Consts.RESULT_CONFIG_JSON) {
                 val jsonConfig = JsonParser.parseString(
-                        data!!.getStringExtra("config_json")!! // TODO
+                    data.getStringExtra("config_json")!! // TODO
                 ).asJsonObject
-                (findViewById<View>(R.id.bot_token_editview) as EditText).setText(
-                    jsonConfig["bot_token"].asString
-                )
-                (findViewById<View>(R.id.chat_id_editview) as EditText).setText(
-                    jsonConfig["chat_id"].asString
-                )
-                (findViewById<View>(R.id.battery_monitoring_switch) as SwitchMaterial).isChecked =
+                binding.botTokenEditview.setText(jsonConfig["bot_token"].asString)
+                binding.chatIdEditview.setText(jsonConfig["chat_id"].asString)
+                binding.batteryMonitoringSwitch.isChecked =
                     jsonConfig["battery_monitoring_switch"].asBoolean
-                (findViewById<View>(R.id.verification_code_switch) as SwitchMaterial).isChecked =
-                    jsonConfig["verification_code"].asBoolean
-                val chargerStatus = findViewById<SwitchMaterial>(R.id.charger_status_switch)
+                binding.verificationCodeSwitch.isChecked = jsonConfig["verification_code"].asBoolean
                 if (jsonConfig["battery_monitoring_switch"].asBoolean) {
-                    chargerStatus.isChecked = jsonConfig["charger_status"].asBoolean
-                    chargerStatus.visibility = View.VISIBLE
+                    binding.chargerStatusSwitch.isChecked = jsonConfig["charger_status"].asBoolean
+                    binding.chargerStatusSwitch.visibility = View.VISIBLE
                 } else {
-                    chargerStatus.isChecked = false
-                    chargerStatus.visibility = View.GONE
+                    binding.chargerStatusSwitch.isChecked = false
+                    binding.chargerStatusSwitch.visibility = View.GONE
                 }
-                val chatCommand = findViewById<SwitchMaterial>(R.id.chat_command_switch)
-                chatCommand.isChecked = jsonConfig["chat_command"].asBoolean
-                val privacyModeSwitch = findViewById<SwitchMaterial>(R.id.privacy_switch)
-                privacyModeSwitch.isChecked = jsonConfig["privacy_mode"].asBoolean
+                binding.chatCommandSwitch.isChecked = jsonConfig["chat_command"].asBoolean
+                binding.privacySwitch.isChecked = jsonConfig["privacy_mode"].asBoolean
                 setPrivacyModeCheckbox(
                     jsonConfig["chat_id"].asString,
-                    chatCommand,
-                    privacyModeSwitch
+                    binding.chatCommandSwitch.isChecked,
+                    binding.privacySwitch
                 )
-                val trustedPhoneNumber =
-                    findViewById<EditText>(R.id.trusted_phone_number_editview)
-                trustedPhoneNumber.setText(jsonConfig["trusted_phone_number"].asString)
-                val fallbackSms = findViewById<SwitchMaterial>(R.id.fallback_sms_switch)
-                fallbackSms.isChecked = jsonConfig["fallback_sms"].asBoolean
-                if (trustedPhoneNumber.length() != 0) {
-                    fallbackSms.visibility = View.VISIBLE
+                binding.trustedPhoneNumberEditview.setText(jsonConfig["trusted_phone_number"].asString)
+                binding.fallbackSmsSwitch.isChecked = jsonConfig["fallback_sms"].asBoolean
+                if (binding.trustedPhoneNumberEditview.length() != 0) {
+                    binding.fallbackSmsSwitch.visibility = View.VISIBLE
                 } else {
-                    fallbackSms.visibility = View.GONE
-                    fallbackSms.isChecked = false
+                    binding.fallbackSmsSwitch.visibility = View.GONE
+                    binding.fallbackSmsSwitch.isChecked = false
                 }
             }
         }
@@ -772,18 +757,18 @@ class MainActivity : AppCompatActivity() {
 
         private fun setPrivacyModeCheckbox(
             chatId: String,
-            chatCommand: SwitchMaterial,
+            isChatCommand: Boolean,
             privacyModeSwitch: SwitchMaterial
         ) {
-            if (!chatCommand.isChecked) {
-                privacyModeSwitch.visibility = View.GONE
+            if (!isChatCommand) {
+                privacyModeSwitch.isVisible = false
                 privacyModeSwitch.isChecked = false
                 return
             }
             if (parseStringToLong(chatId) < 0) {
-                privacyModeSwitch.visibility = View.VISIBLE
+                privacyModeSwitch.isVisible = true
             } else {
-                privacyModeSwitch.visibility = View.GONE
+                privacyModeSwitch.isVisible = false
                 privacyModeSwitch.isChecked = false
             }
         }

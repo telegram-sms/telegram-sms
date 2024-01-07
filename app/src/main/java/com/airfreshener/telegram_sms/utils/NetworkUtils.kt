@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit
 object NetworkUtils {
 
     private const val TELEGRAM_API_DOMAIN = "api.telegram.org"
-    private const val DNS_OVER_HTTP_ADDRSS = "https://cloudflare-dns.com/dns-query"
+    private const val DNS_OVER_HTTP_ADDRESS = "https://cloudflare-dns.com/dns-query"
 
     @JvmStatic
     fun checkNetworkStatus(context: Context): Boolean {
@@ -85,7 +85,7 @@ object NetworkUtils {
             }
             okhttp.dns(
                 DnsOverHttps.Builder().client(dohHttpClient.build())
-                    .url(DNS_OVER_HTTP_ADDRSS.toHttpUrl())
+                    .url(DNS_OVER_HTTP_ADDRESS.toHttpUrl())
                     .bootstrapDnsHosts(
                         getByIp("2606:4700:4700::1001"),
                         getByIp("2606:4700:4700::1111"),

@@ -1,6 +1,5 @@
 package com.airfreshener.telegram_sms
 
-import android.content.Context
 import android.os.Bundle
 import android.os.FileObserver
 import android.view.Menu

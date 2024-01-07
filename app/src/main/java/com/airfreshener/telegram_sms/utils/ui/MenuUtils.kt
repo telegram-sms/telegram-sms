@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import com.airfreshener.telegram_sms.R
+import com.airfreshener.telegram_sms.common.PrefsRepository
 import com.airfreshener.telegram_sms.utils.PaperUtils
 import com.airfreshener.telegram_sms.utils.PaperUtils.SYSTEM_BOOK
 import com.airfreshener.telegram_sms.utils.ServiceUtils
@@ -20,7 +21,7 @@ object MenuUtils {
         inflater: LayoutInflater,
         activity: Activity,
         context: Context,
-        sharedPreferences: SharedPreferences,
+        prefsRepository: PrefsRepository,
         onOkCallback: (isChecked: Boolean) -> Unit
     ) {
         val proxyDialogView = inflater.inflate(R.layout.set_proxy_layout, null)
@@ -51,11 +52,11 @@ object MenuUtils {
                 SYSTEM_BOOK.write("proxy_config", proxyItem)
                 Thread {
                     ServiceUtils.stopAllService(context)
-                    if (sharedPreferences.getBoolean("initialized", false)) {
+                    if (prefsRepository.getInitialized()) {
                         ServiceUtils.startService(
                             context,
-                            sharedPreferences.getBoolean("battery_monitoring_switch", false),
-                            sharedPreferences.getBoolean("chat_command", false)
+                            prefsRepository.getBatteryMonitoring(),
+                            prefsRepository.getChatCommand()
                         )
                     }
                 }.start()

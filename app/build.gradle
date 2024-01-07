@@ -34,20 +34,26 @@ android {
             signingConfig signingConfigs.release
         }
     }
+    buildFeatures {
+        viewBinding true
+    }
 }
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.browser:browser:1.7.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2"
+    implementation "androidx.fragment:fragment-ktx:1.6.2"
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'com.google.code.gson:gson:2.9.0'
+    implementation 'com.github.yuriy-budiyev:code-scanner:2.1.0'
     implementation 'com.squareup.okio:okio:3.2.0'
     implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.2'
     implementation 'com.squareup.okhttp3:okhttp-dnsoverhttps:5.0.0-alpha.2'
-    implementation 'org.conscrypt:conscrypt-android:2.5.2'
-    implementation 'com.google.code.gson:gson:2.9.0'
     implementation 'io.github.pilgr:paperdb:2.7.2'
-    implementation 'com.github.yuriy-budiyev:code-scanner:2.1.0'
-    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'org.conscrypt:conscrypt-android:2.5.2'
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.10'
+    implementation 'com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.4.6'
 }
