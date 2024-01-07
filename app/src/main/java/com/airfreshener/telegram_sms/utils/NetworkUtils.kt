@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 
 object NetworkUtils {
 
-    private const val TELEGRAM_API_DOMAIN = "api.telegram.org"
+    private const val TELEGRAM_API_URL = "https://api.telegram.org/bot"
     private const val DNS_OVER_HTTP_ADDRESS = "https://cloudflare-dns.com/dns-query"
 
     @JvmStatic
@@ -41,12 +41,12 @@ object NetworkUtils {
 
     @JvmStatic
     fun getUrl(token: String, func: String): String {
-        return "https://$TELEGRAM_API_DOMAIN/bot$token/$func"
+        return "$TELEGRAM_API_URL$token/$func"
     }
 
     @JvmStatic
     fun getOkhttpObj(dohSwitch: Boolean): OkHttpClient {
-        var dohSwitch = dohSwitch
+        var isDnsOverHttps = dohSwitch
         val proxyItem = PaperUtils.getProxyConfig()
         val okhttp: OkHttpClient.Builder = OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
@@ -60,42 +60,30 @@ object NetworkUtils {
                 StrictMode.setThreadPolicy(policy)
                 val proxyAddr = InetSocketAddress(proxyItem.host, proxyItem.port)
                 proxy = Proxy(Proxy.Type.SOCKS, proxyAddr)
-                Authenticator.setDefault(object : Authenticator() {
-                    override fun getPasswordAuthentication(): PasswordAuthentication? {
-                        if (requestingHost.equals(proxyItem.host, ignoreCase = true)) {
-                            if (proxyItem.port == requestingPort) {
-                                return PasswordAuthentication(
-                                    proxyItem.username,
-                                    proxyItem.password.toCharArray()
-                                )
-                            }
-                        }
-                        return null
-                    }
-                })
+                Authenticator.setDefault(ProxyAuthenticator(proxyItem))
                 okhttp.proxy(proxy)
-                dohSwitch = true
+                isDnsOverHttps = true
             }
         }
-        if (dohSwitch) {
-            val dohHttpClient: OkHttpClient.Builder = OkHttpClient.Builder().retryOnConnectionFailure(true)
+        if (isDnsOverHttps) {
+            val dohHttpClient = OkHttpClient.Builder().retryOnConnectionFailure(true)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 if (proxyItem.enable && proxyItem.dns_over_socks5) {
                     dohHttpClient.proxy(proxy)
                 }
             }
-            okhttp.dns(
-                DnsOverHttps.Builder().client(dohHttpClient.build())
-                    .url(DNS_OVER_HTTP_ADDRESS.toHttpUrl())
-                    .bootstrapDnsHosts(
-                        getByIp("2606:4700:4700::1001"),
-                        getByIp("2606:4700:4700::1111"),
-                        getByIp("1.0.0.1"),
-                        getByIp("1.1.1.1")
-                    )
-                    .includeIPv6(true)
-                    .build()
-            )
+
+            val doh = DnsOverHttps.Builder().client(dohHttpClient.build())
+                .url(DNS_OVER_HTTP_ADDRESS.toHttpUrl())
+                .bootstrapDnsHosts(
+                    getByIp("2606:4700:4700::1001"),
+                    getByIp("2606:4700:4700::1111"),
+                    getByIp("1.0.0.1"),
+                    getByIp("1.1.1.1")
+                )
+                .includeIPv6(true)
+                .build()
+            okhttp.dns(doh)
         }
         return okhttp.build()
     }
@@ -106,6 +94,20 @@ object NetworkUtils {
         } catch (e: UnknownHostException) {
             e.printStackTrace()
             throw RuntimeException(e)
+        }
+    }
+
+    private class ProxyAuthenticator(private val proxyItem: ProxyConfigV2) : Authenticator() {
+        override fun getPasswordAuthentication(): PasswordAuthentication? {
+            if (requestingHost.equals(proxyItem.host, ignoreCase = true)) {
+                if (proxyItem.port == requestingPort) {
+                    return PasswordAuthentication(
+                        proxyItem.username,
+                        proxyItem.password.toCharArray()
+                    )
+                }
+            }
+            return null
         }
     }
 }

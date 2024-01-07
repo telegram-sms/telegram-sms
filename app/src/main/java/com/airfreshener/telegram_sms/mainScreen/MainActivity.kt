@@ -71,19 +71,25 @@ import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
+    @Suppress("unused") // TODO
     private val viewModel: MainViewModel by viewModels { MainViewModelFactory(applicationContext) }
+
     private val binding by viewBinding(ActivityMainBinding::bind)
     private val prefsRepository: PrefsRepository by lazy {
         SharedPrefsRepository(getSharedPreferences("data", MODE_PRIVATE))
     }
-    private var privacyPolice: String? = null
+    private val qaUrl: String
+        get() = "$WEB_VIEW_PAGES_URL/${applicationContext.getString(R.string.Lang)}/Q&A"
+    private val manualUrl: String
+        get() = "$WEB_VIEW_PAGES_URL/${applicationContext.getString(R.string.Lang)}/user-manual"
+    private val privacyPolice: String
+        get() = "$WEB_VIEW_PAGES_URL/${applicationContext.getString(R.string.Lang)}/privacy-policy"
 
     @SuppressLint("BatteryLife")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val appContext = applicationContext
         PaperUtils.init(appContext)
-        privacyPolice = "/guide/" + appContext.getString(R.string.Lang) + "/privacy-policy"
         if (!prefsRepository.getPrivacyDialogAgree()) showPrivacyDialog()
         val settings = prefsRepository.getSettings()
         binding.privacySwitch.isVisible = parseStringToLong(settings.chatId) < 0
@@ -93,11 +99,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             startService(appContext, settings.isBatteryMonitoring, settings.isChatCommand)
         }
         var displayDualSimDisplayNameConfig = settings.isDisplayDualSim
-        if (ContextCompat.checkSelfPermission(
-                appContext,
-                Manifest.permission.READ_PHONE_STATE
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
+        if (isReadPhoneStatePermissionGranted()) {
             if (getActiveCard(appContext) < 2) {
                 binding.displayDualSimSwitch.isEnabled = false
                 displayDualSimDisplayNameConfig = false
@@ -146,12 +148,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             binding.dohSwitch.isEnabled = PaperUtils.getProxyConfig().enable.not()
         }
         binding.privacySwitch.isChecked = settings.isPrivacyMode
-        if (
-            ContextCompat.checkSelfPermission(
-                appContext,
-                Manifest.permission.READ_PHONE_STATE
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
+        if (isReadPhoneStatePermissionGranted()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 val tm = (getSystemService(TELEPHONY_SERVICE) as TelephonyManager)
                 if (tm.phoneCount <= 1) {
@@ -160,11 +157,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             }
         }
         binding.displayDualSimSwitch.setOnClickListener {
-            if (ContextCompat.checkSelfPermission(
-                    appContext,
-                    Manifest.permission.READ_PHONE_STATE
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
+            if (isReadPhoneStatePermissionGranted()) {
                 binding.displayDualSimSwitch.isChecked = false
                 ActivityCompat.requestPermissions(
                     this,
@@ -196,13 +189,10 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         val botTokenSaved = prefsRepository.getSettings().botToken
 
         if (botToken.isEmpty() || chatId.isEmpty()) {
-            Snackbar.make(view, R.string.chat_id_or_token_not_config, Snackbar.LENGTH_LONG)
-                .show()
+            Snackbar.make(view, R.string.chat_id_or_token_not_config, Snackbar.LENGTH_LONG).show()
             return
         }
-        if (binding.fallbackSmsSwitch.isChecked && binding.trustedPhoneNumberEditview.text.toString()
-                .isEmpty()
-        ) {
+        if (binding.fallbackSmsSwitch.isChecked && binding.trustedPhoneNumberEditview.text.toString().isEmpty()) {
             Snackbar.make(view, R.string.trusted_phone_number_empty, Snackbar.LENGTH_LONG).show()
             return
         }
@@ -211,28 +201,13 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             return
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            ActivityCompat.requestPermissions(
-                this@MainActivity, arrayOf(
-                    Manifest.permission.READ_SMS,
-                    Manifest.permission.SEND_SMS,
-                    Manifest.permission.RECEIVE_SMS,
-                    Manifest.permission.CALL_PHONE,
-                    Manifest.permission.READ_PHONE_STATE,
-                    Manifest.permission.READ_CALL_LOG
-                ),
-                1
-            )
-            val powerManager = (getSystemService(POWER_SERVICE) as PowerManager)
+            ActivityCompat.requestPermissions(this, requistingPermissions, REQUEST_PERMISSIONS_CODE)
+            val powerManager = getSystemService(POWER_SERVICE) as PowerManager
             val hasIgnored = powerManager.isIgnoringBatteryOptimizations(packageName)
             if (!hasIgnored) {
                 val action = android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-                val intent = Intent(action)
-                    .setData(Uri.parse("package:$packageName"))
-                if (intent.resolveActivityInfo(
-                        packageManager,
-                        PackageManager.MATCH_DEFAULT_ONLY
-                    ) != null
-                ) {
+                val intent = Intent(action).setData(Uri.parse("package:$packageName"))
+                if (intent.resolveActivityInfo(packageManager, PackageManager.MATCH_DEFAULT_ONLY) != null) {
                     startActivity(intent)
                 }
             }
@@ -244,8 +219,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         progressDialog.isIndeterminate = false
         progressDialog.setCancelable(false)
         progressDialog.show()
-        val requestUri =
-            getUrl(binding.botTokenEditview.text.toString().trim { it <= ' ' }, "sendMessage")
+        val requestUri = getUrl(binding.botTokenEditview.text.toString().trim { it <= ' ' }, "sendMessage")
         val requestBody = RequestMessage()
         requestBody.chat_id = binding.chatIdEditview.text.toString().trim { it <= ' ' }
         requestBody.text = """
@@ -440,7 +414,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             prefsRepository.setPrivacyDialogAgree(true)
         }
         builder.setNeutralButton(R.string.visit_page) { _: DialogInterface?, _: Int ->
-            val uri = Uri.parse("https://get.telegram-sms.com$privacyPolice")
             val privacyBuilder = CustomTabsIntent.Builder()
             privacyBuilder.setToolbarColor(
                 ContextCompat.getColor(applicationContext, R.color.colorPrimary)
@@ -448,7 +421,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             val customTabsIntent = privacyBuilder.build()
             customTabsIntent.intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             try {
-                customTabsIntent.launchUrl(applicationContext, uri)
+                customTabsIntent.launchUrl(applicationContext, Uri.parse(privacyPolice))
             } catch (e: ActivityNotFoundException) {
                 e.printStackTrace()
                 Snackbar.make(
@@ -523,7 +496,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val appContext = applicationContext
         var fileName: String? = null
-        val lang = appContext.getString(R.string.Lang)
         when (item.itemId) {
             R.id.about_menu_item -> {
                 showAboutScreen()
@@ -588,13 +560,12 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 return true
             }
 
-            R.id.user_manual_menu_item -> fileName = "/guide/$lang/user-manual"
+            R.id.user_manual_menu_item -> fileName = manualUrl
             R.id.privacy_policy_menu_item -> fileName = privacyPolice
-            R.id.question_and_answer_menu_item -> fileName = "/guide/$lang/Q&A"
+            R.id.question_and_answer_menu_item -> fileName = qaUrl
         }
         if (fileName == null) return false
 
-        val uri = Uri.parse("https://get.telegram-sms.com$fileName")
         val builder = CustomTabsIntent.Builder()
         val params = CustomTabColorSchemeParams.Builder()
             .setToolbarColor(ContextCompat.getColor(appContext, R.color.colorPrimary))
@@ -602,7 +573,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         builder.setDefaultColorSchemeParams(params)
         val customTabsIntent = builder.build()
         try {
-            customTabsIntent.launchUrl(this, uri)
+            customTabsIntent.launchUrl(this, Uri.parse(fileName))
         } catch (e: ActivityNotFoundException) {
             e.printStackTrace()
             Snackbar.make(
@@ -631,13 +602,18 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         builder.show()
     }
 
+    private fun isReadPhoneStatePermissionGranted() = ContextCompat.checkSelfPermission(
+        applicationContext,
+        Manifest.permission.READ_PHONE_STATE
+    ) == PackageManager.PERMISSION_GRANTED
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (data == null) {
             Log.d(TAG, "onActivityResult: data is null")
             return
         }
-        if (requestCode == 1) {
+        if (requestCode == REQUEST_PERMISSIONS_CODE) {
             if (resultCode == Consts.RESULT_CONFIG_JSON) {
                 val jsonConfig = JsonParser.parseString(
                     data.getStringExtra("config_json")!! // TODO
@@ -674,8 +650,20 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     }
 
     companion object {
+        private const val TAG = "MainActivity"
+        private const val WEB_VIEW_PAGES_URL = "https://get.telegram-sms.com/guide"
+        private const val REQUEST_PERMISSIONS_CODE = 1
+
+        private val requistingPermissions = arrayOf(
+            Manifest.permission.READ_SMS,
+            Manifest.permission.SEND_SMS,
+            Manifest.permission.RECEIVE_SMS,
+            Manifest.permission.CALL_PHONE,
+            Manifest.permission.READ_PHONE_STATE,
+            Manifest.permission.READ_CALL_LOG
+        )
         private var setPermissionBack = false
-        private const val TAG = "main_activity"
+
         private fun checkVersionUpgrade(context: Context, resetLog: Boolean) {
             val versionCode = SYSTEM_BOOK.tryRead("version_code", 0)
             val packageManager = context.packageManager
@@ -713,17 +701,10 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             isChatCommand: Boolean,
             privacyModeSwitch: SwitchMaterial
         ) {
-            if (!isChatCommand) {
-                privacyModeSwitch.isVisible = false
-                privacyModeSwitch.isChecked = false
-                return
-            }
-            if (parseStringToLong(chatId) < 0) {
-                privacyModeSwitch.isVisible = true
-            } else {
-                privacyModeSwitch.isVisible = false
-                privacyModeSwitch.isChecked = false
-            }
+            val isChatValidAndEnabled = isChatCommand && parseStringToLong(chatId) < 0
+            privacyModeSwitch.isEnabled = isChatValidAndEnabled
+            if (isChatValidAndEnabled.not()) privacyModeSwitch.isChecked = false
         }
+
     }
 }

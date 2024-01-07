@@ -14,7 +14,6 @@ import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
 import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils.getNotificationObj
-import com.airfreshener.telegram_sms.utils.PaperUtils.getProxyConfig
 import com.airfreshener.telegram_sms.utils.PaperUtils.getSystemBook
 import com.airfreshener.telegram_sms.utils.PaperUtils.init
 import com.airfreshener.telegram_sms.utils.ResendUtils.addResendLoop
@@ -27,7 +26,7 @@ import java.io.IOException
 
 class NotificationListenerService : NotificationListenerService() {
 
-    val sharedPreferences: SharedPreferences by lazy {
+    private val prefs: SharedPreferences by lazy {
         applicationContext.getSharedPreferences("data", MODE_PRIVATE)
     }
 
@@ -48,7 +47,7 @@ class NotificationListenerService : NotificationListenerService() {
         val context = applicationContext
         val packageName = sbn.packageName
         Log.d(TAG, "onNotificationPosted: $packageName")
-        if (!sharedPreferences.getBoolean("initialized", false)) {
+        if (!prefs.getBoolean("initialized", false)) {
             Log.i(TAG, "Uninitialized, Notification receiver is deactivated.")
             return
         }
@@ -74,8 +73,8 @@ class NotificationListenerService : NotificationListenerService() {
         }
         val title = extras.getString(Notification.EXTRA_TITLE, "None")
         val content = extras.getString(Notification.EXTRA_TEXT, "None")
-        val botToken = sharedPreferences.getString("bot_token", "")
-        val chatId = sharedPreferences.getString("chat_id", "")
+        val botToken = prefs.getString("bot_token", "")
+        val chatId = prefs.getString("chat_id", "")
         val requestUri = getUrl(botToken!!, "sendMessage")
         val requestBody = RequestMessage()
         requestBody.chat_id = chatId
@@ -86,7 +85,7 @@ class NotificationListenerService : NotificationListenerService() {
             ${getString(R.string.content)}$content
             """.trimIndent()
         val body = requestBody.toRequestBody()
-        val isDnsOverHttp = sharedPreferences.getBoolean("doh_switch", true)
+        val isDnsOverHttp = prefs.getBoolean("doh_switch", true)
         val okhttpClient = getOkhttpObj(isDnsOverHttp)
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpClient.newCall(request)
