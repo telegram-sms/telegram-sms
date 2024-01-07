@@ -50,8 +50,8 @@ class SmsReceiver : BroadcastReceiver() {
         PaperUtils.init(context)
         Log.d(TAG, "Receive action: " + intent.action)
         val extras = intent.extras ?: return
-        val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
-        if (!sharedPreferences.getBoolean("initialized", false)) {
+        val prefs = context.getSharedPreferences("data", Context.MODE_PRIVATE)
+        if (!prefs.getBoolean("initialized", false)) {
             Log.i(TAG, "Uninitialized, SMS receiver is deactivated.")
             return
         }
@@ -62,8 +62,8 @@ class SmsReceiver : BroadcastReceiver() {
             Log.i(TAG, "reject: android.provider.Telephony.SMS_RECEIVED.")
             return
         }
-        val botToken = sharedPreferences.getString("bot_token", "")
-        val chatId = sharedPreferences.getString("chat_id", "")
+        val botToken = prefs.getString("bot_token", "")
+        val chatId = prefs.getString("chat_id", "")
         val requestUri = getUrl(botToken!!, "sendMessage")
         var intentSlot = extras.getInt("slot", -1)
         val subId = extras.getInt("subscription", -1)
@@ -82,7 +82,7 @@ class SmsReceiver : BroadcastReceiver() {
         val dualSim = getDualSimCardDisplay(
             context,
             intentSlot,
-            sharedPreferences.getBoolean("display_dual_sim_display_name", false)
+            prefs.getBoolean("display_dual_sim_display_name", false)
         )
         val pdus = (extras["pdus"] as Array<Any>?)!!
         val messages = arrayOfNulls<SmsMessage>(
@@ -117,7 +117,7 @@ class SmsReceiver : BroadcastReceiver() {
                 context.contentResolver.insert(Telephony.Sms.CONTENT_URI, values)
             }.start()
         }
-        val trustedPhoneNumber = sharedPreferences.getString("trusted_phone_number", null)
+        val trustedPhoneNumber = prefs.getString("trusted_phone_number", null)
         var isTrustedPhone = false
         if (!trustedPhoneNumber.isNullOrEmpty()) {
             isTrustedPhone = messageAddress.contains(trustedPhoneNumber)
@@ -132,7 +132,7 @@ class SmsReceiver : BroadcastReceiver() {
             """.trimIndent()
         var rawRequestBodyText = messageHead + messageBody
         var isVerificationCode = false
-        if (sharedPreferences.getBoolean("verification_code", false) && !isTrustedPhone) {
+        if (prefs.getBoolean("verification_code", false) && !isTrustedPhone) {
             if (messageBody.length <= 140) {
                 val verification = codeAuxLib.find(messageBody)
                 if (verification != null) {
@@ -167,8 +167,8 @@ class SmsReceiver : BroadcastReceiver() {
                             stopAllService(context)
                             startService(
                                 context,
-                                sharedPreferences.getBoolean("battery_monitoring_switch", false),
-                                sharedPreferences.getBoolean("chat_command", false)
+                                prefs.getBoolean("battery_monitoring_switch", false),
+                                prefs.getBoolean("chat_command", false)
                             )
                         }.start()
                         rawRequestBodyText = """
@@ -265,10 +265,7 @@ class SmsReceiver : BroadcastReceiver() {
             }
         }
         val body = requestBody.toRequestBody()
-        val okHttpClient = getOkhttpObj(
-            sharedPreferences.getBoolean("doh_switch", true),
-            PaperUtils.getProxyConfig()
-        )
+        val okHttpClient = getOkhttpObj(prefs.getBoolean("doh_switch", true))
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okHttpClient.newCall(request)
         val errorHead = "Send SMS forward failed: "

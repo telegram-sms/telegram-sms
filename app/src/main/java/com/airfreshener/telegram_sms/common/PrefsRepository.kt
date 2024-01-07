@@ -1,8 +1,13 @@
 package com.airfreshener.telegram_sms.common
 
+import com.airfreshener.telegram_sms.model.Settings
+
 interface PrefsRepository {
 
     fun getInitialized(): Boolean
+
+    fun getSettings(): Settings
+    fun setSettings(newSettings: Settings)
 
     fun getDohSwitch(): Boolean
     fun getPrivacyMode(): Boolean

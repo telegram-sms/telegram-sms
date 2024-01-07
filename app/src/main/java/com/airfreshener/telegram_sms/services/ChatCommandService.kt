@@ -43,7 +43,6 @@ import com.airfreshener.telegram_sms.utils.OtherUtils.isPhoneNumber
 import com.airfreshener.telegram_sms.utils.OtherUtils.parseStringToLong
 import com.airfreshener.telegram_sms.utils.PaperUtils
 import com.airfreshener.telegram_sms.utils.PaperUtils.getDefaultBook
-import com.airfreshener.telegram_sms.utils.PaperUtils.getProxyConfig
 import com.airfreshener.telegram_sms.utils.PaperUtils.getSendTempBook
 import com.airfreshener.telegram_sms.utils.ResendUtils.addResendLoop
 import com.airfreshener.telegram_sms.utils.ServiceUtils.stopAllService
@@ -112,7 +111,7 @@ class ChatCommandService : Service() {
                 val dualSim = getDualSimCardDisplay(
                     appContext,
                     slot,
-                    sharedPreferences!!.getBoolean("display_dual_sim_display_name", false)
+                    prefs!!.getBoolean("display_dual_sim_display_name", false)
                 )
                 val sendContent = """
                     [$dualSim${appContext.getString(R.string.send_sms_head)}]
@@ -125,10 +124,7 @@ class ChatCommandService : Service() {
                     """.trimIndent()
                 requestBody.message_id = messageId
                 val body = requestBody.toRequestBody()
-                val okhttpClient = getOkhttpObj(
-                    sharedPreferences!!.getBoolean("doh_switch", true),
-                    getProxyConfig()
-                )
+                val okhttpClient = getOkhttpObj(prefs!!.getBoolean("doh_switch", true))
                 val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
                 val call = okhttpClient.newCall(request)
                 try {
@@ -515,10 +511,7 @@ $smsCommand$ussdCommand""".replace("/", "")
     private fun sendSpamSmsMessage(spamSmsList: ArrayList<String>) {
         Thread {
             if (checkNetworkStatus(applicationContext)) {
-                val okhttpClient = getOkhttpObj(
-                    sharedPreferences!!.getBoolean("doh_switch", true),
-                    getProxyConfig()
-                )
+                val okhttpClient = getOkhttpObj(prefs!!.getBoolean("doh_switch", true))
                 for (item in spamSmsList) {
                     val sendSmsRequestBody = RequestMessage()
                     sendSmsRequestBody.chat_id = chatId
@@ -562,14 +555,11 @@ $smsCommand$ussdCommand""".replace("/", "")
         PaperUtils.init(applicationContext)
         setSmsSendStatusStandby()
         val prefs = applicationContext.getSharedPreferences("data", MODE_PRIVATE).apply {
-            sharedPreferences = this
+            prefs = this
         }
         chatId = prefs.getString("chat_id", "")
         botToken = prefs.getString("bot_token", "")
-        okHttpClient = getOkhttpObj(
-            prefs.getBoolean("doh_switch", true),
-            getProxyConfig()
-        )
+        okHttpClient = getOkhttpObj(prefs.getBoolean("doh_switch", true))
         privacyMode = prefs.getBoolean("privacy_mode", false)
         val wifiManager = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
         wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi").apply {
@@ -796,7 +786,7 @@ $smsCommand$ussdCommand""".replace("/", "")
         private var offset: Long = 0
         private var magnification = 1
         private var errorMagnification = 1
-        private var sharedPreferences: SharedPreferences? = null
+        private var prefs: SharedPreferences? = null
         private var sendSmsNextStatus = Consts.SEND_SMS_STATUS.STANDBY_STATUS
         private var threadMain: Thread? = null
         private var firstRequest = true

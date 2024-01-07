@@ -82,10 +82,8 @@ class ResendService : Service() {
             while (true) {
                 if (checkNetworkStatus(context)) {
                     val sendList = resendList
-                    val okHttpClient = getOkhttpObj(
-                        sharedPreferences.getBoolean("doh_switch", true),
-                        PaperUtils.getProxyConfig()
-                    )
+                    val isDnsOverHttp = sharedPreferences.getBoolean("doh_switch", true)
+                    val okHttpClient = getOkhttpObj(isDnsOverHttp)
                     for (item in sendList) {
                         networkProgressHandle(
                             item,

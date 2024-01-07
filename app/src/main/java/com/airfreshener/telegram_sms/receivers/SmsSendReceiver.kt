@@ -28,13 +28,13 @@ class SmsSendReceiver : BroadcastReceiver() {
         val extras = intent.extras!!
         val sub = extras.getInt("sub_id")
         context.applicationContext.unregisterReceiver(this)
-        val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
-        if (!sharedPreferences.getBoolean("initialized", false)) {
+        val prefs = context.getSharedPreferences("data", Context.MODE_PRIVATE)
+        if (!prefs.getBoolean("initialized", false)) {
             Log.i(TAG, "Uninitialized, SMS send receiver is deactivated.")
             return
         }
-        val botToken = sharedPreferences.getString("bot_token", "")
-        val chatId = sharedPreferences.getString("chat_id", "")
+        val botToken = prefs.getString("bot_token", "")
+        val chatId = prefs.getString("chat_id", "")
         val requestBody = RequestMessage()
         requestBody.chat_id = chatId
         var requestUri = getUrl(botToken!!, "sendMessage")
@@ -56,10 +56,7 @@ class SmsSendReceiver : BroadcastReceiver() {
             ${context.getString(R.string.status)}$resultStatus
             """.trimIndent()
         val body = requestBody.toRequestBody()
-        val okHttpClient = getOkhttpObj(
-            sharedPreferences.getBoolean("doh_switch", true),
-            PaperUtils.getProxyConfig()
-        )
+        val okHttpClient = getOkhttpObj(prefs.getBoolean("doh_switch", true))
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okHttpClient.newCall(request)
         val errorHead = "Send SMS status failed:"

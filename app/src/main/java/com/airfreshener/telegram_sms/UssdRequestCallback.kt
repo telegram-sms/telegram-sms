@@ -11,8 +11,7 @@ import com.airfreshener.telegram_sms.utils.LogUtils
 import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
 import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
-import com.airfreshener.telegram_sms.utils.PaperUtils.getProxyConfig
-import com.airfreshener.telegram_sms.utils.PaperUtils.init
+import com.airfreshener.telegram_sms.utils.PaperUtils
 import com.airfreshener.telegram_sms.utils.ResendUtils.addResendLoop
 import com.airfreshener.telegram_sms.utils.SmsUtils
 import okhttp3.Call
@@ -33,7 +32,7 @@ class UssdRequestCallback(
     private val requestBody: RequestMessage
 
     init {
-        init(context)
+        PaperUtils.init(context)
         val chatId = sharedPreferences.getString("chat_id", "")
         dohSwitch = sharedPreferences.getBoolean("doh_switch", true)
         requestBody = RequestMessage()
@@ -78,7 +77,7 @@ class UssdRequestCallback(
     private fun networkProgressHandle(message: String) {
         requestBody.text = message
         val body = requestBody.toRequestBody()
-        val okHttpClient = getOkhttpObj(dohSwitch, getProxyConfig())
+        val okHttpClient = getOkhttpObj(dohSwitch)
         val requestObj: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okHttpClient.newCall(requestObj)
         val errorHead = "Send USSD failed:"

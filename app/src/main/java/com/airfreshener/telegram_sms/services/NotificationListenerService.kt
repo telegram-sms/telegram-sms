@@ -26,11 +26,14 @@ import okhttp3.Response
 import java.io.IOException
 
 class NotificationListenerService : NotificationListenerService() {
-    var sharedPreferences: SharedPreferences? = null
+
+    val sharedPreferences: SharedPreferences by lazy {
+        applicationContext.getSharedPreferences("data", MODE_PRIVATE)
+    }
+
     override fun onCreate() {
         super.onCreate()
         init(applicationContext)
-        sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
         val notification =
             getNotificationObj(applicationContext, getString(R.string.Notification_Listener_title))
         startForeground(Consts.ServiceNotifyId.NOTIFICATION_LISTENER_SERVICE, notification)
@@ -45,7 +48,7 @@ class NotificationListenerService : NotificationListenerService() {
         val context = applicationContext
         val packageName = sbn.packageName
         Log.d(TAG, "onNotificationPosted: $packageName")
-        if (!sharedPreferences!!.getBoolean("initialized", false)) {
+        if (!sharedPreferences.getBoolean("initialized", false)) {
             Log.i(TAG, "Uninitialized, Notification receiver is deactivated.")
             return
         }
@@ -71,8 +74,8 @@ class NotificationListenerService : NotificationListenerService() {
         }
         val title = extras.getString(Notification.EXTRA_TITLE, "None")
         val content = extras.getString(Notification.EXTRA_TEXT, "None")
-        val botToken = sharedPreferences!!.getString("bot_token", "")
-        val chatId = sharedPreferences!!.getString("chat_id", "")
+        val botToken = sharedPreferences.getString("bot_token", "")
+        val chatId = sharedPreferences.getString("chat_id", "")
         val requestUri = getUrl(botToken!!, "sendMessage")
         val requestBody = RequestMessage()
         requestBody.chat_id = chatId
@@ -83,10 +86,8 @@ class NotificationListenerService : NotificationListenerService() {
             ${getString(R.string.content)}$content
             """.trimIndent()
         val body = requestBody.toRequestBody()
-        val okhttpClient = getOkhttpObj(
-            sharedPreferences!!.getBoolean("doh_switch", true),
-            getProxyConfig()
-        )
+        val isDnsOverHttp = sharedPreferences.getBoolean("doh_switch", true)
+        val okhttpClient = getOkhttpObj(isDnsOverHttp)
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpClient.newCall(request)
         val errorHead = "Send notification failed:"

@@ -11,7 +11,6 @@ import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
 import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
-import com.airfreshener.telegram_sms.utils.PaperUtils
 import com.airfreshener.telegram_sms.utils.ResendUtils
 import com.airfreshener.telegram_sms.utils.SmsUtils
 import okhttp3.Call
@@ -38,30 +37,27 @@ class CallStatusListener(
         if (lastReceiveStatus == TelephonyManager.CALL_STATE_RINGING
             && now_state == TelephonyManager.CALL_STATE_IDLE
         ) {
-            val sharedPreferences = context!!.getSharedPreferences("data", Context.MODE_PRIVATE)
-            if (!sharedPreferences.getBoolean("initialized", false)) {
+            val prefs = context!!.getSharedPreferences("data", Context.MODE_PRIVATE)
+            if (!prefs.getBoolean("initialized", false)) {
                 Log.i("call_status_listener", "Uninitialized, Phone receiver is deactivated.")
                 return
             }
-            val botToken = sharedPreferences.getString("bot_token", "")
-            val chatId = sharedPreferences.getString("chat_id", "")
+            val botToken = prefs.getString("bot_token", "")
+            val chatId = prefs.getString("chat_id", "")
             val requestUri = getUrl(botToken!!, "sendMessage")
             val requestBody = RequestMessage()
             requestBody.chat_id = chatId
             val dual_sim = OtherUtils.getDualSimCardDisplay(
                 context,
                 slot,
-                sharedPreferences.getBoolean("display_dual_sim_display_name", false)
+                prefs.getBoolean("display_dual_sim_display_name", false)
             )
             requestBody.text = """
             [$dual_sim${context.getString(R.string.missed_call_head)}]
             ${context.getString(R.string.Incoming_number)}$incomingNumber
             """.trimIndent()
             val body: RequestBody = requestBody.toRequestBody()
-            val okHttpClient = getOkhttpObj(
-                sharedPreferences.getBoolean("doh_switch", true),
-                PaperUtils.getProxyConfig()
-            )
+            val okHttpClient = getOkhttpObj(prefs.getBoolean("doh_switch", true))
             val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
             val call = okHttpClient.newCall(request)
             val errorHead = "Send missed call error: "

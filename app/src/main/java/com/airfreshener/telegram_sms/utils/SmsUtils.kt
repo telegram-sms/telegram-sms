@@ -20,7 +20,6 @@ import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils.getDualSimCardDisplay
 import com.airfreshener.telegram_sms.utils.OtherUtils.getMessageId
 import com.airfreshener.telegram_sms.utils.OtherUtils.isPhoneNumber
-import com.airfreshener.telegram_sms.utils.PaperUtils.getProxyConfig
 import okhttp3.Request
 import java.io.IOException
 
@@ -86,10 +85,8 @@ object SmsUtils {
             """.trimIndent()
         requestBody.message_id = messageId
         val body = requestBody.toRequestBody()
-        val okHttpClient = getOkhttpObj(
-            sharedPreferences.getBoolean("doh_switch", true),
-            getProxyConfig()
-        )
+        val isDnsOverHttp = sharedPreferences.getBoolean("doh_switch", true)
+        val okHttpClient = getOkhttpObj(isDnsOverHttp)
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okHttpClient.newCall(request)
         try {

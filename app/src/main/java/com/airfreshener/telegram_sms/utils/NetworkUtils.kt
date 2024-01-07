@@ -45,8 +45,9 @@ object NetworkUtils {
     }
 
     @JvmStatic
-    fun getOkhttpObj(dohSwitch: Boolean, proxyItem: ProxyConfigV2): OkHttpClient {
+    fun getOkhttpObj(dohSwitch: Boolean): OkHttpClient {
         var dohSwitch = dohSwitch
+        val proxyItem = PaperUtils.getProxyConfig()
         val okhttp: OkHttpClient.Builder = OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)

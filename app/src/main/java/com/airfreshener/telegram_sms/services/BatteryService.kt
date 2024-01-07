@@ -97,7 +97,7 @@ class BatteryService : Service() {
             Log.d(SERVICE_TAG, "onReceive: edit_mode")
         }
         lastReceiveTime = System.currentTimeMillis()
-        val okHttpClient = getOkhttpObj(dohSwitch, PaperUtils.getProxyConfig())
+        val okHttpClient = getOkhttpObj(dohSwitch)
         val body = requestBody.toRequestBody()
         val request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okHttpClient.newCall(request)
