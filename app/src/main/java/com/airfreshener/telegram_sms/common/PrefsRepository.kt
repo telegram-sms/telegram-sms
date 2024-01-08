@@ -21,7 +21,7 @@ interface PrefsRepository {
 
     fun getChatId(): String
     fun getBotToken(): String
-    fun getTrustedPhoneNumber(def: String? = ""): String?
+    fun getTrustedPhoneNumber(): String
 
     fun setPrivacyDialogAgree(value: Boolean)
 

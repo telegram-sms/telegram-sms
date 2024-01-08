@@ -1,23 +1,28 @@
 package com.airfreshener.telegram_sms.utils
 
 import android.Manifest
+import android.Manifest.permission.READ_PHONE_STATE
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Build
 import android.telephony.SubscriptionManager
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.airfreshener.telegram_sms.R
+import com.airfreshener.telegram_sms.mainScreen.MainActivity
 import com.airfreshener.telegram_sms.model.SmsRequestInfo
 import com.airfreshener.telegram_sms.utils.PaperUtils.getDefaultBook
 import com.google.gson.JsonParser
 import java.util.Locale
 
 object OtherUtils {
-    @JvmStatic
     fun getNineKeyMapConvert(input: String): String {
         val nineKeyMap: Map<Char, Int> = mapOf(
             'A' to 2,
@@ -59,7 +64,6 @@ object OtherUtils {
         return stringBuilder.toString()
     }
 
-    @JvmStatic
     fun parseStringToLong(content: String): Long = try {
         content.toLong()
     } catch (e: NumberFormatException) {
@@ -67,7 +71,6 @@ object OtherUtils {
         0
     }
 
-    @JvmStatic
     fun getSendPhoneNumber(phoneNumber: String): String {
         val result = StringBuilder()
         for (element in getNineKeyMapConvert(phoneNumber)) {
@@ -78,7 +81,6 @@ object OtherUtils {
         return result.toString()
     }
 
-    @JvmStatic
     fun getDualSimCardDisplay(context: Context, slot: Int, showName: Boolean): String {
         var dualSim = ""
         if (slot == -1) {
@@ -94,7 +96,6 @@ object OtherUtils {
         return dualSim
     }
 
-    @JvmStatic
     fun isPhoneNumber(str: String): Boolean {
         var i = str.length
         while (--i >= 0) {
@@ -110,14 +111,12 @@ object OtherUtils {
         return true
     }
 
-    @JvmStatic
     fun getMessageId(result: String?): Long {
         if (result == null) return -1
         val resultObj = JsonParser.parseString(result).asJsonObject["result"].asJsonObject
         return resultObj["message_id"].asLong
     }
 
-    @JvmStatic
     fun getNotificationObj(context: Context, notificationName: String): Notification {
         val notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -140,53 +139,42 @@ object OtherUtils {
         return notification.build()
     }
 
-    @JvmStatic
     fun getSubId(context: Context, slot: Int): Int {
+        if (ActivityCompat.checkSelfPermission(context, READ_PHONE_STATE) != PERMISSION_GRANTED) {
+            Log.d("getActiveCard", "No permission.")
+            return -1
+        }
         val activeCard = getActiveCard(context)
-        if (activeCard >= 2) {
-            if (ActivityCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.READ_PHONE_STATE
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                return -1
-            }
-            val subscriptionManager =
-                (context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager)
-            return subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(slot).subscriptionId
+        if (activeCard > slot) {
+            val subscriptionManager = context.getSubscriptionManager()
+            return subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(slot)?.subscriptionId ?: -1
         }
         return -1
     }
 
-    @JvmStatic
     fun getActiveCard(context: Context): Int {
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_PHONE_STATE
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            Log.d("get_active_card", "No permission.")
-            return -1
+        return if (ActivityCompat.checkSelfPermission(context, READ_PHONE_STATE) != PERMISSION_GRANTED) {
+            Log.d("getActiveCard", "No permission.")
+            -1
+        } else {
+            context.getSubscriptionManager().activeSubscriptionInfoCount
         }
-        val subscriptionManager =
-            (context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager)
-        return subscriptionManager.activeSubscriptionInfoCount
     }
 
-    @JvmStatic
+    fun Context.isReadPhoneStatePermissionGranted() =
+        ContextCompat.checkSelfPermission(this, READ_PHONE_STATE) == PERMISSION_GRANTED
+
+    fun Activity.requestReadPhoneStatePermission(requestCode: Int) =
+        ActivityCompat.requestPermissions(this, arrayOf(READ_PHONE_STATE), requestCode)
+
     fun getSimDisplayName(context: Context, slot: Int): String {
         val TAG = "get_sim_display_name"
         var result = "Unknown"
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_PHONE_STATE
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (ActivityCompat.checkSelfPermission(context, READ_PHONE_STATE) != PERMISSION_GRANTED) {
             Log.d(TAG, "No permission.")
             return result
         }
-        val subscriptionManager =
-            (context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager)
+        val subscriptionManager = context.getSubscriptionManager()
         var info = subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(slot)
         if (info == null) {
             Log.d(TAG, "The active card is in the second card slot.")
@@ -206,7 +194,6 @@ object OtherUtils {
         return result
     }
 
-    @JvmStatic
     fun addMessageList(messageId: Long, phone: String?, slot: Int) {
         val item = SmsRequestInfo()
         item.phone = phone
@@ -214,4 +201,7 @@ object OtherUtils {
         getDefaultBook().write(messageId.toString(), item)
         Log.d("add_message_list", "add_message_list: $messageId")
     }
+
+    private fun Context.getSubscriptionManager() =
+        (getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager)
 }

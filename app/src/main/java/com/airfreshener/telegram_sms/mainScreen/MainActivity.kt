@@ -27,8 +27,8 @@ import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
+import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.airfreshener.telegram_sms.LogcatActivity
 import com.airfreshener.telegram_sms.QrCodeShowActivity
@@ -49,7 +49,9 @@ import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
 import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils.getActiveCard
+import com.airfreshener.telegram_sms.utils.OtherUtils.isReadPhoneStatePermissionGranted
 import com.airfreshener.telegram_sms.utils.OtherUtils.parseStringToLong
+import com.airfreshener.telegram_sms.utils.OtherUtils.requestReadPhoneStatePermission
 import com.airfreshener.telegram_sms.utils.PaperUtils
 import com.airfreshener.telegram_sms.utils.PaperUtils.DEFAULT_BOOK
 import com.airfreshener.telegram_sms.utils.PaperUtils.SYSTEM_BOOK
@@ -61,6 +63,7 @@ import com.airfreshener.telegram_sms.utils.ui.MenuUtils.showProxySettingsDialog
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.gson.JsonParser
+import kotlinx.coroutines.launch
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
@@ -89,6 +92,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         super.onCreate(savedInstanceState)
         val appContext = applicationContext
         PaperUtils.init(appContext)
+        lifecycleScope.launch { viewModel.settings.collect { settings -> showSettings(settings) } }
         if (!prefsRepository.getPrivacyDialogAgree()) showPrivacyDialog()
         val settings = prefsRepository.getSettings()
         if (prefsRepository.getInitialized()) {
@@ -96,94 +100,82 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             checkVersionUpgrade(appContext, true)
             startService(appContext, settings.isBatteryMonitoring, settings.isChatCommand)
         }
-        var displayDualSimDisplayNameConfig = settings.isDisplayDualSim
-        if (isReadPhoneStatePermissionGranted()) {
-            if (getActiveCard(appContext) < 2) {
-                binding.displayDualSimSwitch.isEnabled = false
-                displayDualSimDisplayNameConfig = false
-            }
-            binding.displayDualSimSwitch.isChecked = displayDualSimDisplayNameConfig
-        }
-        binding.privacySwitch.isVisible = parseStringToLong(settings.chatId) < 0
-        binding.botTokenEditview.setText(settings.botToken)
-        binding.chatIdEditview.setText(settings.chatId)
-        binding.trustedPhoneNumberEditview.setText(settings.trustedPhoneNumber)
-        binding.batteryMonitoringSwitch.isChecked = settings.isBatteryMonitoring
-        binding.chargerStatusSwitch.isChecked = settings.isBatteryMonitoring && settings.isChargerStatus
-        binding.chargerStatusSwitch.isEnabled = settings.isBatteryMonitoring
-        binding.fallbackSmsSwitch.isChecked = settings.isFallbackSms
-        if (binding.trustedPhoneNumberEditview.length() == 0) {
-            binding.fallbackSmsSwitch.isEnabled = false
-            binding.fallbackSmsSwitch.isChecked = false
-        }
-        binding.chatCommandSwitch.isChecked = settings.isChatCommand
-        binding.verificationCodeSwitch.isChecked = settings.isVerificationCode
-        binding.dohSwitch.isChecked = settings.isDnsOverHttp
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            binding.dohSwitch.isEnabled = PaperUtils.getProxyConfig().enable.not()
-        }
-        binding.privacySwitch.isChecked = settings.isPrivacyMode
-        if (isReadPhoneStatePermissionGranted()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val tm = (appContext.getSystemService(TELEPHONY_SERVICE) as TelephonyManager)
-                if (tm.phoneCount <= 1) {
-                    binding.displayDualSimSwitch.visibility = View.GONE
-                }
-            }
-        }
         setListeners()
     }
 
     private fun setListeners() {
         val appContext = applicationContext
-        binding.batteryMonitoringSwitch.setOnClickListener {
-            val isBatteryMonitoringChecked = binding.batteryMonitoringSwitch.isChecked
-            if (isBatteryMonitoringChecked) {
-                binding.chargerStatusSwitch.isEnabled = true
-            } else {
-                binding.chargerStatusSwitch.isEnabled = false
-                binding.chargerStatusSwitch.isChecked = false
-            }
+        binding.dohSwitch.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.dnsOverHttpChecked(isChecked)
         }
-        binding.trustedPhoneNumberEditview.doAfterTextChanged { text: Editable? ->
-            if (text.isNullOrEmpty().not()) {
-                binding.fallbackSmsSwitch.isEnabled = true
-            } else {
-                binding.fallbackSmsSwitch.isEnabled = false
-                binding.fallbackSmsSwitch.isChecked = false
-            }
+        binding.privacySwitch.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.privacyModeChanged(isChecked)
         }
-        binding.chatCommandSwitch.setOnClickListener {
-            setPrivacyModeCheckbox(
-                binding.chatIdEditview.text.toString(),
-                binding.chatCommandSwitch.isChecked,
-                binding.privacySwitch
-            )
+        binding.chatCommandSwitch.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.chatCommandChanged(isChecked)
         }
-        binding.displayDualSimSwitch.setOnClickListener {
-            if (isReadPhoneStatePermissionGranted().not()) {
-                binding.displayDualSimSwitch.isChecked = false
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.READ_PHONE_STATE),
-                    PHONE_STATE_PERMISSION_CODE
-                )
-            } else {
-                if (getActiveCard(appContext) < 2) {
-                    binding.displayDualSimSwitch.isEnabled = false
+        binding.fallbackSmsSwitch.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.fallbackSmsChanged(isChecked)
+        }
+        binding.chargerStatusSwitch.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.chargerStatusChanged(isChecked)
+        }
+        binding.batteryMonitoringSwitch.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.batteryMonitoringChecked(isChecked)
+        }
+        binding.displayDualSimSwitch.setOnCheckedChangeListener { _, isChecked ->
+
+            // TODO move to viewModel
+            if (isChecked) {
+                if (appContext.isReadPhoneStatePermissionGranted().not()) {
                     binding.displayDualSimSwitch.isChecked = false
+                    requestReadPhoneStatePermission(PHONE_STATE_PERMISSION_CODE)
+                } else {
+                    if (getActiveCard(appContext) < 2) {
+                        binding.displayDualSimSwitch.isEnabled = false
+                        binding.displayDualSimSwitch.isChecked = false
+                    }
                 }
             }
+            viewModel.displayDualSimChanged(binding.displayDualSimSwitch.isChecked)
+
+        }
+        binding.verificationCodeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.verificationCodeChecked(isChecked)
         }
         binding.chatIdEditview.doAfterTextChanged { text ->
-            setPrivacyModeCheckbox(
-                chatId = text?.toString().orEmpty(),
-                binding.chatCommandSwitch.isChecked,
-                binding.privacySwitch
-            )
+            viewModel.chatIdChanged(text?.toString().orEmpty())
+        }
+        binding.botTokenEditview.doAfterTextChanged { text ->
+            viewModel.botTokenChanged(text?.toString().orEmpty())
+        }
+        binding.trustedPhoneNumberEditview.doAfterTextChanged { text: Editable? ->
+            viewModel.trustedPhoneNumberChanged(text?.toString().orEmpty())
         }
         binding.getIdButton.setOnClickListener { v: View -> onGetIdClicked(v) }
         binding.saveButton.setOnClickListener { v: View -> onSaveClicked(v) }
+    }
+
+    private fun showSettings(settings: Settings) {
+        val appContext = applicationContext
+        binding.botTokenEditview.setTextKeepState(settings.botToken)
+        binding.chatIdEditview.setTextKeepState(settings.chatId)
+        binding.trustedPhoneNumberEditview.setTextKeepState(settings.trustedPhoneNumber)
+        binding.batteryMonitoringSwitch.isChecked = settings.isBatteryMonitoring
+        binding.chargerStatusSwitch.isEnabled = settings.isChargerStatusEnabled
+        binding.chargerStatusSwitch.isChecked = settings.isChargerStatusEnabled && settings.isChargerStatus
+        binding.fallbackSmsSwitch.isEnabled = settings.isFallbackEnabled
+        binding.fallbackSmsSwitch.isChecked = settings.isFallbackEnabled&& settings.isFallbackSms
+        binding.chatCommandSwitch.isChecked = settings.isChatCommand
+        binding.privacySwitch.isEnabled = settings.isPrivacyModeEnabled
+        binding.privacySwitch.isChecked = settings.isPrivacyModeEnabled && settings.isPrivacyMode
+        binding.verificationCodeSwitch.isChecked = settings.isVerificationCode
+        val isDohEnbled = Build.VERSION.SDK_INT < Build.VERSION_CODES.N || PaperUtils.getProxyConfig().enable.not() // TODO
+        binding.dohSwitch.isEnabled = isDohEnbled
+        binding.dohSwitch.isChecked = isDohEnbled && settings.isDnsOverHttp
+        val isDualCards = appContext.isReadPhoneStatePermissionGranted() && getActiveCard(appContext) > 1 // TODO
+        binding.displayDualSimSwitch.isEnabled = isDualCards
+        binding.displayDualSimSwitch.isChecked = settings.isDisplayDualSim && isDualCards
     }
 
     private fun onSaveClicked(view: View) {
@@ -590,11 +582,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         builder.setPositiveButton(R.string.ok_button, null)
         builder.show()
     }
-
-    private fun isReadPhoneStatePermissionGranted() = ContextCompat.checkSelfPermission(
-        applicationContext,
-        Manifest.permission.READ_PHONE_STATE
-    ) == PackageManager.PERMISSION_GRANTED
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)

@@ -18,7 +18,7 @@ class SharedPrefsRepository(
         isVerificationCode = getVerificationCode(),
         chatId = getChatId(),
         botToken = getBotToken(),
-        trustedPhoneNumber = getTrustedPhoneNumber().orEmpty(),
+        trustedPhoneNumber = getTrustedPhoneNumber(),
     )
 
     override fun getSettings(): Settings = settings
@@ -59,7 +59,7 @@ class SharedPrefsRepository(
 
     override fun getChatId(): String = sharedPreferences.getString("chat_id", "") ?: ""
     override fun getBotToken(): String = sharedPreferences.getString("bot_token", "") ?: ""
-    override fun getTrustedPhoneNumber(def: String?): String? = sharedPreferences.getString("trusted_phone_number", def) ?: def
+    override fun getTrustedPhoneNumber(): String = sharedPreferences.getString("trusted_phone_number", "") ?: ""
 
     override fun setPrivacyDialogAgree(value: Boolean) {
         sharedPreferences.edit().putBoolean("privacy_dialog_agree", value).apply()

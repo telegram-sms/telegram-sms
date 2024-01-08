@@ -1,5 +1,7 @@
 package com.airfreshener.telegram_sms.model
 
+import com.airfreshener.telegram_sms.utils.OtherUtils
+
 data class Settings(
     val isDnsOverHttp: Boolean,
     val isPrivacyMode: Boolean,
@@ -12,4 +14,8 @@ data class Settings(
     val chatId: String,
     val botToken: String,
     val trustedPhoneNumber: String,
-)
+) {
+    val isPrivacyModeEnabled: Boolean = isChatCommand && OtherUtils.parseStringToLong(chatId) < 0
+    val isFallbackEnabled: Boolean = trustedPhoneNumber.isNotEmpty()
+    val isChargerStatusEnabled: Boolean = isBatteryMonitoring
+}
