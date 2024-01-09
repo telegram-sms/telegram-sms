@@ -7,20 +7,17 @@ import android.telephony.PhoneStateListener
 import android.telephony.TelephonyManager
 import android.util.Log
 import com.airfreshener.telegram_sms.receivers.listeners.CallStatusListener
-import com.airfreshener.telegram_sms.utils.PaperUtils
 import java.util.*
 
 class CallReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        PaperUtils.init(context)
         Log.d(TAG, "Receive action: " + intent.action)
         when (Objects.requireNonNull(intent.action)) {
             PHONE_STATE -> {
                 if (intent.getStringExtra("incoming_number") != null) {
                     incomingNumber = intent.getStringExtra("incoming_number")
                 }
-                val telephony = context
-                    .getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+                val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
                 val customPhoneListener = CallStatusListener(context, slot, incomingNumber)
                 telephony?.listen(customPhoneListener, PhoneStateListener.LISTEN_CALL_STATE)
             }

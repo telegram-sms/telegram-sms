@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.os.IBinder
 import android.util.Log
 import com.airfreshener.telegram_sms.R
+import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.Consts
 import com.airfreshener.telegram_sms.utils.LogUtils
@@ -16,7 +17,6 @@ import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
 import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
-import com.airfreshener.telegram_sms.utils.PaperUtils
 import com.airfreshener.telegram_sms.utils.PaperUtils.DEFAULT_BOOK
 import com.airfreshener.telegram_sms.utils.PaperUtils.tryRead
 import com.airfreshener.telegram_sms.utils.ServiceUtils.stopForeground
@@ -26,6 +26,8 @@ import okhttp3.RequestBody
 import java.io.IOException
 
 class ResendService : Service() {
+
+    private val prefsRepository by lazy { (application as TelegramSmsApp).prefsRepository }
 
     var requestUri: String? = null
     private var receiver: StopNotifyReceiver? = null
@@ -69,27 +71,21 @@ class ResendService : Service() {
     override fun onCreate() {
         super.onCreate()
         val context = applicationContext
-        PaperUtils.init(context)
         val filter = IntentFilter().apply {
             addAction(Consts.BROADCAST_STOP_SERVICE)
         }
         receiver = StopNotifyReceiver()
         registerReceiver(receiver, filter)
-        val sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE)
-        requestUri = getUrl(sharedPreferences.getString("bot_token", "")!!, "SendMessage")
+        val settings = prefsRepository.getSettings()
+        requestUri = getUrl(settings.botToken, "SendMessage")
         Thread {
             resendList = DEFAULT_BOOK.tryRead(table_name, ArrayList())
             while (true) {
                 if (checkNetworkStatus(context)) {
                     val sendList = resendList
-                    val isDnsOverHttp = sharedPreferences.getBoolean("doh_switch", true)
-                    val okHttpClient = getOkhttpObj(isDnsOverHttp)
+                    val okHttpClient = getOkhttpObj(settings.isDnsOverHttp)
                     for (item in sendList) {
-                        networkProgressHandle(
-                            item,
-                            sharedPreferences.getString("chat_id", ""),
-                            okHttpClient
-                        )
+                        networkProgressHandle(item, settings.chatId, okHttpClient)
                     }
                     resendList = DEFAULT_BOOK.tryRead(table_name, ArrayList())
                     if (resendList === sendList || resendList.isEmpty()) {

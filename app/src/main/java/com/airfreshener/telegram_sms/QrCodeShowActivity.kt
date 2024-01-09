@@ -8,21 +8,23 @@ import com.google.gson.Gson
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 
 class QrCodeShowActivity : AppCompatActivity() {
+
+    private val prefsRepository by lazy { (application as TelegramSmsApp).prefsRepository }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_qrcode)
-        val context = applicationContext
-        val sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE)
+        val settings = prefsRepository.getSettings()
         val config = ConfigList(
-            bot_token = sharedPreferences.getString("bot_token", ""),
-            chat_id = sharedPreferences.getString("chat_id", ""),
-            trusted_phone_number = sharedPreferences.getString("trusted_phone_number", ""),
-            fallback_sms = sharedPreferences.getBoolean("fallback_sms", false),
-            chat_command = sharedPreferences.getBoolean("chat_command", false),
-            battery_monitoring_switch = sharedPreferences.getBoolean("battery_monitoring_switch", false),
-            charger_status = sharedPreferences.getBoolean("charger_status", false),
-            verification_code = sharedPreferences.getBoolean("verification_code", false),
-            privacy_mode = sharedPreferences.getBoolean("privacy_mode", false),
+            bot_token = settings.botToken,
+            chat_id = settings.chatId,
+            trusted_phone_number = settings.trustedPhoneNumber,
+            fallback_sms = settings.isFallbackSms,
+            chat_command = settings.isChatCommand,
+            battery_monitoring_switch = settings.isBatteryMonitoring,
+            charger_status = settings.isChargerStatus,
+            verification_code = settings.isVerificationCode,
+            privacy_mode = settings.isPrivacyMode,
         )
         val qrImageImageview = findViewById<ImageView>(R.id.qr_imageview)
         qrImageImageview.setImageBitmap(

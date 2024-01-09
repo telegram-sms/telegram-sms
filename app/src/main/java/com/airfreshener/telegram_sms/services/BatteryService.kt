@@ -10,6 +10,7 @@ import android.os.IBinder
 import android.os.Process
 import android.util.Log
 import com.airfreshener.telegram_sms.R
+import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.Consts
 import com.airfreshener.telegram_sms.utils.LogUtils
@@ -17,7 +18,6 @@ import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
 import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
-import com.airfreshener.telegram_sms.utils.PaperUtils
 import com.airfreshener.telegram_sms.utils.ServiceUtils.stopForeground
 import com.airfreshener.telegram_sms.utils.SmsUtils
 import okhttp3.Request
@@ -27,6 +27,7 @@ import java.util.Objects
 class BatteryService : Service() {
 
     private var batteryReceiver: BatteryReceiver? = null
+    private val prefsRepository by lazy { (application as TelegramSmsApp).prefsRepository }
 
     override fun onDestroy() {
         unregisterReceiver(batteryReceiver)
@@ -47,13 +48,8 @@ class BatteryService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        val context = applicationContext
-        PaperUtils.init(context)
-        val sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE)
-        chatId = sharedPreferences.getString("chat_id", "")
-        botToken = sharedPreferences.getString("bot_token", "") ?: ""
-        dohSwitch = sharedPreferences.getBoolean("doh_switch", true)
-        val chargerStatus = sharedPreferences.getBoolean("charger_status", false)
+        val settings = prefsRepository.getSettings()
+        val chargerStatus = settings.isChargerStatus
         batteryReceiver = BatteryReceiver()
         val filter = IntentFilter()
         filter.addAction(Intent.ACTION_BATTERY_OKAY)
@@ -64,7 +60,7 @@ class BatteryService : Service() {
         }
         filter.addAction(Consts.BROADCAST_STOP_SERVICE)
         registerReceiver(batteryReceiver, filter)
-        sendLoopList = ArrayList()
+        sendLoopList.clear()
         Thread {
             val needRemove = ArrayList<SendObject>()
             while (true) {
@@ -87,19 +83,20 @@ class BatteryService : Service() {
     }
 
     private fun networkHandle(obj: SendObject) {
+        val settings = prefsRepository.getSettings()
         val requestBody = RequestMessage()
-        requestBody.chat_id = chatId
+        requestBody.chat_id = settings.chatId
         requestBody.text = obj.content
-        var requestUri = getUrl(botToken, "sendMessage")
+        var requestUri = getUrl(settings.botToken, "sendMessage")
         if (System.currentTimeMillis() - lastReceiveTime <= 5000L && lastReceiveMessageId != -1L) {
-            requestUri = getUrl(botToken, "editMessageText")
+            requestUri = getUrl(settings.botToken, "editMessageText")
             requestBody.message_id = lastReceiveMessageId
             Log.d(SERVICE_TAG, "onReceive: edit_mode")
         }
         lastReceiveTime = System.currentTimeMillis()
-        val okHttpClient = getOkhttpObj(dohSwitch)
+        val okHttpClient = getOkhttpObj(settings.isDnsOverHttp)
         val body = requestBody.toRequestBody()
-        val request = Request.Builder().url(requestUri).method("POST", body).build()
+        val request = Request.Builder().url(requestUri).post(body).build()
         val call = okHttpClient.newCall(request)
         val errorHead = "Send battery info failed:"
         try {
@@ -124,12 +121,9 @@ class BatteryService : Service() {
 
 
     companion object {
-        private var sendLoopList: ArrayList<SendObject> = ArrayList()
-        var botToken: String = ""
-        var chatId: String? = null
-        var dohSwitch = false
-        var lastReceiveTime: Long = 0
-        var lastReceiveMessageId: Long = -1
+        private val sendLoopList: ArrayList<SendObject> = ArrayList()
+        private var lastReceiveTime: Long = 0
+        private var lastReceiveMessageId: Long = -1
         private const val SERVICE_TAG = "BatteryService"
         private const val RECEIVER_TAG = "BatteryReceiver"
     }

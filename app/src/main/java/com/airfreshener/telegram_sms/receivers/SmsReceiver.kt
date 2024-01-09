@@ -11,9 +11,9 @@ import android.provider.Telephony
 import android.telephony.SmsMessage
 import android.telephony.SubscriptionManager
 import android.util.Log
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.airfreshener.telegram_sms.R
+import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.LogUtils
 import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
@@ -26,7 +26,7 @@ import com.airfreshener.telegram_sms.utils.OtherUtils.getMessageId
 import com.airfreshener.telegram_sms.utils.OtherUtils.getSendPhoneNumber
 import com.airfreshener.telegram_sms.utils.OtherUtils.getSubId
 import com.airfreshener.telegram_sms.utils.OtherUtils.isPhoneNumber
-import com.airfreshener.telegram_sms.utils.PaperUtils
+import com.airfreshener.telegram_sms.utils.OtherUtils.isReadPhoneStatePermissionGranted
 import com.airfreshener.telegram_sms.utils.PaperUtils.DEFAULT_BOOK
 import com.airfreshener.telegram_sms.utils.PaperUtils.SYSTEM_BOOK
 import com.airfreshener.telegram_sms.utils.PaperUtils.tryRead
@@ -46,12 +46,12 @@ import java.util.Date
 import java.util.Locale
 
 class SmsReceiver : BroadcastReceiver() {
+
     override fun onReceive(context: Context, intent: Intent) {
-        PaperUtils.init(context)
         Log.d(TAG, "Receive action: " + intent.action)
+        val prefsRepository = (context.applicationContext as TelegramSmsApp).prefsRepository
         val extras = intent.extras ?: return
-        val prefs = context.getSharedPreferences("data", Context.MODE_PRIVATE)
-        if (!prefs.getBoolean("initialized", false)) {
+        if (!prefsRepository.getInitialized()) {
             Log.i(TAG, "Uninitialized, SMS receiver is deactivated.")
             return
         }
@@ -62,32 +62,24 @@ class SmsReceiver : BroadcastReceiver() {
             Log.i(TAG, "reject: android.provider.Telephony.SMS_RECEIVED.")
             return
         }
-        val botToken = prefs.getString("bot_token", "")
-        val chatId = prefs.getString("chat_id", "")
-        val requestUri = getUrl(botToken!!, "sendMessage")
+
+        val settings = prefsRepository.getSettings()
+        val botToken = settings.botToken
+        val chatId = settings.chatId
+        val requestUri = getUrl(botToken, "sendMessage")
         var intentSlot = extras.getInt("slot", -1)
         val subId = extras.getInt("subscription", -1)
         if (getActiveCard(context) >= 2 && intentSlot == -1) {
             val manager = SubscriptionManager.from(context)
-            if (ActivityCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.READ_PHONE_STATE
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
+            if (context.isReadPhoneStatePermissionGranted()) {
                 val info = manager.getActiveSubscriptionInfo(subId)
                 intentSlot = info.simSlotIndex
             }
         }
         val slot = intentSlot
-        val dualSim = getDualSimCardDisplay(
-            context,
-            intentSlot,
-            prefs.getBoolean("display_dual_sim_display_name", false)
-        )
+        val dualSim = getDualSimCardDisplay(context, intentSlot, prefsRepository.getDisplayDualSim())
         val pdus = (extras["pdus"] as Array<Any>?)!!
-        val messages = arrayOfNulls<SmsMessage>(
-            pdus.size
-        )
+        val messages = arrayOfNulls<SmsMessage>(pdus.size)
         for (i in pdus.indices) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 messages[i] =
@@ -117,9 +109,9 @@ class SmsReceiver : BroadcastReceiver() {
                 context.contentResolver.insert(Telephony.Sms.CONTENT_URI, values)
             }.start()
         }
-        val trustedPhoneNumber = prefs.getString("trusted_phone_number", null)
+        val trustedPhoneNumber = settings.trustedPhoneNumber
         var isTrustedPhone = false
-        if (!trustedPhoneNumber.isNullOrEmpty()) {
+        if (trustedPhoneNumber.isNotEmpty()) {
             isTrustedPhone = messageAddress.contains(trustedPhoneNumber)
         }
         val requestBody = RequestMessage()
@@ -132,7 +124,7 @@ class SmsReceiver : BroadcastReceiver() {
             """.trimIndent()
         var rawRequestBodyText = messageHead + messageBody
         var isVerificationCode = false
-        if (prefs.getBoolean("verification_code", false) && !isTrustedPhone) {
+        if (settings.isVerificationCode && !isTrustedPhone) {
             if (messageBody.length <= 140) {
                 val verification = codeAuxLib.find(messageBody)
                 if (verification != null) {
@@ -165,11 +157,7 @@ class SmsReceiver : BroadcastReceiver() {
                     "/restartservice" -> {
                         Thread {
                             stopAllService(context)
-                            startService(
-                                context,
-                                prefs.getBoolean("battery_monitoring_switch", false),
-                                prefs.getBoolean("chat_command", false)
-                            )
+                            startService(context, settings.isBatteryMonitoring, settings.isChatCommand)
                         }.start()
                         rawRequestBodyText = """
                         ${context.getString(R.string.system_message_head)}
@@ -265,7 +253,7 @@ class SmsReceiver : BroadcastReceiver() {
             }
         }
         val body = requestBody.toRequestBody()
-        val okHttpClient = getOkhttpObj(prefs.getBoolean("doh_switch", true))
+        val okHttpClient = getOkhttpObj(settings.isDnsOverHttp)
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okHttpClient.newCall(request)
         val errorHead = "Send SMS forward failed: "

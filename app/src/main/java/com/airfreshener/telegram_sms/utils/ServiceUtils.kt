@@ -23,25 +23,44 @@ object ServiceUtils {
         }
     }
 
-    @JvmStatic
     fun stopAllService(context: Context) {
         val intent = Intent(Consts.BROADCAST_STOP_SERVICE)
         context.sendBroadcast(intent)
-        try {
-            Thread.sleep(1000) // TODO
-        } catch (e: InterruptedException) {
-            e.printStackTrace()
-        }
     }
 
-    @JvmStatic
     fun startService(
         context: Context,
         batterySwitch: Boolean,
         chatCommandSwitch: Boolean
     ) {
-        val batteryService = Intent(context, BatteryService::class.java)
+        tryStartNotificationListenerService(context)
+        tryStartBatteryService(context, batterySwitch)
+        tryStartChatPollingService(context, chatCommandSwitch)
+    }
+
+    private fun tryStartChatPollingService(context: Context, chatCommandSwitch: Boolean) {
         val chatPollingService = Intent(context, ChatCommandService::class.java)
+        if (chatCommandSwitch) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(chatPollingService)
+            } else {
+                context.startService(chatPollingService)
+            }
+        }
+    }
+
+    private fun tryStartBatteryService(context: Context, batterySwitch: Boolean) {
+        val batteryService = Intent(context, BatteryService::class.java)
+        if (batterySwitch) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(batteryService)
+            } else {
+                context.startService(batteryService)
+            }
+        }
+    }
+
+    private fun tryStartNotificationListenerService(context: Context) {
         if (isNotifyListener(context)) {
             Log.d("start_service", "start_service: ")
             val thisComponent = ComponentName(context, NotificationListenerService::class.java)
@@ -57,24 +76,8 @@ object ServiceUtils {
                 PackageManager.DONT_KILL_APP
             )
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (batterySwitch) {
-                context.startForegroundService(batteryService)
-            }
-            if (chatCommandSwitch) {
-                context.startForegroundService(chatPollingService)
-            }
-        } else {
-            if (batterySwitch) {
-                context.startService(batteryService)
-            }
-            if (chatCommandSwitch) {
-                context.startService(chatPollingService)
-            }
-        }
     }
 
-    @JvmStatic
     fun isNotifyListener(context: Context): Boolean {
         val packageNames = NotificationManagerCompat.getEnabledListenerPackages(context)
         return packageNames.contains(context.packageName)

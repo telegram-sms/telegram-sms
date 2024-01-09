@@ -12,6 +12,7 @@ import android.telephony.SmsManager
 import android.util.Log
 import androidx.core.content.PermissionChecker
 import com.airfreshener.telegram_sms.R
+import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.receivers.SmsSendReceiver
 import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
@@ -24,12 +25,10 @@ import okhttp3.Request
 import java.io.IOException
 
 object SmsUtils {
-    @JvmStatic
     fun sendSms(context: Context, sendTo: String, content: String, slot: Int, subId: Int) {
         sendSms(context, sendTo, content, slot, subId, -1)
     }
 
-    @JvmStatic
     @SuppressLint("UnspecifiedImmutableFlag")
     fun sendSms(
         context: Context,
@@ -54,10 +53,10 @@ object SmsUtils {
             LogUtils.writeLog(appContext, "[$sendTo] is an illegal phone number")
             return
         }
-        val sharedPreferences = appContext.getSharedPreferences("data", Context.MODE_PRIVATE)
-        val botToken = sharedPreferences.getString("bot_token", "")
-        val chatId = sharedPreferences.getString("chat_id", "")
-        var requestUri = getUrl(botToken!!, "sendMessage")
+        val settings = (appContext as TelegramSmsApp).prefsRepository.getSettings()
+        val botToken = settings.botToken
+        val chatId = settings.chatId
+        var requestUri = getUrl(botToken, "sendMessage")
         if (messageId != -1L) {
             Log.d(tag, "Find the message_id and switch to edit mode.")
             requestUri = getUrl(botToken, "editMessageText")
@@ -69,11 +68,7 @@ object SmsUtils {
         } else {
             SmsManager.getSmsManagerForSubscriptionId(subId)
         }
-        val dualSim = getDualSimCardDisplay(
-            appContext,
-            slot,
-            sharedPreferences.getBoolean("display_dual_sim_display_name", false)
-        )
+        val dualSim = getDualSimCardDisplay(appContext, slot, settings.isDisplayDualSim)
         val sendContent = """
             [$dualSim${appContext.getString(R.string.send_sms_head)}]
             ${appContext.getString(R.string.to)}$sendTo
@@ -85,9 +80,8 @@ object SmsUtils {
             """.trimIndent()
         requestBody.message_id = messageId
         val body = requestBody.toRequestBody()
-        val isDnsOverHttp = sharedPreferences.getBoolean("doh_switch", true)
-        val okHttpClient = getOkhttpObj(isDnsOverHttp)
-        val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
+        val okHttpClient = getOkhttpObj(settings.isDnsOverHttp)
+        val request: Request = Request.Builder().url(requestUri).post(body).build()
         val call = okHttpClient.newCall(request)
         try {
             call.execute().use { response ->
@@ -122,7 +116,6 @@ object SmsUtils {
         smsManager.sendMultipartTextMessage(sendTo, null, divideContents, sendReceiverList, null)
     }
 
-    @JvmStatic
     fun sendFallbackSms(context: Context, content: String?, subId: Int) {
         val tag = "send_fallback_sms"
         if (PermissionChecker.checkSelfPermission(
@@ -133,13 +126,13 @@ object SmsUtils {
             Log.d(tag, "No permission.")
             return
         }
-        val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
-        val trustedPhoneNumber = sharedPreferences.getString("trusted_phone_number", null)
-        if (trustedPhoneNumber == null) {
+        val settings = (context.applicationContext as TelegramSmsApp).prefsRepository.getSettings()
+        val trustedPhoneNumber = settings.trustedPhoneNumber
+        if (trustedPhoneNumber.isEmpty()) {
             Log.i(tag, "The trusted number is empty.")
             return
         }
-        if (!sharedPreferences.getBoolean("fallback_sms", false)) {
+        if (!settings.isFallbackSms) {
             Log.i(tag, "SMS fallback is not turned on.")
             return
         }

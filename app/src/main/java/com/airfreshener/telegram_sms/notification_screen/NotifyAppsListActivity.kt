@@ -1,6 +1,5 @@
 package com.airfreshener.telegram_sms.notification_screen
 
-import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.Bundle
@@ -19,7 +18,6 @@ import android.widget.SearchView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.utils.PaperUtils
 import com.airfreshener.telegram_sms.utils.PaperUtils.SYSTEM_BOOK
 import com.airfreshener.telegram_sms.utils.PaperUtils.tryRead
 import java.util.Locale
@@ -53,7 +51,6 @@ class NotifyAppsListActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        PaperUtils.init(applicationContext)
         this.title = getString(R.string.app_list)
         setContentView(R.layout.activity_notify_apps_list)
         val appList = findViewById<ListView>(R.id.app_listview)

@@ -15,7 +15,6 @@ import java.util.Locale
 
 object LogUtils {
 
-    @JvmStatic
     fun writeLog(context: Context?, log: String) {
         Log.i("write_log", log)
         if (context == null) return
@@ -30,7 +29,6 @@ object LogUtils {
         writeLogFile(context, writeString, newFileMode)
     }
 
-    @JvmStatic
     fun readLog(context: Context?, line: Int): String {
         if (context == null) return ""
         val result = context.getString(R.string.no_logs)

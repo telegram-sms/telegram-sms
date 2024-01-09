@@ -1,7 +1,6 @@
 package com.airfreshener.telegram_sms.model
 
 object ReplyMarkupKeyboard {
-    @JvmStatic
     fun getInlineKeyboardObj(
         text: String?,
         callbackData: String?

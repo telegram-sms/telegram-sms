@@ -5,6 +5,7 @@ import android.telephony.PhoneStateListener
 import android.telephony.TelephonyManager
 import android.util.Log
 import com.airfreshener.telegram_sms.R
+import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.LogUtils
 import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
@@ -21,7 +22,7 @@ import okhttp3.Response
 import java.io.IOException
 
 class CallStatusListener(
-    private val context: Context?,
+    private val context: Context,
     private val slot: Int,
     incomingNumber: String?
 ) : PhoneStateListener() {
@@ -33,32 +34,29 @@ class CallStatusListener(
         this.incomingNumber = incomingNumber ?: "-"
     }
 
-    override fun onCallStateChanged(now_state: Int, now_incoming_number: String?) {
+    @Deprecated("Deprecated in Java")
+    override fun onCallStateChanged(state: Int, phoneNumber: String?) {
         if (lastReceiveStatus == TelephonyManager.CALL_STATE_RINGING
-            && now_state == TelephonyManager.CALL_STATE_IDLE
+            && state == TelephonyManager.CALL_STATE_IDLE
         ) {
-            val prefs = context!!.getSharedPreferences("data", Context.MODE_PRIVATE)
-            if (!prefs.getBoolean("initialized", false)) {
-                Log.i("call_status_listener", "Uninitialized, Phone receiver is deactivated.")
+            val prefsRepository = (context.applicationContext as TelegramSmsApp).prefsRepository
+
+            if (!prefsRepository.getInitialized()) {
+                Log.i(TAG, "Uninitialized, Phone receiver is deactivated.")
                 return
             }
-            val botToken = prefs.getString("bot_token", "")
-            val chatId = prefs.getString("chat_id", "")
-            val requestUri = getUrl(botToken!!, "sendMessage")
+            val settings = prefsRepository.getSettings()
+            val requestUri = getUrl(settings.botToken, "sendMessage")
             val requestBody = RequestMessage()
-            requestBody.chat_id = chatId
-            val dual_sim = OtherUtils.getDualSimCardDisplay(
-                context,
-                slot,
-                prefs.getBoolean("display_dual_sim_display_name", false)
-            )
+            requestBody.chat_id = settings.chatId
+            val dualSim = OtherUtils.getDualSimCardDisplay(context, slot, settings.isDisplayDualSim)
             requestBody.text = """
-            [$dual_sim${context.getString(R.string.missed_call_head)}]
+            [$dualSim${context.getString(R.string.missed_call_head)}]
             ${context.getString(R.string.Incoming_number)}$incomingNumber
             """.trimIndent()
             val body: RequestBody = requestBody.toRequestBody()
-            val okHttpClient = getOkhttpObj(prefs.getBoolean("doh_switch", true))
-            val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
+            val okHttpClient = getOkhttpObj(settings.isDnsOverHttp)
+            val request: Request = Request.Builder().url(requestUri).post(body).build()
             val call = okHttpClient.newCall(request)
             val errorHead = "Send missed call error: "
             call.enqueue(object : Callback {
@@ -98,6 +96,10 @@ class CallStatusListener(
                 }
             })
         }
-        lastReceiveStatus = now_state
+        lastReceiveStatus = state
+    }
+
+    companion object {
+        private const val TAG = "CallStatusListener"
     }
 }

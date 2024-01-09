@@ -1,24 +1,18 @@
 package com.airfreshener.telegram_sms.mainScreen
 
-import android.Manifest.permission.READ_PHONE_STATE
 import android.content.Context
-import android.content.pm.PackageManager
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import com.airfreshener.telegram_sms.common.PrefsRepository
-import com.airfreshener.telegram_sms.common.SharedPrefsRepository
 import com.airfreshener.telegram_sms.model.Settings
+import com.google.gson.JsonObject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class MainViewModel(
-    private val appContext: Context
+    private val appContext: Context,
+    private val prefsRepository: PrefsRepository
 ) : ViewModel() {
-
-    private val prefs = appContext.getSharedPreferences("data", AppCompatActivity.MODE_PRIVATE)
-    private val prefsRepository: PrefsRepository = SharedPrefsRepository(prefs)
 
     private val _settings: MutableStateFlow<Settings> = MutableStateFlow(prefsRepository.getSettings())
     val settings: Flow<Settings> = _settings.asStateFlow()
@@ -85,7 +79,24 @@ class MainViewModel(
         )
     }
 
-    private fun isReadPhoneStatePermissionGranted() =
-        ContextCompat.checkSelfPermission(appContext, READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED
+    fun qrCodeScanned(jsonConfig: JsonObject) {
+        val isBatteryMonitoring = jsonConfig["battery_monitoring_switch"].asBoolean
+        val isFallbackSms = jsonConfig["fallback_sms"].asBoolean
+        val trustedPhoneNumber = jsonConfig["trusted_phone_number"].asString
+        val newSettings = Settings(
+            botToken = jsonConfig["bot_token"].asString,
+            chatId = jsonConfig["chat_id"].asString,
+            isBatteryMonitoring = isBatteryMonitoring,
+            isVerificationCode = jsonConfig["verification_code"].asBoolean,
+            isChargerStatus = isBatteryMonitoring && jsonConfig["charger_status"].asBoolean,
+            isChatCommand = jsonConfig["chat_command"].asBoolean,
+            isPrivacyMode = jsonConfig["privacy_mode"].asBoolean,
+            trustedPhoneNumber = trustedPhoneNumber,
+            isFallbackSms = isFallbackSms && trustedPhoneNumber.isNotEmpty(),
+            isDnsOverHttp = true, // TODO
+            isDisplayDualSim = false // TODO
+        )
+        _settings.value = newSettings
+    }
 
 }

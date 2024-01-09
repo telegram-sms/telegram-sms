@@ -12,9 +12,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 object ResendUtils {
-    @JvmStatic
     fun addResendLoop(context: Context, message: String?) {
-        PaperUtils.init(context)
         val resendList: ArrayList<String?> = DEFAULT_BOOK.tryRead("resend_list", ArrayList())
         val simpleDateFormat = SimpleDateFormat(context.getString(R.string.time_format), Locale.UK)
         val sb = StringBuilder(message ?: "")

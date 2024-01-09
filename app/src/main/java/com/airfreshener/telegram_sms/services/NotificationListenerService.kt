@@ -1,12 +1,12 @@
 package com.airfreshener.telegram_sms.services
 
 import android.app.Notification
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import com.airfreshener.telegram_sms.R
+import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.Consts
 import com.airfreshener.telegram_sms.utils.LogUtils
@@ -15,7 +15,6 @@ import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils.getNotificationObj
 import com.airfreshener.telegram_sms.utils.PaperUtils.getSystemBook
-import com.airfreshener.telegram_sms.utils.PaperUtils.init
 import com.airfreshener.telegram_sms.utils.ResendUtils.addResendLoop
 import com.airfreshener.telegram_sms.utils.ServiceUtils.stopForeground
 import okhttp3.Call
@@ -26,13 +25,10 @@ import java.io.IOException
 
 class NotificationListenerService : NotificationListenerService() {
 
-    private val prefs: SharedPreferences by lazy {
-        applicationContext.getSharedPreferences("data", MODE_PRIVATE)
-    }
+    private val prefsRepository by lazy { (application as TelegramSmsApp).prefsRepository }
 
     override fun onCreate() {
         super.onCreate()
-        init(applicationContext)
         val notification =
             getNotificationObj(applicationContext, getString(R.string.Notification_Listener_title))
         startForeground(Consts.ServiceNotifyId.NOTIFICATION_LISTENER_SERVICE, notification)
@@ -47,7 +43,8 @@ class NotificationListenerService : NotificationListenerService() {
         val context = applicationContext
         val packageName = sbn.packageName
         Log.d(TAG, "onNotificationPosted: $packageName")
-        if (!prefs.getBoolean("initialized", false)) {
+        val settings = prefsRepository.getSettings()
+        if (!prefsRepository.getInitialized()) {
             Log.i(TAG, "Uninitialized, Notification receiver is deactivated.")
             return
         }
@@ -73,9 +70,9 @@ class NotificationListenerService : NotificationListenerService() {
         }
         val title = extras.getString(Notification.EXTRA_TITLE, "None")
         val content = extras.getString(Notification.EXTRA_TEXT, "None")
-        val botToken = prefs.getString("bot_token", "")
-        val chatId = prefs.getString("chat_id", "")
-        val requestUri = getUrl(botToken!!, "sendMessage")
+        val botToken = settings.botToken
+        val chatId = settings.chatId
+        val requestUri = getUrl(botToken, "sendMessage")
         val requestBody = RequestMessage()
         requestBody.chat_id = chatId
         requestBody.text = """
@@ -85,8 +82,7 @@ class NotificationListenerService : NotificationListenerService() {
             ${getString(R.string.content)}$content
             """.trimIndent()
         val body = requestBody.toRequestBody()
-        val isDnsOverHttp = prefs.getBoolean("doh_switch", true)
-        val okhttpClient = getOkhttpObj(isDnsOverHttp)
+        val okhttpClient = getOkhttpObj(settings.isDnsOverHttp)
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpClient.newCall(request)
         val errorHead = "Send notification failed:"

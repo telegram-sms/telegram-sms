@@ -15,33 +15,36 @@ import androidx.core.app.ActivityCompat
 import com.airfreshener.telegram_sms.R
 
 object ChatServiceUtils {
+    private const val TAG = "ChatServiceUtils"
 
     fun getBatteryInfo(appContext: Context): String {
         val batteryManager =
             (appContext.getSystemService(Context.BATTERY_SERVICE) as BatteryManager)
         var batteryLevel = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
         if (batteryLevel > 100) {
-            Log.i(
-                ChatCommandService.TAG,
-                "The previous battery is over 100%, and the correction is 100%."
-            )
+            Log.i(TAG, "The previous battery is over 100%, and the correction is 100%.")
             batteryLevel = 100
         }
-        val intentfilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        val batteryStatus = appContext.registerReceiver(null, intentfilter)!!
+        val intentFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        val batteryStatus = appContext.registerReceiver(null, intentFilter)!!
         val chargeStatus = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
         val stringBuilder = StringBuilder().append(batteryLevel).append("%")
         when (chargeStatus) {
-            BatteryManager.BATTERY_STATUS_CHARGING, BatteryManager.BATTERY_STATUS_FULL ->
-                stringBuilder.append(" (").append(appContext.getString(R.string.charging)).append(")")
-
-            BatteryManager.BATTERY_STATUS_DISCHARGING, BatteryManager.BATTERY_STATUS_NOT_CHARGING -> when (batteryStatus.getIntExtra(
-                BatteryManager.EXTRA_PLUGGED,
-                -1
-            )) {
-                BatteryManager.BATTERY_PLUGGED_AC, BatteryManager.BATTERY_PLUGGED_USB, BatteryManager.BATTERY_PLUGGED_WIRELESS -> stringBuilder.append(
-                    " ("
-                ).append(appContext.getString(R.string.not_charging)).append(")")
+            BatteryManager.BATTERY_STATUS_CHARGING,
+            BatteryManager.BATTERY_STATUS_FULL -> stringBuilder
+                .append(" (")
+                .append(appContext.getString(R.string.charging))
+                .append(")")
+            BatteryManager.BATTERY_STATUS_DISCHARGING,
+            BatteryManager.BATTERY_STATUS_NOT_CHARGING -> {
+                when (batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1)) {
+                    BatteryManager.BATTERY_PLUGGED_AC,
+                    BatteryManager.BATTERY_PLUGGED_USB,
+                    BatteryManager.BATTERY_PLUGGED_WIRELESS -> stringBuilder
+                        .append(" (")
+                        .append(appContext.getString(R.string.not_charging))
+                        .append(")")
+                }
             }
         }
         return stringBuilder.toString()

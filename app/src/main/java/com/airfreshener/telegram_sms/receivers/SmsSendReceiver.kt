@@ -7,12 +7,12 @@ import android.content.Intent
 import android.telephony.SmsManager
 import android.util.Log
 import com.airfreshener.telegram_sms.R
+import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.LogUtils
 import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
 import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
-import com.airfreshener.telegram_sms.utils.PaperUtils
 import com.airfreshener.telegram_sms.utils.ResendUtils.addResendLoop
 import com.airfreshener.telegram_sms.utils.SmsUtils
 import okhttp3.Call
@@ -23,21 +23,21 @@ import java.io.IOException
 
 class SmsSendReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        PaperUtils.init(context)
+        val prefsRepository = (context.applicationContext as TelegramSmsApp).prefsRepository
         Log.d(TAG, "Receive action: " + intent.action)
         val extras = intent.extras!!
         val sub = extras.getInt("sub_id")
         context.applicationContext.unregisterReceiver(this)
-        val prefs = context.getSharedPreferences("data", Context.MODE_PRIVATE)
-        if (!prefs.getBoolean("initialized", false)) {
+        if (!prefsRepository.getInitialized()) {
             Log.i(TAG, "Uninitialized, SMS send receiver is deactivated.")
             return
         }
-        val botToken = prefs.getString("bot_token", "")
-        val chatId = prefs.getString("chat_id", "")
+        val settings = prefsRepository.getSettings()
+        val botToken = settings.botToken
+        val chatId = settings.chatId
         val requestBody = RequestMessage()
         requestBody.chat_id = chatId
-        var requestUri = getUrl(botToken!!, "sendMessage")
+        var requestUri = getUrl(botToken, "sendMessage")
         val messageId = extras.getLong("message_id")
         if (messageId != -1L) {
             Log.d(TAG, "Find the message_id and switch to edit mode.")
@@ -56,8 +56,8 @@ class SmsSendReceiver : BroadcastReceiver() {
             ${context.getString(R.string.status)}$resultStatus
             """.trimIndent()
         val body = requestBody.toRequestBody()
-        val okHttpClient = getOkhttpObj(prefs.getBoolean("doh_switch", true))
-        val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
+        val okHttpClient = getOkhttpObj(settings.isDnsOverHttp)
+        val request: Request = Request.Builder().url(requestUri).post(body).build()
         val call = okHttpClient.newCall(request)
         val errorHead = "Send SMS status failed:"
         call.enqueue(object : Callback {
@@ -82,6 +82,6 @@ class SmsSendReceiver : BroadcastReceiver() {
     }
 
     companion object {
-        private const val TAG = "sms_send_receiver"
+        private const val TAG = "SmsSendReceiver"
     }
 }

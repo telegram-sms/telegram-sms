@@ -8,17 +8,17 @@ class SharedPrefsRepository(
 ) : PrefsRepository {
 
     private var settings: Settings = Settings(
-        isDnsOverHttp = getDohSwitch(),
-        isPrivacyMode = getPrivacyMode(),
-        isChatCommand = getChatCommand(),
-        isFallbackSms = getFallbackSms(),
-        isChargerStatus = getChargerStatus(),
-        isBatteryMonitoring = getBatteryMonitoring(),
-        isDisplayDualSim = getDisplayDualSim(),
-        isVerificationCode = getVerificationCode(),
-        chatId = getChatId(),
-        botToken = getBotToken(),
-        trustedPhoneNumber = getTrustedPhoneNumber(),
+        isDnsOverHttp = sharedPreferences.getBoolean("doh_switch", true),
+        isPrivacyMode = sharedPreferences.getBoolean("privacy_mode", false),
+        isChatCommand = sharedPreferences.getBoolean("chat_command", false),
+        isFallbackSms = sharedPreferences.getBoolean("fallback_sms", false),
+        isChargerStatus = sharedPreferences.getBoolean("charger_status", false),
+        isBatteryMonitoring = sharedPreferences.getBoolean("battery_monitoring_switch", false),
+        isDisplayDualSim = sharedPreferences.getBoolean("display_dual_sim_display_name", false),
+        isVerificationCode = sharedPreferences.getBoolean("verification_code", false),
+        chatId = sharedPreferences.getString("chat_id", "").orEmpty(),
+        botToken = sharedPreferences.getString("bot_token", "").orEmpty(),
+        trustedPhoneNumber = sharedPreferences.getString("trusted_phone_number", "").orEmpty(),
     )
 
     override fun getSettings(): Settings = settings
@@ -48,18 +48,17 @@ class SharedPrefsRepository(
     override fun getInitialized(): Boolean = sharedPreferences.getBoolean("initialized", false)
     override fun getPrivacyDialogAgree(): Boolean = sharedPreferences.getBoolean("privacy_dialog_agree", false)
 
-    override fun getDohSwitch(): Boolean = sharedPreferences.getBoolean("doh_switch", true)
-    override fun getPrivacyMode(): Boolean = sharedPreferences.getBoolean("privacy_mode", false)
-    override fun getChatCommand(): Boolean = sharedPreferences.getBoolean("chat_command", false)
-    override fun getFallbackSms(): Boolean = sharedPreferences.getBoolean("fallback_sms", false)
-    override fun getChargerStatus(): Boolean = sharedPreferences.getBoolean("charger_status", false)
-    override fun getBatteryMonitoring(): Boolean = sharedPreferences.getBoolean("battery_monitoring_switch", false)
-    override fun getDisplayDualSim(): Boolean = sharedPreferences.getBoolean("display_dual_sim_display_name", false)
-    override fun getVerificationCode(): Boolean = sharedPreferences.getBoolean("verification_code", false)
-
-    override fun getChatId(): String = sharedPreferences.getString("chat_id", "") ?: ""
-    override fun getBotToken(): String = sharedPreferences.getString("bot_token", "") ?: ""
-    override fun getTrustedPhoneNumber(): String = sharedPreferences.getString("trusted_phone_number", "") ?: ""
+    override fun getDohSwitch(): Boolean = settings.isDnsOverHttp
+    override fun getPrivacyMode(): Boolean = settings.isPrivacyMode
+    override fun getChatCommand(): Boolean = settings.isChatCommand
+    override fun getFallbackSms(): Boolean = settings.isFallbackSms
+    override fun getChargerStatus(): Boolean = settings.isChargerStatus
+    override fun getBatteryMonitoring(): Boolean = settings.isBatteryMonitoring
+    override fun getDisplayDualSim(): Boolean = settings.isDisplayDualSim
+    override fun getVerificationCode(): Boolean = settings.isVerificationCode
+    override fun getChatId(): String = settings.chatId
+    override fun getBotToken(): String = settings.botToken
+    override fun getTrustedPhoneNumber(): String = settings.trustedPhoneNumber
 
     override fun setPrivacyDialogAgree(value: Boolean) {
         sharedPreferences.edit().putBoolean("privacy_dialog_agree", value).apply()

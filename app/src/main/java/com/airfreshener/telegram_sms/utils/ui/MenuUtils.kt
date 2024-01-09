@@ -3,7 +3,6 @@ package com.airfreshener.telegram_sms.utils.ui
 import android.app.Activity
 import android.content.Context
 import android.content.DialogInterface
-import android.content.SharedPreferences
 import android.view.LayoutInflater
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
@@ -13,10 +12,8 @@ import com.airfreshener.telegram_sms.utils.PaperUtils
 import com.airfreshener.telegram_sms.utils.PaperUtils.SYSTEM_BOOK
 import com.airfreshener.telegram_sms.utils.ServiceUtils
 import com.google.android.material.switchmaterial.SwitchMaterial
-import io.paperdb.Paper
 
 object MenuUtils {
-    @JvmStatic
     fun showProxySettingsDialog(
         inflater: LayoutInflater,
         activity: Activity,
@@ -41,7 +38,7 @@ object MenuUtils {
         proxyPasswordView.setText(proxyItem.password)
         AlertDialog.Builder(activity).setTitle(R.string.proxy_dialog_title)
             .setView(proxyDialogView)
-            .setPositiveButton(R.string.ok_button) { dialog: DialogInterface?, which: Int ->
+            .setPositiveButton(R.string.ok_button) { _: DialogInterface?, _: Int ->
                 onOkCallback(proxyEnableView.isChecked)
                 proxyItem.enable = proxyEnableView.isChecked
                 proxyItem.dns_over_socks5 = proxyDohSocks5View.isChecked

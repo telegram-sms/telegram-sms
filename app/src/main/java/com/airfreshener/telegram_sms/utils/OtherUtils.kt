@@ -1,14 +1,11 @@
 package com.airfreshener.telegram_sms.utils
 
-import android.Manifest
 import android.Manifest.permission.READ_PHONE_STATE
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Build
 import android.telephony.SubscriptionManager
@@ -16,7 +13,6 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.mainScreen.MainActivity
 import com.airfreshener.telegram_sms.model.SmsRequestInfo
 import com.airfreshener.telegram_sms.utils.PaperUtils.getDefaultBook
 import com.google.gson.JsonParser

@@ -23,7 +23,6 @@ object NetworkUtils {
     private const val TELEGRAM_API_URL = "https://api.telegram.org/bot"
     private const val DNS_OVER_HTTP_ADDRESS = "https://cloudflare-dns.com/dns-query"
 
-    @JvmStatic
     fun checkNetworkStatus(context: Context): Boolean {
         val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         var networkStatus = false
@@ -39,12 +38,10 @@ object NetworkUtils {
         return networkStatus
     }
 
-    @JvmStatic
     fun getUrl(token: String, func: String): String {
         return "$TELEGRAM_API_URL$token/$func"
     }
 
-    @JvmStatic
     fun getOkhttpObj(dohSwitch: Boolean): OkHttpClient {
         var isDnsOverHttps = dohSwitch
         val proxyItem = PaperUtils.getProxyConfig()

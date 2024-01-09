@@ -1,17 +1,16 @@
 package com.airfreshener.telegram_sms
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Build
 import android.telephony.TelephonyManager
 import android.telephony.TelephonyManager.UssdResponseCallback
 import androidx.annotation.RequiresApi
 import com.airfreshener.telegram_sms.model.RequestMessage
+import com.airfreshener.telegram_sms.model.Settings
 import com.airfreshener.telegram_sms.utils.LogUtils
 import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
 import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
-import com.airfreshener.telegram_sms.utils.PaperUtils
 import com.airfreshener.telegram_sms.utils.ResendUtils.addResendLoop
 import com.airfreshener.telegram_sms.utils.SmsUtils
 import okhttp3.Call
@@ -23,7 +22,7 @@ import java.io.IOException
 @RequiresApi(api = Build.VERSION_CODES.O)
 class UssdRequestCallback(
     private val context: Context,
-    sharedPreferences: SharedPreferences,
+    settings: Settings,
     messageId: Long
 ) : UssdResponseCallback() {
     private val dohSwitch: Boolean
@@ -32,13 +31,12 @@ class UssdRequestCallback(
     private val requestBody: RequestMessage
 
     init {
-        PaperUtils.init(context)
-        val chatId = sharedPreferences.getString("chat_id", "")
-        dohSwitch = sharedPreferences.getBoolean("doh_switch", true)
+        val chatId = settings.chatId
+        dohSwitch = settings.isDnsOverHttp
         requestBody = RequestMessage()
         requestBody.chat_id = chatId
-        val botToken = sharedPreferences.getString("bot_token", "")
-        requestUri = getUrl(botToken!!, "SendMessage")
+        val botToken = settings.botToken
+        requestUri = getUrl(botToken, "SendMessage")
         if (messageId != -1L) {
             requestUri = getUrl(botToken, "editMessageText")
             requestBody.message_id = messageId
@@ -78,7 +76,7 @@ class UssdRequestCallback(
         requestBody.text = message
         val body = requestBody.toRequestBody()
         val okHttpClient = getOkhttpObj(dohSwitch)
-        val requestObj: Request = Request.Builder().url(requestUri).method("POST", body).build()
+        val requestObj: Request = Request.Builder().url(requestUri).post(body).build()
         val call = okHttpClient.newCall(requestObj)
         val errorHead = "Send USSD failed:"
         call.enqueue(object : Callback {
