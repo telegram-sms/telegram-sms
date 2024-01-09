@@ -16,23 +16,15 @@ import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.LogUtils
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
+import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
-import com.airfreshener.telegram_sms.utils.OtherUtils.addMessageList
-import com.airfreshener.telegram_sms.utils.OtherUtils.getActiveCard
-import com.airfreshener.telegram_sms.utils.OtherUtils.getDualSimCardDisplay
-import com.airfreshener.telegram_sms.utils.OtherUtils.getMessageId
-import com.airfreshener.telegram_sms.utils.OtherUtils.getSendPhoneNumber
-import com.airfreshener.telegram_sms.utils.OtherUtils.getSubId
-import com.airfreshener.telegram_sms.utils.OtherUtils.isPhoneNumber
+import com.airfreshener.telegram_sms.utils.OtherUtils
 import com.airfreshener.telegram_sms.utils.OtherUtils.isReadPhoneStatePermissionGranted
 import com.airfreshener.telegram_sms.utils.PaperUtils.DEFAULT_BOOK
 import com.airfreshener.telegram_sms.utils.PaperUtils.SYSTEM_BOOK
 import com.airfreshener.telegram_sms.utils.PaperUtils.tryRead
-import com.airfreshener.telegram_sms.utils.ResendUtils.addResendLoop
-import com.airfreshener.telegram_sms.utils.ServiceUtils.startService
-import com.airfreshener.telegram_sms.utils.ServiceUtils.stopAllService
+import com.airfreshener.telegram_sms.utils.ResendUtils
+import com.airfreshener.telegram_sms.utils.ServiceUtils
 import com.airfreshener.telegram_sms.utils.SmsUtils
 import com.airfreshener.telegram_sms.utils.UssdUtils
 import com.github.sumimakito.codeauxlib.CodeauxLibPortable
@@ -66,10 +58,10 @@ class SmsReceiver : BroadcastReceiver() {
         val settings = prefsRepository.getSettings()
         val botToken = settings.botToken
         val chatId = settings.chatId
-        val requestUri = getUrl(botToken, "sendMessage")
+        val requestUri = NetworkUtils.getUrl(botToken, "sendMessage")
         var intentSlot = extras.getInt("slot", -1)
         val subId = extras.getInt("subscription", -1)
-        if (getActiveCard(context) >= 2 && intentSlot == -1) {
+        if (OtherUtils.getActiveCard(context) >= 2 && intentSlot == -1) {
             val manager = SubscriptionManager.from(context)
             if (context.isReadPhoneStatePermissionGranted()) {
                 val info = manager.getActiveSubscriptionInfo(subId)
@@ -77,7 +69,7 @@ class SmsReceiver : BroadcastReceiver() {
             }
         }
         val slot = intentSlot
-        val dualSim = getDualSimCardDisplay(context, intentSlot, prefsRepository.getDisplayDualSim())
+        val dualSim = OtherUtils.getDualSimCardDisplay(context, intentSlot, prefsRepository.getDisplayDualSim())
         val pdus = (extras["pdus"] as Array<Any>?)!!
         val messages = arrayOfNulls<SmsMessage>(pdus.size)
         for (i in pdus.indices) {
@@ -156,8 +148,8 @@ class SmsReceiver : BroadcastReceiver() {
                 when (commandList[0].trim { it <= ' ' }) {
                     "/restartservice" -> {
                         Thread {
-                            stopAllService(context)
-                            startService(context, settings.isBatteryMonitoring, settings.isChatCommand)
+                            ServiceUtils.stopAllService(context)
+                            ServiceUtils.startService(context, settings.isBatteryMonitoring, settings.isChatCommand)
                         }.start()
                         rawRequestBodyText = """
                         ${context.getString(R.string.system_message_head)}
@@ -174,8 +166,8 @@ class SmsReceiver : BroadcastReceiver() {
                         ) {
                             Log.i(TAG, "No SMS permission.")
                         } else {
-                            val msgSendTo = getSendPhoneNumber(messageList[1])
-                            if (isPhoneNumber(msgSendTo) && messageList.size > 2) {
+                            val msgSendTo = OtherUtils.getSendPhoneNumber(messageList[1])
+                            if (OtherUtils.isPhoneNumber(msgSendTo) && messageList.size > 2) {
                                 val msgSendContent = StringBuilder()
                                 var i = 2
                                 while (i < messageList.size) {
@@ -186,14 +178,14 @@ class SmsReceiver : BroadcastReceiver() {
                                     ++i
                                 }
                                 var sendSlot = slot
-                                if (getActiveCard(context) > 1) {
+                                if (OtherUtils.getActiveCard(context) > 1) {
                                     when (commandList[0].trim { it <= ' ' }) {
                                         "/sendsms1" -> sendSlot = 0
                                         "/sendsms2" -> sendSlot = 1
                                     }
                                 }
                                 val finalSendSlot = sendSlot
-                                val finalSendSubId = getSubId(context, finalSendSlot)
+                                val finalSendSubId = OtherUtils.getSubId(context, finalSendSlot)
                                 Thread {
                                     SmsUtils.sendSms(
                                         context,
@@ -253,7 +245,7 @@ class SmsReceiver : BroadcastReceiver() {
             }
         }
         val body = requestBody.toRequestBody()
-        val okHttpClient = getOkhttpObj(settings.isDnsOverHttp)
+        val okHttpClient = NetworkUtils.getOkhttpObj(settings)
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okHttpClient.newCall(request)
         val errorHead = "Send SMS forward failed: "
@@ -263,7 +255,7 @@ class SmsReceiver : BroadcastReceiver() {
                 e.printStackTrace()
                 LogUtils.writeLog(context, errorHead + e.message)
                 SmsUtils.sendFallbackSms(context, finalRawRequestBodyText, subId)
-                addResendLoop(context, requestBody.text)
+                ResendUtils.addResendLoop(context, requestBody.text)
             }
 
             override fun onResponse(call: Call, response: Response) {
@@ -272,13 +264,13 @@ class SmsReceiver : BroadcastReceiver() {
                 if (response.code != 200) {
                     LogUtils.writeLog(context, errorHead + response.code + " " + result)
                     SmsUtils.sendFallbackSms(context, finalRawRequestBodyText, subId)
-                    addResendLoop(context, requestBody.text)
+                    ResendUtils.addResendLoop(context, requestBody.text)
                 } else {
-                    if (!isPhoneNumber(messageAddress)) {
+                    if (!OtherUtils.isPhoneNumber(messageAddress)) {
                         LogUtils.writeLog(context, "[$messageAddress] Not a regular phone number.")
                         return
                     }
-                    addMessageList(getMessageId(result), messageAddress, slot)
+                    OtherUtils.addMessageList(OtherUtils.getMessageId(result), messageAddress, slot)
                 }
             }
         })

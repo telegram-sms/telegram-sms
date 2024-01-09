@@ -56,7 +56,7 @@ class SmsSendReceiver : BroadcastReceiver() {
             ${context.getString(R.string.status)}$resultStatus
             """.trimIndent()
         val body = requestBody.toRequestBody()
-        val okHttpClient = getOkhttpObj(settings.isDnsOverHttp)
+        val okHttpClient = getOkhttpObj(settings)
         val request: Request = Request.Builder().url(requestUri).post(body).build()
         val call = okHttpClient.newCall(request)
         val errorHead = "Send SMS status failed:"

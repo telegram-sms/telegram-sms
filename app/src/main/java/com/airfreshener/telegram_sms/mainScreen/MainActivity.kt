@@ -218,7 +218,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 ${appContext.getString(R.string.success_connect)}
                 """.trimIndent()
         val body = requestBody.toRequestBody()
-        val okhttpClient = getOkhttpObj(newSettings.isDnsOverHttp)
+        val okhttpClient = getOkhttpObj(newSettings)
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpClient.newCall(request)
         val errorHead = "Send message failed: "
@@ -269,9 +269,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     private fun onGetIdClicked(view: View) {
         val appContext = applicationContext
-        val botToken = binding.botTokenEditview.text.toString().trim { it <= ' ' }
-        val isDnsOverHttp = binding.dohSwitch.isChecked
-        if (botToken.isEmpty()) {
+        val settings = prefsRepository.getSettings()
+        if (settings.botToken.isEmpty()) {
             snackbar(R.string.token_not_configure)
             return
         }
@@ -283,9 +282,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         progressDialog.isIndeterminate = false
         progressDialog.setCancelable(false)
         progressDialog.show()
-        val requestUri = getUrl(botToken, "getUpdates")
+        val requestUri = getUrl(settings.botToken, "getUpdates")
         val okhttpClient =
-            getOkhttpObj(isDnsOverHttp)
+            getOkhttpObj(settings)
                 .newBuilder()
                 .readTimeout(60, TimeUnit.SECONDS)
                 .build()

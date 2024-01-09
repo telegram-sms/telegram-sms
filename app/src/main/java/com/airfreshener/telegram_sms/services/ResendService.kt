@@ -83,7 +83,7 @@ class ResendService : Service() {
             while (true) {
                 if (checkNetworkStatus(context)) {
                     val sendList = resendList
-                    val okHttpClient = getOkhttpObj(settings.isDnsOverHttp)
+                    val okHttpClient = getOkhttpObj(settings)
                     for (item in sendList) {
                         networkProgressHandle(item, settings.chatId, okHttpClient)
                     }

@@ -19,6 +19,7 @@ import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils.getMessageId
 import com.airfreshener.telegram_sms.utils.OtherUtils.getNineKeyMapConvert
+import com.airfreshener.telegram_sms.utils.ServiceUtils.telephonyManager
 import okhttp3.Request
 import java.io.IOException
 
@@ -27,10 +28,9 @@ object UssdUtils {
     fun sendUssd(context: Context, ussdRaw: String?, subId: Int) {
         val TAG = "sendUssd"
         val ussd = getNineKeyMapConvert(ussdRaw!!)
-        var tm: TelephonyManager? =
-            (context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager)
+        var tm: TelephonyManager = context.telephonyManager
         if (subId != -1) {
-            tm = tm!!.createForSubscriptionId(subId)
+            tm = tm.createForSubscriptionId(subId)
         }
         val settings = (context.applicationContext as TelegramSmsApp).prefsRepository.getSettings()
         if (ActivityCompat.checkSelfPermission(
@@ -50,8 +50,7 @@ object UssdUtils {
             ${context.getString(R.string.ussd_code_running)}
             """.trimIndent()
         val body = requestMessage.toRequestBody()
-        val isDnsOverHttp = settings.isDnsOverHttp
-        val okHttpClient = getOkhttpObj(isDnsOverHttp)
+        val okHttpClient = getOkhttpObj(settings)
         val request: Request = Request.Builder().url(requestUri).post(body).build()
         val call = okHttpClient.newCall(request)
         val finalTm = tm

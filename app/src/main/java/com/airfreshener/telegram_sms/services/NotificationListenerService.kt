@@ -82,7 +82,7 @@ class NotificationListenerService : NotificationListenerService() {
             ${getString(R.string.content)}$content
             """.trimIndent()
         val body = requestBody.toRequestBody()
-        val okhttpClient = getOkhttpObj(settings.isDnsOverHttp)
+        val okhttpClient = getOkhttpObj(settings)
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpClient.newCall(request)
         val errorHead = "Send notification failed:"

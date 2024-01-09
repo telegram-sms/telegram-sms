@@ -80,7 +80,7 @@ object SmsUtils {
             """.trimIndent()
         requestBody.message_id = messageId
         val body = requestBody.toRequestBody()
-        val okHttpClient = getOkhttpObj(settings.isDnsOverHttp)
+        val okHttpClient = getOkhttpObj(settings)
         val request: Request = Request.Builder().url(requestUri).post(body).build()
         val call = okHttpClient.newCall(request)
         try {

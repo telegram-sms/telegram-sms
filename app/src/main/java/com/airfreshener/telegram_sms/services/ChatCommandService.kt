@@ -122,7 +122,7 @@ class ChatCommandService : Service() {
                     """.trimIndent()
                 requestBody.message_id = messageId
                 val body = requestBody.toRequestBody()
-                val okhttpClient = getOkhttpObj(settings.isDnsOverHttp)
+                val okhttpClient = getOkhttpObj(settings)
                 val request: Request = Request.Builder().url(requestUri).post(body).build()
                 val call = okhttpClient.newCall(request)
                 try {
@@ -503,7 +503,7 @@ $smsCommand$ussdCommand""".replace("/", "")
         val settings = prefsRepository.getSettings()
         Thread {
             if (checkNetworkStatus(applicationContext)) {
-                val okhttpClient = getOkhttpObj(settings.isDnsOverHttp)
+                val okhttpClient = getOkhttpObj(settings)
                 for (item in spamSmsList) {
                     val sendSmsRequestBody = RequestMessage()
                     sendSmsRequestBody.chat_id = settings.chatId

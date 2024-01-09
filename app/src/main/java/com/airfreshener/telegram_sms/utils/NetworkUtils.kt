@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import com.airfreshener.telegram_sms.model.ProxyConfigV2
+import com.airfreshener.telegram_sms.model.Settings
 import com.airfreshener.telegram_sms.utils.ServiceUtils.connectivityManager
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
@@ -42,8 +43,8 @@ object NetworkUtils {
         return "$TELEGRAM_API_URL$token/$func"
     }
 
-    fun getOkhttpObj(dohSwitch: Boolean): OkHttpClient {
-        var isDnsOverHttps = dohSwitch
+    fun getOkhttpObj(settings: Settings): OkHttpClient {
+        var isDnsOverHttps = settings.isDnsOverHttp
         val proxyItem = PaperUtils.getProxyConfig()
         val okhttp: OkHttpClient.Builder = OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)

@@ -55,7 +55,7 @@ class CallStatusListener(
             ${context.getString(R.string.Incoming_number)}$incomingNumber
             """.trimIndent()
             val body: RequestBody = requestBody.toRequestBody()
-            val okHttpClient = getOkhttpObj(settings.isDnsOverHttp)
+            val okHttpClient = getOkhttpObj(settings)
             val request: Request = Request.Builder().url(requestUri).post(body).build()
             val call = okHttpClient.newCall(request)
             val errorHead = "Send missed call error: "

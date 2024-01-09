@@ -8,10 +8,9 @@ import androidx.annotation.RequiresApi
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.model.Settings
 import com.airfreshener.telegram_sms.utils.LogUtils
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
+import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
-import com.airfreshener.telegram_sms.utils.ResendUtils.addResendLoop
+import com.airfreshener.telegram_sms.utils.ResendUtils
 import com.airfreshener.telegram_sms.utils.SmsUtils
 import okhttp3.Call
 import okhttp3.Callback
@@ -22,26 +21,21 @@ import java.io.IOException
 @RequiresApi(api = Build.VERSION_CODES.O)
 class UssdRequestCallback(
     private val context: Context,
-    settings: Settings,
+    private val settings: Settings,
     messageId: Long
 ) : UssdResponseCallback() {
-    private val dohSwitch: Boolean
     private var requestUri: String
-    private val messageHeader: String
-    private val requestBody: RequestMessage
+    private val messageHeader: String = context.getString(R.string.send_ussd_head)
+    private val requestBody: RequestMessage = RequestMessage().apply {
+        chat_id = settings.chatId
+    }
 
     init {
-        val chatId = settings.chatId
-        dohSwitch = settings.isDnsOverHttp
-        requestBody = RequestMessage()
-        requestBody.chat_id = chatId
-        val botToken = settings.botToken
-        requestUri = getUrl(botToken, "SendMessage")
+        requestUri = NetworkUtils.getUrl(settings.botToken, "SendMessage")
         if (messageId != -1L) {
-            requestUri = getUrl(botToken, "editMessageText")
+            requestUri = NetworkUtils.getUrl(settings.botToken, "editMessageText")
             requestBody.message_id = messageId
         }
-        messageHeader = context.getString(R.string.send_ussd_head)
     }
 
     override fun onReceiveUssdResponse(
@@ -75,7 +69,7 @@ class UssdRequestCallback(
     private fun networkProgressHandle(message: String) {
         requestBody.text = message
         val body = requestBody.toRequestBody()
-        val okHttpClient = getOkhttpObj(dohSwitch)
+        val okHttpClient = NetworkUtils.getOkhttpObj(settings)
         val requestObj: Request = Request.Builder().url(requestUri).post(body).build()
         val call = okHttpClient.newCall(requestObj)
         val errorHead = "Send USSD failed:"
@@ -84,7 +78,7 @@ class UssdRequestCallback(
                 e.printStackTrace()
                 LogUtils.writeLog(context, errorHead + e.message)
                 SmsUtils.sendFallbackSms(context, requestBody.text, -1)
-                addResendLoop(context, requestBody.text)
+                ResendUtils.addResendLoop(context, requestBody.text)
             }
 
             override fun onResponse(call: Call, response: Response) {
@@ -95,7 +89,7 @@ class UssdRequestCallback(
                         errorHead + response.code + " " + responseBody.string()
                     )
                     SmsUtils.sendFallbackSms(context, requestBody.text, -1)
-                    addResendLoop(context, requestBody.text)
+                    ResendUtils.addResendLoop(context, requestBody.text)
                 }
             }
         })
