@@ -13,9 +13,8 @@ import android.telephony.SubscriptionManager
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
-import com.airfreshener.telegram_sms.utils.LogUtils
+import com.airfreshener.telegram_sms.utils.ContextUtils.app
 import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
@@ -41,7 +40,9 @@ class SmsReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         Log.d(TAG, "Receive action: " + intent.action)
-        val prefsRepository = (context.applicationContext as TelegramSmsApp).prefsRepository
+        val app = context.app()
+        val prefsRepository = app.prefsRepository
+        val logRepository = app.logRepository
         val extras = intent.extras ?: return
         if (!prefsRepository.getInitialized()) {
             Log.i(TAG, "Uninitialized, SMS receiver is deactivated.")
@@ -81,7 +82,7 @@ class SmsReceiver : BroadcastReceiver() {
             }
         }
         if (messages.isEmpty()) {
-            LogUtils.writeLog(context, "Message length is equal to 0.")
+            logRepository.writeLog("Message length is equal to 0.")
             return
         }
         val messageBodyBuilder = StringBuilder()
@@ -129,15 +130,12 @@ class SmsReceiver : BroadcastReceiver() {
                     isVerificationCode = true
                 }
             } else {
-                LogUtils.writeLog(
-                    context,
-                    "SMS exceeds 140 characters, no verification code is recognized."
-                )
+                logRepository.writeLog("SMS exceeds 140 characters, no verification code is recognized.")
             }
         }
         requestBody.text = messageHead + messageBodyHtml
         if (isTrustedPhone) {
-            LogUtils.writeLog(context, "SMS from trusted mobile phone detected")
+            logRepository.writeLog("SMS from trusted mobile phone detected")
             val messageCommand =
                 messageBody.lowercase(Locale.getDefault()).replace("_", "").replace("-", "")
             val commandList =
@@ -250,7 +248,7 @@ class SmsReceiver : BroadcastReceiver() {
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
-                LogUtils.writeLog(context, errorHead + e.message)
+                logRepository.writeLog(errorHead + e.message)
                 SmsUtils.sendFallbackSms(context, finalRawRequestBodyText, subId)
                 ResendUtils.addResendLoop(context, requestBody.text)
             }
@@ -259,12 +257,12 @@ class SmsReceiver : BroadcastReceiver() {
                 val responseBody = response.body ?: return
                 val result = responseBody.string()
                 if (response.code != 200) {
-                    LogUtils.writeLog(context, errorHead + response.code + " " + result)
+                    logRepository.writeLog(errorHead + response.code + " " + result)
                     SmsUtils.sendFallbackSms(context, finalRawRequestBodyText, subId)
                     ResendUtils.addResendLoop(context, requestBody.text)
                 } else {
                     if (!OtherUtils.isPhoneNumber(messageAddress)) {
-                        LogUtils.writeLog(context, "[$messageAddress] Not a regular phone number.")
+                        logRepository.writeLog("[$messageAddress] Not a regular phone number.")
                         return
                     }
                     OtherUtils.addMessageList(OtherUtils.getMessageId(result), messageAddress, slot)

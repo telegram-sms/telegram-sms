@@ -7,9 +7,8 @@ import android.content.Intent
 import android.telephony.SmsManager
 import android.util.Log
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
-import com.airfreshener.telegram_sms.utils.LogUtils
+import com.airfreshener.telegram_sms.utils.ContextUtils.app
 import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.ResendUtils
@@ -22,7 +21,9 @@ import java.io.IOException
 
 class SmsSendReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val prefsRepository = (context.applicationContext as TelegramSmsApp).prefsRepository
+        val app = context.app()
+        val prefsRepository = app.prefsRepository
+        val logRepository = app.logRepository
         Log.d(TAG, "Receive action: " + intent.action)
         val extras = intent.extras!!
         val sub = extras.getInt("sub_id")
@@ -62,7 +63,7 @@ class SmsSendReceiver : BroadcastReceiver() {
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
-                LogUtils.writeLog(context, errorHead + e.message)
+                logRepository.writeLog(errorHead + e.message)
                 SmsUtils.sendFallbackSms(context, requestBody.text, sub)
                 ResendUtils.addResendLoop(context, requestBody.text)
             }
@@ -70,10 +71,7 @@ class SmsSendReceiver : BroadcastReceiver() {
             override fun onResponse(call: Call, response: Response) {
                 if (response.code != 200) {
                     assert(response.body != null)
-                    LogUtils.writeLog(
-                        context,
-                        errorHead + response.code + " " + response.body?.string()
-                    )
+                    logRepository.writeLog(errorHead + response.code + " " + response.body?.string())
                     ResendUtils.addResendLoop(context, requestBody.text)
                 }
             }

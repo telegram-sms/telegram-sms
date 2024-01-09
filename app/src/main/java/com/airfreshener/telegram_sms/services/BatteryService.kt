@@ -10,10 +10,9 @@ import android.os.IBinder
 import android.os.Process
 import android.util.Log
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.Consts
-import com.airfreshener.telegram_sms.utils.LogUtils
+import com.airfreshener.telegram_sms.utils.ContextUtils.app
 import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
@@ -27,7 +26,8 @@ import java.util.Objects
 class BatteryService : Service() {
 
     private var batteryReceiver: BatteryReceiver? = null
-    private val prefsRepository by lazy { (application as TelegramSmsApp).prefsRepository }
+    private val prefsRepository by lazy { app().prefsRepository }
+    private val logRepository by lazy { app().logRepository }
 
     override fun onDestroy() {
         unregisterReceiver(batteryReceiver)
@@ -114,7 +114,7 @@ class BatteryService : Service() {
             }
         } catch (e: IOException) {
             e.printStackTrace()
-            LogUtils.writeLog(applicationContext, errorHead + e.message)
+            logRepository.writeLog(errorHead + e.message)
             if (obj.action == Intent.ACTION_BATTERY_LOW) {
                 SmsUtils.sendFallbackSms(applicationContext, requestBody.text, -1)
             }

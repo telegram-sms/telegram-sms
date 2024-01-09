@@ -11,9 +11,9 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.UssdRequestCallback
 import com.airfreshener.telegram_sms.model.RequestMessage
+import com.airfreshener.telegram_sms.utils.ContextUtils.app
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.ServiceUtils.telephonyManager
 import okhttp3.Request
@@ -22,13 +22,18 @@ import java.io.IOException
 object UssdUtils {
     @RequiresApi(api = Build.VERSION_CODES.O)
     fun sendUssd(context: Context, ussdRaw: String?, subId: Int) {
+        val logRepository = context.app().logRepository
         val TAG = "sendUssd"
-        val ussd = OtherUtils.getNineKeyMapConvert(ussdRaw!!)
+        if (ussdRaw == null) {
+            logRepository.writeLog("$TAG: ussd is null")
+            return
+        }
+        val ussd = OtherUtils.getNineKeyMapConvert(ussdRaw)
         var tm: TelephonyManager = context.telephonyManager
         if (subId != -1) {
             tm = tm.createForSubscriptionId(subId)
         }
-        val settings = (context.applicationContext as TelegramSmsApp).prefsRepository.getSettings()
+        val settings = context.app().prefsRepository.getSettings()
         if (ActivityCompat.checkSelfPermission(
                 context,
                 Manifest.permission.CALL_PHONE

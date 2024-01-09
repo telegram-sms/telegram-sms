@@ -5,9 +5,8 @@ import android.telephony.PhoneStateListener
 import android.telephony.TelephonyManager
 import android.util.Log
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
-import com.airfreshener.telegram_sms.utils.LogUtils
+import com.airfreshener.telegram_sms.utils.ContextUtils.app
 import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
@@ -28,6 +27,8 @@ class CallStatusListener(
 
     private var lastReceiveStatus = TelephonyManager.CALL_STATE_IDLE
     private val incomingNumber: String
+    private val logRepository = context.app().logRepository
+    private val prefsRepository = context.app().prefsRepository
 
     init {
         this.incomingNumber = incomingNumber ?: "-"
@@ -38,7 +39,6 @@ class CallStatusListener(
         if (lastReceiveStatus == TelephonyManager.CALL_STATE_RINGING
             && state == TelephonyManager.CALL_STATE_IDLE
         ) {
-            val prefsRepository = (context.applicationContext as TelegramSmsApp).prefsRepository
 
             if (!prefsRepository.getInitialized()) {
                 Log.i(TAG, "Uninitialized, Phone receiver is deactivated.")
@@ -61,7 +61,7 @@ class CallStatusListener(
             call.enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
                     e.printStackTrace()
-                    LogUtils.writeLog(context, errorHead + e.message)
+                    logRepository.writeLog(errorHead + e.message)
                     SmsUtils.sendFallbackSms(
                         context,
                         requestBody.text,
@@ -75,15 +75,12 @@ class CallStatusListener(
                     if (response.code != 200) {
                         val errorMessage =
                             errorHead + response.code + " " + response.body?.string().orEmpty()
-                        LogUtils.writeLog(context, errorMessage)
+                        logRepository.writeLog(errorMessage)
                         ResendUtils.addResendLoop(context, requestBody.text)
                     } else {
                         val result = response.body?.string() ?: return
                         if (!OtherUtils.isPhoneNumber(incomingNumber)) {
-                            LogUtils.writeLog(
-                                context,
-                                "[$incomingNumber] Not a regular phone number."
-                            )
+                            logRepository.writeLog("[$incomingNumber] Not a regular phone number.")
                             return
                         }
                         OtherUtils.addMessageList(OtherUtils.getMessageId(result), incomingNumber, slot)

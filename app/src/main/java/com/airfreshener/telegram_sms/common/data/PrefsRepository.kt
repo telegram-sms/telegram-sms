@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms.common
+package com.airfreshener.telegram_sms.common.data
 
 import com.airfreshener.telegram_sms.model.Settings
 

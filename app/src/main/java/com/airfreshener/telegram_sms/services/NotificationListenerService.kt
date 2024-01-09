@@ -6,10 +6,9 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.Consts
-import com.airfreshener.telegram_sms.utils.LogUtils
+import com.airfreshener.telegram_sms.utils.ContextUtils.app
 import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
@@ -24,7 +23,8 @@ import java.io.IOException
 
 class NotificationListenerService : NotificationListenerService() {
 
-    private val prefsRepository by lazy { (application as TelegramSmsApp).prefsRepository }
+    private val prefsRepository by lazy { app().prefsRepository }
+    private val logRepository by lazy { app().logRepository }
 
     override fun onCreate() {
         super.onCreate()
@@ -88,7 +88,7 @@ class NotificationListenerService : NotificationListenerService() {
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
-                LogUtils.writeLog(context, errorHead + e.message)
+                logRepository.writeLog(errorHead + e.message)
                 ResendUtils.addResendLoop(context!!, requestBody.text)
             }
 
@@ -96,7 +96,7 @@ class NotificationListenerService : NotificationListenerService() {
                 val responseBody = response.body ?: return
                 val result = responseBody.string()
                 if (response.code != 200) {
-                    LogUtils.writeLog(context, errorHead + response.code + " " + result)
+                    logRepository.writeLog(errorHead + response.code + " " + result)
                     ResendUtils.addResendLoop(context, requestBody.text)
                 }
             }

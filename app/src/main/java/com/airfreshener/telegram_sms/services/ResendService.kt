@@ -8,10 +8,9 @@ import android.content.IntentFilter
 import android.os.IBinder
 import android.util.Log
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.Consts
-import com.airfreshener.telegram_sms.utils.LogUtils
+import com.airfreshener.telegram_sms.utils.ContextUtils.app
 import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
@@ -25,7 +24,8 @@ import java.io.IOException
 
 class ResendService : Service() {
 
-    private val prefsRepository by lazy { (application as TelegramSmsApp).prefsRepository }
+    private val prefsRepository by lazy { app().prefsRepository }
+    private val logRepository by lazy { app().logRepository }
 
     var requestUri: String? = null
     private var receiver: StopNotifyReceiver? = null
@@ -61,7 +61,7 @@ class ResendService : Service() {
                 DEFAULT_BOOK.write(table_name, resendListLocal)
             }
         } catch (e: IOException) {
-            LogUtils.writeLog(applicationContext, "An error occurred while resending: " + e.message)
+            logRepository.writeLog("An error occurred while resending: " + e.message)
             e.printStackTrace()
         }
     }
@@ -96,7 +96,7 @@ class ResendService : Service() {
                     e.printStackTrace()
                 }
             }
-            LogUtils.writeLog(context, "The resend failure message is complete.")
+            logRepository.writeLog("The resend failure message is complete.")
             stopSelf()
         }.start()
     }

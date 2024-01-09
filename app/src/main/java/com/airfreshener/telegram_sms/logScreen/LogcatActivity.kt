@@ -7,18 +7,19 @@ import android.view.MenuItem
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.utils.LogUtils
+import com.airfreshener.telegram_sms.utils.ContextUtils.app
 
 class LogcatActivity : AppCompatActivity(R.layout.activity_logcat) {
 
     private var observer: LogcatFileObserver? = null
     private var logcatTextView: TextView? = null
+    private val logRepository by lazy { app().logRepository }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val logcatTextView = findViewById<TextView>(R.id.logcat_textview).apply { logcatTextView = this }
         this.setTitle(R.string.logcat)
-        logcatTextView.text = LogUtils.readLog(applicationContext, LINES_COUNT)
+        logcatTextView.text = logRepository.readLog(LINES_COUNT)
         observer = LogcatFileObserver(applicationContext.filesDir.absolutePath, logcatTextView)
     }
 
@@ -29,7 +30,7 @@ class LogcatActivity : AppCompatActivity(R.layout.activity_logcat) {
 
     public override fun onResume() {
         super.onResume()
-        logcatTextView?.text = LogUtils.readLog(applicationContext, LINES_COUNT)
+        logcatTextView?.text = logRepository.readLog(LINES_COUNT)
         observer?.startWatching()
     }
 
@@ -39,7 +40,7 @@ class LogcatActivity : AppCompatActivity(R.layout.activity_logcat) {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        LogUtils.resetLogFile(applicationContext)
+        logRepository.resetLogFile()
         return true
     }
 
@@ -49,7 +50,7 @@ class LogcatActivity : AppCompatActivity(R.layout.activity_logcat) {
     ) : FileObserver(path) {
         override fun onEvent(event: Int, path: String?) {
             if (event == MODIFY && path?.contains("error.log") == true) {
-                runOnUiThread { logcat.text = LogUtils.readLog(logcat.context, LINES_COUNT) }
+                runOnUiThread { logcat.text = logRepository.readLog(LINES_COUNT) }
             }
         }
     }

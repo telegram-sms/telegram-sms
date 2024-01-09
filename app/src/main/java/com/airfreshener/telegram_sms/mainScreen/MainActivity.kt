@@ -33,8 +33,7 @@ import com.airfreshener.telegram_sms.QrCodeShowActivity
 import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.ScannerActivity
 import com.airfreshener.telegram_sms.SpamListActivity
-import com.airfreshener.telegram_sms.TelegramSmsApp
-import com.airfreshener.telegram_sms.common.PrefsRepository
+import com.airfreshener.telegram_sms.common.data.LogRepository
 import com.airfreshener.telegram_sms.databinding.ActivityMainBinding
 import com.airfreshener.telegram_sms.migration.UpdateVersion1
 import com.airfreshener.telegram_sms.model.PollingJson
@@ -42,7 +41,7 @@ import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.model.Settings
 import com.airfreshener.telegram_sms.notificationScreen.NotifyAppsListActivity
 import com.airfreshener.telegram_sms.utils.Consts
-import com.airfreshener.telegram_sms.utils.LogUtils
+import com.airfreshener.telegram_sms.utils.ContextUtils.app
 import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
@@ -70,7 +69,8 @@ import java.util.concurrent.TimeUnit
 class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     private val viewModel: MainViewModel by viewModels { MainViewModelFactory(applicationContext) }
-    private val prefsRepository: PrefsRepository by lazy { (application as TelegramSmsApp).prefsRepository }
+    private val prefsRepository by lazy { app().prefsRepository }
+    private val logRepository by lazy { app().logRepository }
     private val binding by viewBinding(ActivityMainBinding::bind)
 
     private val qaUrl: String
@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         val settings = prefsRepository.getSettings()
         if (prefsRepository.getInitialized()) {
             updateConfig()
-            checkVersionUpgrade(appContext, true)
+            checkVersionUpgrade(logRepository, appContext, true)
             ServiceUtils.startService(appContext, settings)
         }
         setListeners()
@@ -224,7 +224,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 e.printStackTrace()
                 progressDialog.cancel()
                 val errorMessage = errorHead + e.message
-                LogUtils.writeLog(appContext, errorMessage)
+                logRepository.writeLog(errorMessage)
                 snackbar(errorMessage)
             }
 
@@ -235,7 +235,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                     val result = responseBody.string()
                     val resultObj = JsonParser.parseString(result).asJsonObject
                     val errorMessage = errorHead + resultObj["description"]
-                    LogUtils.writeLog(appContext, errorMessage)
+                    logRepository.writeLog(errorMessage)
                     snackbar(errorMessage)
                     return
                 }
@@ -246,7 +246,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                     DEFAULT_BOOK.destroy()
                 }
                 SYSTEM_BOOK.write("version", Consts.SYSTEM_CONFIG_VERSION)
-                checkVersionUpgrade(appContext, false)
+                checkVersionUpgrade(logRepository, appContext, false)
 
                 prefsRepository.setSettings(newSettings)
 
@@ -301,7 +301,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 e.printStackTrace()
                 progressDialog.cancel()
                 val errorMessage = errorHead + e.message
-                LogUtils.writeLog(appContext, errorMessage)
+                logRepository.writeLog(errorMessage)
                 snackbar(errorMessage)
             }
 
@@ -313,7 +313,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                         ?.string()?.let { JsonParser.parseString(it).asJsonObject }
                         ?.get("description")?.asString
                     val errorMessage = errorHead + description
-                    LogUtils.writeLog(appContext, errorMessage)
+                    logRepository.writeLog(errorMessage)
                     snackbar(errorMessage)
                     return
                 }
@@ -589,7 +589,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         )
         private var setPermissionBack = false
 
-        private fun checkVersionUpgrade(context: Context, resetLog: Boolean) {
+        private fun checkVersionUpgrade(logRepository: LogRepository, context: Context, resetLog: Boolean) {
             val versionCode = SYSTEM_BOOK.tryRead("version_code", 0)
             val packageManager = context.packageManager
             val packageInfo: PackageInfo
@@ -603,7 +603,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             }
             if (versionCode != currentVersionCode) {
                 if (resetLog) {
-                    LogUtils.resetLogFile(context)
+                    logRepository.resetLogFile()
                 }
                 SYSTEM_BOOK.write("version_code", currentVersionCode)
             }

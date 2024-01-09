@@ -4,7 +4,7 @@ import android.app.Activity
 import android.content.DialogInterface
 import androidx.appcompat.app.AlertDialog
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.common.PrefsRepository
+import com.airfreshener.telegram_sms.common.data.PrefsRepository
 import com.airfreshener.telegram_sms.databinding.SetProxyLayoutBinding
 import com.airfreshener.telegram_sms.utils.PaperUtils
 import com.airfreshener.telegram_sms.utils.PaperUtils.SYSTEM_BOOK

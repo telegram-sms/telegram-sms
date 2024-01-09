@@ -3,13 +3,14 @@ package com.airfreshener.telegram_sms
 import android.os.Bundle
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import com.airfreshener.telegram_sms.utils.ContextUtils.app
 import com.github.sumimakito.awesomeqrcode.AwesomeQrRenderer
 import com.google.gson.Gson
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 
 class QrCodeShowActivity : AppCompatActivity() {
 
-    private val prefsRepository by lazy { (application as TelegramSmsApp).prefsRepository }
+    private val prefsRepository by lazy { app().prefsRepository }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

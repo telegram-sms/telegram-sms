@@ -12,9 +12,9 @@ import android.telephony.SmsManager
 import android.util.Log
 import androidx.core.content.PermissionChecker
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.receivers.SmsSendReceiver
+import com.airfreshener.telegram_sms.utils.ContextUtils.app
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import okhttp3.Request
 import java.io.IOException
@@ -44,11 +44,13 @@ object SmsUtils {
             Log.d(tag, "No permission.")
             return
         }
+        val app = context.app()
+        val logRepository = app.logRepository
         if (!OtherUtils.isPhoneNumber(sendTo)) {
-            LogUtils.writeLog(appContext, "[$sendTo] is an illegal phone number")
+            logRepository.writeLog("[$sendTo] is an illegal phone number")
             return
         }
-        val settings = (appContext as TelegramSmsApp).prefsRepository.getSettings()
+        val settings = app.prefsRepository.getSettings()
         val botToken = settings.botToken
         val chatId = settings.chatId
         var requestUri = NetworkUtils.getUrl(botToken, "sendMessage")
@@ -90,7 +92,7 @@ object SmsUtils {
             }
         } catch (e: IOException) {
             e.printStackTrace()
-            LogUtils.writeLog(appContext, "failed to send message:" + e.message)
+            logRepository.writeLog("failed to send message:" + e.message)
         }
         val divideContents = smsManager.divideMessage(content)
         val sendReceiverList = ArrayList<PendingIntent>()
@@ -121,7 +123,7 @@ object SmsUtils {
             Log.d(tag, "No permission.")
             return
         }
-        val settings = (context.applicationContext as TelegramSmsApp).prefsRepository.getSettings()
+        val settings = context.app().prefsRepository.getSettings()
         val trustedPhoneNumber = settings.trustedPhoneNumber
         if (trustedPhoneNumber.isEmpty()) {
             Log.i(tag, "The trusted number is empty.")

@@ -2,7 +2,7 @@ package com.airfreshener.telegram_sms.mainScreen
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
-import com.airfreshener.telegram_sms.common.PrefsRepository
+import com.airfreshener.telegram_sms.common.data.PrefsRepository
 import com.airfreshener.telegram_sms.model.Settings
 import com.google.gson.JsonObject
 import kotlinx.coroutines.flow.Flow

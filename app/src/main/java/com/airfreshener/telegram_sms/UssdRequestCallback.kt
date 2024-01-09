@@ -7,7 +7,7 @@ import android.telephony.TelephonyManager.UssdResponseCallback
 import androidx.annotation.RequiresApi
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.model.Settings
-import com.airfreshener.telegram_sms.utils.LogUtils
+import com.airfreshener.telegram_sms.utils.ContextUtils.app
 import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.ResendUtils
@@ -26,9 +26,8 @@ class UssdRequestCallback(
 ) : UssdResponseCallback() {
     private var requestUri: String
     private val messageHeader: String = context.getString(R.string.send_ussd_head)
-    private val requestBody: RequestMessage = RequestMessage().apply {
-        chat_id = settings.chatId
-    }
+    private val requestBody: RequestMessage = RequestMessage().apply { chat_id = settings.chatId }
+    private val logRepository by lazy { context.app().logRepository }
 
     init {
         requestUri = NetworkUtils.getUrl(settings.botToken, "SendMessage")
@@ -76,7 +75,7 @@ class UssdRequestCallback(
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
-                LogUtils.writeLog(context, errorHead + e.message)
+                logRepository.writeLog(errorHead + e.message)
                 SmsUtils.sendFallbackSms(context, requestBody.text, -1)
                 ResendUtils.addResendLoop(context, requestBody.text)
             }
@@ -84,10 +83,7 @@ class UssdRequestCallback(
             override fun onResponse(call: Call, response: Response) {
                 if (response.code != 200) {
                     val responseBody = response.body ?: return
-                    LogUtils.writeLog(
-                        context,
-                        errorHead + response.code + " " + responseBody.string()
-                    )
+                    logRepository.writeLog(errorHead + response.code + " " + responseBody.string())
                     SmsUtils.sendFallbackSms(context, requestBody.text, -1)
                     ResendUtils.addResendLoop(context, requestBody.text)
                 }

@@ -18,8 +18,7 @@ import android.os.Process
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.TelegramSmsApp
-import com.airfreshener.telegram_sms.common.PrefsRepository
+import com.airfreshener.telegram_sms.common.data.PrefsRepository
 import com.airfreshener.telegram_sms.model.PollingJson
 import com.airfreshener.telegram_sms.model.ReplyMarkupKeyboard.InlineKeyboardButton
 import com.airfreshener.telegram_sms.model.ReplyMarkupKeyboard.KeyboardMarkup
@@ -27,7 +26,7 @@ import com.airfreshener.telegram_sms.model.ReplyMarkupKeyboard.getInlineKeyboard
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.model.SmsRequestInfo
 import com.airfreshener.telegram_sms.utils.Consts
-import com.airfreshener.telegram_sms.utils.LogUtils
+import com.airfreshener.telegram_sms.utils.ContextUtils.app
 import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
@@ -59,7 +58,8 @@ class ChatCommandService : Service() {
     private var wifiLock: WifiLock? = null
     private var botUsername: String? = ""
 
-    private val prefsRepository by lazy { (application as TelegramSmsApp).prefsRepository }
+    private val prefsRepository by lazy { app().prefsRepository }
+    private val logRepository by lazy { app().logRepository }
 
     private fun receiveHandle(resultObj: JsonObject, getIdOnly: Boolean) {
         val appContext = applicationContext
@@ -120,7 +120,7 @@ class ChatCommandService : Service() {
                     }
                 } catch (e: IOException) {
                     e.printStackTrace()
-                    LogUtils.writeLog(appContext, "failed to send message:" + e.message)
+                    logRepository.writeLog("failed to send message:" + e.message)
                 }
                 return
             }
@@ -135,7 +135,7 @@ class ChatCommandService : Service() {
             return
         }
         if (messageObj == null) {
-            LogUtils.writeLog(appContext, "Request type is not allowed by security policy.")
+            logRepository.writeLog("Request type is not allowed by security policy.")
             return
         }
         var fromObj: JsonObject? = null
@@ -153,7 +153,7 @@ class ChatCommandService : Service() {
         assert(fromObj != null)
         val fromId = fromObj!!["id"].asString
         if (settings.chatId != fromId) {
-            LogUtils.writeLog(appContext, "Chat ID[$fromId] not allow.")
+            logRepository.writeLog("Chat ID[$fromId] not allow.")
             return
         }
         var command = ""
@@ -284,7 +284,7 @@ $smsCommand$ussdCommand""".replace("/", "")
                     val lineCommand = cmdList.getOrNull(1)?.toIntOrNull() ?: line
                     line = lineCommand.coerceAtMost(50)
                 }
-                requestBody.text = appContext.getString(R.string.system_message_head) + LogUtils.readLog(appContext, line)
+                requestBody.text = appContext.getString(R.string.system_message_head) + logRepository.readLog(line)
                 hasCommand = true
             }
 
@@ -469,14 +469,14 @@ $smsCommand$ussdCommand""".replace("/", "")
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
-                LogUtils.writeLog(appContext, errorHead + e.message)
+                logRepository.writeLog(errorHead + e.message)
                 ResendUtils.addResendLoop(appContext, requestBody.text)
             }
 
             override fun onResponse(call: Call, response: Response) {
                 val responseString = response.body?.string()
                 if (response.code != 200) {
-                    LogUtils.writeLog(appContext, errorHead + response.code + " " + responseString)
+                    logRepository.writeLog(errorHead + response.code + " " + responseString)
                     ResendUtils.addResendLoop(appContext, requestBody.text)
                 }
                 if (sendSmsNextStatus == Consts.SEND_SMS_STATUS.SEND_STATUS) {
@@ -503,7 +503,7 @@ $smsCommand$ussdCommand""".replace("/", "")
                         override fun onFailure(call: Call, e: IOException) {
                             Log.d(TAG, "onFailure: " + e.message)
                             e.printStackTrace()
-                            LogUtils.writeLog(context, e.message.orEmpty())
+                            logRepository.writeLog(e.message.orEmpty())
                         }
 
                         override fun onResponse(call: Call, response: Response) {
@@ -516,7 +516,7 @@ $smsCommand$ussdCommand""".replace("/", "")
                     getDefaultBook().write("spam_sms_list", resendListLocal)
                 }
             }
-            LogUtils.writeLog(context, "Send spam message is complete.")
+            logRepository.writeLog("Send spam message is complete.")
         }.start()
     }
 
@@ -549,7 +549,7 @@ $smsCommand$ussdCommand""".replace("/", "")
     }
 
     private val me: Boolean
-        private get() {
+        get() {
             val settings = prefsRepository.getSettings()
             val requestUri = NetworkUtils.getUrl(settings.botToken, "getMe")
             val request: Request = Request.Builder().url(requestUri).build()
@@ -558,7 +558,7 @@ $smsCommand$ussdCommand""".replace("/", "")
                 call.execute()
             } catch (e: IOException) {
                 e.printStackTrace()
-                LogUtils.writeLog(applicationContext, "Get username failed:" + e.message)
+                logRepository.writeLog("Get username failed:" + e.message)
                 return false
             }
             if (response.code == 200) {
@@ -579,7 +579,7 @@ $smsCommand$ussdCommand""".replace("/", "")
                         getDefaultBook().write("bot_username", this)
                     }
                     Log.d(TAG, "bot_username: $botUsername")
-                    LogUtils.writeLog(applicationContext, "Get the bot username: $botUsername")
+                    logRepository.writeLog("Get the bot username: $botUsername")
                 }
                 return true
             }
@@ -611,7 +611,7 @@ $smsCommand$ussdCommand""".replace("/", "")
                 botUsername = getDefaultBook().read<String>("bot_username", null)
                 if (botUsername == null) {
                     while (!me) {
-                        LogUtils.writeLog(appContext, "Failed to get bot Username, Wait 5 seconds and try again.")
+                        logRepository.writeLog("Failed to get bot Username, Wait 5 seconds and try again.")
                         try {
                             Thread.sleep(5000)
                         } catch (e: InterruptedException) {
@@ -647,18 +647,14 @@ $smsCommand$ussdCommand""".replace("/", "")
                 } catch (e: IOException) {
                     e.printStackTrace()
                     if (!NetworkUtils.checkNetworkStatus(appContext)) {
-                        LogUtils.writeLog(
-                            appContext,
-                            "No network connections available, Wait for the network to recover."
-                        )
+                        logRepository.writeLog("No network connections available, Wait for the network to recover.")
                         errorMagnification = 1
                         magnification = 1
                         Log.d(TAG, "run: break loop.")
                         break
                     }
                     val sleepTime = 5 * errorMagnification
-                    LogUtils.writeLog(
-                        appContext,
+                    logRepository.writeLog(
                         "Connection to the Telegram API service failed, try again after $sleepTime seconds."
                     )
                     magnification = 1
@@ -732,7 +728,7 @@ $smsCommand$ussdCommand""".replace("/", "")
         override fun onReceive(context: Context, intent: Intent) {
             Log.d(TAG, "onReceive: " + intent.action)
             if (intent.action == null) {
-                LogUtils.writeLog(context, "ChatCommandService, received action is null")
+                logRepository.writeLog("ChatCommandService, received action is null")
                 return
             }
             when (intent.action) {
@@ -744,8 +740,7 @@ $smsCommand$ussdCommand""".replace("/", "")
 
                 ConnectivityManager.CONNECTIVITY_ACTION -> if (NetworkUtils.checkNetworkStatus(context)) {
                     if (!threadMain!!.isAlive) {
-                        LogUtils.writeLog(context, "Network connections has been restored.")
-                        val prefsRepository = (context.applicationContext as TelegramSmsApp).prefsRepository
+                        logRepository.writeLog("Network connections has been restored.")
                         threadMain = Thread(ThreadMainRunnable(context, prefsRepository)).apply { start() }
                     }
                 }
