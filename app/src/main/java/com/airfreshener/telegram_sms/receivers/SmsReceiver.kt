@@ -147,10 +147,7 @@ class SmsReceiver : BroadcastReceiver() {
                     messageBody.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                 when (commandList[0].trim { it <= ' ' }) {
                     "/restartservice" -> {
-                        Thread {
-                            ServiceUtils.stopAllService(context)
-                            ServiceUtils.startService(context, settings.isBatteryMonitoring, settings.isChatCommand)
-                        }.start()
+                        Thread { ServiceUtils.restartServices(context, settings) }.start()
                         rawRequestBodyText = """
                         ${context.getString(R.string.system_message_head)}
                         ${context.getString(R.string.restart_service)}

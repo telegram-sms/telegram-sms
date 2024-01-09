@@ -12,9 +12,7 @@ import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.Consts
 import com.airfreshener.telegram_sms.utils.LogUtils
-import com.airfreshener.telegram_sms.utils.NetworkUtils.checkNetworkStatus
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
+import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
 import com.airfreshener.telegram_sms.utils.PaperUtils.DEFAULT_BOOK
@@ -77,13 +75,13 @@ class ResendService : Service() {
         receiver = StopNotifyReceiver()
         registerReceiver(receiver, filter)
         val settings = prefsRepository.getSettings()
-        requestUri = getUrl(settings.botToken, "SendMessage")
+        requestUri = NetworkUtils.getUrl(settings.botToken, "SendMessage")
         Thread {
             resendList = DEFAULT_BOOK.tryRead(table_name, ArrayList())
             while (true) {
-                if (checkNetworkStatus(context)) {
+                if (NetworkUtils.checkNetworkStatus(context)) {
                     val sendList = resendList
-                    val okHttpClient = getOkhttpObj(settings)
+                    val okHttpClient = NetworkUtils.getOkhttpObj(settings)
                     for (item in sendList) {
                         networkProgressHandle(item, settings.chatId, okHttpClient)
                     }

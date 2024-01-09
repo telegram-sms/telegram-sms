@@ -8,8 +8,7 @@ import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.LogUtils
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
+import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
 import com.airfreshener.telegram_sms.utils.ResendUtils
@@ -46,7 +45,7 @@ class CallStatusListener(
                 return
             }
             val settings = prefsRepository.getSettings()
-            val requestUri = getUrl(settings.botToken, "sendMessage")
+            val requestUri = NetworkUtils.getUrl(settings.botToken, "sendMessage")
             val requestBody = RequestMessage()
             requestBody.chat_id = settings.chatId
             val dualSim = OtherUtils.getDualSimCardDisplay(context, slot, settings.isDisplayDualSim)
@@ -55,7 +54,7 @@ class CallStatusListener(
             ${context.getString(R.string.Incoming_number)}$incomingNumber
             """.trimIndent()
             val body: RequestBody = requestBody.toRequestBody()
-            val okHttpClient = getOkhttpObj(settings)
+            val okHttpClient = NetworkUtils.getOkhttpObj(settings)
             val request: Request = Request.Builder().url(requestUri).post(body).build()
             val call = okHttpClient.newCall(request)
             val errorHead = "Send missed call error: "
@@ -87,11 +86,7 @@ class CallStatusListener(
                             )
                             return
                         }
-                        OtherUtils.addMessageList(
-                            OtherUtils.getMessageId(result),
-                            incomingNumber,
-                            slot
-                        )
+                        OtherUtils.addMessageList(OtherUtils.getMessageId(result), incomingNumber, slot)
                     }
                 }
             })

@@ -27,30 +27,18 @@ import com.airfreshener.telegram_sms.model.ReplyMarkupKeyboard.getInlineKeyboard
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.model.SmsRequestInfo
 import com.airfreshener.telegram_sms.utils.Consts
-import com.airfreshener.telegram_sms.utils.LogUtils.readLog
-import com.airfreshener.telegram_sms.utils.LogUtils.writeLog
-import com.airfreshener.telegram_sms.utils.NetworkUtils.checkNetworkStatus
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
+import com.airfreshener.telegram_sms.utils.LogUtils
+import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
-import com.airfreshener.telegram_sms.utils.OtherUtils.getActiveCard
-import com.airfreshener.telegram_sms.utils.OtherUtils.getDualSimCardDisplay
-import com.airfreshener.telegram_sms.utils.OtherUtils.getMessageId
-import com.airfreshener.telegram_sms.utils.OtherUtils.getNotificationObj
-import com.airfreshener.telegram_sms.utils.OtherUtils.getSendPhoneNumber
-import com.airfreshener.telegram_sms.utils.OtherUtils.getSimDisplayName
-import com.airfreshener.telegram_sms.utils.OtherUtils.getSubId
-import com.airfreshener.telegram_sms.utils.OtherUtils.isPhoneNumber
-import com.airfreshener.telegram_sms.utils.OtherUtils.parseStringToLong
+import com.airfreshener.telegram_sms.utils.OtherUtils
 import com.airfreshener.telegram_sms.utils.PaperUtils.getDefaultBook
 import com.airfreshener.telegram_sms.utils.PaperUtils.getSendTempBook
-import com.airfreshener.telegram_sms.utils.ResendUtils.addResendLoop
+import com.airfreshener.telegram_sms.utils.ResendUtils
+import com.airfreshener.telegram_sms.utils.ServiceUtils
 import com.airfreshener.telegram_sms.utils.ServiceUtils.powerManager
-import com.airfreshener.telegram_sms.utils.ServiceUtils.stopAllService
 import com.airfreshener.telegram_sms.utils.ServiceUtils.wifiManager
-import com.airfreshener.telegram_sms.utils.SmsUtils.sendFallbackSms
-import com.airfreshener.telegram_sms.utils.SmsUtils.sendSms
-import com.airfreshener.telegram_sms.utils.UssdUtils.sendUssd
+import com.airfreshener.telegram_sms.utils.SmsUtils
+import com.airfreshener.telegram_sms.utils.UssdUtils
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import okhttp3.Call
@@ -60,7 +48,6 @@ import okhttp3.Request
 import okhttp3.Response
 import java.io.IOException
 import java.util.Locale
-import java.util.Objects
 import java.util.concurrent.TimeUnit
 
 class ChatCommandService : Service() {
@@ -109,8 +96,8 @@ class ChatCommandService : Service() {
             assert(callbackData != null)
             if (callbackData != Consts.CALLBACK_DATA_VALUE.SEND) {
                 setSmsSendStatusStandby()
-                val requestUri = getUrl(settings.botToken, "editMessageText")
-                val dualSim = getDualSimCardDisplay(appContext, slot, settings.isDisplayDualSim)
+                val requestUri = NetworkUtils.getUrl(settings.botToken, "editMessageText")
+                val dualSim = OtherUtils.getDualSimCardDisplay(appContext, slot, settings.isDisplayDualSim)
                 val sendContent = """
                     [$dualSim${appContext.getString(R.string.send_sms_head)}]
                     ${appContext.getString(R.string.to)}$to
@@ -122,7 +109,7 @@ class ChatCommandService : Service() {
                     """.trimIndent()
                 requestBody.message_id = messageId
                 val body = requestBody.toRequestBody()
-                val okhttpClient = getOkhttpObj(settings)
+                val okhttpClient = NetworkUtils.getOkhttpObj(settings)
                 val request: Request = Request.Builder().url(requestUri).post(body).build()
                 val call = okhttpClient.newCall(request)
                 try {
@@ -133,22 +120,22 @@ class ChatCommandService : Service() {
                     }
                 } catch (e: IOException) {
                     e.printStackTrace()
-                    writeLog(appContext, "failed to send message:" + e.message)
+                    LogUtils.writeLog(appContext, "failed to send message:" + e.message)
                 }
                 return
             }
             var subId = -1
-            if (getActiveCard(appContext) == 1) {
+            if (OtherUtils.getActiveCard(appContext) == 1) {
                 slot = -1
             } else {
-                subId = getSubId(appContext, slot)
+                subId = OtherUtils.getSubId(appContext, slot)
             }
-            sendSms(appContext, to!!, content!!, slot, subId, messageId)
+            SmsUtils.sendSms(appContext, to!!, content!!, slot, subId, messageId)
             setSmsSendStatusStandby()
             return
         }
         if (messageObj == null) {
-            writeLog(appContext, "Request type is not allowed by security policy.")
+            LogUtils.writeLog(appContext, "Request type is not allowed by security policy.")
             return
         }
         var fromObj: JsonObject? = null
@@ -166,7 +153,7 @@ class ChatCommandService : Service() {
         assert(fromObj != null)
         val fromId = fromObj!!["id"].asString
         if (settings.chatId != fromId) {
-            writeLog(appContext, "Chat ID[$fromId] not allow.")
+            LogUtils.writeLog(appContext, "Chat ID[$fromId] not allow.")
             return
         }
         var command = ""
@@ -222,7 +209,7 @@ class ChatCommandService : Service() {
         when (command) {
             "/help", "/start", "/commandlist" -> {
                 var smsCommand = appContext.getString(R.string.sendsms)
-                if (getActiveCard(appContext) == 2) {
+                if (OtherUtils.getActiveCard(appContext) == 2) {
                     smsCommand = appContext.getString(R.string.sendsms_dual)
                 }
                 smsCommand += """
@@ -239,7 +226,7 @@ class ChatCommandService : Service() {
                         ussdCommand = """
                             ${getString(R.string.send_ussd_command)}
                             """.trimIndent()
-                        if (getActiveCard(appContext) == 2) {
+                        if (OtherUtils.getActiveCard(appContext) == 2) {
                             ussdCommand = """
                                 ${appContext.getString(R.string.send_ussd_dual_command)}
                                 """.trimIndent()
@@ -271,9 +258,9 @@ $smsCommand$ussdCommand""".replace("/", "")
                         Manifest.permission.READ_PHONE_STATE
                     ) == PackageManager.PERMISSION_GRANTED
                 ) {
-                    cardInfo = "SIM: ${getSimDisplayName(appContext, 0)}"
-                    if (getActiveCard(appContext) == 2) {
-                        cardInfo += "\nSIM2: ${getSimDisplayName(appContext, 1)}"
+                    cardInfo = "SIM: ${OtherUtils.getSimDisplayName(appContext, 0)}"
+                    if (OtherUtils.getActiveCard(appContext) == 2) {
+                        cardInfo += "\nSIM2: ${OtherUtils.getSimDisplayName(appContext, 1)}"
                     }
                 }
                 val spamList = getDefaultBook().read("spam_sms_list", ArrayList<String>())!!
@@ -297,7 +284,7 @@ $smsCommand$ussdCommand""".replace("/", "")
                     val lineCommand = cmdList.getOrNull(1)?.toIntOrNull() ?: line
                     line = lineCommand.coerceAtMost(50)
                 }
-                requestBody.text = appContext.getString(R.string.system_message_head) + readLog(appContext, line)
+                requestBody.text = appContext.getString(R.string.system_message_head) + LogUtils.readLog(appContext, line)
                 hasCommand = true
             }
 
@@ -312,13 +299,13 @@ $smsCommand$ussdCommand""".replace("/", "")
                             requestMsg.split(" ".toRegex()).dropLastWhile { it.isEmpty() }
                                 .toTypedArray()
                         var subId = -1
-                        if (getActiveCard(appContext) == 2) {
+                        if (OtherUtils.getActiveCard(appContext) == 2) {
                             if (command == "/sendussd2") {
-                                subId = getSubId(appContext, 1)
+                                subId = OtherUtils.getSubId(appContext, 1)
                             }
                         }
                         if (commandList.size == 2) {
-                            sendUssd(appContext, commandList[1], subId)
+                            UssdUtils.sendUssd(appContext, commandList[1], subId)
                             return
                         }
                     }
@@ -346,8 +333,8 @@ $smsCommand$ussdCommand""".replace("/", "")
                 val msgSendList =
                     requestMsg.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                 if (msgSendList.size > 2) {
-                    val msgSendTo = getSendPhoneNumber(msgSendList[1])
-                    if (isPhoneNumber(msgSendTo)) {
+                    val msgSendTo = OtherUtils.getSendPhoneNumber(msgSendList[1])
+                    if (OtherUtils.isPhoneNumber(msgSendTo)) {
                         val msgSendContent = StringBuilder()
                         var i = 2
                         while (i < msgSendList.size) {
@@ -357,20 +344,20 @@ $smsCommand$ussdCommand""".replace("/", "")
                             msgSendContent.append(msgSendList[i])
                             ++i
                         }
-                        if (getActiveCard(appContext) == 1) {
-                            sendSms(appContext, msgSendTo, msgSendContent.toString(), -1, -1)
+                        if (OtherUtils.getActiveCard(appContext) == 1) {
+                            SmsUtils.sendSms(appContext, msgSendTo, msgSendContent.toString(), -1, -1)
                             return
                         }
                         var sendSlot = -1
-                        if (getActiveCard(appContext) > 1) {
+                        if (OtherUtils.getActiveCard(appContext) > 1) {
                             sendSlot = 0
                             if (command == "/sendsms2") {
                                 sendSlot = 1
                             }
                         }
-                        val subId = getSubId(appContext, sendSlot)
+                        val subId = OtherUtils.getSubId(appContext, sendSlot)
                         if (subId != -1) {
-                            sendSms(
+                            SmsUtils.sendSms(
                                 appContext,
                                 msgSendTo,
                                 msgSendContent.toString(),
@@ -383,7 +370,7 @@ $smsCommand$ussdCommand""".replace("/", "")
                 } else {
                     sendSmsNextStatus = Consts.SEND_SMS_STATUS.PHONE_INPUT_STATUS
                     var sendSlot = -1
-                    if (getActiveCard(appContext) > 1) {
+                    if (OtherUtils.getActiveCard(appContext) > 1) {
                         sendSlot = 0
                         if (command == "/sendsms2") {
                             sendSlot = 1
@@ -428,8 +415,8 @@ $smsCommand$ussdCommand""".replace("/", "")
                 }
 
                 Consts.SEND_SMS_STATUS.MESSAGE_INPUT_STATUS -> {
-                    val tempTo = getSendPhoneNumber(requestMsg)
-                    if (isPhoneNumber(tempTo)) {
+                    val tempTo = OtherUtils.getSendPhoneNumber(requestMsg)
+                    if (OtherUtils.isPhoneNumber(tempTo)) {
                         getSendTempBook().write("to", tempTo)
                         resultSend = appContext.getString(R.string.enter_content)
                         sendSmsNextStatus = Consts.SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
@@ -474,7 +461,7 @@ $smsCommand$ussdCommand""".replace("/", "")
                 $resultSend
                 """.trimIndent()
         }
-        val requestUri = getUrl(settings.botToken, "sendMessage")
+        val requestUri = NetworkUtils.getUrl(settings.botToken, "sendMessage")
         val body = requestBody.toRequestBody()
         val sendRequest: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okHttpClient!!.newCall(sendRequest)
@@ -482,18 +469,18 @@ $smsCommand$ussdCommand""".replace("/", "")
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
-                writeLog(appContext, errorHead + e.message)
-                addResendLoop(appContext, requestBody.text)
+                LogUtils.writeLog(appContext, errorHead + e.message)
+                ResendUtils.addResendLoop(appContext, requestBody.text)
             }
 
             override fun onResponse(call: Call, response: Response) {
                 val responseString = response.body?.string()
                 if (response.code != 200) {
-                    writeLog(appContext, errorHead + response.code + " " + responseString)
-                    addResendLoop(appContext, requestBody.text)
+                    LogUtils.writeLog(appContext, errorHead + response.code + " " + responseString)
+                    ResendUtils.addResendLoop(appContext, requestBody.text)
                 }
                 if (sendSmsNextStatus == Consts.SEND_SMS_STATUS.SEND_STATUS) {
-                    getSendTempBook().write("message_id", getMessageId(responseString))
+                    getSendTempBook().write("message_id", OtherUtils.getMessageId(responseString))
                 }
             }
         })
@@ -502,13 +489,13 @@ $smsCommand$ussdCommand""".replace("/", "")
     private fun sendSpamSmsMessage(spamSmsList: ArrayList<String>) {
         val settings = prefsRepository.getSettings()
         Thread {
-            if (checkNetworkStatus(applicationContext)) {
-                val okhttpClient = getOkhttpObj(settings)
+            if (NetworkUtils.checkNetworkStatus(applicationContext)) {
+                val okhttpClient = NetworkUtils.getOkhttpObj(settings)
                 for (item in spamSmsList) {
                     val sendSmsRequestBody = RequestMessage()
                     sendSmsRequestBody.chat_id = settings.chatId
                     sendSmsRequestBody.text = item
-                    val requestUri = getUrl(settings.botToken, "sendMessage")
+                    val requestUri = NetworkUtils.getUrl(settings.botToken, "sendMessage")
                     val body = sendSmsRequestBody.toRequestBody()
                     val requestObj: Request = Request.Builder().url(requestUri).post(body).build()
                     val call = okhttpClient.newCall(requestObj)
@@ -516,7 +503,7 @@ $smsCommand$ussdCommand""".replace("/", "")
                         override fun onFailure(call: Call, e: IOException) {
                             Log.d(TAG, "onFailure: " + e.message)
                             e.printStackTrace()
-                            writeLog(context, e.message.orEmpty())
+                            LogUtils.writeLog(context, e.message.orEmpty())
                         }
 
                         override fun onResponse(call: Call, response: Response) {
@@ -529,13 +516,13 @@ $smsCommand$ussdCommand""".replace("/", "")
                     getDefaultBook().write("spam_sms_list", resendListLocal)
                 }
             }
-            writeLog(context, "Send spam message is complete.")
+            LogUtils.writeLog(context, "Send spam message is complete.")
         }.start()
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         val notification =
-            getNotificationObj(applicationContext, getString(R.string.chat_command_service_name))
+            OtherUtils.getNotificationObj(applicationContext, getString(R.string.chat_command_service_name))
         startForeground(Consts.ServiceNotifyId.CHAT_COMMAND, notification)
         return START_STICKY
     }
@@ -564,14 +551,14 @@ $smsCommand$ussdCommand""".replace("/", "")
     private val me: Boolean
         private get() {
             val settings = prefsRepository.getSettings()
-            val requestUri = getUrl(settings.botToken, "getMe")
+            val requestUri = NetworkUtils.getUrl(settings.botToken, "getMe")
             val request: Request = Request.Builder().url(requestUri).build()
             val call = okHttpClient?.newCall(request) ?: return false
             val response: Response = try {
                 call.execute()
             } catch (e: IOException) {
                 e.printStackTrace()
-                writeLog(applicationContext, "Get username failed:" + e.message)
+                LogUtils.writeLog(applicationContext, "Get username failed:" + e.message)
                 return false
             }
             if (response.code == 200) {
@@ -592,7 +579,7 @@ $smsCommand$ussdCommand""".replace("/", "")
                         getDefaultBook().write("bot_username", this)
                     }
                     Log.d(TAG, "bot_username: $botUsername")
-                    writeLog(applicationContext, "Get the bot username: $botUsername")
+                    LogUtils.writeLog(applicationContext, "Get the bot username: $botUsername")
                 }
                 return true
             }
@@ -620,11 +607,11 @@ $smsCommand$ussdCommand""".replace("/", "")
         override fun run() {
             Log.d(TAG, "run: thread main start")
             val settings = prefsRepository.getSettings()
-            if (parseStringToLong(settings.chatId) < 0) {
+            if (OtherUtils.parseStringToLong(settings.chatId) < 0) {
                 botUsername = getDefaultBook().read<String>("bot_username", null)
                 if (botUsername == null) {
                     while (!me) {
-                        writeLog(appContext, "Failed to get bot Username, Wait 5 seconds and try again.")
+                        LogUtils.writeLog(appContext, "Failed to get bot Username, Wait 5 seconds and try again.")
                         try {
                             Thread.sleep(5000)
                         } catch (e: InterruptedException) {
@@ -642,7 +629,7 @@ $smsCommand$ussdCommand""".replace("/", "")
                     .writeTimeout(httpTimeout.toLong(), TimeUnit.SECONDS)
                     .build()
                 Log.d(TAG, "run: Current timeout: " + timeout + "S")
-                val requestUri = getUrl(settings.botToken, "getUpdates")
+                val requestUri = NetworkUtils.getUrl(settings.botToken, "getUpdates")
                 val requestBody = PollingJson()
                 requestBody.offset = offset
                 requestBody.timeout = timeout
@@ -659,8 +646,8 @@ $smsCommand$ussdCommand""".replace("/", "")
                     errorMagnification = 1
                 } catch (e: IOException) {
                     e.printStackTrace()
-                    if (!checkNetworkStatus(appContext)) {
-                        writeLog(
+                    if (!NetworkUtils.checkNetworkStatus(appContext)) {
+                        LogUtils.writeLog(
                             appContext,
                             "No network connections available, Wait for the network to recover."
                         )
@@ -670,7 +657,7 @@ $smsCommand$ussdCommand""".replace("/", "")
                         break
                     }
                     val sleepTime = 5 * errorMagnification
-                    writeLog(
+                    LogUtils.writeLog(
                         appContext,
                         "Connection to the Telegram API service failed, try again after $sleepTime seconds."
                     )
@@ -729,8 +716,8 @@ $smsCommand$ussdCommand""".replace("/", "")
                             ${appContext.getString(R.string.error_message_head)}${resultObj["description"].asString}
                             Code: ${response.code}
                             """.trimIndent()
-                        sendFallbackSms(appContext, resultMessage, -1)
-                        stopAllService(appContext)
+                        SmsUtils.sendFallbackSms(appContext, resultMessage, -1)
+                        ServiceUtils.stopAllService(appContext)
                         break
                     }
                 }
@@ -745,7 +732,7 @@ $smsCommand$ussdCommand""".replace("/", "")
         override fun onReceive(context: Context, intent: Intent) {
             Log.d(TAG, "onReceive: " + intent.action)
             if (intent.action == null) {
-                writeLog(context, "ChatCommandService, received action is null")
+                LogUtils.writeLog(context, "ChatCommandService, received action is null")
                 return
             }
             when (intent.action) {
@@ -755,9 +742,9 @@ $smsCommand$ussdCommand""".replace("/", "")
                     Process.killProcess(Process.myPid())
                 }
 
-                ConnectivityManager.CONNECTIVITY_ACTION -> if (checkNetworkStatus(context)) {
+                ConnectivityManager.CONNECTIVITY_ACTION -> if (NetworkUtils.checkNetworkStatus(context)) {
                     if (!threadMain!!.isAlive) {
-                        writeLog(context, "Network connections has been restored.")
+                        LogUtils.writeLog(context, "Network connections has been restored.")
                         val prefsRepository = (context.applicationContext as TelegramSmsApp).prefsRepository
                         threadMain = Thread(ThreadMainRunnable(context, prefsRepository)).apply { start() }
                     }

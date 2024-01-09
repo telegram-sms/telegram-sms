@@ -14,11 +14,7 @@ import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.UssdRequestCallback
 import com.airfreshener.telegram_sms.model.RequestMessage
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
-import com.airfreshener.telegram_sms.utils.OtherUtils.getMessageId
-import com.airfreshener.telegram_sms.utils.OtherUtils.getNineKeyMapConvert
 import com.airfreshener.telegram_sms.utils.ServiceUtils.telephonyManager
 import okhttp3.Request
 import java.io.IOException
@@ -27,7 +23,7 @@ object UssdUtils {
     @RequiresApi(api = Build.VERSION_CODES.O)
     fun sendUssd(context: Context, ussdRaw: String?, subId: Int) {
         val TAG = "sendUssd"
-        val ussd = getNineKeyMapConvert(ussdRaw!!)
+        val ussd = OtherUtils.getNineKeyMapConvert(ussdRaw!!)
         var tm: TelephonyManager = context.telephonyManager
         if (subId != -1) {
             tm = tm.createForSubscriptionId(subId)
@@ -42,7 +38,7 @@ object UssdUtils {
         }
         val botToken = settings.botToken
         val chatId = settings.chatId
-        val requestUri = getUrl(botToken, "sendMessage")
+        val requestUri = NetworkUtils.getUrl(botToken, "sendMessage")
         val requestMessage = RequestMessage()
         requestMessage.chat_id = chatId
         requestMessage.text = """
@@ -50,15 +46,14 @@ object UssdUtils {
             ${context.getString(R.string.ussd_code_running)}
             """.trimIndent()
         val body = requestMessage.toRequestBody()
-        val okHttpClient = getOkhttpObj(settings)
+        val okHttpClient = NetworkUtils.getOkhttpObj(settings)
         val request: Request = Request.Builder().url(requestUri).post(body).build()
         val call = okHttpClient.newCall(request)
-        val finalTm = tm
         Thread {
             var messageId = -1L
             try {
                 val response = call.execute()
-                messageId = getMessageId(response.body?.string())
+                messageId = OtherUtils.getMessageId(response.body?.string())
             } catch (e: IOException) {
                 e.printStackTrace()
             }
@@ -68,7 +63,7 @@ object UssdUtils {
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
                 Looper.prepare()
-                finalTm!!.sendUssdRequest(
+                tm.sendUssdRequest(
                     ussd,
                     UssdRequestCallback(context, settings, messageId),
                     Handler(requireNotNull(Looper.myLooper()))

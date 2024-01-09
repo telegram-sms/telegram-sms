@@ -28,7 +28,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.airfreshener.telegram_sms.LogcatActivity
+import com.airfreshener.telegram_sms.logScreen.LogcatActivity
 import com.airfreshener.telegram_sms.QrCodeShowActivity
 import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.ScannerActivity
@@ -40,25 +40,22 @@ import com.airfreshener.telegram_sms.migration.UpdateVersion1
 import com.airfreshener.telegram_sms.model.PollingJson
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.model.Settings
-import com.airfreshener.telegram_sms.notification_screen.NotifyAppsListActivity
+import com.airfreshener.telegram_sms.notificationScreen.NotifyAppsListActivity
 import com.airfreshener.telegram_sms.utils.Consts
 import com.airfreshener.telegram_sms.utils.LogUtils
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
+import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
-import com.airfreshener.telegram_sms.utils.OtherUtils.getActiveCard
+import com.airfreshener.telegram_sms.utils.OtherUtils
 import com.airfreshener.telegram_sms.utils.OtherUtils.isReadPhoneStatePermissionGranted
 import com.airfreshener.telegram_sms.utils.OtherUtils.requestReadPhoneStatePermission
 import com.airfreshener.telegram_sms.utils.PaperUtils
 import com.airfreshener.telegram_sms.utils.PaperUtils.DEFAULT_BOOK
 import com.airfreshener.telegram_sms.utils.PaperUtils.SYSTEM_BOOK
 import com.airfreshener.telegram_sms.utils.PaperUtils.tryRead
-import com.airfreshener.telegram_sms.utils.ServiceUtils.isNotifyListener
+import com.airfreshener.telegram_sms.utils.ServiceUtils
 import com.airfreshener.telegram_sms.utils.ServiceUtils.powerManager
-import com.airfreshener.telegram_sms.utils.ServiceUtils.startService
-import com.airfreshener.telegram_sms.utils.ServiceUtils.stopAllService
 import com.airfreshener.telegram_sms.utils.ServiceUtils.telephonyManager
-import com.airfreshener.telegram_sms.utils.ui.MenuUtils.showProxySettingsDialog
+import com.airfreshener.telegram_sms.utils.ui.MenuUtils
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
@@ -93,7 +90,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         if (prefsRepository.getInitialized()) {
             updateConfig()
             checkVersionUpgrade(appContext, true)
-            startService(appContext, settings.isBatteryMonitoring, settings.isChatCommand)
+            ServiceUtils.startService(appContext, settings)
         }
         setListeners()
     }
@@ -118,7 +115,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                     binding.displayDualSimSwitch.isChecked = false
                     requestReadPhoneStatePermission(PHONE_STATE_PERMISSION_CODE)
                 } else {
-                    if (getActiveCard(appContext) < 2) {
+                    if (OtherUtils.getActiveCard(appContext) < 2) {
                         binding.displayDualSimSwitch.isEnabled = false
                         binding.displayDualSimSwitch.isChecked = false
                     }
@@ -156,7 +153,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         val isDohEnbled = Build.VERSION.SDK_INT < Build.VERSION_CODES.N || PaperUtils.getProxyConfig().enable.not() // TODO
         binding.dohSwitch.isEnabled = isDohEnbled
         binding.dohSwitch.isChecked = isDohEnbled && settings.isDnsOverHttp
-        val isDualCards = appContext.isReadPhoneStatePermissionGranted() && getActiveCard(appContext) > 1 // TODO
+        val isDualCards = appContext.isReadPhoneStatePermissionGranted() && OtherUtils.getActiveCard(appContext) > 1 // TODO
         binding.displayDualSimSwitch.isEnabled = isDualCards
         binding.displayDualSimSwitch.isChecked = settings.isDisplayDualSim && isDualCards
     }
@@ -210,7 +207,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         progressDialog.setCancelable(false)
         progressDialog.show()
 
-        val requestUri = getUrl(newSettings.botToken, "sendMessage")
+        val requestUri = NetworkUtils.getUrl(newSettings.botToken, "sendMessage")
         val requestBody = RequestMessage()
         requestBody.chat_id = newSettings.chatId
         requestBody.text = """
@@ -218,8 +215,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 ${appContext.getString(R.string.success_connect)}
                 """.trimIndent()
         val body = requestBody.toRequestBody()
-        val okhttpClient = getOkhttpObj(newSettings)
-        val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
+        val okhttpClient = NetworkUtils.getOkhttpObj(newSettings)
+        val request: Request = Request.Builder().url(requestUri).post(body).build()
         val call = okhttpClient.newCall(request)
         val errorHead = "Send message failed: "
         call.enqueue(object : Callback {
@@ -254,13 +251,13 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 prefsRepository.setSettings(newSettings)
 
                 Thread {
-                    stopAllService(appContext)
+                    ServiceUtils.stopAllService(appContext)
                     try {
                         Thread.sleep(1000)
                     } catch (e: InterruptedException) {
                         e.printStackTrace()
                     }
-                    startService(appContext, newSettings.isBatteryMonitoring, newSettings.isChatCommand)
+                    ServiceUtils.startService(appContext, newSettings)
                 }.start()
                 snackbar(R.string.success)
             }
@@ -274,7 +271,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             snackbar(R.string.token_not_configure)
             return
         }
-        Thread { stopAllService(appContext) }.start()
+        Thread { ServiceUtils.stopAllService(appContext) }.start()
         val progressDialog = ProgressDialog(this@MainActivity)
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
         progressDialog.setTitle(appContext.getString(R.string.get_recent_chat_title))
@@ -282,12 +279,11 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         progressDialog.isIndeterminate = false
         progressDialog.setCancelable(false)
         progressDialog.show()
-        val requestUri = getUrl(settings.botToken, "getUpdates")
-        val okhttpClient =
-            getOkhttpObj(settings)
-                .newBuilder()
-                .readTimeout(60, TimeUnit.SECONDS)
-                .build()
+        val requestUri = NetworkUtils.getUrl(settings.botToken, "getUpdates")
+        val okhttpClient = NetworkUtils.getOkhttpObj(settings)
+            .newBuilder()
+            .readTimeout(60, TimeUnit.SECONDS)
+            .build()
         val requestBody = PollingJson()
         requestBody.timeout = 60
         val body = requestBody.toRequestBody()
@@ -410,7 +406,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         val backStatus = setPermissionBack
         setPermissionBack = false
         if (backStatus) {
-            if (isNotifyListener(applicationContext)) {
+            if (ServiceUtils.isNotifyListener(applicationContext)) {
                 startActivity(Intent(this@MainActivity, NotifyAppsListActivity::class.java))
             }
         }
@@ -436,7 +432,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             1 -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     if (isReadPhoneStatePermissionGranted()) {
-                        if (telephonyManager.phoneCount <= 1 || getActiveCard(applicationContext) < 2) {
+                        if (telephonyManager.phoneCount <= 1 || OtherUtils.getActiveCard(applicationContext) < 2) {
                             binding.displayDualSimSwitch.isEnabled = false
                             binding.displayDualSimSwitch.isChecked = false
                         }
@@ -486,7 +482,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             }
 
             R.id.set_notify_menu_item -> {
-                if (!isNotifyListener(appContext)) {
+                if (!ServiceUtils.isNotifyListener(appContext)) {
                     val action = android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
                     val intent = Intent(action)
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -504,10 +500,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             }
 
             R.id.set_proxy_menu_item -> {
-                showProxySettingsDialog(
-                    inflater = layoutInflater,
+                MenuUtils.showProxySettingsDialog(
                     activity = this,
-                    context = appContext,
                     prefsRepository = prefsRepository,
                     onOkCallback = { isChecked: Boolean ->
                         if (!binding.dohSwitch.isChecked) {

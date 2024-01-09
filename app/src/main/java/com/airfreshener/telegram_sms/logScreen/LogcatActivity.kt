@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms
+package com.airfreshener.telegram_sms.logScreen
 
 import android.os.Bundle
 import android.os.FileObserver
@@ -6,16 +6,16 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.utils.LogUtils
 
-class LogcatActivity : AppCompatActivity() {
+class LogcatActivity : AppCompatActivity(R.layout.activity_logcat) {
 
     private var observer: LogcatFileObserver? = null
     private var logcatTextView: TextView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_logcat)
         val logcatTextView = findViewById<TextView>(R.id.logcat_textview).apply { logcatTextView = this }
         this.setTitle(R.string.logcat)
         logcatTextView.text = LogUtils.readLog(applicationContext, LINES_COUNT)

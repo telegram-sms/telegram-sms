@@ -48,7 +48,7 @@
             android:exported="false"/>
 
         <activity
-            android:name=".notification_screen.NotifyAppsListActivity"
+            android:name=".notificationScreen.NotifyAppsListActivity"
             android:windowSoftInputMode="adjustPan"
             android:exported="false" />
 
@@ -132,7 +132,7 @@
             android:name=".QrCodeShowActivity"
             android:label="@string/transfer_configuration"
             android:exported="false" />
-        <activity android:name=".LogcatActivity"
+        <activity android:name=".logScreen.LogcatActivity"
             android:exported="false" />
         <activity android:name=".ScannerActivity"
             android:exported="false"/>

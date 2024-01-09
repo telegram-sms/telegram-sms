@@ -15,12 +15,7 @@ import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.receivers.SmsSendReceiver
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
-import com.airfreshener.telegram_sms.utils.OtherUtils.getDualSimCardDisplay
-import com.airfreshener.telegram_sms.utils.OtherUtils.getMessageId
-import com.airfreshener.telegram_sms.utils.OtherUtils.isPhoneNumber
 import okhttp3.Request
 import java.io.IOException
 
@@ -49,17 +44,17 @@ object SmsUtils {
             Log.d(tag, "No permission.")
             return
         }
-        if (!isPhoneNumber(sendTo)) {
+        if (!OtherUtils.isPhoneNumber(sendTo)) {
             LogUtils.writeLog(appContext, "[$sendTo] is an illegal phone number")
             return
         }
         val settings = (appContext as TelegramSmsApp).prefsRepository.getSettings()
         val botToken = settings.botToken
         val chatId = settings.chatId
-        var requestUri = getUrl(botToken, "sendMessage")
+        var requestUri = NetworkUtils.getUrl(botToken, "sendMessage")
         if (messageId != -1L) {
             Log.d(tag, "Find the message_id and switch to edit mode.")
-            requestUri = getUrl(botToken, "editMessageText")
+            requestUri = NetworkUtils.getUrl(botToken, "editMessageText")
         }
         val requestBody = RequestMessage()
         requestBody.chat_id = chatId
@@ -68,7 +63,7 @@ object SmsUtils {
         } else {
             SmsManager.getSmsManagerForSubscriptionId(subId)
         }
-        val dualSim = getDualSimCardDisplay(appContext, slot, settings.isDisplayDualSim)
+        val dualSim = OtherUtils.getDualSimCardDisplay(appContext, slot, settings.isDisplayDualSim)
         val sendContent = """
             [$dualSim${appContext.getString(R.string.send_sms_head)}]
             ${appContext.getString(R.string.to)}$sendTo
@@ -80,7 +75,7 @@ object SmsUtils {
             """.trimIndent()
         requestBody.message_id = messageId
         val body = requestBody.toRequestBody()
-        val okHttpClient = getOkhttpObj(settings)
+        val okHttpClient = NetworkUtils.getOkhttpObj(settings)
         val request: Request = Request.Builder().url(requestUri).post(body).build()
         val call = okHttpClient.newCall(request)
         try {
@@ -90,7 +85,7 @@ object SmsUtils {
                     throw IOException(response.code.toString())
                 }
                 if (messageId == -1L) {
-                    messageId = getMessageId(responseBody.string())
+                    messageId = OtherUtils.getMessageId(responseBody.string())
                 }
             }
         } catch (e: IOException) {

@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms.notification_screen
+package com.airfreshener.telegram_sms.notificationScreen
 
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable

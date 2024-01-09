@@ -22,7 +22,7 @@ class BootReceiver : BroadcastReceiver() {
                 context,
                 "Received [${intent.action}] broadcast, starting background service."
             )
-            ServiceUtils.startService(context, settings.isBatteryMonitoring, settings.isChatCommand)
+            ServiceUtils.startService(context, settings)
             if (DEFAULT_BOOK.tryRead("resend_list", ArrayList<Any>()).size != 0) {
                 Log.d(TAG, "An unsent message was detected, and the automatic resend process was initiated.")
                 ResendUtils.startResend(context)

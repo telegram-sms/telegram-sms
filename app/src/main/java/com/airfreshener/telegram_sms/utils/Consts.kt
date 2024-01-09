@@ -9,7 +9,7 @@ object Consts {
         const val BATTERY = 1
         const val CHAT_COMMAND = 2
         const val NOTIFICATION_LISTENER_SERVICE = 3
-        // const val SEND_USSD_SERVCE_NOTIFY_ID = 4
+        // const val SEND_USSD_SERVICE_NOTIFY_ID = 4
         const val RESEND_SERVICE = 5
     }
 

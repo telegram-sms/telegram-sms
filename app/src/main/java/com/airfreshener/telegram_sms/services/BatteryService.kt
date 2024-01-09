@@ -14,8 +14,7 @@ import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.Consts
 import com.airfreshener.telegram_sms.utils.LogUtils
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
+import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
 import com.airfreshener.telegram_sms.utils.ServiceUtils.batteryManager
@@ -88,14 +87,16 @@ class BatteryService : Service() {
         val requestBody = RequestMessage()
         requestBody.chat_id = settings.chatId
         requestBody.text = obj.content
-        var requestUri = getUrl(settings.botToken, "sendMessage")
+        val requestUri: String
         if (System.currentTimeMillis() - lastReceiveTime <= 5000L && lastReceiveMessageId != -1L) {
-            requestUri = getUrl(settings.botToken, "editMessageText")
+            requestUri = NetworkUtils.getUrl(settings.botToken, "editMessageText")
             requestBody.message_id = lastReceiveMessageId
             Log.d(SERVICE_TAG, "onReceive: edit_mode")
+        } else {
+            requestUri = NetworkUtils.getUrl(settings.botToken, "sendMessage")
         }
         lastReceiveTime = System.currentTimeMillis()
-        val okHttpClient = getOkhttpObj(settings)
+        val okHttpClient = NetworkUtils.getOkhttpObj(settings)
         val body = requestBody.toRequestBody()
         val request = Request.Builder().url(requestUri).post(body).build()
         val call = okHttpClient.newCall(request)
@@ -141,7 +142,7 @@ class BatteryService : Service() {
             if (intent.action == Consts.BROADCAST_STOP_SERVICE) {
                 Log.i(RECEIVER_TAG, "Received stop signal, quitting now...")
                 stopSelf()
-                Process.killProcess(Process.myPid())
+                Process.killProcess(Process.myPid()) // TODO why?
                 return
             }
             val sb = StringBuilder(context.getString(R.string.system_message_head))

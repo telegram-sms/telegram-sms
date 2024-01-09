@@ -15,6 +15,7 @@ import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
+import com.airfreshener.telegram_sms.model.Settings
 import com.airfreshener.telegram_sms.services.BatteryService
 import com.airfreshener.telegram_sms.services.ChatCommandService
 import com.airfreshener.telegram_sms.services.NotificationListenerService
@@ -51,19 +52,24 @@ object ServiceUtils {
         }
     }
 
-    fun stopAllService(context: Context) {
-        val intent = Intent(Consts.BROADCAST_STOP_SERVICE)
-        context.sendBroadcast(intent)
+    fun restartServices(context: Context, settings: Settings) {
+        stopAllService(context)
+        try {
+            Thread.sleep(1000)
+        } catch (e: InterruptedException) {
+            e.printStackTrace()
+        }
+        startService(context, settings)
     }
 
-    fun startService(
-        context: Context,
-        batterySwitch: Boolean,
-        chatCommandSwitch: Boolean
-    ) {
+    fun stopAllService(context: Context) {
+        context.sendBroadcast(Intent(Consts.BROADCAST_STOP_SERVICE))
+    }
+
+    fun startService(context: Context, settings: Settings) {
         tryStartNotificationListenerService(context)
-        tryStartBatteryService(context, batterySwitch)
-        tryStartChatPollingService(context, chatCommandSwitch)
+        tryStartBatteryService(context, settings.isBatteryMonitoring)
+        tryStartChatPollingService(context, settings.isChatCommand)
     }
 
     private fun tryStartChatPollingService(context: Context, chatCommandSwitch: Boolean) {

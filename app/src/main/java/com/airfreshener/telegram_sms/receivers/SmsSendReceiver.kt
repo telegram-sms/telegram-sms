@@ -10,10 +10,9 @@ import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.LogUtils
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
+import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
-import com.airfreshener.telegram_sms.utils.ResendUtils.addResendLoop
+import com.airfreshener.telegram_sms.utils.ResendUtils
 import com.airfreshener.telegram_sms.utils.SmsUtils
 import okhttp3.Call
 import okhttp3.Callback
@@ -37,11 +36,11 @@ class SmsSendReceiver : BroadcastReceiver() {
         val chatId = settings.chatId
         val requestBody = RequestMessage()
         requestBody.chat_id = chatId
-        var requestUri = getUrl(botToken, "sendMessage")
+        var requestUri = NetworkUtils.getUrl(botToken, "sendMessage")
         val messageId = extras.getLong("message_id")
         if (messageId != -1L) {
             Log.d(TAG, "Find the message_id and switch to edit mode.")
-            requestUri = getUrl(botToken, "editMessageText")
+            requestUri = NetworkUtils.getUrl(botToken, "editMessageText")
             requestBody.message_id = messageId
         }
         val resultStatus = when (resultCode) {
@@ -56,7 +55,7 @@ class SmsSendReceiver : BroadcastReceiver() {
             ${context.getString(R.string.status)}$resultStatus
             """.trimIndent()
         val body = requestBody.toRequestBody()
-        val okHttpClient = getOkhttpObj(settings)
+        val okHttpClient = NetworkUtils.getOkhttpObj(settings)
         val request: Request = Request.Builder().url(requestUri).post(body).build()
         val call = okHttpClient.newCall(request)
         val errorHead = "Send SMS status failed:"
@@ -65,7 +64,7 @@ class SmsSendReceiver : BroadcastReceiver() {
                 e.printStackTrace()
                 LogUtils.writeLog(context, errorHead + e.message)
                 SmsUtils.sendFallbackSms(context, requestBody.text, sub)
-                addResendLoop(context, requestBody.text)
+                ResendUtils.addResendLoop(context, requestBody.text)
             }
 
             override fun onResponse(call: Call, response: Response) {
@@ -75,7 +74,7 @@ class SmsSendReceiver : BroadcastReceiver() {
                         context,
                         errorHead + response.code + " " + response.body?.string()
                     )
-                    addResendLoop(context, requestBody.text)
+                    ResendUtils.addResendLoop(context, requestBody.text)
                 }
             }
         })

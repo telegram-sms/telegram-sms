@@ -10,12 +10,11 @@ import com.airfreshener.telegram_sms.TelegramSmsApp
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.Consts
 import com.airfreshener.telegram_sms.utils.LogUtils
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
-import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
+import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
-import com.airfreshener.telegram_sms.utils.OtherUtils.getNotificationObj
+import com.airfreshener.telegram_sms.utils.OtherUtils
 import com.airfreshener.telegram_sms.utils.PaperUtils.getSystemBook
-import com.airfreshener.telegram_sms.utils.ResendUtils.addResendLoop
+import com.airfreshener.telegram_sms.utils.ResendUtils
 import com.airfreshener.telegram_sms.utils.ServiceUtils.stopForeground
 import okhttp3.Call
 import okhttp3.Callback
@@ -30,7 +29,7 @@ class NotificationListenerService : NotificationListenerService() {
     override fun onCreate() {
         super.onCreate()
         val notification =
-            getNotificationObj(applicationContext, getString(R.string.Notification_Listener_title))
+            OtherUtils.getNotificationObj(applicationContext, getString(R.string.Notification_Listener_title))
         startForeground(Consts.ServiceNotifyId.NOTIFICATION_LISTENER_SERVICE, notification)
     }
 
@@ -72,7 +71,7 @@ class NotificationListenerService : NotificationListenerService() {
         val content = extras.getString(Notification.EXTRA_TEXT, "None")
         val botToken = settings.botToken
         val chatId = settings.chatId
-        val requestUri = getUrl(botToken, "sendMessage")
+        val requestUri = NetworkUtils.getUrl(botToken, "sendMessage")
         val requestBody = RequestMessage()
         requestBody.chat_id = chatId
         requestBody.text = """
@@ -82,7 +81,7 @@ class NotificationListenerService : NotificationListenerService() {
             ${getString(R.string.content)}$content
             """.trimIndent()
         val body = requestBody.toRequestBody()
-        val okhttpClient = getOkhttpObj(settings)
+        val okhttpClient = NetworkUtils.getOkhttpObj(settings)
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpClient.newCall(request)
         val errorHead = "Send notification failed:"
@@ -90,7 +89,7 @@ class NotificationListenerService : NotificationListenerService() {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
                 LogUtils.writeLog(context, errorHead + e.message)
-                addResendLoop(context!!, requestBody.text)
+                ResendUtils.addResendLoop(context!!, requestBody.text)
             }
 
             override fun onResponse(call: Call, response: Response) {
@@ -98,7 +97,7 @@ class NotificationListenerService : NotificationListenerService() {
                 val result = responseBody.string()
                 if (response.code != 200) {
                     LogUtils.writeLog(context, errorHead + response.code + " " + result)
-                    addResendLoop(context, requestBody.text)
+                    ResendUtils.addResendLoop(context, requestBody.text)
                 }
             }
         })
