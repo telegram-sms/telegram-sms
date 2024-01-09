@@ -4,9 +4,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.telephony.PhoneStateListener
-import android.telephony.TelephonyManager
 import android.util.Log
 import com.airfreshener.telegram_sms.receivers.listeners.CallStatusListener
+import com.airfreshener.telegram_sms.utils.ServiceUtils.telephonyManager
 import java.util.*
 
 class CallReceiver : BroadcastReceiver() {
@@ -17,9 +17,8 @@ class CallReceiver : BroadcastReceiver() {
                 if (intent.getStringExtra("incoming_number") != null) {
                     incomingNumber = intent.getStringExtra("incoming_number")
                 }
-                val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
                 val customPhoneListener = CallStatusListener(context, slot, incomingNumber)
-                telephony?.listen(customPhoneListener, PhoneStateListener.LISTEN_CALL_STATE)
+                context.telephonyManager.listen(customPhoneListener, PhoneStateListener.LISTEN_CALL_STATE)
             }
             SUBSCRIPTION_PHONE_STATE -> slot = intent.getIntExtra("slot", -1)
         }

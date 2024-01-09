@@ -8,13 +8,14 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Build
-import android.telephony.SubscriptionManager
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.model.SmsRequestInfo
 import com.airfreshener.telegram_sms.utils.PaperUtils.getDefaultBook
+import com.airfreshener.telegram_sms.utils.ServiceUtils.notificationManager
+import com.airfreshener.telegram_sms.utils.ServiceUtils.subscriptionManager
 import com.google.gson.JsonParser
 import java.util.Locale
 
@@ -119,9 +120,7 @@ object OtherUtils {
                 notificationName, notificationName,
                 NotificationManager.IMPORTANCE_MIN
             )
-            val manager =
-                (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-            manager.createNotificationChannel(channel)
+            context.notificationManager.createNotificationChannel(channel)
             Notification.Builder(context, notificationName)
         } else { // Notification generation method after O
             Notification.Builder(context).setPriority(Notification.PRIORITY_MIN)
@@ -142,8 +141,7 @@ object OtherUtils {
         }
         val activeCard = getActiveCard(context)
         if (activeCard > slot) {
-            val subscriptionManager = context.getSubscriptionManager()
-            return subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(slot)?.subscriptionId ?: -1
+            return context.subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(slot)?.subscriptionId ?: -1
         }
         return -1
     }
@@ -153,7 +151,7 @@ object OtherUtils {
             Log.d("getActiveCard", "No permission.")
             -1
         } else {
-            context.getSubscriptionManager().activeSubscriptionInfoCount
+            context.subscriptionManager.activeSubscriptionInfoCount
         }
     }
 
@@ -170,7 +168,7 @@ object OtherUtils {
             Log.d(TAG, "No permission.")
             return result
         }
-        val subscriptionManager = context.getSubscriptionManager()
+        val subscriptionManager = context.subscriptionManager
         var info = subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(slot)
         if (info == null) {
             Log.d(TAG, "The active card is in the second card slot.")
@@ -198,6 +196,4 @@ object OtherUtils {
         Log.d("add_message_list", "add_message_list: $messageId")
     }
 
-    private fun Context.getSubscriptionManager() =
-        (getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager)
 }

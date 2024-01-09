@@ -1,12 +1,12 @@
 package com.airfreshener.telegram_sms.utils
 
 import android.content.Context
-import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import com.airfreshener.telegram_sms.model.ProxyConfigV2
+import com.airfreshener.telegram_sms.utils.ServiceUtils.connectivityManager
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.dnsoverhttps.DnsOverHttps
@@ -24,12 +24,12 @@ object NetworkUtils {
     private const val DNS_OVER_HTTP_ADDRESS = "https://cloudflare-dns.com/dns-query"
 
     fun checkNetworkStatus(context: Context): Boolean {
-        val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val manager = context.connectivityManager
         var networkStatus = false
         val networks = manager.allNetworks
         if (networks.isNotEmpty()) {
             for (network in networks) {
-                val networkCapabilities = manager.getNetworkCapabilities(network)!!
+                val networkCapabilities = manager.getNetworkCapabilities(network) ?: continue // TODO
                 if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)) {
                     networkStatus = true
                 }

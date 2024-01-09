@@ -1,11 +1,18 @@
 package com.airfreshener.telegram_sms.utils
 
+import android.app.NotificationManager
 import android.app.Service
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.wifi.WifiManager
+import android.os.BatteryManager
 import android.os.Build
+import android.os.PowerManager
+import android.telephony.SubscriptionManager
+import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import com.airfreshener.telegram_sms.services.BatteryService
@@ -13,6 +20,27 @@ import com.airfreshener.telegram_sms.services.ChatCommandService
 import com.airfreshener.telegram_sms.services.NotificationListenerService
 
 object ServiceUtils {
+
+    val Context.telephonyManager: TelephonyManager
+            get() = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+
+    val Context.subscriptionManager: SubscriptionManager
+            get() = getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
+
+    val Context.batteryManager: BatteryManager
+            get() = getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+
+    val Context.powerManager: PowerManager
+            get() = getSystemService(Context.POWER_SERVICE) as PowerManager
+
+    val Context.connectivityManager: ConnectivityManager
+            get() = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+    val Context.notificationManager: NotificationManager
+            get() = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+    val Context.wifiManager: WifiManager
+            get() = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
 
     fun Service.stopForeground() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

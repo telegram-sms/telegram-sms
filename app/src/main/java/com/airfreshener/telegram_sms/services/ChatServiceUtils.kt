@@ -13,14 +13,15 @@ import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.airfreshener.telegram_sms.R
+import com.airfreshener.telegram_sms.utils.ServiceUtils.batteryManager
+import com.airfreshener.telegram_sms.utils.ServiceUtils.connectivityManager
+import com.airfreshener.telegram_sms.utils.ServiceUtils.telephonyManager
 
 object ChatServiceUtils {
     private const val TAG = "ChatServiceUtils"
 
     fun getBatteryInfo(appContext: Context): String {
-        val batteryManager =
-            (appContext.getSystemService(Context.BATTERY_SERVICE) as BatteryManager)
-        var batteryLevel = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+        var batteryLevel = appContext.batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
         if (batteryLevel > 100) {
             Log.i(TAG, "The previous battery is over 100%, and the correction is 100%.")
             batteryLevel = 100
@@ -52,10 +53,8 @@ object ChatServiceUtils {
 
     fun getNetworkType(appContext: Context): String {
         var netType = "Unknown"
-        val connectManager =
-            (appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager)
-        val telephonyManager =
-            (appContext.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager)
+        val connectManager = appContext.connectivityManager
+        val telephonyManager = appContext.telephonyManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             val networks = connectManager.allNetworks
             if (networks.isNotEmpty()) {

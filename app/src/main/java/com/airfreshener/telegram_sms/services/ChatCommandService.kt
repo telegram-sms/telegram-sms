@@ -45,7 +45,9 @@ import com.airfreshener.telegram_sms.utils.OtherUtils.parseStringToLong
 import com.airfreshener.telegram_sms.utils.PaperUtils.getDefaultBook
 import com.airfreshener.telegram_sms.utils.PaperUtils.getSendTempBook
 import com.airfreshener.telegram_sms.utils.ResendUtils.addResendLoop
+import com.airfreshener.telegram_sms.utils.ServiceUtils.powerManager
 import com.airfreshener.telegram_sms.utils.ServiceUtils.stopAllService
+import com.airfreshener.telegram_sms.utils.ServiceUtils.wifiManager
 import com.airfreshener.telegram_sms.utils.SmsUtils.sendFallbackSms
 import com.airfreshener.telegram_sms.utils.SmsUtils.sendSms
 import com.airfreshener.telegram_sms.utils.UssdUtils.sendUssd
@@ -543,13 +545,10 @@ $smsCommand$ussdCommand""".replace("/", "")
         super.onCreate()
         context = applicationContext
         setSmsSendStatusStandby()
-        val wifiManager = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
         wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi").apply {
             setReferenceCounted(false)
             if (!isHeld) acquire()
         }
-        val powerManager =
-            Objects.requireNonNull(applicationContext.getSystemService(POWER_SERVICE)) as PowerManager
         wakelock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "bot_command_polling").apply {
             setReferenceCounted(false)
             if (!isHeld) acquire()

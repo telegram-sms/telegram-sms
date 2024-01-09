@@ -18,6 +18,7 @@ import com.airfreshener.telegram_sms.utils.NetworkUtils.getOkhttpObj
 import com.airfreshener.telegram_sms.utils.NetworkUtils.getUrl
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
+import com.airfreshener.telegram_sms.utils.ServiceUtils.batteryManager
 import com.airfreshener.telegram_sms.utils.ServiceUtils.stopForeground
 import com.airfreshener.telegram_sms.utils.SmsUtils
 import okhttp3.Request
@@ -145,15 +146,13 @@ class BatteryService : Service() {
             }
             val sb = StringBuilder(context.getString(R.string.system_message_head))
             val action = intent.action
-            val batteryManager = context.getSystemService(BATTERY_SERVICE) as BatteryManager
             when (Objects.requireNonNull<String?>(action)) {
                 Intent.ACTION_BATTERY_OKAY -> sb.append(context.getString(R.string.low_battery_status_end))
                 Intent.ACTION_BATTERY_LOW -> sb.append(context.getString(R.string.battery_low))
                 Intent.ACTION_POWER_CONNECTED -> sb.append(context.getString(R.string.charger_connect))
                 Intent.ACTION_POWER_DISCONNECTED -> sb.append(context.getString(R.string.charger_disconnect))
             }
-            var batteryLevel =
-                batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+            var batteryLevel = context.batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
             if (batteryLevel > 100) {
                 Log.d(RECEIVER_TAG, "The previous battery is over 100%, and the correction is 100%.")
                 batteryLevel = 100

@@ -12,8 +12,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.PowerManager
-import android.telephony.TelephonyManager
 import android.text.Editable
 import android.util.Log
 import android.view.KeyEvent
@@ -56,8 +54,10 @@ import com.airfreshener.telegram_sms.utils.PaperUtils.DEFAULT_BOOK
 import com.airfreshener.telegram_sms.utils.PaperUtils.SYSTEM_BOOK
 import com.airfreshener.telegram_sms.utils.PaperUtils.tryRead
 import com.airfreshener.telegram_sms.utils.ServiceUtils.isNotifyListener
+import com.airfreshener.telegram_sms.utils.ServiceUtils.powerManager
 import com.airfreshener.telegram_sms.utils.ServiceUtils.startService
 import com.airfreshener.telegram_sms.utils.ServiceUtils.stopAllService
+import com.airfreshener.telegram_sms.utils.ServiceUtils.telephonyManager
 import com.airfreshener.telegram_sms.utils.ui.MenuUtils.showProxySettingsDialog
 import com.google.android.material.snackbar.Snackbar
 import com.google.gson.JsonArray
@@ -193,7 +193,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             ActivityCompat.requestPermissions(this, requistingPermissions, COMMON_PERMISSIONS_CODE)
-            val powerManager = getSystemService(POWER_SERVICE) as PowerManager
             val hasIgnored = powerManager.isIgnoringBatteryOptimizations(packageName)
             if (!hasIgnored) {
                 val action = android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
@@ -437,9 +436,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
             1 -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                        val tm = (getSystemService(TELEPHONY_SERVICE) as TelephonyManager)
-                        if (tm.phoneCount <= 1 || getActiveCard(applicationContext) < 2) {
+                    if (isReadPhoneStatePermissionGranted()) {
+                        if (telephonyManager.phoneCount <= 1 || getActiveCard(applicationContext) < 2) {
                             binding.displayDualSimSwitch.isEnabled = false
                             binding.displayDualSimSwitch.isChecked = false
                         }
