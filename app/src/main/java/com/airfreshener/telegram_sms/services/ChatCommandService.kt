@@ -51,7 +51,6 @@ import java.util.concurrent.TimeUnit
 
 class ChatCommandService : Service() {
 
-    private var context: Context? = null
     private var okHttpClient: OkHttpClient? = null
     private var broadcastReceiver: BroadcastReceiver? = null
     private var wakelock: WakeLock? = null
@@ -284,7 +283,8 @@ $smsCommand$ussdCommand""".replace("/", "")
                     val lineCommand = cmdList.getOrNull(1)?.toIntOrNull() ?: line
                     line = lineCommand.coerceAtMost(50)
                 }
-                requestBody.text = appContext.getString(R.string.system_message_head) + logRepository.readLog(line)
+                requestBody.text = appContext.getString(R.string.system_message_head) +
+                        logRepository.logs.value.takeLast(line).joinToString(separator = "\n")
                 hasCommand = true
             }
 
@@ -530,7 +530,6 @@ $smsCommand$ussdCommand""".replace("/", "")
     @SuppressLint("InvalidWakeLockTag", "WakelockTimeout")
     override fun onCreate() {
         super.onCreate()
-        context = applicationContext
         setSmsSendStatusStandby()
         wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi").apply {
             setReferenceCounted(false)

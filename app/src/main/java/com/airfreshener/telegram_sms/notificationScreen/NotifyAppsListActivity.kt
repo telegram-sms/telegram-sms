@@ -14,9 +14,9 @@ import android.widget.Filterable
 import android.widget.ImageView
 import android.widget.ListView
 import android.widget.ProgressBar
-import android.widget.SearchView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.utils.PaperUtils.SYSTEM_BOOK
 import com.airfreshener.telegram_sms.utils.PaperUtils.tryRead
@@ -55,7 +55,7 @@ class NotifyAppsListActivity : AppCompatActivity() {
         setContentView(R.layout.activity_notify_apps_list)
         val appList = findViewById<ListView>(R.id.app_listview)
         val filterEdit = findViewById<SearchView>(R.id.filter_searchview)
-        filterEdit.isIconifiedByDefault = false
+        filterEdit.setIconifiedByDefault(false)
         appList.isTextFilterEnabled = true
         appAdapter = AppAdapter()
         filterEdit.setOnQueryTextListener(object : SearchView.OnQueryTextListener {

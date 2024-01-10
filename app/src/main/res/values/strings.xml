@@ -3,7 +3,7 @@
     <string name="app_name" translatable="false">Telegram SMS</string>
 
     <string name="Lang">en_gb</string>
-    <string name="time_format">dd/MMM/yyyy HH:mm:ss z</string>
+    <string name="time_format">dd.MM.yyyy HH:mm:ss</string>
     <string name="content">"Content: "</string>
     <string name="from">"From: "</string>
     <string name="to">"To: "</string>

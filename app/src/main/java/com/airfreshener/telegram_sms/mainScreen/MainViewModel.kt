@@ -7,6 +7,7 @@ import com.airfreshener.telegram_sms.model.Settings
 import com.google.gson.JsonObject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class MainViewModel(
@@ -15,7 +16,11 @@ class MainViewModel(
 ) : ViewModel() {
 
     private val _settings: MutableStateFlow<Settings> = MutableStateFlow(prefsRepository.getSettings())
-    val settings: Flow<Settings> = _settings.asStateFlow()
+    val settings: StateFlow<Settings> = _settings.asStateFlow()
+
+    private val _loading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isLoading: Flow<Boolean> = _loading.asStateFlow()
+
 
     fun batteryMonitoringChecked(checked: Boolean) {
         _settings.value = _settings.value.copy(

@@ -25,6 +25,7 @@ import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -85,6 +86,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         super.onCreate(savedInstanceState)
         val appContext = applicationContext
         lifecycleScope.launch { viewModel.settings.collect { settings -> showSettings(settings) } }
+        lifecycleScope.launch { viewModel.isLoading.collect { binding.progressView.isVisible = it } }
         if (!prefsRepository.getPrivacyDialogAgree()) showPrivacyDialog()
         val settings = prefsRepository.getSettings()
         if (prefsRepository.getInitialized()) {
@@ -266,7 +268,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     private fun onGetIdClicked(view: View) {
         val appContext = applicationContext
-        val settings = prefsRepository.getSettings()
+        val settings = viewModel.settings.value
         if (settings.botToken.isEmpty()) {
             snackbar(R.string.token_not_configure)
             return
