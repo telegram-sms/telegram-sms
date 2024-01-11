@@ -25,10 +25,7 @@ class SpamListActivity : AppCompatActivity() {
         val fab = findViewById<FloatingActionButton>(R.id.spam_list_fab)
         val spamList = findViewById<ListView>(R.id.spam_list)
         val blockKeywordList = SYSTEM_BOOK.tryRead("block_keyword_list", ArrayList<String>())
-        val spamListAdapter = ArrayAdapter(
-            this, android.R.layout.simple_list_item_1,
-            blockKeywordList
-        )
+        val spamListAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, blockKeywordList)
         spamList.adapter = spamListAdapter
         spamList.onItemClickListener =
             OnItemClickListener { parent: AdapterView<*>?, view: View?, position: Int, id: Long ->
@@ -39,12 +36,12 @@ class SpamListActivity : AppCompatActivity() {
                 AlertDialog.Builder(this@SpamListActivity)
                     .setTitle(R.string.spam_keyword_edit_title)
                     .setView(spamDialogView)
-                    .setPositiveButton(R.string.ok_button) { dialog: DialogInterface?, which: Int ->
+                    .setPositiveButton(R.string.ok_button) { _: DialogInterface?, _: Int ->
                         blockKeywordList[position] = editText.text.toString()
                         saveAndFlush(blockKeywordList, spamListAdapter)
                     }
                     .setNeutralButton(R.string.cancel_button, null)
-                    .setNegativeButton(R.string.delete_button) { dialog: DialogInterface?, which: Int ->
+                    .setNegativeButton(R.string.delete_button) { _: DialogInterface?, _: Int ->
                         blockKeywordList.removeAt(position)
                         saveAndFlush(blockKeywordList, spamListAdapter)
                     }
@@ -55,7 +52,7 @@ class SpamListActivity : AppCompatActivity() {
             val editText = spamDialogView.findViewById<EditText>(R.id.spam_sms_keyword_editview)
             AlertDialog.Builder(this@SpamListActivity).setTitle(R.string.spam_keyword_add_title)
                 .setView(spamDialogView)
-                .setPositiveButton(R.string.ok_button) { dialog: DialogInterface?, which: Int ->
+                .setPositiveButton(R.string.ok_button) { _: DialogInterface?, _: Int ->
                     blockKeywordList.add(editText.text.toString())
                     saveAndFlush(blockKeywordList, spamListAdapter)
                 }
@@ -65,8 +62,12 @@ class SpamListActivity : AppCompatActivity() {
     }
 
     private fun saveAndFlush(blockKeywordList: ArrayList<String>, listAdapter: ArrayAdapter<String>) {
-        Log.d("save_and_flush", blockKeywordList.toString())
+        Log.d(TAG, blockKeywordList.toString())
         SYSTEM_BOOK.write("block_keyword_list", blockKeywordList)
         listAdapter.notifyDataSetChanged()
+    }
+
+    companion object {
+        private val TAG = SpamListActivity::class.java.simpleName
     }
 }

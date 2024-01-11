@@ -81,7 +81,7 @@ class NotifyAppsListActivity : AppCompatActivity() {
 
     internal class AppAdapter : BaseAdapter(), Filterable {
         val TAG = "notify_activity"
-        var listenList: List<String?> = SYSTEM_BOOK.tryRead("notify_listen_list", ArrayList())
+        private var listenList: List<String?> = SYSTEM_BOOK.tryRead("notify_listen_list", ArrayList())
         var appInfoList: List<AppInfo> = ArrayList()
         val viewAppInfoList: ArrayList<AppInfo> = ArrayList()
         private val filter: Filter = object : Filter() {
@@ -124,20 +124,20 @@ class NotifyAppsListActivity : AppCompatActivity() {
         override fun getItemId(position: Int): Long = 0
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            var convertView = convertView
+            var view = convertView
             val viewHolderObject: ViewHolder
             val appInfo = viewAppInfoList[position]
-            if (convertView == null) {
+            if (view == null) {
                 viewHolderObject = ViewHolder()
                 val inflater = LayoutInflater.from(parent.context)
-                convertView = inflater.inflate(R.layout.item_app_info, parent, false)
-                viewHolderObject.appIcon = convertView.findViewById(R.id.app_icon_imageview)
-                viewHolderObject.packageName = convertView.findViewById(R.id.package_name_textview)
-                viewHolderObject.appName = convertView.findViewById(R.id.app_name_textview)
-                viewHolderObject.appCheckbox = convertView.findViewById(R.id.select_checkbox)
-                convertView.tag = viewHolderObject
+                view = inflater.inflate(R.layout.item_app_info, parent, false)
+                viewHolderObject.appIcon = view.findViewById(R.id.app_icon_imageview)
+                viewHolderObject.packageName = view.findViewById(R.id.package_name_textview)
+                viewHolderObject.appName = view.findViewById(R.id.app_name_textview)
+                viewHolderObject.appCheckbox = view.findViewById(R.id.select_checkbox)
+                view.tag = viewHolderObject
             } else {
-                viewHolderObject = convertView.tag as ViewHolder
+                viewHolderObject = view.tag as ViewHolder
             }
             viewHolderObject.appIcon.setImageDrawable(appInfo.appIcon)
             viewHolderObject.appName.text = appInfo.appName
@@ -159,7 +159,7 @@ class NotifyAppsListActivity : AppCompatActivity() {
                 SYSTEM_BOOK.write<List<String?>>("notify_listen_list", listenListTemp)
                 listenList = listenListTemp
             }
-            return requireNotNull(convertView)
+            return view!!
         }
 
         override fun getFilter(): Filter = filter

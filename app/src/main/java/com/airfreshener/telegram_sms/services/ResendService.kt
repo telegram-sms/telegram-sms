@@ -16,6 +16,7 @@ import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
 import com.airfreshener.telegram_sms.utils.PaperUtils.DEFAULT_BOOK
 import com.airfreshener.telegram_sms.utils.PaperUtils.tryRead
+import com.airfreshener.telegram_sms.utils.ServiceUtils.register
 import com.airfreshener.telegram_sms.utils.ServiceUtils.stopForeground
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -69,11 +70,12 @@ class ResendService : Service() {
     override fun onCreate() {
         super.onCreate()
         val context = applicationContext
-        val filter = IntentFilter().apply {
-            addAction(Consts.BROADCAST_STOP_SERVICE)
+        receiver = StopNotifyReceiver().also { receiver ->
+            val filter = IntentFilter().apply {
+                addAction(Consts.BROADCAST_STOP_SERVICE)
+            }
+            register(receiver, filter)
         }
-        receiver = StopNotifyReceiver()
-        registerReceiver(receiver, filter)
         val settings = prefsRepository.getSettings()
         requestUri = NetworkUtils.getUrl(settings.botToken, "SendMessage")
         Thread {
@@ -107,9 +109,7 @@ class ResendService : Service() {
         super.onDestroy()
     }
 
-    override fun onBind(intent: Intent): IBinder? {
-        return null
-    }
+    override fun onBind(intent: Intent): IBinder? = null
 
     inner class StopNotifyReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {

@@ -398,8 +398,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             }
         }
         builder.create().apply {
-            getButton(AlertDialog.BUTTON_POSITIVE).isAllCaps = false
-            getButton(AlertDialog.BUTTON_NEUTRAL).isAllCaps = false
+            getButton(AlertDialog.BUTTON_POSITIVE)?.isAllCaps = false
+            getButton(AlertDialog.BUTTON_NEUTRAL)?.isAllCaps = false
         }.show()
     }
 

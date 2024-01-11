@@ -50,7 +50,7 @@ class SmsReceiver : BroadcastReceiver() {
         }
         val isDefaultSmsApp = Telephony.Sms.getDefaultSmsPackage(context) == context.packageName
         assert(intent.action != null)
-        if (intent.action == "android.provider.Telephony.SMS_RECEIVED" && isDefaultSmsApp) {
+        if (intent.action == SMS_RECEIVED && isDefaultSmsApp) {
             // When it is the default application, it will receive two broadcasts.
             Log.i(TAG, "reject: android.provider.Telephony.SMS_RECEIVED.")
             return
@@ -274,5 +274,6 @@ class SmsReceiver : BroadcastReceiver() {
     companion object {
         private val codeAuxLib = CodeauxLibPortable()
         private const val TAG = "SmsReceiver"
+        private const val SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED"
     }
 }

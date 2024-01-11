@@ -53,10 +53,10 @@ class NotificationListenerService : NotificationListenerService() {
             return
         }
         val extras = sbn.notification.extras!!
-        var appName: String? = "unknown"
+        var appName: String = "unknown"
         Log.d(TAG, "onNotificationPosted: $appNameList")
         if (appNameList.containsKey(packageName)) {
-            appName = appNameList[packageName]
+            appName = appNameList[packageName] ?: appName
         } else {
             val pm = context.packageManager
             try {

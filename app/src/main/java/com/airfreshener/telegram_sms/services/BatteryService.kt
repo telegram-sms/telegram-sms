@@ -17,6 +17,7 @@ import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
 import com.airfreshener.telegram_sms.utils.ServiceUtils.batteryManager
+import com.airfreshener.telegram_sms.utils.ServiceUtils.register
 import com.airfreshener.telegram_sms.utils.ServiceUtils.stopForeground
 import com.airfreshener.telegram_sms.utils.SmsUtils
 import okhttp3.Request
@@ -50,16 +51,18 @@ class BatteryService : Service() {
         super.onCreate()
         val settings = prefsRepository.getSettings()
         val chargerStatus = settings.isChargerStatus
-        batteryReceiver = BatteryReceiver()
-        val filter = IntentFilter()
-        filter.addAction(Intent.ACTION_BATTERY_OKAY)
-        filter.addAction(Intent.ACTION_BATTERY_LOW)
-        if (chargerStatus) {
-            filter.addAction(Intent.ACTION_POWER_CONNECTED)
-            filter.addAction(Intent.ACTION_POWER_DISCONNECTED)
+        batteryReceiver = BatteryReceiver(service = this, sendLoopList = sendLoopList).also { receiver ->
+            val filter = IntentFilter().apply {
+                addAction(Intent.ACTION_BATTERY_OKAY)
+                addAction(Intent.ACTION_BATTERY_LOW)
+                if (chargerStatus) {
+                    addAction(Intent.ACTION_POWER_CONNECTED)
+                    addAction(Intent.ACTION_POWER_DISCONNECTED)
+                }
+                addAction(Consts.BROADCAST_STOP_SERVICE)
+            }
+            register(receiver, filter)
         }
-        filter.addAction(Consts.BROADCAST_STOP_SERVICE)
-        registerReceiver(batteryReceiver, filter)
         sendLoopList.clear()
         Thread {
             val needRemove = ArrayList<SendObject>()
@@ -91,7 +94,7 @@ class BatteryService : Service() {
         if (System.currentTimeMillis() - lastReceiveTime <= 5000L && lastReceiveMessageId != -1L) {
             requestUri = NetworkUtils.getUrl(settings.botToken, "editMessageText")
             requestBody.message_id = lastReceiveMessageId
-            Log.d(SERVICE_TAG, "onReceive: edit_mode")
+            Log.d(TAG, "onReceive: edit_mode")
         } else {
             requestUri = NetworkUtils.getUrl(settings.botToken, "sendMessage")
         }
@@ -121,51 +124,57 @@ class BatteryService : Service() {
         }
     }
 
-
     companion object {
         private val sendLoopList: ArrayList<SendObject> = ArrayList()
         private var lastReceiveTime: Long = 0
         private var lastReceiveMessageId: Long = -1
-        private const val SERVICE_TAG = "BatteryService"
-        private const val RECEIVER_TAG = "BatteryReceiver"
+        private val TAG = BatteryService::class.java.simpleName
     }
 
-    private class SendObject {
-        var content: String? = null
-        var action: String? = null
-    }
+}
 
-    private inner class BatteryReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            assert(intent.action != null)
-            Log.d(RECEIVER_TAG, "Receive action: " + intent.action)
-            if (intent.action == Consts.BROADCAST_STOP_SERVICE) {
-                Log.i(RECEIVER_TAG, "Received stop signal, quitting now...")
-                stopSelf()
-                Process.killProcess(Process.myPid()) // TODO why?
-                return
-            }
-            val sb = StringBuilder(context.getString(R.string.system_message_head))
-            val action = intent.action
-            when (Objects.requireNonNull<String?>(action)) {
-                Intent.ACTION_BATTERY_OKAY -> sb.append(context.getString(R.string.low_battery_status_end))
-                Intent.ACTION_BATTERY_LOW -> sb.append(context.getString(R.string.battery_low))
-                Intent.ACTION_POWER_CONNECTED -> sb.append(context.getString(R.string.charger_connect))
-                Intent.ACTION_POWER_DISCONNECTED -> sb.append(context.getString(R.string.charger_disconnect))
-            }
-            var batteryLevel = context.batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
-            if (batteryLevel > 100) {
-                Log.d(RECEIVER_TAG, "The previous battery is over 100%, and the correction is 100%.")
-                batteryLevel = 100
-            }
-            sb.append("\n")
-                .append(context.getString(R.string.current_battery_level))
-                .append(batteryLevel)
-                .append("%")
-            val obj = SendObject()
-            obj.action = action
-            obj.content = sb.toString()
-            sendLoopList.add(obj)
+private class SendObject {
+    var content: String? = null
+    var action: String? = null
+}
+
+private class BatteryReceiver(
+    private val service: BatteryService,
+    private val sendLoopList: ArrayList<SendObject>
+) : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        assert(intent.action != null)
+        Log.d(TAG, "Receive action: " + intent.action)
+        if (intent.action == Consts.BROADCAST_STOP_SERVICE) {
+            Log.i(TAG, "Received stop signal, quitting now...")
+            service.stopSelf()
+            Process.killProcess(Process.myPid()) // TODO why?
+            return
         }
+        val sb = StringBuilder(context.getString(R.string.system_message_head))
+        val action = intent.action
+        when (Objects.requireNonNull<String?>(action)) {
+            Intent.ACTION_BATTERY_OKAY -> sb.append(context.getString(R.string.low_battery_status_end))
+            Intent.ACTION_BATTERY_LOW -> sb.append(context.getString(R.string.battery_low))
+            Intent.ACTION_POWER_CONNECTED -> sb.append(context.getString(R.string.charger_connect))
+            Intent.ACTION_POWER_DISCONNECTED -> sb.append(context.getString(R.string.charger_disconnect))
+        }
+        var batteryLevel = context.batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+        if (batteryLevel > 100) {
+            Log.d(TAG, "The previous battery is over 100%, and the correction is 100%.")
+            batteryLevel = 100
+        }
+        sb.append("\n")
+            .append(context.getString(R.string.current_battery_level))
+            .append(batteryLevel)
+            .append("%")
+        val obj = SendObject()
+        obj.action = action
+        obj.content = sb.toString()
+        sendLoopList.add(obj)
+    }
+
+    companion object {
+        private val TAG = BatteryReceiver::class.java.simpleName
     }
 }

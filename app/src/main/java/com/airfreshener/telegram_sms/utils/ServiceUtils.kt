@@ -1,10 +1,13 @@
 package com.airfreshener.telegram_sms.utils
 
+import android.annotation.SuppressLint
 import android.app.NotificationManager
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
@@ -15,6 +18,7 @@ import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.airfreshener.telegram_sms.model.Settings
 import com.airfreshener.telegram_sms.services.BatteryService
 import com.airfreshener.telegram_sms.services.ChatCommandService
@@ -115,5 +119,14 @@ object ServiceUtils {
     fun isNotifyListener(context: Context): Boolean {
         val packageNames = NotificationManagerCompat.getEnabledListenerPackages(context)
         return packageNames.contains(context.packageName)
+    }
+
+    fun Context.register(receiver: BroadcastReceiver, filter: IntentFilter) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            registerReceiver(receiver, filter, Service.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            registerReceiver(receiver, filter)
+        }
     }
 }

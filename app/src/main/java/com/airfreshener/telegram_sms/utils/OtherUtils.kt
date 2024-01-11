@@ -65,7 +65,7 @@ object OtherUtils {
         content.toLong()
     } catch (e: NumberFormatException) {
         e.printStackTrace()
-        0
+        0L
     }
 
     fun getSendPhoneNumber(phoneNumber: String): String {

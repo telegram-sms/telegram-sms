@@ -15,7 +15,7 @@ data class Settings(
     val botToken: String,
     val trustedPhoneNumber: String,
 ) {
-    val isPrivacyModeEnabled: Boolean = isChatCommand && OtherUtils.parseStringToLong(chatId) < 0
+    val isPrivacyModeEnabled: Boolean = isChatCommand && OtherUtils.parseStringToLong(chatId) != 0L
     val isFallbackEnabled: Boolean = trustedPhoneNumber.isNotEmpty()
     val isChargerStatusEnabled: Boolean = isBatteryMonitoring
 }

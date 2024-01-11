@@ -35,6 +35,8 @@ import com.airfreshener.telegram_sms.utils.PaperUtils.getSendTempBook
 import com.airfreshener.telegram_sms.utils.ResendUtils
 import com.airfreshener.telegram_sms.utils.ServiceUtils
 import com.airfreshener.telegram_sms.utils.ServiceUtils.powerManager
+import com.airfreshener.telegram_sms.utils.ServiceUtils.register
+import com.airfreshener.telegram_sms.utils.ServiceUtils.stopForeground
 import com.airfreshener.telegram_sms.utils.ServiceUtils.wifiManager
 import com.airfreshener.telegram_sms.utils.SmsUtils
 import com.airfreshener.telegram_sms.utils.UssdUtils
@@ -540,11 +542,13 @@ $smsCommand$ussdCommand""".replace("/", "")
             if (!isHeld) acquire()
         }
         threadMain = Thread(ThreadMainRunnable(applicationContext, prefsRepository)).apply { start() }
-        val intentFilter = IntentFilter()
-        intentFilter.addAction(Consts.BROADCAST_STOP_SERVICE)
-        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION)
-        broadcastReceiver = BroadcastReceiver()
-        registerReceiver(broadcastReceiver, intentFilter)
+        broadcastReceiver = BroadcastReceiver().also { receiver ->
+            val intentFilter = IntentFilter().apply {
+                addAction(Consts.BROADCAST_STOP_SERVICE)
+                addAction(ConnectivityManager.CONNECTIVITY_ACTION)
+            }
+            register(receiver, intentFilter)
+        }
     }
 
     private val me: Boolean
@@ -595,7 +599,7 @@ $smsCommand$ussdCommand""".replace("/", "")
         wifiLock?.release()
         wakelock?.release()
         unregisterReceiver(broadcastReceiver)
-        stopForeground(true)
+        stopForeground()
         super.onDestroy()
     }
 
@@ -606,7 +610,7 @@ $smsCommand$ussdCommand""".replace("/", "")
         override fun run() {
             Log.d(TAG, "run: thread main start")
             val settings = prefsRepository.getSettings()
-            if (OtherUtils.parseStringToLong(settings.chatId) < 0) {
+            if (OtherUtils.parseStringToLong(settings.chatId) != 0L) {
                 botUsername = getDefaultBook().read<String>("bot_username", null)
                 if (botUsername == null) {
                     while (!me) {
@@ -748,7 +752,7 @@ $smsCommand$ussdCommand""".replace("/", "")
     }
 
     companion object {
-        const val TAG = "ChatCommandService"
+        private val TAG = ChatCommandService::class.java.simpleName
         private var offset: Long = 0
         private var magnification = 1
         private var errorMagnification = 1
