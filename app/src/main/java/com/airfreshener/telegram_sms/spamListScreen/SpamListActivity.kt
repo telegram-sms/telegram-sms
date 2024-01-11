@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms
+package com.airfreshener.telegram_sms.spamListScreen
 
 import android.content.DialogInterface
 import android.os.Bundle
@@ -11,6 +11,7 @@ import android.widget.EditText
 import android.widget.ListView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.utils.PaperUtils.SYSTEM_BOOK
 import com.airfreshener.telegram_sms.utils.PaperUtils.tryRead
 import com.google.android.material.floatingactionbutton.FloatingActionButton

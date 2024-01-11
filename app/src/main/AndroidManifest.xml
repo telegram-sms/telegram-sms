@@ -39,7 +39,7 @@
         tools:targetApi="n">
 
         <activity
-            android:name=".SpamListActivity"
+            android:name=".spamListScreen.SpamListActivity"
             android:label="@string/spam_sms_keyword_title"
             android:exported="true" />
 
@@ -129,12 +129,12 @@
         </receiver>
 
         <activity
-            android:name=".QrCodeShowActivity"
+            android:name=".qrCodeScreen.QrCodeShowActivity"
             android:label="@string/transfer_configuration"
             android:exported="false" />
         <activity android:name=".logScreen.LogcatActivity"
             android:exported="false" />
-        <activity android:name=".ScannerActivity"
+        <activity android:name=".scannerScreen.ScannerActivity"
             android:exported="false"/>
         <activity
             android:name=".mainScreen.MainActivity"

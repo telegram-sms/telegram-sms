@@ -1,8 +1,9 @@
-package com.airfreshener.telegram_sms
+package com.airfreshener.telegram_sms.qrCodeScreen
 
 import android.os.Bundle
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.utils.ContextUtils.app
 import com.github.sumimakito.awesomeqrcode.AwesomeQrRenderer
 import com.google.gson.Gson

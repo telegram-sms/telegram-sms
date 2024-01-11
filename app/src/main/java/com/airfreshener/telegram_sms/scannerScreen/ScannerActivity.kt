@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms
+package com.airfreshener.telegram_sms.scannerScreen
 
 import android.app.Activity
 import android.content.Intent
@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.utils.Consts
 import com.budiyev.android.codescanner.CodeScanner
 import com.budiyev.android.codescanner.CodeScannerView

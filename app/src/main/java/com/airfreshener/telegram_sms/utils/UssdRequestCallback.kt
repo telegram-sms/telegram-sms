@@ -1,17 +1,15 @@
-package com.airfreshener.telegram_sms
+package com.airfreshener.telegram_sms.utils
 
 import android.content.Context
 import android.os.Build
 import android.telephony.TelephonyManager
 import android.telephony.TelephonyManager.UssdResponseCallback
 import androidx.annotation.RequiresApi
+import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.model.Settings
 import com.airfreshener.telegram_sms.utils.ContextUtils.app
-import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
-import com.airfreshener.telegram_sms.utils.ResendUtils
-import com.airfreshener.telegram_sms.utils.SmsUtils
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request

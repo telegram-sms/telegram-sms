@@ -11,7 +11,6 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.UssdRequestCallback
 import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.ContextUtils.app
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
