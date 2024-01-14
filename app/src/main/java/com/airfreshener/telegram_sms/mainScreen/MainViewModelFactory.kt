@@ -15,6 +15,7 @@ class MainViewModelFactory(
         return MainViewModel(
             appContext = appContext,
             prefsRepository = app.prefsRepository,
+            logRepository = app.logRepository,
         ) as T
     }
 }

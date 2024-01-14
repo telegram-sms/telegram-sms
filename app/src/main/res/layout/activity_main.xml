@@ -144,6 +144,26 @@
                 android:alpha="@dimen/button_alpha"
                 android:text="@string/test_and_save" />
 
+            <Button
+                android:id="@+id/stop_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:alpha="@dimen/button_alpha"
+                android:text="@string/stop_services" />
+
+            <Button
+                android:id="@+id/update_services_status_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:alpha="@dimen/button_alpha"
+                android:text="@string/update_services_status_services" />
+
+            <TextView
+                android:id="@+id/servicesStatusTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" />
+
         </LinearLayout>
     </ScrollView>
 

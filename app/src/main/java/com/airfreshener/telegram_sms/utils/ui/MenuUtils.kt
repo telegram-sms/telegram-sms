@@ -38,9 +38,9 @@ object MenuUtils {
                 proxyItem.password = binding.proxyPasswordEditview.text.toString()
                 SYSTEM_BOOK.write("proxy_config", proxyItem)
                 Thread {
-                    ServiceUtils.stopAllService(appContext)
+                    ServiceUtils.stopAllServices(appContext)
                     if (prefsRepository.getInitialized()) {
-                        ServiceUtils.startService(appContext, prefsRepository.getSettings())
+                        ServiceUtils.startServices(appContext, prefsRepository.getSettings())
                     }
                 }.start()
             }

@@ -19,7 +19,7 @@ class BootReceiver : BroadcastReceiver() {
         if (prefsRepository.getInitialized()) {
             val settings = prefsRepository.getSettings()
             logRepository.writeLog("Received [${intent.action}] broadcast, starting background service.")
-            ServiceUtils.startService(context, settings)
+            ServiceUtils.startServices(context, settings)
             if (DEFAULT_BOOK.tryRead("resend_list", ArrayList<Any>()).size != 0) {
                 Log.d(TAG, "An unsent message was detected, and the automatic resend process was initiated.")
                 ResendUtils.startResend(context)

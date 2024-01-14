@@ -17,7 +17,6 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -40,6 +39,10 @@ import com.airfreshener.telegram_sms.model.Settings
 import com.airfreshener.telegram_sms.notificationScreen.NotifyAppsListActivity
 import com.airfreshener.telegram_sms.qrCodeScreen.QrCodeShowActivity
 import com.airfreshener.telegram_sms.scannerScreen.ScannerActivity
+import com.airfreshener.telegram_sms.services.BatteryService
+import com.airfreshener.telegram_sms.services.chat.ChatCommandService
+import com.airfreshener.telegram_sms.services.NotificationListenerService
+import com.airfreshener.telegram_sms.services.ResendService
 import com.airfreshener.telegram_sms.spamListScreen.SpamListActivity
 import com.airfreshener.telegram_sms.utils.Consts
 import com.airfreshener.telegram_sms.utils.ContextUtils.app
@@ -53,6 +56,7 @@ import com.airfreshener.telegram_sms.utils.PaperUtils.DEFAULT_BOOK
 import com.airfreshener.telegram_sms.utils.PaperUtils.SYSTEM_BOOK
 import com.airfreshener.telegram_sms.utils.PaperUtils.tryRead
 import com.airfreshener.telegram_sms.utils.ServiceUtils
+import com.airfreshener.telegram_sms.utils.ServiceUtils.isOwnServiceRunning
 import com.airfreshener.telegram_sms.utils.ServiceUtils.powerManager
 import com.airfreshener.telegram_sms.utils.ServiceUtils.telephonyManager
 import com.airfreshener.telegram_sms.utils.ui.MenuUtils
@@ -84,16 +88,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     @SuppressLint("BatteryLife")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val appContext = applicationContext
         lifecycleScope.launch { viewModel.settings.collect { settings -> showSettings(settings) } }
         lifecycleScope.launch { viewModel.isLoading.collect { binding.progressView.isVisible = it } }
-        if (!prefsRepository.getPrivacyDialogAgree()) showPrivacyDialog()
-        val settings = prefsRepository.getSettings()
-        if (prefsRepository.getInitialized()) {
-            updateConfig()
-            checkVersionUpgrade(logRepository, appContext, true)
-            ServiceUtils.startService(appContext, settings)
-        }
+        lifecycleScope.launch { viewModel.showPrivacyDialog.collect { showPrivacyDialog() } }
         setListeners()
     }
 
@@ -134,8 +131,10 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         binding.trustedPhoneNumberEditview.doAfterTextChanged { text: Editable? ->
             viewModel.trustedPhoneNumberChanged(text?.toString().orEmpty())
         }
-        binding.getIdButton.setOnClickListener { v: View -> onGetIdClicked(v) }
-        binding.saveButton.setOnClickListener { v: View -> onSaveClicked(v) }
+        binding.getIdButton.setOnClickListener { onGetIdClicked() }
+        binding.saveButton.setOnClickListener { onSaveClicked() }
+        binding.stopButton.setOnClickListener { onStopClicked() }
+        binding.updateServicesStatusButton.setOnClickListener { updateServicesStatus() }
     }
 
     private fun showSettings(settings: Settings) {
@@ -160,8 +159,13 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         binding.displayDualSimSwitch.isChecked = settings.isDisplayDualSim && isDualCards
     }
 
-    private fun onSaveClicked(view: View) {
-        val appContext = view.context.applicationContext
+    private fun onStopClicked() {
+        val appContext = applicationContext
+        Thread { ServiceUtils.stopAllServices(appContext) }.start()
+    }
+
+    private fun onSaveClicked() {
+        val appContext = applicationContext
         val botTokenSaved = prefsRepository.getSettings().botToken
 
         val newSettings = Settings(
@@ -212,10 +216,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         val requestUri = NetworkUtils.getUrl(newSettings.botToken, "sendMessage")
         val requestBody = RequestMessage()
         requestBody.chat_id = newSettings.chatId
-        requestBody.text = """
-                ${appContext.getString(R.string.system_message_head)}
-                ${appContext.getString(R.string.success_connect)}
-                """.trimIndent()
+        requestBody.text = appContext.getString(R.string.success_connect)
         val body = requestBody.toRequestBody()
         val okhttpClient = NetworkUtils.getOkhttpObj(newSettings)
         val request: Request = Request.Builder().url(requestUri).post(body).build()
@@ -239,6 +240,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                     val errorMessage = errorHead + resultObj["description"]
                     logRepository.writeLog(errorMessage)
                     snackbar(errorMessage)
+                    responseBody.close()
                     return
                 }
                 if (newSettings.botToken != botTokenSaved) {
@@ -253,27 +255,27 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                 prefsRepository.setSettings(newSettings)
 
                 Thread {
-                    ServiceUtils.stopAllService(appContext)
+                    ServiceUtils.stopAllServices(appContext)
                     try {
                         Thread.sleep(1000)
                     } catch (e: InterruptedException) {
                         e.printStackTrace()
                     }
-                    ServiceUtils.startService(appContext, newSettings)
+                    ServiceUtils.startServices(appContext, newSettings)
                 }.start()
                 snackbar(R.string.success)
             }
         })
     }
 
-    private fun onGetIdClicked(view: View) {
+    private fun onGetIdClicked() {
         val appContext = applicationContext
         val settings = viewModel.settings.value
         if (settings.botToken.isEmpty()) {
             snackbar(R.string.token_not_configure)
             return
         }
-        Thread { ServiceUtils.stopAllService(appContext) }.start()
+        Thread { ServiceUtils.stopAllServices(appContext) }.start()
         val progressDialog = ProgressDialog(this@MainActivity)
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
         progressDialog.setTitle(appContext.getString(R.string.get_recent_chat_title))
@@ -310,26 +312,28 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             override fun onResponse(call: Call, response: Response) {
                 progressDialog.cancel()
                 val responseBody = response.body
-                if (response.code != 200 || responseBody == null) {
-                    val description = responseBody
-                        ?.string()?.let { JsonParser.parseString(it).asJsonObject }
+                val responseBodyStr = responseBody?.string()
+                val responseCode = response.code
+                if (responseCode != 200 || responseBodyStr == null) {
+                    val description = responseBodyStr?.let { JsonParser.parseString(it).asJsonObject }
                         ?.get("description")?.asString
                     val errorMessage = errorHead + description
                     logRepository.writeLog(errorMessage)
                     snackbar(errorMessage)
+                    responseBody?.close()
                     return
                 }
-                val result = responseBody.string()
-                val resultObj = JsonParser.parseString(result).asJsonObject
+                val resultObj = JsonParser.parseString(responseBodyStr).asJsonObject
                 val chatList = resultObj.getAsJsonArray("result")
                 if (chatList.size() == 0) {
                     snackbar(R.string.unable_get_recent)
+                    responseBody.close()
                     return
                 }
                 val (chatNameList, chatIdList) = parseChats(chatList)
 
                 runOnUiThread {
-                    AlertDialog.Builder(view.context)
+                    AlertDialog.Builder(binding.root.context)
                         .setTitle(R.string.select_chat)
                         .setItems(
                             chatNameList.toTypedArray<String>()
@@ -405,6 +409,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     override fun onResume() {
         super.onResume()
+        updateServicesStatus()
         val backStatus = setPermissionBack
         setPermissionBack = false
         if (backStatus) {
@@ -551,6 +556,17 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         builder.setCancelable(false)
         builder.setPositiveButton(R.string.ok_button, null)
         builder.show()
+    }
+
+    private fun updateServicesStatus() {
+        val context = applicationContext
+        val text = """
+            BatteryService: ${context.isOwnServiceRunning(BatteryService::class.java)}
+            ChatCommandService: ${context.isOwnServiceRunning(ChatCommandService::class.java)}
+            NotificationListenerService: ${context.isOwnServiceRunning(NotificationListenerService::class.java)}
+            ResendService: ${context.isOwnServiceRunning(ResendService::class.java)}
+        """.trimIndent()
+        binding.servicesStatusTextView.text = text
     }
 
     private fun snackbar(resId: Int) = Snackbar.make(binding.botTokenEditview, resId, Snackbar.LENGTH_LONG).show()

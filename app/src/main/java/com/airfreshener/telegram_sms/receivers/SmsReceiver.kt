@@ -146,10 +146,7 @@ class SmsReceiver : BroadcastReceiver() {
                 when (commandList[0].trim { it <= ' ' }) {
                     "/restartservice" -> {
                         Thread { ServiceUtils.restartServices(context, settings) }.start()
-                        rawRequestBodyText = """
-                        ${context.getString(R.string.system_message_head)}
-                        ${context.getString(R.string.restart_service)}
-                        """.trimIndent()
+                        rawRequestBodyText = context.getString(R.string.restart_service)
                         requestBody.text = rawRequestBodyText
                     }
 

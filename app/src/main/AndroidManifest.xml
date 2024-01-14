@@ -62,7 +62,7 @@
             </intent-filter>
         </service>
         <service
-            android:name=".services.ChatCommandService"
+            android:name=".services.chat.ChatCommandService"
             android:enabled="true"
             android:exported="false"
             android:permission="android.permission.INTERNET"

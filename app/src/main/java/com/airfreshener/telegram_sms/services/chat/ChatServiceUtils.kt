@@ -1,4 +1,4 @@
-package com.airfreshener.telegram_sms.services
+package com.airfreshener.telegram_sms.services.chat
 
 import android.Manifest
 import android.content.Context

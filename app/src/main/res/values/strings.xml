@@ -8,7 +8,6 @@
     <string name="from">"From: "</string>
     <string name="to">"To: "</string>
     <string name="send_sms_head">Send SMS</string>
-    <string name="system_message_head">[System Information]</string>
     <string name="success_connect">Connected to the Telegram Server.</string>
     <string name="connect_wait_title">Connecting to the Telegram server…</string>
     <string name="connect_wait_message">Please wait…</string>
@@ -23,6 +22,8 @@
     <string name="trusted_phone_number">Trusted phone number</string>
     <string name="get_recent_chat_id">Get recent chat ID</string>
     <string name="test_and_save">Test and save</string>
+    <string name="stop_services">Stop all services</string>
+    <string name="update_services_status_services">Update services status</string>
     <string name="network_error_falls_back_to_sms">Forward SMS to trusted number when network unavailable</string>
     <string name="current_battery_level">"Battery level: "</string>
     <string name="low_battery_status_end">Battery has been charged to a safe level.</string>

@@ -151,9 +151,13 @@ private class BatteryReceiver(
             Process.killProcess(Process.myPid()) // TODO why?
             return
         }
-        val sb = StringBuilder(context.getString(R.string.system_message_head))
+        val sb = StringBuilder()
         val action = intent.action
-        when (Objects.requireNonNull<String?>(action)) {
+        if (action == null) {
+            Log.e(TAG, "intent action is null")
+            return
+        }
+        when (action) {
             Intent.ACTION_BATTERY_OKAY -> sb.append(context.getString(R.string.low_battery_status_end))
             Intent.ACTION_BATTERY_LOW -> sb.append(context.getString(R.string.battery_low))
             Intent.ACTION_POWER_CONNECTED -> sb.append(context.getString(R.string.charger_connect))

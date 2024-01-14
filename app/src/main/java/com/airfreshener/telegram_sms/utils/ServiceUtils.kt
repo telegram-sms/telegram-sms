@@ -1,6 +1,6 @@
 package com.airfreshener.telegram_sms.utils
 
-import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.app.NotificationManager
 import android.app.Service
 import android.content.BroadcastReceiver
@@ -18,10 +18,9 @@ import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.airfreshener.telegram_sms.model.Settings
 import com.airfreshener.telegram_sms.services.BatteryService
-import com.airfreshener.telegram_sms.services.ChatCommandService
+import com.airfreshener.telegram_sms.services.chat.ChatCommandService
 import com.airfreshener.telegram_sms.services.NotificationListenerService
 
 object ServiceUtils {
@@ -47,6 +46,19 @@ object ServiceUtils {
     val Context.wifiManager: WifiManager
             get() = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
 
+    val Context.activityManager: ActivityManager
+            get() = applicationContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+
+    fun Context.isOwnServiceRunning(serviceClass: Class<*>): Boolean {
+        @Suppress("DEPRECATION") // enough to check own services
+        for (service in activityManager.getRunningServices(Int.MAX_VALUE)) {
+            if (serviceClass.name == service.service.className) {
+                return true
+            }
+        }
+        return false
+    }
+
     fun Service.stopForeground() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(Service.STOP_FOREGROUND_REMOVE)
@@ -57,20 +69,20 @@ object ServiceUtils {
     }
 
     fun restartServices(context: Context, settings: Settings) {
-        stopAllService(context)
+        stopAllServices(context)
         try {
             Thread.sleep(1000)
         } catch (e: InterruptedException) {
             e.printStackTrace()
         }
-        startService(context, settings)
+        startServices(context, settings)
     }
 
-    fun stopAllService(context: Context) {
+    fun stopAllServices(context: Context) {
         context.sendBroadcast(Intent(Consts.BROADCAST_STOP_SERVICE))
     }
 
-    fun startService(context: Context, settings: Settings) {
+    fun startServices(context: Context, settings: Settings) {
         tryStartNotificationListenerService(context)
         tryStartBatteryService(context, settings.isBatteryMonitoring)
         tryStartChatPollingService(context, settings.isChatCommand)
