@@ -9,12 +9,11 @@ import androidx.core.app.ActivityCompat
 import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.common.data.LogRepository
 import com.airfreshener.telegram_sms.common.data.PrefsRepository
+import com.airfreshener.telegram_sms.common.data.TelegramRepository
 import com.airfreshener.telegram_sms.model.ReplyMarkupKeyboard
-import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.model.SmsRequestInfo
 import com.airfreshener.telegram_sms.utils.Consts
 import com.airfreshener.telegram_sms.utils.NetworkUtils
-import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
 import com.airfreshener.telegram_sms.utils.PaperUtils
 import com.airfreshener.telegram_sms.utils.PaperUtils.tryRead
@@ -23,17 +22,13 @@ import com.airfreshener.telegram_sms.utils.SmsUtils
 import com.airfreshener.telegram_sms.utils.UssdUtils
 import com.airfreshener.telegram_sms.utils.isNumeric
 import com.google.gson.JsonObject
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.Request
-import okhttp3.Response
-import java.io.IOException
 import java.util.Locale
 
 class ChatServiceController(
     private val appContext: Context,
     private val prefsRepository: PrefsRepository,
     private val logRepository: LogRepository,
+    private val telegramRepository: TelegramRepository,
 ) {
 
     var botUsername: String = ""
@@ -57,8 +52,6 @@ class ChatServiceController(
         val sendBook = PaperUtils.getSendTempBook()
         var messageType = ""
         val settings = prefsRepository.getSettings()
-        val requestBody = RequestMessage()
-        requestBody.chat_id = settings.chatId
         var messageObj: JsonObject? = null
         if (resultObj.has("message")) {
             messageObj = resultObj["message"].asJsonObject
@@ -82,32 +75,14 @@ class ChatServiceController(
             assert(callbackData != null)
             if (callbackData != Consts.CALLBACK_DATA_VALUE.SEND) {
                 setSmsSendStatusStandby()
-                val requestUri = NetworkUtils.getUrl(settings.botToken, "editMessageText")
-                val dualSim = OtherUtils.getDualSimCardDisplay(appContext, slot, settings.isDisplayDualSim)
-                val sendContent = """
-                    [$dualSim${appContext.getString(R.string.send_sms_head)}]
-                    ${appContext.getString(R.string.to)}$to
-                    ${appContext.getString(R.string.content)}$content
-                    """.trimIndent()
-                requestBody.text = """
-                    $sendContent
-                    ${appContext.getString(R.string.status)}${appContext.getString(R.string.cancel_button)}
-                    """.trimIndent()
-                requestBody.message_id = messageId
-                val body = requestBody.toRequestBody()
-                val okhttpClient = NetworkUtils.getOkhttpObj(settings)
-                val request: Request = Request.Builder().url(requestUri).post(body).build()
-                val call = okhttpClient.newCall(request)
-                try {
-                    val response = call.execute()
-                    val responseBody = response.body
-                    if (response.code != 200 || responseBody == null) {
-                        throw IOException(response.code.toString())
-                    }
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                    logRepository.writeLog("failed to send message:" + e.message)
-                }
+                val message = getSendSmsHead() + "\n" +
+                        appContext.getString(R.string.to) + to + "\n" +
+                        appContext.getString(R.string.content) + content + "\n" +
+                        appContext.getString(R.string.status) + appContext.getString(R.string.cancel_button)
+                telegramRepository.editMessage(
+                    message = message,
+                    messageId = messageId
+                )
                 return
             }
             var subId = -1
@@ -116,7 +91,14 @@ class ChatServiceController(
             } else {
                 subId = OtherUtils.getSubId(appContext, slot)
             }
-            SmsUtils.sendSms(appContext, to, content, slot, subId, messageId)
+            SmsUtils.sendSms(
+                context = appContext,
+                sendTo = to,
+                content = content,
+                slot = slot,
+                subId = subId,
+                messageId = messageId,
+            )
             setSmsSendStatusStandby()
             return
         }
@@ -142,7 +124,6 @@ class ChatServiceController(
             logRepository.writeLog("Chat ID[$fromId] not allow.")
             return
         }
-        var command = ""
         var commandBotUsername = ""
         var requestMsg = ""
         if (messageObj.has("text")) {
@@ -167,6 +148,7 @@ class ChatServiceController(
                 return
             }
         }
+        var command = ""
         if (messageObj.has("entities")) {
             val tempCommand: String
             val tempCommandLowercase: String
@@ -191,6 +173,7 @@ class ChatServiceController(
             return
         }
         Log.d(TAG, "receive_handle: $command")
+        var message: String
         var hasCommand = false
         when (command) {
             "/help", "/start", "/commandlist" -> {
@@ -220,18 +203,18 @@ class ChatServiceController(
                     }
                 }
                 if (command == "/commandlist") {
-                    requestBody.text = """${appContext.getString(R.string.available_command)}
-$smsCommand$ussdCommand""".replace("/", "")
+                    message = """${appContext.getString(R.string.available_command)}
+                        $smsCommand$ussdCommand""".trimIndent()
+                        .replace("/", "")
                 } else {
                     var result = """
                         ${appContext.getString(R.string.available_command)}
                         $smsCommand$ussdCommand
-                        """
-                        .trimIndent()
+                        """.trimIndent()
                     if (!messageTypeIsPrivate && settings.isPrivacyMode && botUsername != "") {
                         result = result.replace(" -", "@$botUsername -")
                     }
-                    requestBody.text = result
+                    message = result
                     hasCommand = true
                 }
             }
@@ -250,7 +233,7 @@ $smsCommand$ussdCommand""".replace("/", "")
                 }
                 val spamList = PaperUtils.getDefaultBook().read("spam_sms_list", ArrayList<String>())!!
                 val spamCount = "${appContext.getString(R.string.spam_count_title)}${spamList.size}"
-                requestBody.text = """
+                message = """
                     ${appContext.getString(R.string.current_battery_level)}${ChatServiceUtils.getBatteryInfo(appContext)}
                     ${appContext.getString(R.string.current_network_connection_status)}${
                     ChatServiceUtils.getNetworkType(
@@ -265,14 +248,13 @@ $smsCommand$ussdCommand""".replace("/", "")
 
             "/log" -> {
                 val cmdList: Array<String?> =
-                    requestMsg.split(" ".toRegex()).dropLastWhile { it.isEmpty() }
-                        .toTypedArray()
+                    requestMsg.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                 var line = 10
                 if (cmdList.size == 2 && cmdList[1].isNumeric()) {
                     val lineCommand = cmdList.getOrNull(1)?.toIntOrNull() ?: line
                     line = lineCommand.coerceAtMost(50)
                 }
-                requestBody.text = logRepository.logs.value.takeLast(line).joinToString(separator = "\n")
+                message = logRepository.logs.value.takeLast(line).joinToString(separator = "\n")
                 hasCommand = true
             }
 
@@ -284,8 +266,7 @@ $smsCommand$ussdCommand""".replace("/", "")
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
                         val commandList =
-                            requestMsg.split(" ".toRegex()).dropLastWhile { it.isEmpty() }
-                                .toTypedArray()
+                            requestMsg.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                         var subId = -1
                         if (OtherUtils.getActiveCard(appContext) == 2) {
                             if (command == "/sendussd2") {
@@ -298,7 +279,7 @@ $smsCommand$ussdCommand""".replace("/", "")
                         }
                     }
                 }
-                requestBody.text = """
+                message = """
                     ${appContext.getString(R.string.unknown_command)}
                     """.trimIndent()
             }
@@ -306,7 +287,7 @@ $smsCommand$ussdCommand""".replace("/", "")
             "/getspamsms" -> {
                 val spamSmsList = PaperUtils.getDefaultBook().read("spam_sms_list", ArrayList<String>())!!
                 if (spamSmsList.size == 0) {
-                    requestBody.text = appContext.getString(R.string.no_spam_history)
+                    message = appContext.getString(R.string.no_spam_history)
                 } else {
                     sendSpamSmsMessage(spamSmsList)
                     return
@@ -362,10 +343,7 @@ $smsCommand$ussdCommand""".replace("/", "")
                     }
                     sendBook.write("slot", sendSlot)
                 }
-                requestBody.text = """
-                    [${appContext.getString(R.string.send_sms_head)}]
-                    ${appContext.getString(R.string.failed_to_get_information)}
-                    """.trimIndent()
+                message = getSendSmsHead() + "\n" + appContext.getString(R.string.failed_to_get_information)
             }
 
             else -> {
@@ -373,23 +351,16 @@ $smsCommand$ussdCommand""".replace("/", "")
                     Log.i(TAG, "receive_handle: The conversation is not Private and does not prompt an error.")
                     return
                 }
-                requestBody.text = """
-                    ${appContext.getString(R.string.unknown_command)}
-                    """.trimIndent()
+                message = appContext.getString(R.string.unknown_command)
             }
         }
         if (hasCommand) {
             setSmsSendStatusStandby()
         }
+        var keyboardMarkup: ReplyMarkupKeyboard.KeyboardMarkup? = null
         if (!hasCommand && sendSmsNextStatus != -1) {
             Log.i(TAG, "receive_handle: Enter the interactive SMS sending mode.")
-            var dualSim = ""
-            val sendSlotTemp = sendBook.read("slot", -1)!!
-            if (sendSlotTemp != -1) {
-                dualSim = "SIM" + (sendSlotTemp + 1) + " "
-            }
-            val head = "[" + dualSim + appContext.getString(R.string.send_sms_head) + "]"
-            var resultSend = appContext.getString(R.string.failed_to_get_information)
+            val resultSend: String
             Log.d(TAG, "Sending mode status: $sendSmsNextStatus")
             when (sendSmsNextStatus) {
                 Consts.SEND_SMS_STATUS.PHONE_INPUT_STATUS -> {
@@ -411,102 +382,59 @@ $smsCommand$ussdCommand""".replace("/", "")
 
                 Consts.SEND_SMS_STATUS.WAITING_TO_SEND_STATUS -> {
                     sendBook.write("content", requestMsg)
-                    val keyboardMarkup = ReplyMarkupKeyboard.KeyboardMarkup()
-                    val inlineKeyboardButtons = ArrayList<ArrayList<ReplyMarkupKeyboard.InlineKeyboardButton>>()
-                    inlineKeyboardButtons.add(
-                        ReplyMarkupKeyboard.getInlineKeyboardObj(
-                            appContext.getString(R.string.send_button),
-                            Consts.CALLBACK_DATA_VALUE.SEND
-                        )
-                    )
-                    inlineKeyboardButtons.add(
-                        ReplyMarkupKeyboard.getInlineKeyboardObj(
-                            appContext.getString(R.string.cancel_button),
-                            Consts.CALLBACK_DATA_VALUE.CANCEL
-                        )
-                    )
-                    keyboardMarkup.inline_keyboard = inlineKeyboardButtons
-                    requestBody.reply_markup = keyboardMarkup
-                    resultSend = """
-                        ${appContext.getString(R.string.to)}${sendBook.read<Any>("to")}
-                        ${appContext.getString(R.string.content)}${
-                        sendBook.read(
-                            "content",
-                            ""
+                    keyboardMarkup = ReplyMarkupKeyboard.KeyboardMarkup().apply {
+                        inline_keyboard = ReplyMarkupKeyboard.getInlineKeyboardObj(
+                            appContext.getString(R.string.send_button) to Consts.CALLBACK_DATA_VALUE.SEND,
+                            appContext.getString(R.string.cancel_button) to Consts.CALLBACK_DATA_VALUE.CANCEL
                         )
                     }
-                        """.trimIndent()
+                    resultSend = appContext.getString(R.string.to) + sendBook.tryRead("to", "") + "\n" +
+                        appContext.getString(R.string.content) + sendBook.tryRead("content", "")
                     sendSmsNextStatus = Consts.SEND_SMS_STATUS.SEND_STATUS
                 }
+                else -> {
+                    resultSend = appContext.getString(R.string.failed_to_get_information)
+                }
             }
-            requestBody.text = """
-                $head
-                $resultSend
-                """.trimIndent()
+            message = getSendSmsHead() + "\n" + resultSend
         }
-        val requestUri = NetworkUtils.getUrl(settings.botToken, "sendMessage")
-        val body = requestBody.toRequestBody()
-        val sendRequest: Request = Request.Builder().url(requestUri).method("POST", body).build()
-        val call = NetworkUtils.getOkhttpObj(settings).newCall(sendRequest)
-        val errorHead = "Send reply failed:"
-        call.enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-                logRepository.writeLog(errorHead + e.message)
-                ResendUtils.addResendLoop(appContext, requestBody.text)
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                val responseString = response.body?.string()
-                if (response.code != 200) {
-                    logRepository.writeLog(errorHead + response.code + " " + responseString)
-                    ResendUtils.addResendLoop(appContext, requestBody.text)
-                }
+        telegramRepository.sendMessage(
+            message = message,
+            keyboardMarkup = keyboardMarkup,
+            onSuccess = { responseMessageId ->
                 if (sendSmsNextStatus == Consts.SEND_SMS_STATUS.SEND_STATUS) {
-                    sendBook.write("message_id", OtherUtils.getMessageId(responseString))
+                    sendBook.write("message_id", responseMessageId ?: -1)
                 }
-            }
-        })
+            },
+            onFailure = { ResendUtils.addResendLoop(appContext, message) },
+        )
     }
 
     private fun sendSpamSmsMessage(spamSmsList: ArrayList<String>) {
-        val settings = prefsRepository.getSettings()
-        Thread {
-            if (NetworkUtils.checkNetworkStatus(appContext)) {
-                val okhttpClient = NetworkUtils.getOkhttpObj(settings)
-                for (item in spamSmsList) {
-                    val sendSmsRequestBody = RequestMessage()
-                    sendSmsRequestBody.chat_id = settings.chatId
-                    sendSmsRequestBody.text = item
-                    val requestUri = NetworkUtils.getUrl(settings.botToken, "sendMessage")
-                    val body = sendSmsRequestBody.toRequestBody()
-                    val requestObj: Request = Request.Builder().url(requestUri).post(body).build()
-                    val call = okhttpClient.newCall(requestObj)
-                    call.enqueue(object : Callback {
-                        override fun onFailure(call: Call, e: IOException) {
-                            Log.d(TAG, "onFailure: " + e.message)
-                            e.printStackTrace()
-                            logRepository.writeLog(e.message.orEmpty())
-                        }
-
-                        override fun onResponse(call: Call, response: Response) {
-                            Log.d(TAG, "onResponse: " + response.code)
-                        }
-                    })
-                    val resendListLocal =
-                        PaperUtils.getDefaultBook().read("spam_sms_list", ArrayList<String?>())!!
-                    resendListLocal.remove(item)
-                    PaperUtils.getDefaultBook().write("spam_sms_list", resendListLocal)
+        if (NetworkUtils.checkNetworkStatus(appContext)) {
+            telegramRepository.sendMessage(
+                message = "Spam sms list:\n" + spamSmsList.joinToString(separator = "\n"),
+                onSuccess = {
+                    PaperUtils.getDefaultBook().write("spam_sms_list", emptyList<String>())
+                    logRepository.writeLog("Send spam message is complete.")
                 }
-            }
-            logRepository.writeLog("Send spam message is complete.")
-        }.start()
+            )
+        }
     }
 
     private fun setSmsSendStatusStandby() {
         Log.d(TAG, "set_sms_send_status_standby: ")
         sendSmsNextStatus = Consts.SEND_SMS_STATUS.STANDBY_STATUS
         PaperUtils.getSendTempBook().destroy()
+    }
+
+    private fun getSendSmsHead(): String {
+        var dualSim = ""
+        val sendSlotTemp = PaperUtils.getSendTempBook().tryRead("slot", -1)
+        if (sendSlotTemp != -1) {
+            dualSim = "SIM" + (sendSlotTemp + 1) + " "
+        }
+        return "[" + dualSim + appContext.getString(R.string.send_sms_head) + "]"
     }
 
     companion object {

@@ -1,9 +1,7 @@
 package com.airfreshener.telegram_sms.utils
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -18,13 +16,13 @@ import com.airfreshener.telegram_sms.utils.ContextUtils.app
 import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import okhttp3.Request
 import java.io.IOException
+import java.util.ArrayList
 
 object SmsUtils {
     fun sendSms(context: Context, sendTo: String, content: String, slot: Int, subId: Int) {
         sendSms(context, sendTo, content, slot, subId, -1)
     }
 
-    @SuppressLint("UnspecifiedImmutableFlag")
     fun sendSms(
         context: Context,
         sendTo: String,
@@ -33,7 +31,7 @@ object SmsUtils {
         subId: Int,
         messageId: Long
     ) {
-        var messageId = messageId
+        var stateMessageId = messageId
         val tag = "send_sms"
         val appContext = context.applicationContext
         if (PermissionChecker.checkSelfPermission(
@@ -53,11 +51,7 @@ object SmsUtils {
         val settings = app.prefsRepository.getSettings()
         val botToken = settings.botToken
         val chatId = settings.chatId
-        var requestUri = NetworkUtils.getUrl(botToken, "sendMessage")
-        if (messageId != -1L) {
-            Log.d(tag, "Find the message_id and switch to edit mode.")
-            requestUri = NetworkUtils.getUrl(botToken, "editMessageText")
-        }
+        val requestUri = NetworkUtils.getUrl(botToken, if (stateMessageId != -1L) "editMessageText" else "sendMessage")
         val requestBody = RequestMessage()
         requestBody.chat_id = chatId
         val smsManager: SmsManager = if (subId == -1) {
@@ -66,16 +60,12 @@ object SmsUtils {
             SmsManager.getSmsManagerForSubscriptionId(subId)
         }
         val dualSim = OtherUtils.getDualSimCardDisplay(appContext, slot, settings.isDisplayDualSim)
-        val sendContent = """
-            [$dualSim${appContext.getString(R.string.send_sms_head)}]
-            ${appContext.getString(R.string.to)}$sendTo
-            ${appContext.getString(R.string.content)}$content
-            """.trimIndent()
-        requestBody.text = """
-            $sendContent
-            ${appContext.getString(R.string.status)}${appContext.getString(R.string.sending)}
-            """.trimIndent()
-        requestBody.message_id = messageId
+        val sendContent = "[" + dualSim + appContext.getString(R.string.send_sms_head) + "]" + "\n" +
+                appContext.getString(R.string.to) + sendTo + "\n" +
+                appContext.getString(R.string.content) + content
+        val status = appContext.getString(R.string.status) + appContext.getString(R.string.sending)
+        requestBody.text = sendContent + "\n" + status
+        requestBody.message_id = stateMessageId
         val body = requestBody.toRequestBody()
         val okHttpClient = NetworkUtils.getOkhttpObj(settings)
         val request: Request = Request.Builder().url(requestUri).post(body).build()
@@ -86,30 +76,25 @@ object SmsUtils {
                 if (response.code != 200 || responseBody == null) {
                     throw IOException(response.code.toString())
                 }
-                if (messageId == -1L) {
-                    messageId = OtherUtils.getMessageId(responseBody.string())
-                }
+                stateMessageId = OtherUtils.getMessageId(responseBody.string())
             }
         } catch (e: IOException) {
             e.printStackTrace()
             logRepository.writeLog("failed to send message:" + e.message)
         }
         val divideContents = smsManager.divideMessage(content)
-        val sendReceiverList = ArrayList<PendingIntent>()
-        val filter = IntentFilter("send_sms")
-        val receiver: BroadcastReceiver = SmsSendReceiver()
-        appContext.registerReceiver(receiver, filter)
+        appContext.registerReceiver(SmsSendReceiver(), IntentFilter("send_sms"), Context.RECEIVER_EXPORTED)
         val sentIntent = Intent("send_sms")
-        sentIntent.putExtra("message_id", messageId)
+        sentIntent.putExtra("message_id", stateMessageId)
         sentIntent.putExtra("message_text", sendContent)
         sentIntent.putExtra("sub_id", smsManager.subscriptionId)
         val flag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         } else {
             PendingIntent.FLAG_CANCEL_CURRENT
         }
         val pendingIntent = PendingIntent.getBroadcast(appContext, 0, sentIntent, flag)
-        sendReceiverList.add(pendingIntent)
+        val sendReceiverList = ArrayList<PendingIntent>().apply { add(pendingIntent) }
         smsManager.sendMultipartTextMessage(sendTo, null, divideContents, sendReceiverList, null)
     }
 

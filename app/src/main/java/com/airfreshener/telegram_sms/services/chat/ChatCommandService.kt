@@ -21,22 +21,24 @@ import com.airfreshener.telegram_sms.utils.ServiceUtils.wifiManager
 
 class ChatCommandService : Service() {
 
-    private val chatRunnable by lazy {
-        ChatThreadMainRunnable(
-            controller = controller,
-            appContext = applicationContext,
-            prefsRepository = prefsRepository,
-            logRepository = logRepository,
-        )
-    }
     private var threadMain: Thread? = null
     private var broadcastReceiver: ChatBroadcastReceiver? = null
     private var wakelock: WakeLock? = null
     private var wifiLock: WifiLock? = null
     private val prefsRepository by lazy { app().prefsRepository }
     private val logRepository by lazy { app().logRepository }
+    private val telegramRepository by lazy { app().telegramRepository }
     private val controller by lazy {
         ChatServiceController(
+            appContext = applicationContext,
+            prefsRepository = prefsRepository,
+            logRepository = logRepository,
+            telegramRepository = telegramRepository,
+        )
+    }
+    private val chatRunnable by lazy {
+        ChatThreadMainRunnable(
+            controller = controller,
             appContext = applicationContext,
             prefsRepository = prefsRepository,
             logRepository = logRepository,

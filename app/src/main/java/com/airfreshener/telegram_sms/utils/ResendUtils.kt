@@ -7,7 +7,6 @@ import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.services.ResendService
 import com.airfreshener.telegram_sms.utils.PaperUtils.DEFAULT_BOOK
 import com.airfreshener.telegram_sms.utils.PaperUtils.tryRead
-import java.lang.StringBuilder
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -15,10 +14,7 @@ object ResendUtils {
     fun addResendLoop(context: Context, message: String?) {
         val resendList: ArrayList<String?> = DEFAULT_BOOK.tryRead("resend_list", ArrayList())
         val simpleDateFormat = SimpleDateFormat(context.getString(R.string.time_format), Locale.UK)
-        val sb = StringBuilder(message ?: "")
-            .append(context.getString(R.string.time))
-            .append(simpleDateFormat.format(Date(System.currentTimeMillis())))
-        resendList.add(sb.toString())
+        resendList.add(message + "\nat " + simpleDateFormat.format(Date(System.currentTimeMillis())))
         DEFAULT_BOOK.write("resend_list", resendList)
         startResend(context)
     }

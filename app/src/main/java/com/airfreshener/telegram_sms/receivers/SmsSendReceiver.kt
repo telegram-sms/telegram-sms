@@ -23,26 +23,18 @@ class SmsSendReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val app = context.app()
         val prefsRepository = app.prefsRepository
-        val logRepository = app.logRepository
+        val telegramRepository = app.telegramRepository
         Log.d(TAG, "Receive action: " + intent.action)
-        val extras = intent.extras!!
-        val sub = extras.getInt("sub_id")
         context.applicationContext.unregisterReceiver(this)
+        val extras = intent.extras
+        if (extras == null) {
+            Log.i(TAG, "Received extras is null")
+            return
+        }
+        val sub = extras.getInt("sub_id")
         if (!prefsRepository.getInitialized()) {
             Log.i(TAG, "Uninitialized, SMS send receiver is deactivated.")
             return
-        }
-        val settings = prefsRepository.getSettings()
-        val botToken = settings.botToken
-        val chatId = settings.chatId
-        val requestBody = RequestMessage()
-        requestBody.chat_id = chatId
-        var requestUri = NetworkUtils.getUrl(botToken, "sendMessage")
-        val messageId = extras.getLong("message_id")
-        if (messageId != -1L) {
-            Log.d(TAG, "Find the message_id and switch to edit mode.")
-            requestUri = NetworkUtils.getUrl(botToken, "editMessageText")
-            requestBody.message_id = messageId
         }
         val resultStatus = when (resultCode) {
             Activity.RESULT_OK -> context.getString(R.string.success)
@@ -51,31 +43,27 @@ class SmsSendReceiver : BroadcastReceiver() {
             SmsManager.RESULT_ERROR_NO_SERVICE -> context.getString(R.string.no_network)
             else -> "Unknown"
         }
-        requestBody.text = """
-            ${extras.getString("message_text")}
-            ${context.getString(R.string.status)}$resultStatus
-            """.trimIndent()
-        val body = requestBody.toRequestBody()
-        val okHttpClient = NetworkUtils.getOkhttpObj(settings)
-        val request: Request = Request.Builder().url(requestUri).post(body).build()
-        val call = okHttpClient.newCall(request)
-        val errorHead = "Send SMS status failed:"
-        call.enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-                logRepository.writeLog(errorHead + e.message)
-                SmsUtils.sendFallbackSms(context, requestBody.text, sub)
-                ResendUtils.addResendLoop(context, requestBody.text)
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                if (response.code != 200) {
-                    assert(response.body != null)
-                    logRepository.writeLog(errorHead + response.code + " " + response.body?.string())
-                    ResendUtils.addResendLoop(context, requestBody.text)
+        val message = extras.getString("message_text") + "\n" +
+                context.getString(R.string.status) + resultStatus
+        val messageId = extras.getLong("message_id")
+        if (messageId == -1L) {
+            telegramRepository.sendMessage(
+                message = message,
+                onFailure = {
+                    SmsUtils.sendFallbackSms(context, message, sub)
+                    ResendUtils.addResendLoop(context, message)
                 }
-            }
-        })
+            )
+        } else {
+            telegramRepository.editMessage(
+                message = message,
+                messageId = messageId,
+                onFailure = {
+                    SmsUtils.sendFallbackSms(context, message, sub)
+                    ResendUtils.addResendLoop(context, message)
+                }
+            )
+        }
     }
 
     companion object {

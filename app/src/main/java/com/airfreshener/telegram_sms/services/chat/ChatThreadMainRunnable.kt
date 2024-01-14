@@ -62,7 +62,7 @@ class ChatThreadMainRunnable(
                 .readTimeout(httpTimeout.toLong(), TimeUnit.SECONDS)
                 .writeTimeout(httpTimeout.toLong(), TimeUnit.SECONDS)
                 .build()
-            Log.d(TAG, "run: Current timeout: " + timeout + "S")
+            Log.d(TAG, "run: Current timeout: " + timeout + "s")
             val requestUri = NetworkUtils.getUrl(settings.botToken, "getUpdates")
             val requestBody = PollingJson()
             requestBody.offset = controller.offset

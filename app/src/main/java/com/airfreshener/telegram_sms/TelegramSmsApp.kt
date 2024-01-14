@@ -5,6 +5,8 @@ import com.airfreshener.telegram_sms.common.data.LogRepository
 import com.airfreshener.telegram_sms.common.data.LogRepositoryImpl
 import com.airfreshener.telegram_sms.common.data.PrefsRepository
 import com.airfreshener.telegram_sms.common.data.SharedPrefsRepository
+import com.airfreshener.telegram_sms.common.data.TelegramRepository
+import com.airfreshener.telegram_sms.common.data.TelegramRepositoryImpl
 import com.airfreshener.telegram_sms.utils.PaperUtils
 
 class TelegramSmsApp : Application() {
@@ -18,6 +20,13 @@ class TelegramSmsApp : Application() {
     }
     val logRepository: LogRepository by lazy {
         LogRepositoryImpl(appContext = applicationContext)
+    }
+
+    val telegramRepository: TelegramRepository by lazy {
+        TelegramRepositoryImpl(
+            prefsRepository = prefsRepository,
+            logRepository = logRepository,
+        )
     }
 
     override fun onCreate() {
