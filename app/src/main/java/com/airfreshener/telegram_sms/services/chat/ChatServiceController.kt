@@ -10,6 +10,7 @@ import com.airfreshener.telegram_sms.R
 import com.airfreshener.telegram_sms.common.data.LogRepository
 import com.airfreshener.telegram_sms.common.data.PrefsRepository
 import com.airfreshener.telegram_sms.common.data.TelegramRepository
+import com.airfreshener.telegram_sms.common.data.UssdRepository
 import com.airfreshener.telegram_sms.model.ReplyMarkupKeyboard
 import com.airfreshener.telegram_sms.model.SmsRequestInfo
 import com.airfreshener.telegram_sms.utils.Consts
@@ -17,9 +18,7 @@ import com.airfreshener.telegram_sms.utils.NetworkUtils
 import com.airfreshener.telegram_sms.utils.OtherUtils
 import com.airfreshener.telegram_sms.utils.PaperUtils
 import com.airfreshener.telegram_sms.utils.PaperUtils.tryRead
-import com.airfreshener.telegram_sms.utils.ResendUtils
 import com.airfreshener.telegram_sms.utils.SmsUtils
-import com.airfreshener.telegram_sms.utils.UssdUtils
 import com.airfreshener.telegram_sms.utils.isNumeric
 import com.google.gson.JsonObject
 import java.util.Locale
@@ -29,6 +28,7 @@ class ChatServiceController(
     private val prefsRepository: PrefsRepository,
     private val logRepository: LogRepository,
     private val telegramRepository: TelegramRepository,
+    private val ussdRepository: UssdRepository,
 ) {
 
     var botUsername: String = ""
@@ -79,10 +79,7 @@ class ChatServiceController(
                         appContext.getString(R.string.to) + to + "\n" +
                         appContext.getString(R.string.content) + content + "\n" +
                         appContext.getString(R.string.status) + appContext.getString(R.string.cancel_button)
-                telegramRepository.editMessage(
-                    message = message,
-                    messageId = messageId
-                )
+                telegramRepository.sendMessage(message = message, messageId = messageId)
                 return
             }
             var subId = -1
@@ -274,14 +271,18 @@ class ChatServiceController(
                             }
                         }
                         if (commandList.size == 2) {
-                            UssdUtils.sendUssd(appContext, commandList[1], subId)
+                            ussdRepository.sendUssd(commandList[1], subId)
                             return
                         }
+                    } else {
+                        telegramRepository.sendMessage("Can't get permission to make call")
+                        return
                     }
+                } else {
+                    telegramRepository.sendMessage("Device does not support sending ussd request automatically")
+                    return
                 }
-                message = """
-                    ${appContext.getString(R.string.unknown_command)}
-                    """.trimIndent()
+                message = appContext.getString(R.string.unknown_command)
             }
 
             "/getspamsms" -> {
@@ -401,12 +402,12 @@ class ChatServiceController(
         telegramRepository.sendMessage(
             message = message,
             keyboardMarkup = keyboardMarkup,
+            resendOnFail = true,
             onSuccess = { responseMessageId ->
                 if (sendSmsNextStatus == Consts.SEND_SMS_STATUS.SEND_STATUS) {
-                    sendBook.write("message_id", responseMessageId ?: -1)
+                    sendBook.write("message_id", responseMessageId)
                 }
             },
-            onFailure = { ResendUtils.addResendLoop(appContext, message) },
         )
     }
 

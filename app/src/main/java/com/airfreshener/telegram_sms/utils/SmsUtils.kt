@@ -10,12 +10,8 @@ import android.telephony.SmsManager
 import android.util.Log
 import androidx.core.content.PermissionChecker
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.receivers.SmsSendReceiver
 import com.airfreshener.telegram_sms.utils.ContextUtils.app
-import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
-import okhttp3.Request
-import java.io.IOException
 import java.util.ArrayList
 
 object SmsUtils {
@@ -31,7 +27,6 @@ object SmsUtils {
         subId: Int,
         messageId: Long
     ) {
-        var stateMessageId = messageId
         val tag = "send_sms"
         val appContext = context.applicationContext
         if (PermissionChecker.checkSelfPermission(
@@ -44,16 +39,12 @@ object SmsUtils {
         }
         val app = context.app()
         val logRepository = app.logRepository
+        val telegramRepository = app.telegramRepository
         if (!OtherUtils.isPhoneNumber(sendTo)) {
             logRepository.writeLog("[$sendTo] is an illegal phone number")
             return
         }
         val settings = app.prefsRepository.getSettings()
-        val botToken = settings.botToken
-        val chatId = settings.chatId
-        val requestUri = NetworkUtils.getUrl(botToken, if (stateMessageId != -1L) "editMessageText" else "sendMessage")
-        val requestBody = RequestMessage()
-        requestBody.chat_id = chatId
         val smsManager: SmsManager = if (subId == -1) {
             SmsManager.getDefault()
         } else {
@@ -64,38 +55,26 @@ object SmsUtils {
                 appContext.getString(R.string.to) + sendTo + "\n" +
                 appContext.getString(R.string.content) + content
         val status = appContext.getString(R.string.status) + appContext.getString(R.string.sending)
-        requestBody.text = sendContent + "\n" + status
-        requestBody.message_id = stateMessageId
-        val body = requestBody.toRequestBody()
-        val okHttpClient = NetworkUtils.getOkhttpObj(settings)
-        val request: Request = Request.Builder().url(requestUri).post(body).build()
-        val call = okHttpClient.newCall(request)
-        try {
-            call.execute().use { response ->
-                val responseBody = response.body
-                if (response.code != 200 || responseBody == null) {
-                    throw IOException(response.code.toString())
+        telegramRepository.sendMessage(
+            message = sendContent + "\n" + status,
+            messageId = messageId,
+            onSuccess = { newMessageId ->
+                val divideContents = smsManager.divideMessage(content)
+                appContext.registerReceiver(SmsSendReceiver(), IntentFilter("send_sms"), Context.RECEIVER_EXPORTED)
+                val sentIntent = Intent("send_sms")
+                sentIntent.putExtra("message_id", newMessageId)
+                sentIntent.putExtra("message_text", sendContent)
+                sentIntent.putExtra("sub_id", smsManager.subscriptionId)
+                val flag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                } else {
+                    PendingIntent.FLAG_CANCEL_CURRENT
                 }
-                stateMessageId = OtherUtils.getMessageId(responseBody.string())
+                val pendingIntent = PendingIntent.getBroadcast(appContext, 0, sentIntent, flag)
+                val sendReceiverList = ArrayList<PendingIntent>().apply { add(pendingIntent) }
+                smsManager.sendMultipartTextMessage(sendTo, null, divideContents, sendReceiverList, null)
             }
-        } catch (e: IOException) {
-            e.printStackTrace()
-            logRepository.writeLog("failed to send message:" + e.message)
-        }
-        val divideContents = smsManager.divideMessage(content)
-        appContext.registerReceiver(SmsSendReceiver(), IntentFilter("send_sms"), Context.RECEIVER_EXPORTED)
-        val sentIntent = Intent("send_sms")
-        sentIntent.putExtra("message_id", stateMessageId)
-        sentIntent.putExtra("message_text", sendContent)
-        sentIntent.putExtra("sub_id", smsManager.subscriptionId)
-        val flag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        } else {
-            PendingIntent.FLAG_CANCEL_CURRENT
-        }
-        val pendingIntent = PendingIntent.getBroadcast(appContext, 0, sentIntent, flag)
-        val sendReceiverList = ArrayList<PendingIntent>().apply { add(pendingIntent) }
-        smsManager.sendMultipartTextMessage(sendTo, null, divideContents, sendReceiverList, null)
+        )
     }
 
     fun sendFallbackSms(context: Context, content: String?, subId: Int) {

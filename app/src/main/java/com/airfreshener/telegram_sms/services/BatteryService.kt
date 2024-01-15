@@ -28,7 +28,7 @@ class BatteryService : Service() {
 
     private var batteryReceiver: BatteryReceiver? = null
     private val prefsRepository by lazy { app().prefsRepository }
-    private val logRepository by lazy { app().logRepository }
+    private val telegramRepository by lazy { app().telegramRepository }
 
     override fun onDestroy() {
         unregisterReceiver(batteryReceiver)
@@ -86,40 +86,18 @@ class BatteryService : Service() {
     }
 
     private fun networkHandle(obj: SendObject) {
-        val settings = prefsRepository.getSettings()
-        val requestBody = RequestMessage()
-        requestBody.chat_id = settings.chatId
-        requestBody.text = obj.content
-        val requestUri: String
-        if (System.currentTimeMillis() - lastReceiveTime <= 5000L && lastReceiveMessageId != -1L) {
-            requestUri = NetworkUtils.getUrl(settings.botToken, "editMessageText")
-            requestBody.message_id = lastReceiveMessageId
-            Log.d(TAG, "onReceive: edit_mode")
-        } else {
-            requestUri = NetworkUtils.getUrl(settings.botToken, "sendMessage")
-        }
+        val message = obj.content ?: return
         lastReceiveTime = System.currentTimeMillis()
-        val okHttpClient = NetworkUtils.getOkhttpObj(settings)
-        val body = requestBody.toRequestBody()
-        val request = Request.Builder().url(requestUri).post(body).build()
-        val call = okHttpClient.newCall(request)
-        val errorHead = "Send battery info failed:"
-        try {
-            val response = call.execute()
-            if (response.code == 200) {
-                lastReceiveMessageId = OtherUtils.getMessageId(response.body?.string())
-            } else {
-                assert(response.body != null)
-                lastReceiveMessageId = -1
-                if (obj.action == Intent.ACTION_BATTERY_LOW) {
-                    SmsUtils.sendFallbackSms(applicationContext, requestBody.text, -1)
-                }
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-            logRepository.writeLog(errorHead + e.message)
+        val messageId = telegramRepository.sendMessageSync(
+            message = message,
+            messageId = lastReceiveMessageId.takeIf { System.currentTimeMillis() - lastReceiveTime <= 5000L },
+        )
+        if (messageId != null) {
+            lastReceiveMessageId = messageId
+        } else {
+            lastReceiveMessageId = -1
             if (obj.action == Intent.ACTION_BATTERY_LOW) {
-                SmsUtils.sendFallbackSms(applicationContext, requestBody.text, -1)
+                SmsUtils.sendFallbackSms(applicationContext, message, -1)
             }
         }
     }

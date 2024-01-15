@@ -7,17 +7,9 @@ import android.content.Intent
 import android.telephony.SmsManager
 import android.util.Log
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.ContextUtils.app
-import com.airfreshener.telegram_sms.utils.NetworkUtils
-import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.ResendUtils
 import com.airfreshener.telegram_sms.utils.SmsUtils
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.Request
-import okhttp3.Response
-import java.io.IOException
 
 class SmsSendReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -45,25 +37,14 @@ class SmsSendReceiver : BroadcastReceiver() {
         }
         val message = extras.getString("message_text") + "\n" +
                 context.getString(R.string.status) + resultStatus
-        val messageId = extras.getLong("message_id")
-        if (messageId == -1L) {
-            telegramRepository.sendMessage(
-                message = message,
-                onFailure = {
-                    SmsUtils.sendFallbackSms(context, message, sub)
-                    ResendUtils.addResendLoop(context, message)
-                }
-            )
-        } else {
-            telegramRepository.editMessage(
-                message = message,
-                messageId = messageId,
-                onFailure = {
-                    SmsUtils.sendFallbackSms(context, message, sub)
-                    ResendUtils.addResendLoop(context, message)
-                }
-            )
-        }
+        telegramRepository.sendMessage(
+            message = message,
+            messageId = extras.getLong("message_id"),
+            onFailure = {
+                SmsUtils.sendFallbackSms(context, message, sub)
+                ResendUtils.addResendLoop(context, message)
+            }
+        )
     }
 
     companion object {

@@ -34,6 +34,7 @@ class ChatCommandService : Service() {
             prefsRepository = prefsRepository,
             logRepository = logRepository,
             telegramRepository = telegramRepository,
+            ussdRepository = app().ussdRepository,
         )
     }
     private val chatRunnable by lazy {

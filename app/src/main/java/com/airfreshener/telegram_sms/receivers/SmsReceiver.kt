@@ -13,10 +13,7 @@ import android.telephony.SubscriptionManager
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.model.RequestMessage
 import com.airfreshener.telegram_sms.utils.ContextUtils.app
-import com.airfreshener.telegram_sms.utils.NetworkUtils
-import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
 import com.airfreshener.telegram_sms.utils.OtherUtils
 import com.airfreshener.telegram_sms.utils.OtherUtils.isReadPhoneStatePermissionGranted
 import com.airfreshener.telegram_sms.utils.PaperUtils.DEFAULT_BOOK
@@ -25,13 +22,7 @@ import com.airfreshener.telegram_sms.utils.PaperUtils.tryRead
 import com.airfreshener.telegram_sms.utils.ResendUtils
 import com.airfreshener.telegram_sms.utils.ServiceUtils
 import com.airfreshener.telegram_sms.utils.SmsUtils
-import com.airfreshener.telegram_sms.utils.UssdUtils
 import com.github.sumimakito.codeauxlib.CodeauxLibPortable
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.Request
-import okhttp3.Response
-import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -43,6 +34,8 @@ class SmsReceiver : BroadcastReceiver() {
         val app = context.app()
         val prefsRepository = app.prefsRepository
         val logRepository = app.logRepository
+        val ussdRepository = app.ussdRepository
+        val telegramRepository = app.telegramRepository
         val extras = intent.extras ?: return
         if (!prefsRepository.getInitialized()) {
             Log.i(TAG, "Uninitialized, SMS receiver is deactivated.")
@@ -57,9 +50,6 @@ class SmsReceiver : BroadcastReceiver() {
         }
 
         val settings = prefsRepository.getSettings()
-        val botToken = settings.botToken
-        val chatId = settings.chatId
-        val requestUri = NetworkUtils.getUrl(botToken, "sendMessage")
         var intentSlot = extras.getInt("slot", -1)
         val subId = extras.getInt("subscription", -1)
         if (OtherUtils.getActiveCard(context) >= 2 && intentSlot == -1) {
@@ -107,8 +97,8 @@ class SmsReceiver : BroadcastReceiver() {
         if (trustedPhoneNumber.isNotEmpty()) {
             isTrustedPhone = messageAddress.contains(trustedPhoneNumber)
         }
-        val requestBody = RequestMessage()
-        requestBody.chat_id = chatId
+        var message: String
+        var parseMode: String? = null
         var messageBodyHtml = messageBody
         val messageHead = """
             [$dualSim${context.getString(R.string.receive_sms_head)}]
@@ -121,7 +111,7 @@ class SmsReceiver : BroadcastReceiver() {
             if (messageBody.length <= 140) {
                 val verification = codeAuxLib.find(messageBody)
                 if (verification != null) {
-                    requestBody.parse_mode = "html"
+                    parseMode = "html"
                     messageBodyHtml = messageBody
                         .replace("<", "&lt;")
                         .replace(">", "&gt;")
@@ -133,7 +123,7 @@ class SmsReceiver : BroadcastReceiver() {
                 logRepository.writeLog("SMS exceeds 140 characters, no verification code is recognized.")
             }
         }
-        requestBody.text = messageHead + messageBodyHtml
+        message = messageHead + messageBodyHtml
         if (isTrustedPhone) {
             logRepository.writeLog("SMS from trusted mobile phone detected")
             val messageCommand =
@@ -147,7 +137,7 @@ class SmsReceiver : BroadcastReceiver() {
                     "/restartservice" -> {
                         Thread { ServiceUtils.restartServices(context, settings) }.start()
                         rawRequestBodyText = context.getString(R.string.restart_service)
-                        requestBody.text = rawRequestBodyText
+                        message = rawRequestBodyText
                     }
 
                     "/sendsms", "/sendsms1", "/sendsms2" -> {
@@ -200,7 +190,7 @@ class SmsReceiver : BroadcastReceiver() {
                             ) == PackageManager.PERMISSION_GRANTED
                         ) {
                             if (messageList.size == 2) {
-                                UssdUtils.sendUssd(context, messageList[1], subId)
+                                ussdRepository.sendUssd(messageList[1], subId)
                                 return
                             }
                         }
@@ -221,7 +211,7 @@ class SmsReceiver : BroadcastReceiver() {
                     val simpleDateFormat =
                         SimpleDateFormat(context.getString(R.string.time_format), Locale.UK)
                     val writeMessage = """
-                        ${requestBody.text}
+                        $message
                         ${context.getString(R.string.time)}${simpleDateFormat.format(Date(System.currentTimeMillis()))}
                         """.trimIndent()
                     val spamSmsList: ArrayList<String> =
@@ -236,36 +226,21 @@ class SmsReceiver : BroadcastReceiver() {
                 }
             }
         }
-        val body = requestBody.toRequestBody()
-        val okHttpClient = NetworkUtils.getOkhttpObj(settings)
-        val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
-        val call = okHttpClient.newCall(request)
-        val errorHead = "Send SMS forward failed: "
-        val finalRawRequestBodyText = rawRequestBodyText
-        call.enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-                logRepository.writeLog(errorHead + e.message)
-                SmsUtils.sendFallbackSms(context, finalRawRequestBodyText, subId)
-                ResendUtils.addResendLoop(context, requestBody.text)
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                val responseBody = response.body ?: return
-                val result = responseBody.string()
-                if (response.code != 200) {
-                    logRepository.writeLog(errorHead + response.code + " " + result)
-                    SmsUtils.sendFallbackSms(context, finalRawRequestBodyText, subId)
-                    ResendUtils.addResendLoop(context, requestBody.text)
+        telegramRepository.sendMessage(
+            message = message,
+            parseMode = parseMode,
+            onSuccess = { messageId ->
+                if (!OtherUtils.isPhoneNumber(messageAddress)) {
+                    logRepository.writeLog("[$messageAddress] Not a regular phone number.")
                 } else {
-                    if (!OtherUtils.isPhoneNumber(messageAddress)) {
-                        logRepository.writeLog("[$messageAddress] Not a regular phone number.")
-                        return
-                    }
-                    OtherUtils.addMessageList(OtherUtils.getMessageId(result), messageAddress, slot)
+                    OtherUtils.addMessageList(messageId, messageAddress, slot)
                 }
+            },
+            onFailure = {
+                SmsUtils.sendFallbackSms(context, rawRequestBodyText, subId)
+                ResendUtils.addResendLoop(context, message)
             }
-        })
+        )
     }
 
     companion object {

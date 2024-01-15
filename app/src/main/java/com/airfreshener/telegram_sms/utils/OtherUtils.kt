@@ -108,10 +108,11 @@ object OtherUtils {
         return true
     }
 
-    fun getMessageId(result: String?): Long {
-        if (result == null) return -1
-        val resultObj = JsonParser.parseString(result).asJsonObject["result"].asJsonObject
-        return resultObj["message_id"].asLong
+    fun getMessageId(result: String?): Long? {
+        if (result == null) return null
+        return runCatching {
+            JsonParser.parseString(result).asJsonObject["result"].asJsonObject["message_id"].asLong
+        }.getOrNull()
     }
 
     fun getNotificationObj(context: Context, notificationName: String): Notification {

@@ -214,9 +214,10 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         progressDialog.show()
 
         val requestUri = NetworkUtils.getUrl(newSettings.botToken, "sendMessage")
-        val requestBody = RequestMessage()
-        requestBody.chat_id = newSettings.chatId
-        requestBody.text = appContext.getString(R.string.success_connect)
+        val requestBody = RequestMessage().apply {
+            chat_id = newSettings.chatId
+            text = appContext.getString(R.string.success_connect)
+        }
         val body = requestBody.toRequestBody()
         val okhttpClient = NetworkUtils.getOkhttpObj(newSettings)
         val request: Request = Request.Builder().url(requestUri).post(body).build()

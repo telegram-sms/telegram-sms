@@ -6,34 +6,15 @@ import android.telephony.TelephonyManager
 import android.telephony.TelephonyManager.UssdResponseCallback
 import androidx.annotation.RequiresApi
 import com.airfreshener.telegram_sms.R
-import com.airfreshener.telegram_sms.model.RequestMessage
-import com.airfreshener.telegram_sms.model.Settings
 import com.airfreshener.telegram_sms.utils.ContextUtils.app
-import com.airfreshener.telegram_sms.utils.OkHttpUtils.toRequestBody
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.Request
-import okhttp3.Response
-import java.io.IOException
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 class UssdRequestCallback(
     private val context: Context,
-    private val settings: Settings,
-    messageId: Long
+    private val messageId: Long,
 ) : UssdResponseCallback() {
-    private var requestUri: String
     private val messageHeader: String = context.getString(R.string.send_ussd_head)
-    private val requestBody: RequestMessage = RequestMessage().apply { chat_id = settings.chatId }
-    private val logRepository by lazy { context.app().logRepository }
-
-    init {
-        requestUri = NetworkUtils.getUrl(settings.botToken, "SendMessage")
-        if (messageId != -1L) {
-            requestUri = NetworkUtils.getUrl(settings.botToken, "editMessageText")
-            requestBody.message_id = messageId
-        }
-    }
+    private val telegramRepository by lazy { context.app().telegramRepository }
 
     override fun onReceiveUssdResponse(
         telephonyManager: TelephonyManager,
@@ -41,11 +22,9 @@ class UssdRequestCallback(
         response: CharSequence
     ) {
         super.onReceiveUssdResponse(telephonyManager, request, response)
-        val message = """
-            $messageHeader
-            ${context.getString(R.string.request)}$request
-            ${context.getString(R.string.content)}$response
-            """.trimIndent()
+        val message = messageHeader + "\n" +
+            context.getString(R.string.request) + request + "\n" +
+            context.getString(R.string.content) + response
         networkProgressHandle(message)
     }
 
@@ -55,38 +34,21 @@ class UssdRequestCallback(
         failureCode: Int
     ) {
         super.onReceiveUssdResponseFailed(telephonyManager, request, failureCode)
-        val message = """
-            $messageHeader
-            ${context.getString(R.string.request)}$request
-            ${context.getString(R.string.error_message)}${getErrorCodeString(failureCode)}
-            """.trimIndent()
+        val message = messageHeader + "\n" +
+            context.getString(R.string.request) + request + "\n" +
+            context.getString(R.string.error_message) + getErrorCodeString(failureCode)
         networkProgressHandle(message)
     }
 
     private fun networkProgressHandle(message: String) {
-        requestBody.text = message
-        val body = requestBody.toRequestBody()
-        val okHttpClient = NetworkUtils.getOkhttpObj(settings)
-        val requestObj: Request = Request.Builder().url(requestUri).post(body).build()
-        val call = okHttpClient.newCall(requestObj)
-        val errorHead = "Send USSD failed:"
-        call.enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-                logRepository.writeLog(errorHead + e.message)
-                SmsUtils.sendFallbackSms(context, requestBody.text, -1)
-                ResendUtils.addResendLoop(context, requestBody.text)
+        telegramRepository.sendMessage(
+            message = message,
+            messageId = messageId,
+            onFailure = {
+                SmsUtils.sendFallbackSms(context, message, -1)
+                ResendUtils.addResendLoop(context, message)
             }
-
-            override fun onResponse(call: Call, response: Response) {
-                if (response.code != 200) {
-                    val responseBody = response.body ?: return
-                    logRepository.writeLog(errorHead + response.code + " " + responseBody.string())
-                    SmsUtils.sendFallbackSms(context, requestBody.text, -1)
-                    ResendUtils.addResendLoop(context, requestBody.text)
-                }
-            }
-        })
+        )
     }
 
     private fun getErrorCodeString(errorCode: Int): String {
