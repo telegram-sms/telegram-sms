@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.qwe7002.telegram_sms">
+    package="com.airfreshener.telegram_sms">
+
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.SEND_SMS" />
@@ -23,6 +27,7 @@
         tools:ignore="QueryAllPackagesPermission" />
 
     <application
+        android:name=".TelegramSmsApp"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -35,21 +40,21 @@
         tools:targetApi="n">
 
         <activity
-            android:name=".spam_list_activity"
+            android:name=".spamListScreen.SpamListActivity"
             android:label="@string/spam_sms_keyword_title"
             android:exported="true" />
 
 
-        <service android:name=".resend_service"
+        <service android:name=".services.ResendService"
             android:exported="false"/>
 
         <activity
-            android:name=".notify_apps_list_activity"
+            android:name=".notificationScreen.NotifyAppsListActivity"
             android:windowSoftInputMode="adjustPan"
             android:exported="false" />
 
         <service
-            android:name=".notification_listener_service"
+            android:name=".services.NotificationListenerService"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:exported="true">
@@ -58,13 +63,14 @@
             </intent-filter>
         </service>
         <service
-            android:name=".chat_command_service"
+            android:name=".services.chat.ChatCommandService"
             android:enabled="true"
             android:exported="false"
             android:permission="android.permission.INTERNET"
             android:process=":command" />
         <service
-            android:name=".battery_service"
+            android:name=".services.BatteryService"
+            android:foregroundServiceType="shortService"
             android:enabled="true"
             android:exported="false"
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE"
@@ -81,7 +87,7 @@
             </intent-filter>
         </service>
 
-        <receiver android:name=".boot_receiver"
+        <receiver android:name=".receivers.BootReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -91,8 +97,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </receiver>
+
         <receiver
-            android:name=".sms_receiver"
+            android:name=".receivers.SmsReceiver"
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
@@ -101,8 +108,9 @@
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>
+
         <receiver
-            android:name=".wap_receiver"
+            android:name=".receivers.WapReceiver"
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.BROADCAST_WAP_PUSH">
@@ -112,7 +120,8 @@
                 <data android:mimeType="application/vnd.wap.mms-message" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".call_receiver"
+
+        <receiver android:name=".receivers.CallReceiver"
             android:exported="true">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.intent.action.PHONE_STATE" />
@@ -121,15 +130,15 @@
         </receiver>
 
         <activity
-            android:name=".qrcode_show_activity"
+            android:name=".qrCodeScreen.QrCodeShowActivity"
             android:label="@string/transfer_configuration"
             android:exported="false" />
-        <activity android:name=".logcat_activity"
+        <activity android:name=".logScreen.LogcatActivity"
             android:exported="false" />
-        <activity android:name=".scanner_activity"
+        <activity android:name=".scannerScreen.ScannerActivity"
             android:exported="false"/>
         <activity
-            android:name=".main_activity"
+            android:name=".mainScreen.MainActivity"
             android:windowSoftInputMode="adjustPan"
             android:exported="true"
             tools:ignore="Instantiatable,IntentFilterExportedReceiver">

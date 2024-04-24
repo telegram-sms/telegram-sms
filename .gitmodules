@@ -1,6 +1,3 @@
-[submodule "app/language_pack"]
-	path = app/language_pack
-	url = https://github.com/telegram-sms/language_pack.git
 [submodule "app/src/main/java/com/github/sumimakito/awesomeqrcode"]
 	path = app/src/main/java/com/github/sumimakito/awesomeqrcode
 	url = https://github.com/telegram-sms/AwesomeQrRenderer.git

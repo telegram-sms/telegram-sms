@@ -1,75 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".main_activity">
-
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:alpha="@dimen/alpha"
-        android:scaleType="fitEnd"
-        android:src="@drawable/character_set"
-        tools:ignore="ContentDescription" />
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".mainScreen.MainActivity">
 
     <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:ignore="UselessParent">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:ignore="UselessParent">
+
         <LinearLayout
-                android:layout_width="match_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-                android:paddingLeft="@dimen/activity_horizontal_margin"
-                android:paddingTop="@dimen/activity_vertical_margin"
-                android:paddingRight="@dimen/activity_horizontal_margin"
-                android:paddingBottom="@dimen/activity_vertical_margin"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="16dp">
+
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
                 <EditText
-                        android:id="@+id/bot_token_editview"
+                    android:id="@+id/bot_token_editview"
                     android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="@string/bot_token"
-                        android:importantForAutofill="no"
-                        android:inputType="text"
-                        android:maxLines="1"
-                        android:singleLine="true"
-                        tools:ignore="TextFields" />
+                    android:layout_height="wrap_content"
+                    android:hint="@string/bot_token"
+                    android:importantForAutofill="no"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    tools:ignore="TextFields,TouchTargetSizeCheck" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
+
                 <EditText
                     android:id="@+id/chat_id_editview"
                     android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="@string/chat_id"
-                        android:importantForAutofill="no"
-                        android:inputType="numberSigned"
-                        android:maxLines="1"
-                        android:singleLine="true"
-                        tools:ignore="TextFields" />
+                    android:layout_height="wrap_content"
+                    android:hint="@string/chat_id"
+                    android:importantForAutofill="no"
+                    android:inputType="numberSigned"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    tools:ignore="TextFields,TouchTargetSizeCheck" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
+
                 <EditText
                     android:id="@+id/trusted_phone_number_editview"
                     android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="@string/trusted_phone_number"
-                        android:importantForAutofill="no"
-                        android:inputType="phone"
-                        android:maxLines="1"
-                        android:singleLine="true"
-                        tools:ignore="TextFields" />
+                    android:layout_height="wrap_content"
+                    android:hint="@string/trusted_phone_number"
+                    android:importantForAutofill="no"
+                    android:inputType="phone"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    tools:ignore="TextFields,TouchTargetSizeCheck" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.switchmaterial.SwitchMaterial
@@ -78,7 +72,7 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="3dp"
                 android:text="@string/network_error_falls_back_to_sms"
-                tools:ignore="RtlSymmetry" />
+                tools:ignore="RtlSymmetry,TouchTargetSizeCheck" />
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/battery_monitoring_switch"
@@ -86,7 +80,7 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="3dp"
                 android:text="@string/battery_monitoring"
-                tools:ignore="RtlSymmetry" />
+                tools:ignore="RtlSymmetry,TouchTargetSizeCheck" />
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/charger_status_switch"
@@ -94,7 +88,7 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="3dp"
                 android:text="@string/charger_status"
-                tools:ignore="RtlSymmetry" />
+                tools:ignore="RtlSymmetry,TouchTargetSizeCheck" />
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/chat_command_switch"
@@ -102,7 +96,7 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="3dp"
                 android:text="@string/chat_command"
-                tools:ignore="RtlSymmetry" />
+                tools:ignore="RtlSymmetry,TouchTargetSizeCheck" />
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/verification_code_switch"
@@ -110,7 +104,7 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="3dp"
                 android:text="@string/using_verification_code_identification"
-                tools:ignore="RtlSymmetry" />
+                tools:ignore="RtlSymmetry,TouchTargetSizeCheck" />
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/display_dual_sim_switch"
@@ -118,7 +112,7 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="3dp"
                 android:text="@string/display_sim_card_alias_in_dual_card_mode"
-                tools:ignore="RtlSymmetry" />
+                tools:ignore="RtlSymmetry,TouchTargetSizeCheck" />
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/privacy_switch"
@@ -126,7 +120,7 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="3dp"
                 android:text="@string/using_privacy_mode"
-                tools:ignore="RtlSymmetry" />
+                tools:ignore="RtlSymmetry,TouchTargetSizeCheck" />
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/doh_switch"
@@ -134,22 +128,60 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="3dp"
                 android:text="@string/using_doh"
-                tools:ignore="RtlSymmetry" />
+                tools:ignore="RtlSymmetry,TouchTargetSizeCheck" />
 
             <Button
                 android:id="@+id/get_id_button"
                 android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                android:layout_height="wrap_content"
                 android:alpha="@dimen/button_alpha"
-                    android:text="@string/get_recent_chat_id" />
+                android:text="@string/get_recent_chat_id" />
 
             <Button
                 android:id="@+id/save_button"
                 android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                android:layout_height="wrap_content"
                 android:alpha="@dimen/button_alpha"
-                    android:text="@string/test_and_save" />
+                android:text="@string/test_and_save" />
+
+            <Button
+                android:id="@+id/stop_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:alpha="@dimen/button_alpha"
+                android:text="@string/stop_services" />
+
+            <Button
+                android:id="@+id/update_services_status_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:alpha="@dimen/button_alpha"
+                android:text="@string/update_services_status_services" />
+
+            <TextView
+                android:id="@+id/servicesStatusTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" />
 
         </LinearLayout>
     </ScrollView>
+
+    <FrameLayout
+        android:id="@+id/progressView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.6"
+        android:background="@color/ic_launcher_background">
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progressIndicator"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            app:indicatorSize="48dp"
+            app:trackColor="@color/colorAccent" />
+
+    </FrameLayout>
 </FrameLayout>
