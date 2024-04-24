@@ -15,14 +15,14 @@ jobs:
                 uses: actions/setup-java@v1
                 with:
                     java-version: 1.8
-            -   name: Setting up the system environment
-                run: cp ./.github/workflows/github-action-only.jks ./app/keys.jks
+#            -   name: Setting up the system environment
+#                run: cp ./.github/workflows/github-action-only.jks ./app/keys.jks
 #            -   name: Install NDK
 #                run: echo "y" | sudo ${ANDROID_HOME}/tools/bin/sdkmanager --install "ndk;21.0.6113669"
-            -   name: Build with Gradle
-                run: export KEYSTORE_PASS=000000000 && export ALIAS_NAME="key0" && export ALIAS_PASS=111111111 && export VERSION_CODE=1 && export VERSION_NAME="GITHUB-${GITHUB_SHA}" && ./gradlew assembleRelease
-            -   name: Upload artifact
-                uses: actions/upload-artifact@master
-                with:
-                    name: telegram-sms
-                    path: app/build/outputs/apk/release/app-release.apk
+#            -   name: Build with Gradle
+#                run: export KEYSTORE_PASS=000000000 && export ALIAS_NAME="key0" && export ALIAS_PASS=111111111 && export VERSION_CODE=1 && export VERSION_NAME="GITHUB-${GITHUB_SHA}" && ./gradlew assembleRelease
+#            -   name: Upload artifact
+#                uses: actions/upload-artifact@master
+#                with:
+#                    name: telegram-sms
+#                    path: app/build/outputs/apk/release/app-release.apk
