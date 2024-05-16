@@ -471,7 +471,7 @@ public class chat_command_service extends Service {
         return START_STICKY;
     }
 
-    @SuppressLint({"InvalidWakeLockTag", "WakelockTimeout"})
+    @SuppressLint({"InvalidWakeLockTag", "WakelockTimeout", "UnspecifiedRegisterReceiverFlag"})
     @Override
     public void onCreate() {
         super.onCreate();

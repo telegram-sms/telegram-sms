@@ -1,7 +1,7 @@
 # Telegram SMS
 
 <p align="center">
-<img src="https://vip1.static.reallct.com/2020/09/28/PzWnqVZgcbE7wCv.png" alt="Telegram SMS">
+<img src="https://vip1.loli.net/2020/09/28/PzWnqVZgcbE7wCv.png" alt="Telegram SMS">
 </p>
 
 ![Min Android Version](https://img.shields.io/badge/Min%20Android%20Version-5.1-orange.svg?style=flat-square)
