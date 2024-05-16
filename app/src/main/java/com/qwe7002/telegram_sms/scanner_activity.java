@@ -11,7 +11,7 @@ import com.budiyev.android.codescanner.CodeScannerView;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.zxing.BarcodeFormat;
-import com.qwe7002.telegram_sms.value.const_value;
+import com.qwe7002.telegram_sms.value.constValue;
 
 import java.util.ArrayList;
 
@@ -25,7 +25,9 @@ public class scanner_activity extends Activity {
         setContentView(R.layout.activity_scanner);
         CodeScannerView scannerView = findViewById(R.id.scanner_view);
         mCodeScanner = new CodeScanner(this, scannerView);
-        mCodeScanner.setFormats(new ArrayList<BarcodeFormat>(){{add(BarcodeFormat.QR_CODE);}});
+        mCodeScanner.setFormats(new ArrayList<>() {{
+            add(BarcodeFormat.QR_CODE);
+        }});
         mCodeScanner.setDecodeCallback(result -> runOnUiThread(() -> {
             String TAG = "activity_scanner";
             Log.d(TAG, "format: " + result.getBarcodeFormat().toString() + " content: " + result.getText());
@@ -35,7 +37,7 @@ public class scanner_activity extends Activity {
                 return;
             }
             Intent intent = new Intent().putExtra("config_json", result.getText());
-            setResult(const_value.RESULT_CONFIG_JSON, intent);
+            setResult(constValue.RESULT_CONFIG_JSON, intent);
             finish();
         }));
         scannerView.setOnClickListener(view -> mCodeScanner.startPreview());

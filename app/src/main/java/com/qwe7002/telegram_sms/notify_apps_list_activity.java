@@ -85,7 +85,7 @@ public class notify_apps_list_activity extends AppCompatActivity {
 
         appList.setAdapter(appAdapter);
         new Thread(() -> {
-            final List<appInfo> appInfoList = scanAppList(notify_apps_list_activity.this.getPackageManager());
+            final List<appInfo> appInfoList = scanAppList(this.getPackageManager());
             runOnUiThread(() -> {
                 ProgressBar progressBar = findViewById(R.id.progress_view);
                 progressBar.setVisibility(View.GONE);

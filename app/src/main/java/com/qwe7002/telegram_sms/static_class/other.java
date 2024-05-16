@@ -26,10 +26,10 @@ import java.util.Map;
 import io.paperdb.Paper;
 
 
-public class otherFunc {
+public class other {
 
     public static String getNineKeyMapConvert(String input) {
-        final Map<Character, Integer> nineKeyMap = new HashMap<Character, Integer>() {
+        final Map<Character, Integer> nineKeyMap = new HashMap<>() {
             {
                 put('A', 2);
                 put('B', 2);
@@ -71,7 +71,7 @@ public class otherFunc {
         return result.toString();
     }
 
-    public static long parse_string_to_long(String content) {
+    public static long parseStringToLong(String content) {
         long result = 0;
         try {
             result = Long.parseLong(content);
@@ -99,7 +99,7 @@ public class otherFunc {
         if (slot == -1) {
             return dualSim;
         }
-        if (otherFunc.getActiveCard(context) >= 2) {
+        if (other.getActiveCard(context) >= 2) {
             String result = "";
             if (show_name) {
                 result = "(" + getSimDisplayName(context, slot) + ")";
@@ -124,7 +124,7 @@ public class otherFunc {
     }
 
 
-    public static long get_message_id(String result) {
+    public static long getMessageId(String result) {
         JsonObject result_obj = JsonParser.parseString(result).getAsJsonObject().get("result").getAsJsonObject();
         return result_obj.get("message_id").getAsLong();
     }
@@ -152,7 +152,7 @@ public class otherFunc {
     }
 
     public static int getSubId(Context context, int slot) {
-        int active_card = otherFunc.getActiveCard(context);
+        int active_card = other.getActiveCard(context);
         if (active_card >= 2) {
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
                 return -1;
@@ -203,7 +203,7 @@ public class otherFunc {
     }
 
 
-    public static void add_message_list(long messageId, String phone, int slot) {
+    public static void addMessageList(long messageId, String phone, int slot) {
         smsRequestInfo item = new smsRequestInfo();
         item.phone = phone;
         item.card = slot;

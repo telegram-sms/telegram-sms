@@ -3,7 +3,7 @@ package com.qwe7002.telegram_sms.data_structure;
 import java.util.ArrayList;
 
 @SuppressWarnings({"unused", "RedundantSuppression"})
-public class reply_markup_keyboard {
+public class replyMarkupKeyboard {
     public static ArrayList<InlineKeyboardButton> get_inline_keyboard_obj(String text, String callback_data) {
         InlineKeyboardButton button = new InlineKeyboardButton();
         button.text = text;

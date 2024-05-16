@@ -59,7 +59,8 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:id="@+id/message_thread_id_view">
 
                 <EditText
                     android:id="@+id/message_thread_id_editview"
@@ -155,9 +156,9 @@
             <Button
                 android:id="@+id/get_id_button"
                 android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                android:layout_height="wrap_content"
                 android:alpha="@dimen/button_alpha"
-                    android:text="@string/get_recent_chat_id" />
+                android:text="@string/get_recent_chat_id" />
 
             <Button
                 android:id="@+id/save_button"

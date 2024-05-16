@@ -20,30 +20,30 @@ public class qrcode_show_activity extends AppCompatActivity {
         setContentView(R.layout.activity_qrcode);
         Context context = getApplicationContext();
         SharedPreferences sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE);
-        config_list config = new config_list();
-        config.bot_token = sharedPreferences.getString("bot_token", "");
-        config.chat_id = sharedPreferences.getString("chat_id", "");
-        config.trusted_phone_number = sharedPreferences.getString("trusted_phone_number", "");
-        config.fallback_sms = sharedPreferences.getBoolean("fallback_sms", false);
-        config.chat_command = sharedPreferences.getBoolean("chat_command", false);
-        config.battery_monitoring_switch = sharedPreferences.getBoolean("battery_monitoring_switch", false);
-        config.charger_status = sharedPreferences.getBoolean("charger_status", false);
-        config.verification_code = sharedPreferences.getBoolean("verification_code", false);
-        config.privacy_mode = sharedPreferences.getBoolean("privacy_mode", false);
-        ImageView qr_image_imageview = findViewById(R.id.qr_imageview);
-        qr_image_imageview.setImageBitmap(new AwesomeQrRenderer().genQRcodeBitmap(new Gson().toJson(config), ErrorCorrectionLevel.H, 1024, 1024));
+        configList config = new configList();
+        config.botToken = sharedPreferences.getString("bot_token", "");
+        config.chatId = sharedPreferences.getString("chat_id", "");
+        config.trustedPhoneNumber = sharedPreferences.getString("trusted_phone_number", "");
+        config.fallbackSMS = sharedPreferences.getBoolean("fallback_sms", false);
+        config.chatCommand = sharedPreferences.getBoolean("chat_command", false);
+        config.batteryMonitoring = sharedPreferences.getBoolean("battery_monitoring_switch", false);
+        config.chargerStatus = sharedPreferences.getBoolean("charger_status", false);
+        config.verificationCode = sharedPreferences.getBoolean("verification_code", false);
+        config.privacyMode = sharedPreferences.getBoolean("privacy_mode", false);
+        ImageView qrCodeImageview = findViewById(R.id.qr_imageview);
+        qrCodeImageview.setImageBitmap(new AwesomeQrRenderer().genQRcodeBitmap(new Gson().toJson(config), ErrorCorrectionLevel.H, 1024, 1024));
     }
 
 
-    private static class config_list {
-        String bot_token = "";
-        String chat_id = "";
-        String trusted_phone_number = "";
-        boolean fallback_sms = false;
-        boolean chat_command = false;
-        boolean battery_monitoring_switch = false;
-        boolean charger_status = false;
-        boolean verification_code = false;
-        boolean privacy_mode = false;
+    private static class configList {
+        String botToken = "";
+        String chatId = "";
+        String trustedPhoneNumber = "";
+        boolean fallbackSMS = false;
+        boolean chatCommand = false;
+        boolean batteryMonitoring = false;
+        boolean chargerStatus = false;
+        boolean verificationCode = false;
+        boolean privacyMode = false;
     }
 }

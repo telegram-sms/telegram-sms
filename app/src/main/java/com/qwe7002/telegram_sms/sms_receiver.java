@@ -20,15 +20,15 @@ import androidx.core.app.ActivityCompat;
 import com.github.sumimakito.codeauxlib.CodeauxLibPortable;
 import com.google.gson.Gson;
 import com.qwe7002.telegram_sms.config.proxy;
-import com.qwe7002.telegram_sms.data_structure.request_message;
-import com.qwe7002.telegram_sms.static_class.logFunc;
-import com.qwe7002.telegram_sms.static_class.networkFunc;
-import com.qwe7002.telegram_sms.static_class.otherFunc;
-import com.qwe7002.telegram_sms.static_class.resendFunc;
-import com.qwe7002.telegram_sms.static_class.serviceFunc;
-import com.qwe7002.telegram_sms.static_class.smsFunc;
-import com.qwe7002.telegram_sms.static_class.ussdFunc;
-import com.qwe7002.telegram_sms.value.const_value;
+import com.qwe7002.telegram_sms.data_structure.sendMessageBody;
+import com.qwe7002.telegram_sms.static_class.log;
+import com.qwe7002.telegram_sms.static_class.network;
+import com.qwe7002.telegram_sms.static_class.other;
+import com.qwe7002.telegram_sms.static_class.resend;
+import com.qwe7002.telegram_sms.static_class.service;
+import com.qwe7002.telegram_sms.static_class.sms;
+import com.qwe7002.telegram_sms.static_class.ussd;
+import com.qwe7002.telegram_sms.value.constValue;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -69,11 +69,11 @@ public class sms_receiver extends BroadcastReceiver {
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String message_thread_id = sharedPreferences.getString("message_thread_id", "");
-        String request_uri = networkFunc.getUrl(bot_token, "sendMessage");
+        String request_uri = network.getUrl(bot_token, "sendMessage");
 
         int intentSlot = extras.getInt("slot", -1);
         final int subId = extras.getInt("subscription", -1);
-        if (otherFunc.getActiveCard(context) >= 2 && intentSlot == -1) {
+        if (other.getActiveCard(context) >= 2 && intentSlot == -1) {
             SubscriptionManager manager = SubscriptionManager.from(context);
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                 SubscriptionInfo info = manager.getActiveSubscriptionInfo(subId);
@@ -81,7 +81,7 @@ public class sms_receiver extends BroadcastReceiver {
             }
         }
         final int slot = intentSlot;
-        String dualSim = otherFunc.getDualSimCardDisplay(context, intentSlot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
+        String dualSim = other.getDualSimCardDisplay(context, intentSlot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
 
         Object[] pdus = (Object[]) extras.get("pdus");
         assert pdus != null;
@@ -94,7 +94,7 @@ public class sms_receiver extends BroadcastReceiver {
             }
         }
         if (messages.length == 0) {
-            logFunc.writeLog(context, "Message length is equal to 0.");
+            log.writeLog(context, "Message length is equal to 0.");
             return;
         }
 
@@ -112,33 +112,33 @@ public class sms_receiver extends BroadcastReceiver {
         if (trusted_phone_number != null && trusted_phone_number.length() != 0) {
             isTrustedPhone = messageAddress.contains(trusted_phone_number);
         }
-        final request_message request_body = new request_message();
-        request_body.chat_id = chat_id;
-        request_body.message_thread_id = message_thread_id;
+        final sendMessageBody requestBody = new sendMessageBody();
+        requestBody.chat_id = chat_id;
+        requestBody.message_thread_id = message_thread_id;
 
         String message_body_html = message_body;
         final String message_head = "[" + dualSim + context.getString(R.string.receive_sms_head) + "]" + "\n" + context.getString(R.string.from) + messageAddress + "\n" + context.getString(R.string.content);
-        String raw_request_body_text = message_head + message_body;
-        boolean is_verification_code = false;
+        String rawRequestBodyText = message_head + message_body;
+        boolean isVerificationCode = false;
         if (sharedPreferences.getBoolean("verification_code", false) && !isTrustedPhone) {
             if (message_body.length() <= 140) {
                 String verification = code_aux_lib.find(message_body);
                 if (verification != null) {
-                    request_body.parse_mode = "html";
+                    requestBody.parse_mode = "html";
                     message_body_html = message_body
                             .replace("<", "&lt;")
                             .replace(">", "&gt;")
                             .replace("&", "&amp;")
                             .replace(verification, "<code>" + verification + "</code>");
-                    is_verification_code = true;
+                    isVerificationCode = true;
                 }
             } else {
-                logFunc.writeLog(context, "SMS exceeds 140 characters, no verification code is recognized.");
+                log.writeLog(context, "SMS exceeds 140 characters, no verification code is recognized.");
             }
         }
-        request_body.text = message_head + message_body_html;
+        requestBody.text = message_head + message_body_html;
         if (isTrustedPhone) {
-            logFunc.writeLog(context, "SMS from trusted mobile phone detected");
+            log.writeLog(context, "SMS from trusted mobile phone detected");
             String message_command = message_body.toLowerCase().replace("_", "").replace("-", "");
             String[] command_list = message_command.split("\n");
             if (command_list.length > 0) {
@@ -146,11 +146,11 @@ public class sms_receiver extends BroadcastReceiver {
                 switch (command_list[0].trim()) {
                     case "/restartservice":
                         new Thread(() -> {
-                            serviceFunc.stopAllService(context);
-                            serviceFunc.startService(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
+                            service.stopAllService(context);
+                            service.startService(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
                         }).start();
-                        raw_request_body_text = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
-                        request_body.text = raw_request_body_text;
+                        rawRequestBodyText = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.restart_service);
+                        requestBody.text = rawRequestBodyText;
                         break;
                     case "/sendsms":
                     case "/sendsms1":
@@ -161,8 +161,8 @@ public class sms_receiver extends BroadcastReceiver {
                         }
                         String [] messageInfo =message_list[0].split(" ");
                         if(messageInfo.length==2) {
-                            String msg_send_to = otherFunc.getSendPhoneNumber(messageInfo[1]);
-                            if (otherFunc.isPhoneNumber(msg_send_to)) {
+                            String msg_send_to = other.getSendPhoneNumber(messageInfo[1]);
+                            if (other.isPhoneNumber(msg_send_to)) {
                                 StringBuilder msg_send_content = new StringBuilder();
                                 for (int i = 2; i < message_list.length; ++i) {
                                     if (i != 2) {
@@ -171,7 +171,7 @@ public class sms_receiver extends BroadcastReceiver {
                                     msg_send_content.append(message_list[i]);
                                 }
                                 int send_slot = slot;
-                                if (otherFunc.getActiveCard(context) > 1) {
+                                if (other.getActiveCard(context) > 1) {
                                     switch (command_list[0].trim()) {
                                         case "/sendsms1":
                                             send_slot = 0;
@@ -182,8 +182,8 @@ public class sms_receiver extends BroadcastReceiver {
                                     }
                                 }
                                 final int final_send_slot = send_slot;
-                                final int final_send_sub_id = otherFunc.getSubId(context, final_send_slot);
-                                new Thread(() -> smsFunc.sendSms(context, msg_send_to, msg_send_content.toString(), final_send_slot, final_send_sub_id)).start();
+                                final int final_send_sub_id = other.getSubId(context, final_send_slot);
+                                new Thread(() -> sms.sendSms(context, msg_send_to, msg_send_content.toString(), final_send_slot, final_send_sub_id)).start();
                                 return;
                             }
                         }
@@ -192,7 +192,7 @@ public class sms_receiver extends BroadcastReceiver {
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                             if (androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
                                 if (message_list.length == 2) {
-                                    ussdFunc.sendUssd(context, message_list[1], subId);
+                                    ussd.sendUssd(context, message_list[1], subId);
                                     return;
                                 }
                             }
@@ -205,26 +205,26 @@ public class sms_receiver extends BroadcastReceiver {
             }
         }
 
-        if (!is_verification_code && !isTrustedPhone) {
+        if (!isVerificationCode && !isTrustedPhone) {
             ArrayList<String> blackListArray = Paper.book("system_config").read("block_keyword_list", new ArrayList<>());
             assert blackListArray != null;
-            for (String black_list_item : blackListArray) {
-                if (black_list_item.isEmpty()) {
+            for (String blackListItem : blackListArray) {
+                if (blackListItem.isEmpty()) {
                     continue;
                 }
 
-                if (message_body.contains(black_list_item)) {
+                if (message_body.contains(blackListItem)) {
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat(context.getString(R.string.time_format), Locale.UK);
-                    String write_message = request_body.text + "\n" + context.getString(R.string.time) + simpleDateFormat.format(new Date(System.currentTimeMillis()));
-                    ArrayList<String> spam_sms_list;
+                    String writeMessage = requestBody.text + "\n" + context.getString(R.string.time) + simpleDateFormat.format(new Date(System.currentTimeMillis()));
+                    ArrayList<String> spamSmsList;
                     Paper.init(context);
-                    spam_sms_list = Paper.book().read("spam_sms_list", new ArrayList<>());
-                    assert spam_sms_list != null;
-                    if (spam_sms_list.size() >= 5) {
-                        spam_sms_list.remove(0);
+                    spamSmsList = Paper.book().read("spam_sms_list", new ArrayList<>());
+                    assert spamSmsList != null;
+                    if (spamSmsList.size() >= 5) {
+                        spamSmsList.remove(0);
                     }
-                    spam_sms_list.add(write_message);
-                    Paper.book().write("spam_sms_list", spam_sms_list);
+                    spamSmsList.add(writeMessage);
+                    Paper.book().write("spam_sms_list", spamSmsList);
                     Log.i(TAG, "Detected message contains blacklist keywords, add spam list");
                     return;
                 }
@@ -232,19 +232,19 @@ public class sms_receiver extends BroadcastReceiver {
         }
 
 
-        RequestBody body = RequestBody.create(new Gson().toJson(request_body), const_value.JSON);
-        OkHttpClient okhttp_client = networkFunc.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+        RequestBody body = RequestBody.create(new Gson().toJson(requestBody), constValue.JSON);
+        OkHttpClient okhttpObj = network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
         Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-        Call call = okhttp_client.newCall(request);
-        final String error_head = "Send SMS forward failed:";
-        final String final_raw_request_body_text = raw_request_body_text;
+        Call call = okhttpObj.newCall(request);
+        final String errorHead = "Send SMS forward failed:";
+        final String requestBodyText = rawRequestBodyText;
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
-                logFunc.writeLog(context, error_head + e.getMessage());
-                smsFunc.send_fallback_sms(context, final_raw_request_body_text, subId);
-                resendFunc.addResendLoop(context, request_body.text);
+                log.writeLog(context, errorHead + e.getMessage());
+                sms.fallbackSMS(context, requestBodyText, subId);
+                resend.addResendLoop(context, requestBody.text);
             }
 
             @Override
@@ -252,15 +252,15 @@ public class sms_receiver extends BroadcastReceiver {
                 assert response.body() != null;
                 String result = Objects.requireNonNull(response.body()).string();
                 if (response.code() != 200) {
-                    logFunc.writeLog(context, error_head + response.code() + " " + result);
-                    smsFunc.send_fallback_sms(context, final_raw_request_body_text, subId);
-                    resendFunc.addResendLoop(context, request_body.text);
+                    log.writeLog(context, errorHead + response.code() + " " + result);
+                    sms.fallbackSMS(context, requestBodyText, subId);
+                    resend.addResendLoop(context, requestBody.text);
                 } else {
-                    if (!otherFunc.isPhoneNumber(messageAddress)) {
-                        logFunc.writeLog(context, "[" + messageAddress + "] Not a regular phone number.");
+                    if (!other.isPhoneNumber(messageAddress)) {
+                        log.writeLog(context, "[" + messageAddress + "] Not a regular phone number.");
                         return;
                     }
-                    otherFunc.add_message_list(otherFunc.get_message_id(result), messageAddress, slot);
+                    other.addMessageList(other.getMessageId(result), messageAddress, slot);
                 }
             }
         });
