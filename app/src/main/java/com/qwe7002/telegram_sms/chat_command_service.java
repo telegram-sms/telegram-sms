@@ -423,11 +423,11 @@ public class chat_command_service extends Service {
                     break;
                 case SEND_SMS_STATUS.WAITING_TO_SEND_STATUS:
                     Paper.book("send_temp").write("content", requestMsg);
-                    replyMarkupKeyboard.keyboard_markup keyboardMarkup = new replyMarkupKeyboard.keyboard_markup();
+                    replyMarkupKeyboard.keyboardMarkup keyboardMarkup = new replyMarkupKeyboard.keyboardMarkup();
                     ArrayList<ArrayList<replyMarkupKeyboard.InlineKeyboardButton>> inlineKeyboardButtons = new ArrayList<>();
-                    inlineKeyboardButtons.add(replyMarkupKeyboard.get_inline_keyboard_obj(context.getString(R.string.send_button), CALLBACK_DATA_VALUE.SEND));
-                    inlineKeyboardButtons.add(replyMarkupKeyboard.get_inline_keyboard_obj(context.getString(R.string.cancel_button), CALLBACK_DATA_VALUE.CANCEL));
-                    keyboardMarkup.inline_keyboard = inlineKeyboardButtons;
+                    inlineKeyboardButtons.add(replyMarkupKeyboard.getInlineKeyboardObj(context.getString(R.string.send_button), CALLBACK_DATA_VALUE.SEND));
+                    inlineKeyboardButtons.add(replyMarkupKeyboard.getInlineKeyboardObj(context.getString(R.string.cancel_button), CALLBACK_DATA_VALUE.CANCEL));
+                    keyboardMarkup.inlineKeyboard = inlineKeyboardButtons;
                     requestBody.reply_markup = keyboardMarkup;
                     resultSend = context.getString(R.string.to) + Paper.book("send_temp").read("to") + "\n" + context.getString(R.string.content) + Paper.book("send_temp").read("content", "");
                     sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS;

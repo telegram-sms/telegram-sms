@@ -85,7 +85,7 @@ public class main_activity extends AppCompatActivity {
             packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
             currentVersionCode = packageInfo.versionCode;
         } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
+            Log.d(TAG, "checkVersionUpgrade: "+e);
             return;
         }
         if (version_code != currentVersionCode) {
@@ -290,7 +290,7 @@ public class main_activity extends AppCompatActivity {
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    e.printStackTrace();
+                    Log.d(TAG, "onFailure: "+e);
                     progressDialog.cancel();
                     String error_message = errorHead + e.getMessage();
                     log.writeLog(context, error_message);
@@ -319,7 +319,7 @@ public class main_activity extends AppCompatActivity {
                     Log.d(TAG, "onResponse: " + result);
                     JsonObject resultObj = JsonParser.parseString(result).getAsJsonObject();
                     JsonArray chatList = resultObj.getAsJsonArray("result");
-                    if (chatList.size() == 0) {
+                    if (chatList.isEmpty()) {
                         Looper.prepare();
                         Snackbar.make(v, R.string.unable_get_recent, Snackbar.LENGTH_LONG).show();
                         Looper.loop();
@@ -341,7 +341,7 @@ public class main_activity extends AppCompatActivity {
                                 if (chatObj.has("title")) {
                                     username = chatObj.get("title").getAsString();
                                 }
-                                if (username.equals("") && !chatObj.has("username")) {
+                                if (username.isEmpty() && !chatObj.has("username")) {
                                     if (chatObj.has("first_name")) {
                                         username = chatObj.get("first_name").getAsString();
                                     }
@@ -426,7 +426,7 @@ public class main_activity extends AppCompatActivity {
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    e.printStackTrace();
+                    Log.d(TAG, "onFailure: "+e);
                     progressDialog.cancel();
                     String errorMessage = errorHead + e.getMessage();
                     log.writeLog(context, errorMessage);
@@ -461,7 +461,7 @@ public class main_activity extends AppCompatActivity {
                     editor.putString("bot_token", newBotToken);
                     editor.putString("chat_id", chatIdEditView.getText().toString().trim());
                     editor.putString("message_thread_id", messageThreadIdEditView.getText().toString().trim());
-                    if (trustedPhoneNumberEditView.getText().toString().trim().length() != 0) {
+                    if (!trustedPhoneNumberEditView.getText().toString().trim().isEmpty()) {
                         editor.putString("trusted_phone_number", trustedPhoneNumberEditView.getText().toString().trim());
                     }
                     editor.putBoolean("fallback_sms", fallbackSmsSwitch.isChecked());
@@ -522,7 +522,7 @@ public class main_activity extends AppCompatActivity {
             try {
                 customTabsIntent.launchUrl(context, uri);
             } catch (ActivityNotFoundException e) {
-                e.printStackTrace();
+                Log.d(TAG, "showPrivacyDialog: "+e);
                 Snackbar.make(findViewById(R.id.bot_token_editview), "Browser not found.", Snackbar.LENGTH_LONG).show();
             }
         });
@@ -600,7 +600,7 @@ public class main_activity extends AppCompatActivity {
                     packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
                     versionName = packageInfo.versionName;
                 } catch (PackageManager.NameNotFoundException e) {
-                    e.printStackTrace();
+                    Log.d(TAG, "onOptionsItemSelected: "+e);
                 }
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle(R.string.about_title);
@@ -698,7 +698,7 @@ public class main_activity extends AppCompatActivity {
         try {
             customTabsIntent.launchUrl(this, uri);
         } catch (ActivityNotFoundException e) {
-            e.printStackTrace();
+            Log.d(TAG, "onOptionsItemSelected: "+e);
             Snackbar.make(findViewById(R.id.bot_token_editview), "Browser not found.", Snackbar.LENGTH_LONG).show();
         }
         return true;

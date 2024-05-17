@@ -9,5 +9,5 @@ public class sendMessageBody {
     public String chat_id;
     public String text;
     public String message_thread_id;
-    public replyMarkupKeyboard.keyboard_markup reply_markup;
+    public replyMarkupKeyboard.keyboardMarkup reply_markup;
 }

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 @SuppressWarnings({"unused", "RedundantSuppression"})
 public class replyMarkupKeyboard {
-    public static ArrayList<InlineKeyboardButton> get_inline_keyboard_obj(String text, String callback_data) {
+    public static ArrayList<InlineKeyboardButton> getInlineKeyboardObj(String text, String callback_data) {
         InlineKeyboardButton button = new InlineKeyboardButton();
         button.text = text;
         button.callback_data = callback_data;
@@ -13,9 +13,9 @@ public class replyMarkupKeyboard {
         return button_ArrayList;
     }
 
-    public static class keyboard_markup {
-        public ArrayList<ArrayList<InlineKeyboardButton>> inline_keyboard;
-        boolean one_time_keyboard = true;
+    public static class keyboardMarkup {
+        public ArrayList<ArrayList<InlineKeyboardButton>> inlineKeyboard;
+        boolean oneTimeKeyboard = true;
     }
 
     public static class InlineKeyboardButton {
