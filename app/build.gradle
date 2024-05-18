@@ -54,6 +54,7 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'io.github.pilgr:paperdb:2.7.2'
     implementation 'com.github.yuriy-budiyev:code-scanner:2.1.0'
+    implementation 'androidx.room:room-runtime:2.6.1'
     implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.23'
 }
