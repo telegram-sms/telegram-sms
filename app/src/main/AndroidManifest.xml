@@ -47,7 +47,8 @@
 
 
         <service android:name=".resend_service"
-            android:exported="true"/>
+            android:exported="true"
+            tools:ignore="ExportedService" />
 
         <activity
             android:name=".notify_apps_list_activity"
