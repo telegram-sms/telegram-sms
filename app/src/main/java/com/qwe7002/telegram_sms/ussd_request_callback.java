@@ -89,7 +89,6 @@ class ussd_request_callback extends TelephonyManager.UssdResponseCallback {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
-                    assert response.body() != null;
                     log.writeLog(context, error_head + response.code() + " " + Objects.requireNonNull(response.body()).string());
                     sms.fallbackSMS(context, request_body.text, -1);
                     resend.addResendLoop(context, request_body.text);

@@ -126,7 +126,6 @@ public class notification_listener_service extends NotificationListenerService {
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                assert response.body() != null;
                 String result = Objects.requireNonNull(response.body()).string();
                 if (response.code() != 200) {
                     log.writeLog(context, errorHead + response.code() + " " + result);

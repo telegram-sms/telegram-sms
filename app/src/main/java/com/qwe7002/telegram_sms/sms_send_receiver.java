@@ -97,7 +97,6 @@ public class sms_send_receiver extends BroadcastReceiver {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.code() != 200) {
-                    assert response.body() != null;
                     log.writeLog(context, error_head + response.code() + " " + Objects.requireNonNull(response.body()).string());
                     resend.addResendLoop(context, request_body.text);
                 }

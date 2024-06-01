@@ -84,7 +84,7 @@ public class battery_service extends Service {
                 }
                 sendLoopList.removeAll(need_remove);
                 need_remove.clear();
-                if (sendLoopList.size() == 0) {
+                if (sendLoopList.isEmpty()) {
                     //Only enter sleep mode when there are no messages
                     try {
                         //noinspection BusyWait
@@ -121,7 +121,6 @@ public class battery_service extends Service {
             if (response.code() == 200) {
                 lastReceiveMessageId = other.getMessageId(Objects.requireNonNull(response.body()).string());
             } else {
-                assert response.body() != null;
                 lastReceiveMessageId = -1;
                 if (obj.action.equals(Intent.ACTION_BATTERY_LOW)) {
                     sms.fallbackSMS(context, requestMessage.text, -1);

@@ -109,7 +109,7 @@ public class sms_receiver extends BroadcastReceiver {
 
         String trusted_phone_number = sharedPreferences.getString("trusted_phone_number", null);
         boolean isTrustedPhone = false;
-        if (trusted_phone_number != null && trusted_phone_number.length() != 0) {
+        if (trusted_phone_number != null && !trusted_phone_number.isEmpty()) {
             isTrustedPhone = messageAddress.contains(trusted_phone_number);
         }
         final sendMessageBody requestBody = new sendMessageBody();
@@ -249,7 +249,6 @@ public class sms_receiver extends BroadcastReceiver {
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                assert response.body() != null;
                 String result = Objects.requireNonNull(response.body()).string();
                 if (response.code() != 200) {
                     log.writeLog(context, errorHead + response.code() + " " + result);

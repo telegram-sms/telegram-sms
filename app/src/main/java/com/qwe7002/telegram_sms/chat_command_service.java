@@ -147,7 +147,7 @@ public class chat_command_service extends Service {
                 Call call = okhttpObj.newCall(request);
                 try {
                     Response response = call.execute();
-                    if (response.code() != 200 || response.body() == null) {
+                    if (response.code() != 200) {
                         throw new IOException(String.valueOf(response.code()));
                     }
                 } catch (IOException e) {
@@ -291,7 +291,7 @@ public class chat_command_service extends Service {
             case "/getspamsms":
                 ArrayList<String> spamSMSHistory = Paper.book().read("spam_sms_list", new ArrayList<>());
                 assert spamSMSHistory != null;
-                if (spamSMSHistory.size() == 0) {
+                if (spamSMSHistory.isEmpty()) {
                     requestBody.text = context.getString(R.string.system_message_head) + "\n" + getString(R.string.no_spam_history);
                     break;
                 }
@@ -453,7 +453,6 @@ public class chat_command_service extends Service {
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 String response_string = Objects.requireNonNull(response.body()).string();
                 if (response.code() != 200) {
-                    assert response.body() != null;
                     log.writeLog(context, errorHead + response.code() + " " + response_string);
                     resend.addResendLoop(context, requestBody.text);
                 }

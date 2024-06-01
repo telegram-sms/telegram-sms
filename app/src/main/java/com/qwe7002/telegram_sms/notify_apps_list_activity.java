@@ -141,7 +141,7 @@ public class notify_apps_list_activity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            if (viewAppInfoList != null && viewAppInfoList.size() > 0) {
+            if (viewAppInfoList != null && !viewAppInfoList.isEmpty()) {
                 return viewAppInfoList.size();
             }
             return 0;
@@ -149,7 +149,7 @@ public class notify_apps_list_activity extends AppCompatActivity {
 
         @Override
         public Object getItem(int position) {
-            if (viewAppInfoList != null && viewAppInfoList.size() > 0) {
+            if (viewAppInfoList != null && !viewAppInfoList.isEmpty()) {
                 return viewAppInfoList.get(position);
             }
             return null;
