@@ -49,7 +49,7 @@ public class chatCommand {
         }else {
             result = context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.available_command) + "\n" + smsCommand + ussdCommand;
         }
-        if (!isPrivate && privacyMode && !botUsername.equals("")) {
+        if (!isPrivate && privacyMode && !botUsername.isEmpty()) {
             result = result.replace(" -", "@" + botUsername + " -");
         }
         return result;
@@ -66,7 +66,7 @@ public class chatCommand {
         String spamCount = "";
         ArrayList<String> spamSmsList = Paper.book().read("spam_sms_list", new ArrayList<>());
         assert spamSmsList != null;
-        if (spamSmsList.size() != 0) {
+        if (!spamSmsList.isEmpty()) {
             spamCount = "\n" + context.getString(R.string.spam_count_title) + spamSmsList.size();
         }
         return  context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + getBatteryInfo(context) + "\n" + context.getString(R.string.current_network_connection_status) + getNetworkType(context) + spamCount + cardInfo;
@@ -114,29 +114,27 @@ public class chatCommand {
         assert telephonyManager != null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             Network[] networks = connectManager.getAllNetworks();
-            if (networks.length != 0) {
-                for (Network network : networks) {
-                    NetworkCapabilities networkCapabilities = connectManager.getNetworkCapabilities(network);
-                    assert networkCapabilities != null;
-                    if (!networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
-                        if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                            netType = "WIFI";
+            for (Network network : networks) {
+                NetworkCapabilities networkCapabilities = connectManager.getNetworkCapabilities(network);
+                assert networkCapabilities != null;
+                if (!networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
+                    if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                        netType = "WIFI";
+                    }
+                    if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                        if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_IMS)) {
+                            continue;
                         }
-                        if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-                            if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_IMS)) {
-                                continue;
-                            }
-                            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-                                Log.d("get_network_type", "No permission.");
-                            }
-                            netType = checkCellularNetworkType(telephonyManager.getDataNetworkType());
+                        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                            Log.d("get_network_type", "No permission.");
                         }
-                        if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH)) {
-                            netType = "Bluetooth";
-                        }
-                        if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
-                            netType = "Ethernet";
-                        }
+                        netType = checkCellularNetworkType(telephonyManager.getDataNetworkType());
+                    }
+                    if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH)) {
+                        netType = "Bluetooth";
+                    }
+                    if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
+                        netType = "Ethernet";
                     }
                 }
             }
