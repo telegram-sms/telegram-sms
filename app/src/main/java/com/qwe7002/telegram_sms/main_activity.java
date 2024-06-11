@@ -478,6 +478,8 @@ public class main_activity extends AppCompatActivity {
                     editor.putBoolean("privacy_dialog_agree", true);
                     editor.apply();
                     new Thread(() -> {
+                        ReSendJob.Companion.stopJob(context);
+                        KeepAliveJob.Companion.stopJob(context);
                         service.stopAllService(context);
                         service.startService(context, batteryMonitoringSwitch.isChecked(), chatCommandSwitch.isChecked());
                         ReSendJob.Companion.startJob(context);

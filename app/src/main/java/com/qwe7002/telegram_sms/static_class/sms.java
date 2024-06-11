@@ -75,7 +75,7 @@ public class sms {
         Call call = okhttp_client.newCall(request);
         try {
             Response response = call.execute();
-            if (response.code() != 200 || response.body() == null) {
+            if (response.code() != 200) {
                 throw new IOException(String.valueOf(response.code()));
             }
             if (message_id == -1) {
@@ -89,7 +89,7 @@ public class sms {
         ArrayList<PendingIntent> send_receiver_list = new ArrayList<>();
         IntentFilter filter = new IntentFilter("send_sms");
         BroadcastReceiver receiver = new SMSSendResultReceiver();
-        context.getApplicationContext().registerReceiver(receiver, filter);
+        context.registerReceiver(receiver, filter);
         Intent sent_intent = new Intent("send_sms");
         sent_intent.putExtra("message_id", message_id);
         sent_intent.putExtra("message_text", send_content);

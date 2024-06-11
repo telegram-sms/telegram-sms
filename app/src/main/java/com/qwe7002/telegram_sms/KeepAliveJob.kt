@@ -8,6 +8,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.util.Log
 import com.qwe7002.telegram_sms.static_class.service
+import java.util.concurrent.TimeUnit
 
 
 class KeepAliveJob : JobService() {
@@ -28,7 +29,6 @@ class KeepAliveJob : JobService() {
     }
 
     override fun onStopJob(params: JobParameters?): Boolean {
-        startJob(this)
         return false
     }
 
@@ -42,10 +42,15 @@ class KeepAliveJob : JobService() {
                 ComponentName(context.packageName, KeepAliveJob::class.java.getName())
             )
                 .setPersisted(true)
+            jobInfoBuilder.setMinimumLatency(TimeUnit.SECONDS.toMillis(5))
             jobInfoBuilder.setOverrideDeadline(JobInfo.DEFAULT_INITIAL_BACKOFF_MILLIS)
-            jobInfoBuilder.setMinimumLatency(5000)
-
             jobScheduler.schedule(jobInfoBuilder.build())
+        }
+        fun stopJob(context: Context) {
+            val jobScheduler =
+                context.getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
+
+            jobScheduler.cancel(10)
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.qwe7002.telegram_sms;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -9,6 +10,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ServiceInfo;
 import android.os.BatteryManager;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -47,13 +49,19 @@ public class battery_service extends Service {
 
     private static ArrayList<sendObj> sendLoopList;
 
+    @SuppressLint("InlinedApi")
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = other.getNotificationObj(context, getString(R.string.battery_monitoring_notify));
-        startForeground(notifyId.BATTERY, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(notifyId.BATTERY, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        }else{
+            startForeground(notifyId.BATTERY, notification);
+        }
         return START_STICKY;
     }
 
+    @SuppressLint({"UnspecifiedRegisterReceiverFlag", "InlinedApi"})
     @Override
     public void onCreate() {
         super.onCreate();
@@ -74,7 +82,11 @@ public class battery_service extends Service {
             filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
         }
         filter.addAction(constValue.BROADCAST_STOP_SERVICE);
-        registerReceiver(batteryReceiver, filter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            registerReceiver(batteryReceiver, filter, Context.RECEIVER_EXPORTED);
+        }else{
+            registerReceiver(batteryReceiver, filter);
+        }
         sendLoopList = new ArrayList<>();
         new Thread(() -> {
             ArrayList<sendObj> need_remove = new ArrayList<>();

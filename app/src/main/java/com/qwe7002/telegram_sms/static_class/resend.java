@@ -24,15 +24,6 @@ resend {
         assert resend_list != null;
         resend_list.add(message);
         Paper.book().write("resend_list", resend_list);
-        startResend(context);
     }
 
-    public static void startResend(Context context) {
-        Intent intent = new Intent(context, resend_service.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(intent);
-        } else {
-            context.startService(intent);
-        }
-    }
 }
