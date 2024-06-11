@@ -18,7 +18,7 @@ import com.google.gson.Gson;
 import com.qwe7002.telegram_sms.R;
 import com.qwe7002.telegram_sms.config.proxy;
 import com.qwe7002.telegram_sms.data_structure.sendMessageBody;
-import com.qwe7002.telegram_sms.sms_send_receiver;
+import com.qwe7002.telegram_sms.SMSSendResultReceiver;
 import com.qwe7002.telegram_sms.value.constValue;
 
 import java.io.IOException;
@@ -88,7 +88,7 @@ public class sms {
         ArrayList<String> divideContents = sms_manager.divideMessage(content);
         ArrayList<PendingIntent> send_receiver_list = new ArrayList<>();
         IntentFilter filter = new IntentFilter("send_sms");
-        BroadcastReceiver receiver = new sms_send_receiver();
+        BroadcastReceiver receiver = new SMSSendResultReceiver();
         context.getApplicationContext().registerReceiver(receiver, filter);
         Intent sent_intent = new Intent("send_sms");
         sent_intent.putExtra("message_id", message_id);

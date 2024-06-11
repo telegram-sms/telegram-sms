@@ -145,6 +145,8 @@ public class main_activity extends AppCompatActivity {
         if (sharedPreferences.getBoolean("initialized", false)) {
             checkVersionUpgrade(true);
             service.startService(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
+            ReSendJob.Companion.startJob(context);
+            KeepAliveJob.Companion.startJob(context);
 
         }
         boolean DualSimDisplayNameConfig = sharedPreferences.getBoolean("display_dual_sim_display_name", false);
@@ -478,6 +480,8 @@ public class main_activity extends AppCompatActivity {
                     new Thread(() -> {
                         service.stopAllService(context);
                         service.startService(context, batteryMonitoringSwitch.isChecked(), chatCommandSwitch.isChecked());
+                        ReSendJob.Companion.startJob(context);
+                        KeepAliveJob.Companion.startJob(context);
                     }).start();
                     Looper.prepare();
                     Snackbar.make(v, R.string.success, Snackbar.LENGTH_LONG)

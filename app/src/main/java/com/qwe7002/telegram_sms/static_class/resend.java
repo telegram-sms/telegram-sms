@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Build;
 
 import com.qwe7002.telegram_sms.R;
-import com.qwe7002.telegram_sms.resend_service;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;

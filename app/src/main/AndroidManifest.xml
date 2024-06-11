@@ -45,10 +45,10 @@
             android:label="@string/spam_sms_keyword_title"
             android:exported="true" />
 
-
-        <service android:name=".resend_service"
+        <service android:name=".ReSendJob"
+            android:enabled="true"
             android:exported="true"
-            tools:ignore="ExportedService" />
+            android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <activity
             android:name=".notify_apps_list_activity"
@@ -59,7 +59,8 @@
             android:name=".notification_listener_service"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
-            android:exported="true">
+            android:exported="true"
+            android:foregroundServiceType="specialUse">
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
@@ -79,6 +80,7 @@
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE"
+            android:foregroundServiceType="specialUse"
             android:process=":battery">
             <intent-filter>
                 <action android:name="android.intent.action.RESPOND_VIA_MESSAGE" />
@@ -92,7 +94,7 @@
             </intent-filter>
         </service>
 
-        <receiver android:name=".boot_receiver"
+        <receiver android:name=".BootReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -103,7 +105,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".sms_receiver"
+            android:name=".SMSReceiver"
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
@@ -139,6 +141,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service
+            android:name=".KeepAliveJob"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 
 </manifest>

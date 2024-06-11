@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.ServiceInfo;
 import android.os.BatteryManager;
 import android.os.IBinder;
 import android.util.Log;
@@ -49,7 +50,7 @@ public class battery_service extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = other.getNotificationObj(context, getString(R.string.battery_monitoring_notify));
-        startForeground(notifyId.BATTERY, notification);
+        startForeground(notifyId.BATTERY, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
         return START_STICKY;
     }
 
@@ -90,7 +91,7 @@ public class battery_service extends Service {
                         //noinspection BusyWait
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        Log.i("BatteryService", "onCreate: "+e);
                     }
                 }
             }
@@ -127,7 +128,7 @@ public class battery_service extends Service {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.i(TAG, "networkHandle: "+e);
             log.writeLog(context, errorHead + e.getMessage());
             if (obj.action.equals(Intent.ACTION_BATTERY_LOW)) {
                 sms.fallbackSMS(context, requestMessage.text, -1);

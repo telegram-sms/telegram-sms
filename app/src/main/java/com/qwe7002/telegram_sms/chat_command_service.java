@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.pm.ServiceInfo;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.IBinder;
@@ -365,7 +366,7 @@ public class chat_command_service extends Service {
                             }
                         }
                     }
-                } else if (isPrivate || (messageType.equals("supergroup") && !messageThreadId.equals(""))) {
+                } else if (isPrivate || (messageType.equals("supergroup") && !messageThreadId.isEmpty())) {
                     Log.i(TAG, "receiveHandle: " + messageType);
                     sendSmsNextStatus = SEND_SMS_STATUS.PHONE_INPUT_STATUS;
                     int sendSlot = -1;
@@ -382,7 +383,7 @@ public class chat_command_service extends Service {
                 break;
             default:
                 if (!isPrivate && sendSmsNextStatus == -1) {
-                    if (!messageType.equals("supergroup") || messageThreadId.equals("")) {
+                    if (!messageType.equals("supergroup") || messageThreadId.isEmpty()) {
                         Log.i(TAG, "receive_handle: The conversation is not Private and does not prompt an error.");
                         return;
                     }
@@ -466,7 +467,7 @@ public class chat_command_service extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = other.getNotificationObj(getApplicationContext(), getString(R.string.chat_command_service_name));
-        startForeground(notifyId.CHAT_COMMAND, notification);
+        startForeground(notifyId.CHAT_COMMAND, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
         return START_STICKY;
     }
 
@@ -609,7 +610,6 @@ public class chat_command_service extends Service {
                     continue;
                 }
                 if (response.code() == 200) {
-                    assert response.body() != null;
                     String result;
                     try {
                         result = Objects.requireNonNull(response.body()).string();
