@@ -43,7 +43,7 @@
         <activity
             android:name=".spam_list_activity"
             android:label="@string/spam_sms_keyword_title"
-            android:exported="true" />
+            android:exported="false" />
 
         <service android:name=".ReSendJob"
             android:enabled="true"

@@ -13,6 +13,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
@@ -467,7 +468,11 @@ public class chat_command_service extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = other.getNotificationObj(getApplicationContext(), getString(R.string.chat_command_service_name));
-        startForeground(notifyId.CHAT_COMMAND, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(notifyId.CHAT_COMMAND, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        }else{
+            startForeground(notifyId.CHAT_COMMAND, notification);
+        }
         return START_STICKY;
     }
 
