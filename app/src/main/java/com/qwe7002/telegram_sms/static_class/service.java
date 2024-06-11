@@ -10,7 +10,7 @@ import android.util.Log;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.qwe7002.telegram_sms.chat_command_service;
-import com.qwe7002.telegram_sms.notification_listener_service;
+import com.qwe7002.telegram_sms.NotificationService;
 import com.qwe7002.telegram_sms.value.constValue;
 
 import org.jetbrains.annotations.NotNull;
@@ -29,11 +29,11 @@ public class service {
     }
 
     public static void startService(Context context, Boolean battery_switch, Boolean chat_command_switch) {
-        Intent battery_service = new Intent(context, com.qwe7002.telegram_sms.battery_service.class);
+        Intent battery_service = new Intent(context, com.qwe7002.telegram_sms.BatteryService.class);
         Intent chat_long_polling_service = new Intent(context, chat_command_service.class);
         if (isNotifyListener(context)) {
             Log.d("start_service", "start_service: ");
-            ComponentName thisComponent = new ComponentName(context, notification_listener_service.class);
+            ComponentName thisComponent = new ComponentName(context, NotificationService.class);
             PackageManager pm = context.getPackageManager();
             pm.setComponentEnabledSetting(thisComponent, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
             pm.setComponentEnabledSetting(thisComponent, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
