@@ -97,7 +97,7 @@ public class notification_listener_service extends NotificationListenerService {
                 app_name = (String) pm.getApplicationLabel(application_info);
                 appNameList.put(package_name, app_name);
             } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
+                Log.e(TAG, "onNotificationPosted: ", e);
             }
         }
         String title = extras.getString(Notification.EXTRA_TITLE, "None");
@@ -119,7 +119,7 @@ public class notification_listener_service extends NotificationListenerService {
         call.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                e.printStackTrace();
+                Log.e(TAG, "onFailure: ", e);
                 log.writeLog(context, errorHead + e.getMessage());
                 resend.addResendLoop(context, requestBody.text);
             }
