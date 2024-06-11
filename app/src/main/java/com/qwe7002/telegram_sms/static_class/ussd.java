@@ -17,7 +17,7 @@ import com.google.gson.Gson;
 import com.qwe7002.telegram_sms.R;
 import com.qwe7002.telegram_sms.config.proxy;
 import com.qwe7002.telegram_sms.data_structure.sendMessageBody;
-import com.qwe7002.telegram_sms.ussd_request_callback;
+import com.qwe7002.telegram_sms.USSDCallBack;
 import com.qwe7002.telegram_sms.value.constValue;
 
 import java.io.IOException;
@@ -71,7 +71,7 @@ public class ussd {
             }
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
                 Looper.prepare();
-                final_tm.sendUssdRequest(ussd, new ussd_request_callback(context, sharedPreferences, message_id), new Handler());
+                final_tm.sendUssdRequest(ussd, new USSDCallBack(context, sharedPreferences, message_id), new Handler());
                 Looper.loop();
             }
         }).start();
