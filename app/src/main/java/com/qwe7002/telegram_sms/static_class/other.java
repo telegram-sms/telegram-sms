@@ -145,10 +145,12 @@ public class other {
         notification.setAutoCancel(false)
                 .setSmallIcon(R.drawable.ic_stat)
                 .setOngoing(true)
-                .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
                 .setTicker(context.getString(R.string.app_name))
                 .setContentTitle(context.getString(R.string.app_name))
                 .setContentText(notification_name + context.getString(R.string.service_is_running));
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+            notification.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
+        }
         return notification.build();
     }
 
