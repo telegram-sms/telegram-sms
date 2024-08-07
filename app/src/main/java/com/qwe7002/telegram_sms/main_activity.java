@@ -624,7 +624,7 @@ public class main_activity extends AppCompatActivity {
                 return true;
             case R.id.config_qrcode_menu_item:
                 if (sharedPreferences.getBoolean("initialized", false)) {
-                    startActivity(new Intent(this, qrcode_show_activity.class));
+                    startActivity(new Intent(this, QrcodeActivity.class));
                 } else {
                     Snackbar.make(findViewById(R.id.bot_token_editview), "Uninitialized.", Snackbar.LENGTH_LONG).show();
                 }
