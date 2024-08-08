@@ -44,6 +44,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.qwe7002.telegram_sms.config.proxy;
+import com.qwe7002.telegram_sms.data_structure.ScannerJson;
 import com.qwe7002.telegram_sms.data_structure.pollingBody;
 import com.qwe7002.telegram_sms.data_structure.sendMessageBody;
 import com.qwe7002.telegram_sms.static_class.log;
@@ -619,7 +620,7 @@ public class main_activity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 0);
                 return true;
             case R.id.logcat_menu_item:
-                Intent logcat_intent = new Intent(this, logcat_activity.class);
+                Intent logcat_intent = new Intent(this, LogActivity.class);
                 startActivity(logcat_intent);
                 return true;
             case R.id.config_qrcode_menu_item:
@@ -715,15 +716,17 @@ public class main_activity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
             if (resultCode == constValue.RESULT_CONFIG_JSON) {
-                JsonObject jsonConfig = JsonParser.parseString(Objects.requireNonNull(data.getStringExtra("config_json"))).getAsJsonObject();
-                ((EditText) findViewById(R.id.bot_token_editview)).setText(jsonConfig.get("bot_token").getAsString());
-                ((EditText) findViewById(R.id.chat_id_editview)).setText(jsonConfig.get("chat_id").getAsString());
-                ((SwitchMaterial) findViewById(R.id.battery_monitoring_switch)).setChecked(jsonConfig.get("battery_monitoring_switch").getAsBoolean());
-                ((SwitchMaterial) findViewById(R.id.verification_code_switch)).setChecked(jsonConfig.get("verification_code").getAsBoolean());
+                //JsonObject jsonConfig = JsonParser.parseString(Objects.requireNonNull(data.getStringExtra("config_json"))).getAsJsonObject();
+                Gson gson = new Gson();
+                ScannerJson jsonConfig = gson.fromJson(Objects.requireNonNull(data.getStringExtra("config_json")), ScannerJson.class);
+                ((EditText) findViewById(R.id.bot_token_editview)).setText(jsonConfig.getBotToken());
+                ((EditText) findViewById(R.id.chat_id_editview)).setText(jsonConfig.getChatId());
+                ((SwitchMaterial) findViewById(R.id.battery_monitoring_switch)).setChecked(jsonConfig.getBatteryMonitoringSwitch());
+                ((SwitchMaterial) findViewById(R.id.verification_code_switch)).setChecked(jsonConfig.getVerificationCode());
 
                 SwitchMaterial chargerStatus = findViewById(R.id.charger_status_switch);
-                if (jsonConfig.get("battery_monitoring_switch").getAsBoolean()) {
-                    chargerStatus.setChecked(jsonConfig.get("charger_status").getAsBoolean());
+                if (jsonConfig.getBatteryMonitoringSwitch()) {
+                    chargerStatus.setChecked(jsonConfig.getChargerStatus());
                     chargerStatus.setVisibility(View.VISIBLE);
                 } else {
                     chargerStatus.setChecked(false);
@@ -731,17 +734,17 @@ public class main_activity extends AppCompatActivity {
                 }
 
                 SwitchMaterial chatCommand = findViewById(R.id.chat_command_switch);
-                chatCommand.setChecked(jsonConfig.get("chat_command").getAsBoolean());
+                chatCommand.setChecked(jsonConfig.getChatCommand());
                 SwitchMaterial privacyModeSwitch = findViewById(R.id.privacy_switch);
-                privacyModeSwitch.setChecked(jsonConfig.get("privacy_mode").getAsBoolean());
+                privacyModeSwitch.setChecked(jsonConfig.getPrivacyMode());
                 final com.google.android.material.textfield.TextInputLayout messageThreadIdView = findViewById(R.id.message_thread_id_view);
 
-                privacyModeCheckbox(jsonConfig.get("chat_id").getAsString(), chatCommand, privacyModeSwitch, messageThreadIdView);
+                privacyModeCheckbox(jsonConfig.getChatId(), chatCommand, privacyModeSwitch, messageThreadIdView);
 
                 EditText trustedPhoneNumber = findViewById(R.id.trusted_phone_number_editview);
-                trustedPhoneNumber.setText(jsonConfig.get("trusted_phone_number").getAsString());
+                trustedPhoneNumber.setText(jsonConfig.getTrustedPhoneNumber());
                 SwitchMaterial fallbackSms = findViewById(R.id.fallback_sms_switch);
-                fallbackSms.setChecked(jsonConfig.get("fallback_sms").getAsBoolean());
+                fallbackSms.setChecked(jsonConfig.getFallbackSms());
                 if (trustedPhoneNumber.length() != 0) {
                     fallbackSms.setVisibility(View.VISIBLE);
                 } else {

@@ -126,7 +126,7 @@
             android:name=".QrcodeActivity"
             android:label="@string/transfer_configuration"
             android:exported="false" />
-        <activity android:name=".logcat_activity"
+        <activity android:name=".LogActivity"
             android:exported="false" />
         <activity android:name=".scanner_activity"
             android:exported="false"/>

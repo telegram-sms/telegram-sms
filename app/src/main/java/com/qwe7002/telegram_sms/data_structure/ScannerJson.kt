@@ -31,5 +31,3 @@ data class ScannerJson(
     @SerializedName("verification_code")
     val verificationCode: Boolean
 )
-{
-}
