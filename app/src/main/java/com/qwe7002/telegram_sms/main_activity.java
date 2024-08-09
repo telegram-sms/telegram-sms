@@ -174,9 +174,8 @@ public class main_activity extends AppCompatActivity {
         batteryMonitoringSwitch.setOnClickListener(v -> {
             if (batteryMonitoringSwitch.isChecked()) {
                 chargerStatusSwitch.setVisibility(View.VISIBLE);
-                chargerStatusSwitch.setEnabled(true);
             } else {
-                chargerStatusSwitch.setEnabled(false);
+                chargerStatusSwitch.setVisibility(View.GONE);
                 chargerStatusSwitch.setChecked(false);
             }
         });

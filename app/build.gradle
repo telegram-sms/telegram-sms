@@ -8,10 +8,6 @@ android {
         targetSdk 34
         versionCode System.getenv("VERSION_CODE") == null ? 1 : System.getenv("VERSION_CODE").toInteger()
         versionName System.getenv("VERSION_NAME") == null ? "Debug": System.getenv("VERSION_NAME").toString()
-        ndk{
-            //noinspection ChromeOsAbiSupport
-            abiFilters "armeabi-v7a", "arm64-v8a"
-        }
     }
 
     compileOptions {
@@ -37,6 +33,10 @@ android {
         release {
             minifyEnabled false
             signingConfig signingConfigs.release
+            ndk{
+                //noinspection ChromeOsAbiSupport
+                abiFilters "armeabi-v7a", "arm64-v8a"
+            }
         }
     }
     namespace 'com.qwe7002.telegram_sms'
