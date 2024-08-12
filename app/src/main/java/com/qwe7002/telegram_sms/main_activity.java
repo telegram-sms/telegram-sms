@@ -750,6 +750,8 @@ public class main_activity extends AppCompatActivity {
                     fallbackSms.setVisibility(View.GONE);
                     fallbackSms.setChecked(false);
                 }
+                EditText topicIdView = findViewById(R.id.message_thread_id_editview);
+                topicIdView.setText(jsonConfig.getTopicID());
             }
         }
     }

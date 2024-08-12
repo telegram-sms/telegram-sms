@@ -29,5 +29,8 @@ data class ScannerJson(
     val privacyMode: Boolean,
 
     @SerializedName("verification_code")
-    val verificationCode: Boolean
+    val verificationCode: Boolean,
+
+    @SerializedName("topic_id")
+    val topicID: String
 )

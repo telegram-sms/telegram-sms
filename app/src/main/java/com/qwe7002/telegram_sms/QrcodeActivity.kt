@@ -23,7 +23,8 @@ class QrcodeActivity : AppCompatActivity() {
             sharedPreferences.getBoolean("chat_command", false),
             sharedPreferences.getBoolean("fallback_sms", false),
             sharedPreferences.getBoolean("privacy_mode", false),
-            sharedPreferences.getBoolean("verification_code", false)
+            sharedPreferences.getBoolean("verification_code", false),
+            sharedPreferences.getString("message_thread_id","")!!
         )
         val qrCodeImageview = findViewById<ImageView>(R.id.qr_imageview)
         qrCodeImageview.setImageBitmap(
