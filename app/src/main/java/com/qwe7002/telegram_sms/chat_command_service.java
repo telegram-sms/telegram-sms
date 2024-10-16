@@ -417,7 +417,11 @@ public class chat_command_service extends Service {
                     if (other.isPhoneNumber(tempTo)) {
                         Paper.book("send_temp").write("to", tempTo);
                         resultSend = getString(R.string.enter_content);
-                        sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS;
+                        if(messageType.equals("private")) {
+                            sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS;
+                        }else{
+                            sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS;
+                        }
                     } else {
                         setSmsSendStatusStandby();
                         resultSend = getString(R.string.unable_get_phone_number);
