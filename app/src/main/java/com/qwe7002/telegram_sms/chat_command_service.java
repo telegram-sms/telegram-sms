@@ -511,7 +511,12 @@ public class chat_command_service extends Service {
         intentFilter.addAction(constValue.BROADCAST_STOP_SERVICE);
         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         stopReceive = new stopReceive();
-        registerReceiver(stopReceive, intentFilter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(stopReceive, intentFilter,RECEIVER_EXPORTED);
+        }else{
+            registerReceiver(stopReceive, intentFilter);
+        }
+
     }
 
     private boolean getMe() {
