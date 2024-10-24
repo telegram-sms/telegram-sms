@@ -472,7 +472,7 @@ public class chat_command_service extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = other.getNotificationObj(getApplicationContext(), getString(R.string.chat_command_service_name));
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(notifyId.CHAT_COMMAND, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
         }else{
             startForeground(notifyId.CHAT_COMMAND, notification);
