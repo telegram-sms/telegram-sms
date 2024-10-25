@@ -10,18 +10,6 @@ variables:
     OWNER: telegram-sms
     REPO: telegram-sms
 
-release:master:
-    dependencies:
-        - build_release
-    stage: push
-    only:
-        - master
-    script:
-        - apk --update --no-cache add git openssl bash curl wget
-        - wget https://github.com/tcnksm/ghr/releases/download/v0.16.2/ghr_v0.16.2_linux_amd64.tar.gz
-        - tar -zxvf  ghr_v0.16.2_linux_amd64.tar.gz
-        - git push --set-upstream https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
-        - ghr_v0.16.2_linux_amd64/ghr -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -b "$(cat .reall/changelog.txt)" "${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M")" "./app/build/outputs/apk/release/app-release.apk"
 
 build_release:
     image: alvrme/alpine-android:android-34-jdk17
@@ -30,6 +18,7 @@ build_release:
     only:
       - master
     script:
+        - apk --update --no-cache add git openssl bash curl wget
         - echo -n ${KEYSTORE} | base64 -d > app/keys.jks
         - git submodule update --init --recursive
         - export VERSION_CODE=${CI_PIPELINE_ID}
@@ -39,6 +28,10 @@ build_release:
         - chmod +x ./gradlew
         - ./gradlew app:copy_language_pack
         - ./gradlew assembleRelease
+        - wget https://github.com/tcnksm/ghr/releases/download/v0.16.2/ghr_v0.16.2_linux_amd64.tar.gz
+        - tar -zxvf  ghr_v0.16.2_linux_amd64.tar.gz
+        - git push --set-upstream https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
+        - ghr_v0.16.2_linux_amd64/ghr -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -b "$(cat .reall/changelog.txt)" "${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M")" "./app/build/outputs/apk/release/app-release.apk"
     artifacts:
         paths:
             - app/build/outputs/apk/release/app-release.apk
