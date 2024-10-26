@@ -42,11 +42,13 @@ class SMSSendResultReceiver : BroadcastReceiver() {
         val messageThreadId = sharedPreferences.getString("message_thread_id", "")
         val requestBody = sendMessageBody()
         requestBody.chat_id = chatId
+
         requestBody.message_thread_id = messageThreadId
         var requestUri = network.getUrl(botToken, "sendMessage")
         val messageId = extras.getLong("message_id")
         if (messageId != -1L) {
             Log.d(TAG, "Find the message_id and switch to edit mode.")
+            Log.d(TAG, "onReceive: $messageId")
             requestUri = network.getUrl(botToken, "editMessageText")
             requestBody.message_id = messageId
         }
@@ -62,10 +64,7 @@ class SMSSendResultReceiver : BroadcastReceiver() {
             SmsManager.RESULT_ERROR_NO_SERVICE -> resultStatus =
                 context.getString(R.string.no_network)
         }
-        requestBody.text = """
-            ${extras.getString("message_text")}
-            ${context.getString(R.string.status)}$resultStatus
-            """.trimIndent()
+        requestBody.text = extras.getString("message_text")+"\n"+"""${context.getString(R.string.status)}$resultStatus""".trimIndent()
         val requestBodyRaw = Gson().toJson(requestBody)
         val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
         val okhttpClient = network.getOkhttpObj(
@@ -93,6 +92,7 @@ class SMSSendResultReceiver : BroadcastReceiver() {
                     )
                     resend.addResendLoop(context, requestBody.text)
                 }
+                Log.d(TAG, "onResponse: "+response.body.string())
             }
         })
     }

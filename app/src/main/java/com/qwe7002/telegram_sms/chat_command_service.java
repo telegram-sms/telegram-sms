@@ -213,9 +213,7 @@ public class chat_command_service extends Service {
                 String phoneNumber = saveItem.phone;
                 int cardSlot = saveItem.card;
                 sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS;
-                Paper.book("send_temp").write("slot", cardSlot);
-                Paper.book("send_temp").write("to", phoneNumber);
-                Paper.book("send_temp").write("content", requestMsg);
+                Paper.book("send_temp").write("slot", cardSlot).write("to", phoneNumber).write("content", requestMsg);
             }
         }
         if (jsonObject.has("entities")) {
@@ -417,11 +415,11 @@ public class chat_command_service extends Service {
                     if (other.isPhoneNumber(tempTo)) {
                         Paper.book("send_temp").write("to", tempTo);
                         resultSend = getString(R.string.enter_content);
-                        if(messageType.equals("private")) {
+/*                        if(messageType.equals("private")) {*/
                             sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS;
-                        }else{
+/*                        }else{
                             sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS;
-                        }
+                        }*/
                     } else {
                         setSmsSendStatusStandby();
                         resultSend = getString(R.string.unable_get_phone_number);

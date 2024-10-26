@@ -1,5 +1,7 @@
 package com.qwe7002.telegram_sms.data_structure;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.ArrayList;
 
 @SuppressWarnings({"unused", "RedundantSuppression"})
@@ -14,6 +16,7 @@ public class replyMarkupKeyboard {
     }
 
     public static class keyboardMarkup {
+        @SerializedName("inline_keyboard")
         public ArrayList<ArrayList<InlineKeyboardButton>> inlineKeyboard;
         boolean oneTimeKeyboard = true;
     }

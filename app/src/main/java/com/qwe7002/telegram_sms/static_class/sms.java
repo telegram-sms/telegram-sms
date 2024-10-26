@@ -1,5 +1,7 @@
 package com.qwe7002.telegram_sms.static_class;
 
+import static android.content.Context.RECEIVER_EXPORTED;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
@@ -37,7 +39,7 @@ public class sms {
         send(context, send_to, content, slot, sub_id, -1);
     }
 
-    @SuppressLint("UnspecifiedImmutableFlag")
+    @SuppressLint({"UnspecifiedImmutableFlag", "UnspecifiedRegisterReceiverFlag"})
     public static void send(Context context, String send_to, String content, int slot, int sub_id, long message_id) {
         if (PermissionChecker.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PermissionChecker.PERMISSION_GRANTED) {
             Log.d("send_sms", "No permission.");
@@ -89,16 +91,21 @@ public class sms {
         ArrayList<PendingIntent> send_receiver_list = new ArrayList<>();
         IntentFilter filter = new IntentFilter("send_sms");
         BroadcastReceiver receiver = new SMSSendResultReceiver();
-        context.registerReceiver(receiver, filter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(receiver, filter,RECEIVER_EXPORTED);
+        }else{
+            context.registerReceiver(receiver, filter);
+        }
+        Log.d("onSend", "onReceive: "+message_id);
         Intent sent_intent = new Intent("send_sms");
         sent_intent.putExtra("message_id", message_id);
         sent_intent.putExtra("message_text", send_content);
         sent_intent.putExtra("sub_id", sms_manager.getSubscriptionId());
         PendingIntent sentIntent;
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            sentIntent = PendingIntent.getBroadcast(context, 0, sent_intent, PendingIntent.FLAG_IMMUTABLE);
+            sentIntent = PendingIntent.getBroadcast(context, (int) message_id, sent_intent, PendingIntent.FLAG_IMMUTABLE);
         }else{
-            sentIntent = PendingIntent.getBroadcast(context, 0, sent_intent, PendingIntent.FLAG_CANCEL_CURRENT);
+            sentIntent = PendingIntent.getBroadcast(context, 0, sent_intent, PendingIntent.FLAG_UPDATE_CURRENT);
         }
         send_receiver_list.add(sentIntent);
         sms_manager.sendMultipartTextMessage(send_to, null, divideContents, send_receiver_list, null);
