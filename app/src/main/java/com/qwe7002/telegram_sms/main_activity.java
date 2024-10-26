@@ -57,6 +57,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -392,7 +393,13 @@ public class main_activity extends AppCompatActivity {
                 return;
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                ActivityCompat.requestPermissions(main_activity.this, new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.CALL_PHONE, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG}, 1);
+                String[] permissionList = new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.CALL_PHONE, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG};
+                if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.TIRAMISU){
+                    ArrayList<String> permissionArrayList = new ArrayList<>(Arrays.asList(permissionList));
+                    permissionArrayList.add(Manifest.permission.POST_NOTIFICATIONS);
+                    permissionList = permissionArrayList.toArray(new String[0]);
+                }
+                ActivityCompat.requestPermissions(main_activity.this,permissionList , 1);
 
                 PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
                 assert powerManager != null;
