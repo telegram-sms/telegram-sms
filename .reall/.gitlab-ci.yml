@@ -12,7 +12,7 @@ variables:
 
 
 build_release:
-    image: alvrme/alpine-android:android-34-jdk17
+    image: alvrme/alpine-android:android-35-jdk17
     stage: build
     retry: 2
     only:
