@@ -1,221 +1,203 @@
+package com.qwe7002.telegram_sms
 
-package com.qwe7002.telegram_sms;
+import android.content.Context
+import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
+import android.os.Bundle
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.BaseAdapter
+import android.widget.CheckBox
+import android.widget.Filter
+import android.widget.Filterable
+import android.widget.ImageView
+import android.widget.ListView
+import android.widget.ProgressBar
+import android.widget.SearchView
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import io.paperdb.Paper
+import java.util.Locale
 
-import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.graphics.drawable.Drawable;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.CheckBox;
-import android.widget.Filter;
-import android.widget.Filterable;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.SearchView;
-import android.widget.TextView;
+class NotifyActivity : AppCompatActivity() {
+    private lateinit var appAdapter: AppAdapter
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import io.paperdb.Paper;
-
-public class notify_apps_list_activity extends AppCompatActivity {
-    private notify_apps_list_activity.appAdapter appAdapter;
-    private Context context;
-
-    @NotNull
-    private List<appInfo> scanAppList(PackageManager packageManager) {
-        List<appInfo> appInfoList = new ArrayList<>();
+    private fun scanAppList(packageManager: PackageManager): List<applicationInfo> {
+        val appInfoList: MutableList<applicationInfo> = ArrayList()
         try {
-            List<PackageInfo> packageInfoList = packageManager.getInstalledPackages(0);
-            for (int i = 0; i < packageInfoList.size(); i++) {
-                PackageInfo packageInfo = packageInfoList.get(i);
-                if (packageInfo.packageName.equals(context.getPackageName())) {
-                    continue;
+            val packageInfoList = packageManager.getInstalledPackages(0)
+            for (i in packageInfoList.indices) {
+                val packageInfo = packageInfoList[i]
+                val appInfo = applicationInfo()
+                if (packageInfo.packageName == applicationContext.packageName) {
+                    continue
                 }
-                appInfo info = new appInfo();
-                info.packageName = packageInfo.packageName;
-                info.appName = packageInfo.applicationInfo.loadLabel(packageManager).toString();
-                if (packageInfo.applicationInfo.loadIcon(packageManager) == null) {
-                    continue;
+                appInfo.packageName = packageInfo.packageName
+                appInfo.appName = packageInfo.applicationInfo?.loadLabel(packageManager).toString()
+                if (packageInfo.applicationInfo!!.loadIcon(packageManager) == null) {
+                    continue
                 }
-                info.appIcon = packageInfo.applicationInfo.loadIcon(packageManager);
-                appInfoList.add(info);
+                appInfo.appIcon = packageInfo.applicationInfo!!.loadIcon(packageManager)
+                appInfoList.add(appInfo)
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        return appInfoList;
+        return appInfoList
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        context = getApplicationContext();
-        Paper.init(context);
-        this.setTitle(getString(R.string.app_list));
-        setContentView(R.layout.activity_notify_apps_list);
-        final ListView appList = findViewById(R.id.app_listview);
-        final SearchView filterEdit = findViewById(R.id.filter_searchview);
-        filterEdit.setIconifiedByDefault(false);
-        appList.setTextFilterEnabled(true);
-        appAdapter = new appAdapter(context);
-        filterEdit.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                return true;
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Paper.init(applicationContext)
+        this.title = getString(R.string.app_list)
+        setContentView(R.layout.activity_notify_apps_list)
+        val appList = findViewById<ListView>(R.id.app_listview)
+        val filterEdit = findViewById<SearchView>(R.id.filter_searchview)
+        filterEdit.isIconifiedByDefault = false
+        appList.isTextFilterEnabled = true
+        appAdapter = AppAdapter(applicationContext)
+        filterEdit.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String): Boolean {
+                return true
             }
 
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                appAdapter.getFilter().filter(newText);
-                return false;
+            override fun onQueryTextChange(newText: String): Boolean {
+                appAdapter.filter.filter(newText)
+                return false
             }
-        });
+        })
 
-        appList.setAdapter(appAdapter);
-        new Thread(() -> {
-            final List<appInfo> appInfoList = scanAppList(this.getPackageManager());
-            runOnUiThread(() -> {
-                ProgressBar progressBar = findViewById(R.id.progress_view);
-                progressBar.setVisibility(View.GONE);
-                appAdapter.setData(appInfoList);
-            });
-        }).start();
+        appList.adapter = appAdapter
+        Thread {
+            val appInfoList = scanAppList(this@NotifyActivity.packageManager)
+            runOnUiThread {
+                val scanLabel = findViewById<ProgressBar>(R.id.progress_view)
+                scanLabel.visibility = View.GONE
+                appAdapter.data = appInfoList
+            }
+        }.start()
     }
 
-    static class appAdapter extends BaseAdapter implements Filterable {
-        final String TAG = "notify_activity";
-        List<String> listenList;
-        List<appInfo> appInfoList = new ArrayList<>();
-        List<appInfo> viewAppInfoList = new ArrayList<>();
-        private final Context context;
-        private final Filter filter = new Filter() {
-            @NotNull
-            @Override
-            protected FilterResults performFiltering(CharSequence constraint) {
-                FilterResults results = new FilterResults();
-                List<appInfo> list = new ArrayList<>();
-                for (appInfo appInfoItem : appInfoList) {
-                    if (appInfoItem.appName.toLowerCase().contains(constraint.toString().toLowerCase())) {
-                        list.add(appInfoItem);
+    internal class AppAdapter(private val context: Context?) : BaseAdapter(), Filterable {
+        val TAG: String = "notify_activity"
+        private var listenList: List<String>
+        var appInfoList: List<applicationInfo> = ArrayList()
+        var viewAppInfoList: List<applicationInfo> = ArrayList()
+        @Suppress("UNCHECKED_CAST")
+        private val filter: Filter = object : Filter() {
+            override fun performFiltering(constraint: CharSequence): FilterResults {
+                val results = FilterResults()
+                val list: MutableList<applicationInfo> = ArrayList()
+                for (appInfoItem in appInfoList) {
+                    if (appInfoItem.appName.lowercase(Locale.getDefault()).contains(
+                            constraint.toString().lowercase(
+                                Locale.getDefault()
+                            )
+                        )
+                    ) {
+                        list.add(appInfoItem)
                     }
                 }
-                results.values = list;
-                results.count = list.size();
-                return results;
+                results.values = list
+                results.count = list.size
+                return results
             }
 
-            @SuppressWarnings("unchecked")
-            @Override
-            protected void publishResults(CharSequence constraint, @NotNull FilterResults results) {
-                viewAppInfoList = (ArrayList<appInfo>) results.values;
-                notifyDataSetChanged();
+            override fun publishResults(constraint: CharSequence, results: FilterResults) {
+                viewAppInfoList = results.values as ArrayList<applicationInfo>
+                notifyDataSetChanged()
             }
-        };
-
-        appAdapter(Context context) {
-            this.context = context;
-            this.listenList = Paper.book("system_config").read("notify_listen_list", new ArrayList<>());
         }
 
-        public List<appInfo> getData() {
-            return appInfoList;
+        init {
+            this.listenList = Paper.book("system_config").read("notify_listen_list", ArrayList())!!
         }
 
-        public void setData(List<appInfo> appInfoList) {
-            this.appInfoList = appInfoList;
-            this.viewAppInfoList = this.appInfoList;
-            notifyDataSetChanged();
-        }
-
-        @Override
-        public int getCount() {
-            if (viewAppInfoList != null && !viewAppInfoList.isEmpty()) {
-                return viewAppInfoList.size();
+        var data: List<applicationInfo>
+            get() = appInfoList
+            set(appsInfoList) {
+                this.appInfoList = appsInfoList
+                this.viewAppInfoList = appInfoList
+                notifyDataSetChanged()
             }
-            return 0;
-        }
 
-        @Override
-        public Object getItem(int position) {
-            if (viewAppInfoList != null && !viewAppInfoList.isEmpty()) {
-                return viewAppInfoList.get(position);
+        override fun getCount(): Int {
+            if (viewAppInfoList.isNotEmpty()) {
+                return viewAppInfoList.size
             }
-            return null;
+            return 0
         }
 
-        @Override
-        public long getItemId(int position) {
-            return 0;
+        override fun getItem(position: Int): Any {
+            if (viewAppInfoList.isNotEmpty()) {
+                return viewAppInfoList[position]
+            }
+            return applicationInfo()
         }
 
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            viewHolder viewHolderObj;
-            appInfo appInfoObj = viewAppInfoList.get(position);
-            if (convertView == null) {
-                viewHolderObj = new viewHolder();
-                convertView = LayoutInflater.from(context).inflate(R.layout.item_app_info, parent, false);
-                viewHolderObj.appIcon = convertView.findViewById(R.id.app_icon_imageview);
-                viewHolderObj.packageName = convertView.findViewById(R.id.package_name_textview);
-                viewHolderObj.appName = convertView.findViewById(R.id.app_name_textview);
-                viewHolderObj.appCheckbox = convertView.findViewById(R.id.select_checkbox);
-                convertView.setTag(viewHolderObj);
+        override fun getItemId(position: Int): Long {
+            return 0
+        }
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View? {
+            var view = convertView
+            val viewHolderObject: holder
+            val appInfo = viewAppInfoList[position]
+            if (view == null) {
+                viewHolderObject = holder()
+                view =
+                    LayoutInflater.from(context).inflate(R.layout.item_app_info, parent, false)
+                viewHolderObject.appIcon = view.findViewById(R.id.app_icon_imageview)
+                viewHolderObject.packageName =
+                    view.findViewById(R.id.package_name_textview)
+                viewHolderObject.appName = view.findViewById(R.id.app_name_textview)
+                viewHolderObject.appCheckbox = view.findViewById(R.id.select_checkbox)
+                view.tag = viewHolderObject
             } else {
-                viewHolderObj = (viewHolder) convertView.getTag();
+                viewHolderObject = view.tag as holder
             }
-            viewHolderObj.appIcon.setImageDrawable(appInfoObj.appIcon);
-            viewHolderObj.appName.setText(appInfoObj.appName);
-            viewHolderObj.packageName.setText(appInfoObj.packageName);
-            viewHolderObj.appCheckbox.setChecked(listenList.contains(appInfoObj.packageName));
-            viewHolderObj.appCheckbox.setOnClickListener(v -> {
-                appInfo itemInfo = (appInfo) getItem(position);
-                String packageName = itemInfo.packageName;
-                List<String> listenListTemp = Paper.book("system_config").read("notify_listen_list", new ArrayList<>());
-                if (viewHolderObj.appCheckbox.isChecked()) {
-                    assert listenListTemp != null;
+            viewHolderObject.appIcon.setImageDrawable(appInfo.appIcon)
+            viewHolderObject.appName.text = appInfo.appName
+            viewHolderObject.packageName.text = appInfo.packageName
+            viewHolderObject.appCheckbox.isChecked =
+                listenList.contains(appInfo.packageName)
+            viewHolderObject.appCheckbox.setOnClickListener {
+                val itemInfo = getItem(position) as applicationInfo
+                val packageName = itemInfo.packageName
+                val listenListTemp: MutableList<String> =
+                    Paper.book("system_config").read("notify_listen_list", ArrayList())!!
+                if (viewHolderObject.appCheckbox.isChecked) {
                     if (!listenListTemp.contains(packageName)) {
-                        listenListTemp.add(packageName);
+                        listenListTemp.add(packageName)
                     }
                 } else {
-                    assert listenListTemp != null;
-                    listenListTemp.remove(packageName);
+                    listenListTemp.remove(packageName)
                 }
-                Log.d(TAG, "notify_listen_list: " + listenListTemp);
-                Paper.book("system_config").write("notify_listen_list", listenListTemp);
-                listenList = listenListTemp;
-            });
-            return convertView;
+                Log.d(TAG, "notify_listen_list: $listenListTemp")
+                Paper.book("system_config")
+                    .write<List<String>>("notify_listen_list", listenListTemp)
+                listenList = listenListTemp
+            }
+            return view
         }
 
-        @Override
-        public Filter getFilter() {
-            return filter;
+        override fun getFilter(): Filter {
+            return filter
         }
 
-        static class viewHolder {
-            ImageView appIcon;
-            TextView appName;
-            TextView packageName;
-            CheckBox appCheckbox;
+        internal class holder {
+            lateinit var appIcon: ImageView
+            lateinit var appName: TextView
+            lateinit var packageName: TextView
+            lateinit var appCheckbox: CheckBox
         }
-
     }
 
-    static class appInfo {
-        Drawable appIcon;
-        String packageName;
-        String appName;
+    internal class applicationInfo {
+        lateinit var appIcon: Drawable
+        lateinit var packageName: String
+        lateinit var appName: String
     }
 }

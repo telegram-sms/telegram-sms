@@ -553,7 +553,7 @@ public class main_activity extends AppCompatActivity {
         setPermissionBack = false;
         if (back_status) {
             if (service.isNotifyListener(context)) {
-                startActivity(new Intent(main_activity.this, notify_apps_list_activity.class));
+                startActivity(new Intent(main_activity.this, NotifyActivity.class));
             }
         }
     }
@@ -568,7 +568,7 @@ public class main_activity extends AppCompatActivity {
                     Snackbar.make(findViewById(R.id.bot_token_editview), R.string.no_camera_permission, Snackbar.LENGTH_LONG).show();
                     return;
                 }
-                Intent intent = new Intent(context, scanner_activity.class);
+                Intent intent = new Intent(context, ScannerActivity.class);
                 //noinspection deprecation
                 startActivityForResult(intent, 1);
                 break;
@@ -644,10 +644,10 @@ public class main_activity extends AppCompatActivity {
                     setPermissionBack = true;
                     return false;
                 }
-                startActivity(new Intent(this, notify_apps_list_activity.class));
+                startActivity(new Intent(this, NotifyActivity.class));
                 return true;
             case R.id.spam_sms_keyword_menu_item:
-                startActivity(new Intent(this, spam_list_activity.class));
+                startActivity(new Intent(this, SpamActivity.class));
                 return true;
             case R.id.set_proxy_menu_item:
                 View view = inflater.inflate(R.layout.set_proxy_layout, null);

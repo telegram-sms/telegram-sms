@@ -6,10 +6,10 @@ import java.util.ArrayList;
 
 @SuppressWarnings({"unused", "RedundantSuppression"})
 public class replyMarkupKeyboard {
-    public static ArrayList<InlineKeyboardButton> getInlineKeyboardObj(String text, String callback_data) {
+    public static ArrayList<InlineKeyboardButton> getInlineKeyboardObj(String text, String callbackData) {
         InlineKeyboardButton button = new InlineKeyboardButton();
         button.text = text;
-        button.callback_data = callback_data;
+        button.callbackData = callbackData;
         ArrayList<InlineKeyboardButton> button_ArrayList = new ArrayList<>();
         button_ArrayList.add(button);
         return button_ArrayList;
@@ -23,7 +23,8 @@ public class replyMarkupKeyboard {
 
     public static class InlineKeyboardButton {
         String text;
-        String callback_data;
+        @SerializedName("callback_data")
+        String callbackData;
     }
 }
 
