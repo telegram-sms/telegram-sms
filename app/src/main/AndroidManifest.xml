@@ -41,7 +41,7 @@
         tools:targetApi="n">
 
         <activity
-            android:name=".spam_list_activity"
+            android:name=".SpamActivity"
             android:label="@string/spam_sms_keyword_title"
             android:exported="false" />
 
@@ -51,7 +51,7 @@
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <activity
-            android:name=".notify_apps_list_activity"
+            android:name=".NotifyActivity"
             android:windowSoftInputMode="adjustPan"
             android:exported="false" />
 
@@ -128,7 +128,7 @@
             android:exported="false" />
         <activity android:name=".LogActivity"
             android:exported="false" />
-        <activity android:name=".scanner_activity"
+        <activity android:name=".ScannerActivity"
             android:exported="false"/>
         <activity
             android:name=".main_activity"

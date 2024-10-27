@@ -24,11 +24,11 @@ public class log {
         int new_file_mode = Context.MODE_APPEND;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(context.getString(R.string.time_format), Locale.UK);
         String write_string = "\n" + simpleDateFormat.format(new Date(System.currentTimeMillis())) + " " + log;
-        int log_count = Paper.book("system_config").read("log_count", 0);
+/*        int log_count = Paper.book("system_config").read("log_count", 0);
         if (log_count >= 50000) {
             resetLogFile(context);
         }
-        Paper.book("system_config").write("log_count", ++log_count);
+        Paper.book("system_config").write("log_count", ++log_count);*/
         writeLogFile(context, write_string, new_file_mode);
     }
 
