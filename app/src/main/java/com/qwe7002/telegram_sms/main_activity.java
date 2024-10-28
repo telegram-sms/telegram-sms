@@ -35,6 +35,7 @@ import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputLayout;
@@ -43,7 +44,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.qwe7002.telegram_sms.config.proxy;
+import com.qwe7002.telegram_sms.data_structure.GitHubRelease;
 import com.qwe7002.telegram_sms.data_structure.ScannerJson;
 import com.qwe7002.telegram_sms.data_structure.pollingBody;
 import com.qwe7002.telegram_sms.data_structure.sendMessageBody;
@@ -56,8 +59,10 @@ import com.qwe7002.telegram_sms.value.constValue;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -87,7 +92,7 @@ public class main_activity extends AppCompatActivity {
             packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
             currentVersionCode = packageInfo.versionCode;
         } catch (PackageManager.NameNotFoundException e) {
-            Log.d(TAG, "checkVersionUpgrade: "+e);
+            Log.d(TAG, "checkVersionUpgrade: " + e);
             return;
         }
         if (version_code != currentVersionCode) {
@@ -293,7 +298,7 @@ public class main_activity extends AppCompatActivity {
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    Log.d(TAG, "onFailure: "+e);
+                    Log.d(TAG, "onFailure: " + e);
                     progressDialog.cancel();
                     String error_message = errorHead + e.getMessage();
                     log.writeLog(context, error_message);
@@ -394,12 +399,12 @@ public class main_activity extends AppCompatActivity {
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 String[] permissionList = new String[]{Manifest.permission.READ_SMS, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.CALL_PHONE, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG};
-                if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.TIRAMISU){
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     ArrayList<String> permissionArrayList = new ArrayList<>(Arrays.asList(permissionList));
                     permissionArrayList.add(Manifest.permission.POST_NOTIFICATIONS);
                     permissionList = permissionArrayList.toArray(new String[0]);
                 }
-                ActivityCompat.requestPermissions(main_activity.this,permissionList , 1);
+                ActivityCompat.requestPermissions(main_activity.this, permissionList, 1);
 
                 PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
                 assert powerManager != null;
@@ -435,7 +440,7 @@ public class main_activity extends AppCompatActivity {
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    Log.d(TAG, "onFailure: "+e);
+                    Log.d(TAG, "onFailure: " + e);
                     progressDialog.cancel();
                     String errorMessage = errorHead + e.getMessage();
                     log.writeLog(context, errorMessage);
@@ -535,7 +540,7 @@ public class main_activity extends AppCompatActivity {
             try {
                 customTabsIntent.launchUrl(context, uri);
             } catch (ActivityNotFoundException e) {
-                Log.d(TAG, "showPrivacyDialog: "+e);
+                Log.d(TAG, "showPrivacyDialog: " + e);
                 Snackbar.make(findViewById(R.id.bot_token_editview), "Browser not found.", Snackbar.LENGTH_LONG).show();
             }
         });
@@ -588,6 +593,60 @@ public class main_activity extends AppCompatActivity {
         }
     }
 
+    void checkUpdate() {
+        final ProgressDialog progressDialog = new ProgressDialog(main_activity.this);
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setTitle(getString(R.string.connect_wait_title));
+        progressDialog.setMessage(getString(R.string.connect_wait_message));
+        progressDialog.setIndeterminate(false);
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+        OkHttpClient okhttpObj = network.getOkhttpObj(false, new proxy());
+        String requestUri = String.format("https://api.github.com/repos/telegram-sms/%s/releases/latest",context.getString(R.string.app_identifier));
+        Request request = new Request.Builder().url(requestUri).build();
+        Call call = okhttpObj.newCall(request);
+        final String errorHead = "Send message failed: ";
+        call.enqueue(new Callback() {
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                progressDialog.cancel();
+                if(!response.isSuccessful()){
+                    String errorMessage = errorHead + response.code();
+                    log.writeLog(context, errorMessage);
+                }
+                String jsonString = response.body().string();
+                Log.d(TAG, "onResponse: "+jsonString);
+                Gson gson = new Gson();
+                GitHubRelease release = gson.fromJson(jsonString, GitHubRelease.class);
+                String versionName = "unknown";
+                PackageManager packageManager = context.getPackageManager();
+                PackageInfo packageInfo;
+                try {
+                    packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
+                    versionName = packageInfo.versionName;
+                } catch (PackageManager.NameNotFoundException e) {
+                    Log.d(TAG, "onOptionsItemSelected: " + e);
+                }
+                if(!release.getTagName().equals(versionName)){
+                    runOnUiThread(() -> showUpdateDialog(release.getTagName(), release.getBody(),release.getAssets().get(0).getBrowserDownloadUrl()));
+
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                Log.d(TAG, "onFailure: " + e);
+                progressDialog.cancel();
+                String errorMessage = errorHead + e.getMessage();
+                log.writeLog(context, errorMessage);
+                Looper.prepare();
+                Snackbar.make(findViewById(R.id.content), errorMessage, Snackbar.LENGTH_LONG)
+                        .show();
+                Looper.loop();
+            }
+        });
+
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -605,6 +664,9 @@ public class main_activity extends AppCompatActivity {
         LayoutInflater inflater = this.getLayoutInflater();
         String fileName = null;
         switch (item.getItemId()) {
+            case R.id.check_update_menu_item:
+                checkUpdate();
+                return true;
             case R.id.about_menu_item:
                 PackageManager packageManager = context.getPackageManager();
                 PackageInfo packageInfo;
@@ -613,7 +675,7 @@ public class main_activity extends AppCompatActivity {
                     packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
                     versionName = packageInfo.versionName;
                 } catch (PackageManager.NameNotFoundException e) {
-                    Log.d(TAG, "onOptionsItemSelected: "+e);
+                    Log.d(TAG, "onOptionsItemSelected: " + e);
                 }
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle(R.string.about_title);
@@ -711,7 +773,7 @@ public class main_activity extends AppCompatActivity {
         try {
             customTabsIntent.launchUrl(this, uri);
         } catch (ActivityNotFoundException e) {
-            Log.d(TAG, "onOptionsItemSelected: "+e);
+            Log.d(TAG, "onOptionsItemSelected: " + e);
             Snackbar.make(findViewById(R.id.bot_token_editview), "Browser not found.", Snackbar.LENGTH_LONG).show();
         }
         return true;
@@ -762,5 +824,25 @@ public class main_activity extends AppCompatActivity {
             }
         }
     }
+    private void showUpdateDialog(String newVersion, String updateContent,String fileURL) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.update_dialog_title);
+        String message = String.format(getString(R.string.update_dialog_body),
+                newVersion,
+                updateContent);
+
+        builder.setMessage(message)
+                .setPositiveButton(R.string.update_dialog_ok, (dialog, which) -> {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(fileURL));
+                    startActivity(intent);
+                })
+                .setNegativeButton(R.string.update_dialog_no, (dialog, which) -> {
+                    dialog.dismiss();
+                })
+                .setCancelable(false)
+                .show();
+    }
+
+
 }
 
