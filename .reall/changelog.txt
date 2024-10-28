@@ -1,7 +1,1 @@
-- Support Android 13
 
-- Fix the bug that the background process is suddenly killed
-
-- Update dependency version
-
-- Add Cantonese translation

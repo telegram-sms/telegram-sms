@@ -8,6 +8,10 @@
         android:title="@string/scan_title"
         app:showAsAction="ifRoom" />
     <item
+        android:id="@+id/check_update_menu_item"
+        android:title="@string/check_update"
+        app:showAsAction="never"/>
+    <item
         android:id="@+id/user_manual_menu_item"
         android:title="@string/user_manual"
         app:showAsAction="never" />
