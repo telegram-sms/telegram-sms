@@ -1,1 +1,4 @@
-
+- Support android15
+- Fixed some unexpected errors
+- Convert part of the implementation to Kotlin
+- Add new version detection
