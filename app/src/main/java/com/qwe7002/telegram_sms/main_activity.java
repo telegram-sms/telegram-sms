@@ -561,6 +561,14 @@ public class main_activity extends AppCompatActivity {
                 startActivity(new Intent(main_activity.this, NotifyActivity.class));
             }
         }
+        Long lastCheck = Paper.book("update").read("last_check", 0L);
+        assert lastCheck != null;
+        if (lastCheck == 0L) {
+            Paper.book("update").write("last_check", System.currentTimeMillis());
+        }
+        if (lastCheck + TimeUnit.DAYS.toMillis(15) < System.currentTimeMillis()) {
+            checkUpdate();
+        }
     }
 
     @Override
@@ -594,6 +602,7 @@ public class main_activity extends AppCompatActivity {
     }
 
     void checkUpdate() {
+        Paper.book("update").write("last_check",System.currentTimeMillis());
         final ProgressDialog progressDialog = new ProgressDialog(main_activity.this);
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         progressDialog.setTitle(getString(R.string.connect_wait_title));
