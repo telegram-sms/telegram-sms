@@ -16,7 +16,7 @@ import androidx.core.app.ActivityCompat;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.qwe7002.telegram_sms.R;
-import com.qwe7002.telegram_sms.data_structure.smsRequestInfo;
+import com.qwe7002.telegram_sms.data_structure.SMSRequestInfo;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -207,7 +207,7 @@ public class other {
 
 
     public static void addMessageList(long messageId, String phone, int slot) {
-        smsRequestInfo item = new smsRequestInfo();
+        SMSRequestInfo item = new SMSRequestInfo();
         item.phone = phone;
         item.card = slot;
         Paper.book().write(String.valueOf(messageId), item);

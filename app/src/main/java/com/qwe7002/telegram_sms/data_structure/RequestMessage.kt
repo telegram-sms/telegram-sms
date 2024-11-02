@@ -1,13 +1,22 @@
-package com.qwe7002.telegram_sms.data_structure;
+package com.qwe7002.telegram_sms.data_structure
 
-public class sendMessageBody {
+import com.google.gson.annotations.SerializedName
+import com.qwe7002.telegram_sms.data_structure.replyMarkupKeyboard.keyboardMarkup
+
+class RequestMessage {
     //Turn off page preview to avoid being tracked
-    @SuppressWarnings({"unused", "RedundantSuppression"})
-    public final boolean disable_web_page_preview = true;
-    public long message_id;
-    public String parse_mode;
-    public String chat_id;
-    public String text;
-    public String message_thread_id;
-    public replyMarkupKeyboard.keyboardMarkup reply_markup;
+    @SerializedName(value = "disable_web_page_preview")
+    val disableWebPagePreview: Boolean = true
+    @SerializedName(value = "message_id")
+    var messageId: Long = 0
+    @SerializedName(value = "parse_mode")
+    lateinit var parseMode: String
+    @SerializedName(value = "chat_id")
+    lateinit var chatId: String
+    @SerializedName(value = "text")
+    lateinit var text: String
+    @SerializedName(value = "message_thread_id")
+    lateinit var messageThreadId: String
+    @SerializedName(value = "reply_markup")
+    lateinit var replyMarkup: keyboardMarkup
 }

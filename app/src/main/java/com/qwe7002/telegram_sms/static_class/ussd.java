@@ -16,7 +16,7 @@ import androidx.core.app.ActivityCompat;
 import com.google.gson.Gson;
 import com.qwe7002.telegram_sms.R;
 import com.qwe7002.telegram_sms.config.proxy;
-import com.qwe7002.telegram_sms.data_structure.sendMessageBody;
+import com.qwe7002.telegram_sms.data_structure.RequestMessage;
 import com.qwe7002.telegram_sms.USSDCallBack;
 import com.qwe7002.telegram_sms.value.constValue;
 
@@ -52,8 +52,8 @@ public class ussd {
         String bot_token = sharedPreferences.getString("bot_token", "");
         String chat_id = sharedPreferences.getString("chat_id", "");
         String request_uri = network.getUrl(bot_token, "sendMessage");
-        sendMessageBody request_body = new sendMessageBody();
-        request_body.chat_id = chat_id;
+        RequestMessage request_body = new RequestMessage();
+        request_body.chatId = chat_id;
         request_body.text = context.getString(R.string.send_ussd_head) + "\n" + context.getString(R.string.ussd_code_running);
         String request_body_raw = new Gson().toJson(request_body);
         RequestBody body = RequestBody.create(request_body_raw, constValue.JSON);
