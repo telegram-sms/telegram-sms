@@ -16,7 +16,7 @@ import android.os.Process
 import android.util.Log
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
-import com.qwe7002.telegram_sms.data_structure.sendMessageBody
+import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
 import com.qwe7002.telegram_sms.static_class.network
 import com.qwe7002.telegram_sms.static_class.other
@@ -104,14 +104,14 @@ class BatteryService : Service() {
 
     private fun networkHandle(obj: sendObj) {
         val TAG = "network_handle"
-        val requestMessage = sendMessageBody()
-        requestMessage.chat_id = chatId
+        val requestMessage = RequestMessage()
+        requestMessage.chatId = chatId
         requestMessage.text = obj.content
-        requestMessage.message_thread_id = messageThreadId
+        requestMessage.messageThreadId = messageThreadId
         var requestUri = network.getUrl(botToken, "sendMessage")
         if ((System.currentTimeMillis() - lastReceiveTime) <= 5000L && lastReceiveMessageId != -1L) {
             requestUri = network.getUrl(botToken, "editMessageText")
-            requestMessage.message_id = lastReceiveMessageId
+            requestMessage.messageId = lastReceiveMessageId
             Log.d(TAG, "onReceive: edit_mode")
         }
         lastReceiveTime = System.currentTimeMillis()

@@ -8,7 +8,7 @@ import android.telephony.SmsManager
 import android.util.Log
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
-import com.qwe7002.telegram_sms.data_structure.sendMessageBody
+import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
 import com.qwe7002.telegram_sms.static_class.network
 import com.qwe7002.telegram_sms.static_class.resend
@@ -40,17 +40,17 @@ class SMSSendResultReceiver : BroadcastReceiver() {
         val botToken = sharedPreferences.getString("bot_token", "")
         val chatId = sharedPreferences.getString("chat_id", "")
         val messageThreadId = sharedPreferences.getString("message_thread_id", "")
-        val requestBody = sendMessageBody()
-        requestBody.chat_id = chatId
+        val requestBody = RequestMessage()
+        requestBody.chatId = chatId
 
-        requestBody.message_thread_id = messageThreadId
+        requestBody.messageThreadId = messageThreadId
         var requestUri = network.getUrl(botToken, "sendMessage")
         val messageId = extras.getLong("message_id")
         if (messageId != -1L) {
             Log.d(TAG, "Find the message_id and switch to edit mode.")
             Log.d(TAG, "onReceive: $messageId")
             requestUri = network.getUrl(botToken, "editMessageText")
-            requestBody.message_id = messageId
+            requestBody.messageId = messageId
         }
         var resultStatus = "Unknown"
         when (resultCode) {

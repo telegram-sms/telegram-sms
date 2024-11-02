@@ -35,7 +35,6 @@ import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputLayout;
@@ -44,12 +43,11 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
 import com.qwe7002.telegram_sms.config.proxy;
 import com.qwe7002.telegram_sms.data_structure.GitHubRelease;
 import com.qwe7002.telegram_sms.data_structure.ScannerJson;
 import com.qwe7002.telegram_sms.data_structure.pollingBody;
-import com.qwe7002.telegram_sms.data_structure.sendMessageBody;
+import com.qwe7002.telegram_sms.data_structure.RequestMessage;
 import com.qwe7002.telegram_sms.static_class.log;
 import com.qwe7002.telegram_sms.static_class.network;
 import com.qwe7002.telegram_sms.static_class.other;
@@ -59,10 +57,8 @@ import com.qwe7002.telegram_sms.value.constValue;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -426,9 +422,9 @@ public class main_activity extends AppCompatActivity {
             progressDialog.show();
 
             String requestUri = network.getUrl(botTokenEditView.getText().toString().trim(), "sendMessage");
-            sendMessageBody requestBody = new sendMessageBody();
-            requestBody.chat_id = chatIdEditView.getText().toString().trim();
-            requestBody.message_thread_id = messageThreadIdEditView.getText().toString().trim();
+            RequestMessage requestBody = new RequestMessage();
+            requestBody.chatId = chatIdEditView.getText().toString().trim();
+            requestBody.messageThreadId = messageThreadIdEditView.getText().toString().trim();
             requestBody.text = getString(R.string.system_message_head) + "\n" + getString(R.string.success_connect);
             Gson gson = new Gson();
             String requestBodyRaw = gson.toJson(requestBody);

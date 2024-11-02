@@ -8,7 +8,7 @@ import android.content.ComponentName
 import android.content.Context
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
-import com.qwe7002.telegram_sms.data_structure.sendMessageBody
+import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
 import com.qwe7002.telegram_sms.static_class.network
 import com.qwe7002.telegram_sms.value.constValue
@@ -59,12 +59,12 @@ class ReSendJob : JobService() {
         okhttpClient: OkHttpClient,
         messageThreadId: String
     ) {
-        val requestBody = sendMessageBody()
-        requestBody.chat_id = chatId
+        val requestBody = RequestMessage()
+        requestBody.chatId = chatId
         requestBody.text = message
-        requestBody.message_thread_id = messageThreadId
+        requestBody.messageThreadId = messageThreadId
         if (message.contains("<code>") && message.contains("</code>")) {
-            requestBody.parse_mode = "html"
+            requestBody.parseMode = "html"
         }
         val requestBodyJson = Gson().toJson(requestBody)
         val body: RequestBody = requestBodyJson.toRequestBody(constValue.JSON)
