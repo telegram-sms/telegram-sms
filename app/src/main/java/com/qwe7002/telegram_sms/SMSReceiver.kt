@@ -15,7 +15,7 @@ import androidx.core.content.ContextCompat
 import com.github.sumimakito.codeauxlib.CodeauxLibPortable
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
-import com.qwe7002.telegram_sms.data_structure.sendMessageBody
+import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
 import com.qwe7002.telegram_sms.static_class.network
 import com.qwe7002.telegram_sms.static_class.other
@@ -108,9 +108,9 @@ class SMSReceiver : BroadcastReceiver() {
         if (!trustedPhoneNumber.isNullOrEmpty()) {
             isTrustedPhone = messageAddress.contains(trustedPhoneNumber)
         }
-        val requestBody = sendMessageBody()
-        requestBody.chat_id = chatId
-        requestBody.message_thread_id = messageThreadId
+        val requestBody = RequestMessage()
+        requestBody.chatId = chatId
+        requestBody.messageThreadId = messageThreadId
 
         var messageBodyHtml = messageBody
         val messageHead = """
@@ -124,7 +124,7 @@ class SMSReceiver : BroadcastReceiver() {
             if (messageBody.length <= 140) {
                 val verification = CodeauxLibPortable.find(context,messageBody)
                 if (verification != null) {
-                    requestBody.parse_mode = "html"
+                    requestBody.parseMode = "html"
                     messageBodyHtml = messageBody
                         .replace("<", "&lt;")
                         .replace(">", "&gt;")

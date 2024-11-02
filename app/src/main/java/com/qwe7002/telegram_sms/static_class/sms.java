@@ -19,7 +19,7 @@ import androidx.core.content.PermissionChecker;
 import com.google.gson.Gson;
 import com.qwe7002.telegram_sms.R;
 import com.qwe7002.telegram_sms.config.proxy;
-import com.qwe7002.telegram_sms.data_structure.sendMessageBody;
+import com.qwe7002.telegram_sms.data_structure.RequestMessage;
 import com.qwe7002.telegram_sms.SMSSendResultReceiver;
 import com.qwe7002.telegram_sms.value.constValue;
 
@@ -57,8 +57,8 @@ public class sms {
             Log.d("send_sms", "Find the message_id and switch to edit mode.");
             request_uri = network.getUrl(bot_token, "editMessageText");
         }
-        sendMessageBody request_body = new sendMessageBody();
-        request_body.chat_id = chat_id;
+        RequestMessage request_body = new RequestMessage();
+        request_body.chatId = chat_id;
         SmsManager sms_manager;
         if (sub_id == -1) {
             sms_manager = SmsManager.getDefault();
@@ -68,7 +68,7 @@ public class sms {
         String dual_sim = other.getDualSimCardDisplay(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
         String send_content = "[" + dual_sim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + send_to + "\n" + context.getString(R.string.content) + content;
         request_body.text = send_content + "\n" + context.getString(R.string.status) + context.getString(R.string.sending);
-        request_body.message_id = message_id;
+        request_body.messageId = message_id;
         Gson gson = new Gson();
         String request_body_raw = gson.toJson(request_body);
         RequestBody body = RequestBody.create(request_body_raw, constValue.JSON);

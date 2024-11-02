@@ -29,8 +29,8 @@ import com.google.gson.JsonParser;
 import com.qwe7002.telegram_sms.config.proxy;
 import com.qwe7002.telegram_sms.data_structure.pollingBody;
 import com.qwe7002.telegram_sms.data_structure.replyMarkupKeyboard;
-import com.qwe7002.telegram_sms.data_structure.sendMessageBody;
-import com.qwe7002.telegram_sms.data_structure.smsRequestInfo;
+import com.qwe7002.telegram_sms.data_structure.RequestMessage;
+import com.qwe7002.telegram_sms.data_structure.SMSRequestInfo;
 import com.qwe7002.telegram_sms.static_class.chatCommand;
 import com.qwe7002.telegram_sms.static_class.log;
 import com.qwe7002.telegram_sms.static_class.network;
@@ -107,9 +107,9 @@ public class chat_command_service extends Service {
             return;
         }
         String messageType = "";
-        final sendMessageBody requestBody = new sendMessageBody();
-        requestBody.chat_id = chatId;
-        requestBody.message_thread_id = messageThreadId;
+        final RequestMessage requestBody = new RequestMessage();
+        requestBody.chatId = chatId;
+        requestBody.messageThreadId = messageThreadId;
         JsonObject jsonObject = null;
 
         if (resultObj.has("message")) {
@@ -140,7 +140,7 @@ public class chat_command_service extends Service {
                 String dualSim = other.getDualSimCardDisplay(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
                 String sendContent = "[" + dualSim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + to + "\n" + context.getString(R.string.content) + content;
                 requestBody.text = sendContent + "\n" + context.getString(R.string.status) + context.getString(R.string.cancel_button);
-                requestBody.message_id = messageId;
+                requestBody.messageId = messageId;
                 Gson gson = new Gson();
                 String requestBodyRaw = gson.toJson(requestBody);
                 RequestBody body = RequestBody.create(requestBodyRaw, constValue.JSON);
@@ -208,7 +208,7 @@ public class chat_command_service extends Service {
             requestMsg = jsonObject.get("text").getAsString();
         }
         if (jsonObject.has("reply_to_message")) {
-            smsRequestInfo saveItem = Paper.book().read(jsonObject.get("reply_to_message").getAsJsonObject().get("message_id").getAsString(), null);
+            SMSRequestInfo saveItem = Paper.book().read(jsonObject.get("reply_to_message").getAsJsonObject().get("message_id").getAsString(), null);
             if (saveItem != null && !requestMsg.isEmpty()) {
                 String phoneNumber = saveItem.phone;
                 int cardSlot = saveItem.card;
@@ -299,10 +299,10 @@ public class chat_command_service extends Service {
                     if (network.checkNetworkStatus(context)) {
                         OkHttpClient okhttpObj = network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
                         for (String item : spamSMSHistory) {
-                            sendMessageBody sendSmsRequestBody = new sendMessageBody();
-                            sendSmsRequestBody.chat_id = chatId;
+                            RequestMessage sendSmsRequestBody = new RequestMessage();
+                            sendSmsRequestBody.chatId = chatId;
                             sendSmsRequestBody.text = item;
-                            sendSmsRequestBody.message_thread_id = messageThreadId;
+                            sendSmsRequestBody.messageThreadId = messageThreadId;
                             String requestUri = network.getUrl(botToken, "sendMessage");
                             String requestBodyJson = new Gson().toJson(sendSmsRequestBody);
                             RequestBody body = RequestBody.create(requestBodyJson, constValue.JSON);
@@ -432,7 +432,7 @@ public class chat_command_service extends Service {
                     inlineKeyboardButtons.add(replyMarkupKeyboard.getInlineKeyboardObj(context.getString(R.string.send_button), CALLBACK_DATA_VALUE.SEND));
                     inlineKeyboardButtons.add(replyMarkupKeyboard.getInlineKeyboardObj(context.getString(R.string.cancel_button), CALLBACK_DATA_VALUE.CANCEL));
                     keyboardMarkup.inlineKeyboard = inlineKeyboardButtons;
-                    requestBody.reply_markup = keyboardMarkup;
+                    requestBody.replyMarkup = keyboardMarkup;
                     resultSend = context.getString(R.string.to) + Paper.book("send_temp").read("to") + "\n" + context.getString(R.string.content) + Paper.book("send_temp").read("content", "");
                     sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS;
                     break;

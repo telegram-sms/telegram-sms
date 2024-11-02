@@ -1,6 +1,7 @@
-package com.qwe7002.telegram_sms.data_structure;
+package com.qwe7002.telegram_sms.data_structure
 
-public class smsRequestInfo {
-    public String phone;
-    public int card;
+class SMSRequestInfo {
+    lateinit var phone: String
+
+    var card: Int = 0
 }

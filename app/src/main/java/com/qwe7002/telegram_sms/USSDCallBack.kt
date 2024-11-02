@@ -8,7 +8,7 @@ import android.telephony.TelephonyManager.UssdResponseCallback
 import androidx.annotation.RequiresApi
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
-import com.qwe7002.telegram_sms.data_structure.sendMessageBody
+import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
 import com.qwe7002.telegram_sms.static_class.network
 import com.qwe7002.telegram_sms.static_class.resend
@@ -33,19 +33,19 @@ class USSDCallBack(
     private val dohSwitch: Boolean
     private var requestUri: String
     private val messageHeader: String
-    private val requestBody: sendMessageBody
+    private val requestBody: RequestMessage
 
     init {
         Paper.init(context)
         val chatId = sharedPreferences.getString("chat_id", "")
         this.dohSwitch = sharedPreferences.getBoolean("doh_switch", true)
-        this.requestBody = sendMessageBody()
-        requestBody.chat_id = chatId
+        this.requestBody = RequestMessage()
+        requestBody.chatId = chatId
         val botToken = sharedPreferences.getString("bot_token", "")
         this.requestUri = network.getUrl(botToken, "SendMessage")
         if (messageId != -1L) {
             this.requestUri = network.getUrl(botToken, "editMessageText")
-            requestBody.message_id = messageId
+            requestBody.messageId = messageId
         }
         this.messageHeader = context.getString(R.string.send_ussd_head)
     }
