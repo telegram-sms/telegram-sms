@@ -12,7 +12,7 @@ import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
 import com.qwe7002.telegram_sms.static_class.network
 import com.qwe7002.telegram_sms.static_class.other
-import com.qwe7002.telegram_sms.static_class.resend
+import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.sms
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
@@ -20,6 +20,7 @@ import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
 import java.util.Objects
@@ -70,8 +71,8 @@ class CallReceiver : BroadcastReceiver() {
                 val messageThreadId = sharedPreferences.getString("message_thread_id", "")
                 val requestUri = network.getUrl(botToken, "sendMessage")
                 val requestBody = RequestMessage()
-                requestBody.chatId = chatId
-                requestBody.messageThreadId = messageThreadId
+                requestBody.chatId = chatId.toString()
+                requestBody.messageThreadId = messageThreadId.toString()
                 val dual_sim = other.getDualSimCardDisplay(
                     context,
                     slot,
@@ -82,12 +83,13 @@ class CallReceiver : BroadcastReceiver() {
                     ${context.getString(R.string.Incoming_number)}$incomingNumber
                     """.trimIndent()
                 val requestBodyRaw = Gson().toJson(requestBody)
-                val body: RequestBody = RequestBody.create(constValue.JSON,requestBodyRaw)
+                val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
                 val okhttpObj = network.getOkhttpObj(
                     sharedPreferences.getBoolean("doh_switch", true),
                     Paper.book("system_config").read("proxy_config", proxy())
                 )
-                val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
+                val request: Request =
+                    Request.Builder().url(requestUri).method("POST", body).build()
                 val call = okhttpObj.newCall(request)
                 val errorHead = "Send missed call error:"
                 call.enqueue(object : Callback {
@@ -95,7 +97,7 @@ class CallReceiver : BroadcastReceiver() {
                         e.printStackTrace()
                         log.writeLog(context, errorHead + e.message)
                         sms.fallbackSMS(context, requestBody.text, other.getSubId(context, slot))
-                        resend.addResendLoop(context, requestBody.text)
+                        Resend.addResendLoop(context, requestBody.text)
                     }
 
                     @Throws(IOException::class)
@@ -105,7 +107,7 @@ class CallReceiver : BroadcastReceiver() {
                                 errorHead + response.code + " " + Objects.requireNonNull(response.body)
                                     .string()
                             log.writeLog(context, errorMessage)
-                            resend.addResendLoop(context, requestBody.text)
+                            Resend.addResendLoop(context, requestBody.text)
                         } else {
                             val result = Objects.requireNonNull(response.body).string()
                             if (!other.isPhoneNumber(incomingNumber!!)) {

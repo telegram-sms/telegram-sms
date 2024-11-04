@@ -209,7 +209,7 @@ public class other {
     public static void addMessageList(long messageId, String phone, int slot) {
         SMSRequestInfo item = new SMSRequestInfo();
         item.phone = phone;
-        item.card = slot;
+        item.setCard(slot);
         Paper.book().write(String.valueOf(messageId), item);
         Log.d("add_message_list", "add_message_list: " + messageId);
     }

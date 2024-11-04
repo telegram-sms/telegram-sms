@@ -106,7 +106,7 @@ class BatteryService : Service() {
         val TAG = "network_handle"
         val requestMessage = RequestMessage()
         requestMessage.chatId = chatId
-        requestMessage.text = obj.content
+        requestMessage.text = obj.content.toString()
         requestMessage.messageThreadId = messageThreadId
         var requestUri = network.getUrl(botToken, "sendMessage")
         if ((System.currentTimeMillis() - lastReceiveTime) <= 5000L && lastReceiveMessageId != -1L) {
