@@ -77,10 +77,11 @@ object ussd {
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
                 Looper.prepare()
+                val handler = Handler(Looper.getMainLooper())
                 tm.sendUssdRequest(
                     ussd,
                     USSDCallBack(context, sharedPreferences, messageId),
-                    Handler()
+                    handler
                 )
                 Looper.loop()
             }

@@ -143,14 +143,14 @@ class SMSReceiver : BroadcastReceiver() {
         requestBody.text = messageHead + messageBodyHtml
         if (isTrustedPhone) {
             log.writeLog(context, "SMS from trusted mobile phone detected")
-            val message_command =
+            val messageCommand =
                 messageBody.lowercase(Locale.getDefault()).replace("_", "").replace("-", "")
-            val command_list =
-                message_command.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-            if (command_list.size > 0) {
-                val message_list =
+            val commandList =
+                messageCommand.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            if (commandList.isNotEmpty()) {
+                val messageList =
                     messageBody.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                when (command_list[0].trim { it <= ' ' }) {
+                when (commandList[0].trim { it <= ' ' }) {
                     "/restartservice" -> {
                         Thread {
                             service.stopAllService(context)
@@ -177,23 +177,23 @@ class SMSReceiver : BroadcastReceiver() {
                             return
                         }
                         val messageInfo =
-                            message_list[0].split(" ".toRegex()).dropLastWhile { it.isEmpty() }
+                            messageList[0].split(" ".toRegex()).dropLastWhile { it.isEmpty() }
                                 .toTypedArray()
                         if (messageInfo.size == 2) {
                             val msgSendTo = other.getSendPhoneNumber(messageInfo[1])
                             if (other.isPhoneNumber(msgSendTo)) {
                                 val msgSendContent = StringBuilder()
                                 var i = 2
-                                while (i < message_list.size) {
+                                while (i < messageList.size) {
                                     if (i != 2) {
                                         msgSendContent.append("\n")
                                     }
-                                    msgSendContent.append(message_list[i])
+                                    msgSendContent.append(messageList[i])
                                     ++i
                                 }
                                 var sendSlot = slot
                                 if (other.getActiveCard(context) > 1) {
-                                    when (command_list[0].trim { it <= ' ' }) {
+                                    when (commandList[0].trim { it <= ' ' }) {
                                         "/sendsms1" -> sendSlot = 0
                                         "/sendsms2" -> sendSlot = 1
                                     }
@@ -219,8 +219,8 @@ class SMSReceiver : BroadcastReceiver() {
                                 Manifest.permission.CALL_PHONE
                             ) == PackageManager.PERMISSION_GRANTED
                         ) {
-                            if (message_list.size == 2) {
-                                ussd.sendUssd(context, message_list[1], subId)
+                            if (messageList.size == 2) {
+                                ussd.sendUssd(context, messageList[1], subId)
                                 return
                             }
                         }
