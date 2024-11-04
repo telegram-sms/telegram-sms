@@ -12,7 +12,7 @@ import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
 import com.qwe7002.telegram_sms.static_class.network
 import com.qwe7002.telegram_sms.static_class.Resend
-import com.qwe7002.telegram_sms.static_class.sms
+import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
 import okhttp3.Call
@@ -78,7 +78,7 @@ class SMSSendResultReceiver : BroadcastReceiver() {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
                 log.writeLog(context, errorHead + e.message)
-                sms.fallbackSMS(context, requestBody.text, sub)
+                SMS.fallbackSMS(context, requestBody.text, sub)
                 Resend.addResendLoop(context, requestBody.text)
             }
 

@@ -23,7 +23,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.util.Objects
 
-object ussd {
+object USSD {
     @JvmStatic
     @RequiresApi(api = Build.VERSION_CODES.O)
     fun sendUssd(context: Context, ussdRaw: String, subId: Int) {

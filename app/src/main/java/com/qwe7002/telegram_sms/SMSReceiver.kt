@@ -20,9 +20,9 @@ import com.qwe7002.telegram_sms.static_class.log
 import com.qwe7002.telegram_sms.static_class.network
 import com.qwe7002.telegram_sms.static_class.other
 import com.qwe7002.telegram_sms.static_class.Resend
-import com.qwe7002.telegram_sms.static_class.service
-import com.qwe7002.telegram_sms.static_class.sms
-import com.qwe7002.telegram_sms.static_class.ussd
+import com.qwe7002.telegram_sms.static_class.Service
+import com.qwe7002.telegram_sms.static_class.SMS
+import com.qwe7002.telegram_sms.static_class.USSD
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
 import okhttp3.Call
@@ -153,8 +153,8 @@ class SMSReceiver : BroadcastReceiver() {
                 when (commandList[0].trim { it <= ' ' }) {
                     "/restartservice" -> {
                         Thread {
-                            service.stopAllService(context)
-                            service.startService(
+                            Service.stopAllService(context)
+                            Service.startService(
                                 context,
                                 sharedPreferences.getBoolean("battery_monitoring_switch", false),
                                 sharedPreferences.getBoolean("chat_command", false)
@@ -199,7 +199,7 @@ class SMSReceiver : BroadcastReceiver() {
                                     }
                                 }
                                 Thread {
-                                    sms.sendSms(
+                                    SMS.sendSms(
                                         context,
                                         msgSendTo,
                                         msgSendContent.toString(),
@@ -220,7 +220,7 @@ class SMSReceiver : BroadcastReceiver() {
                             ) == PackageManager.PERMISSION_GRANTED
                         ) {
                             if (messageList.size == 2) {
-                                ussd.sendUssd(context, messageList[1], subId)
+                                USSD.sendUssd(context, messageList[1], subId)
                                 return
                             }
                         }
@@ -274,7 +274,7 @@ class SMSReceiver : BroadcastReceiver() {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
                 log.writeLog(context, errorHead + e.message)
-                sms.fallbackSMS(context, requestBodyText, subId)
+                SMS.fallbackSMS(context, requestBodyText, subId)
                 Resend.addResendLoop(context, requestBody.text)
             }
 
@@ -283,7 +283,7 @@ class SMSReceiver : BroadcastReceiver() {
                 val result = Objects.requireNonNull(response.body).string()
                 if (response.code != 200) {
                     log.writeLog(context, errorHead + response.code + " " + result)
-                    sms.fallbackSMS(context, requestBodyText, subId)
+                    SMS.fallbackSMS(context, requestBodyText, subId)
                     Resend.addResendLoop(context, requestBody.text)
                 } else {
                     if (!other.isPhoneNumber(messageAddress)) {

@@ -1,140 +1,169 @@
-package com.qwe7002.telegram_sms.static_class;
+package com.qwe7002.telegram_sms.static_class
 
-import static android.content.Context.RECEIVER_EXPORTED;
+import android.Manifest
+import android.annotation.SuppressLint
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
+import android.telephony.SmsManager
+import android.util.Log
+import androidx.core.content.PermissionChecker
+import com.google.gson.Gson
+import com.qwe7002.telegram_sms.R
+import com.qwe7002.telegram_sms.SMSSendResultReceiver
+import com.qwe7002.telegram_sms.config.proxy
+import com.qwe7002.telegram_sms.data_structure.RequestMessage
+import com.qwe7002.telegram_sms.value.constValue
+import io.paperdb.Paper
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.IOException
+import java.util.Objects
 
-import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
-import android.os.Build;
-import android.telephony.SmsManager;
-import android.util.Log;
-
-import androidx.core.content.PermissionChecker;
-
-import com.google.gson.Gson;
-import com.qwe7002.telegram_sms.R;
-import com.qwe7002.telegram_sms.config.proxy;
-import com.qwe7002.telegram_sms.data_structure.RequestMessage;
-import com.qwe7002.telegram_sms.SMSSendResultReceiver;
-import com.qwe7002.telegram_sms.value.constValue;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Objects;
-
-import io.paperdb.Paper;
-import okhttp3.Call;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-
-public class sms {
-    public static void sendSms(Context context, String send_to, String content, int slot, int sub_id) {
-        send(context, send_to, content, slot, sub_id, -1);
+object SMS {
+    @JvmStatic
+    fun sendSms(context: Context, sendTo: String, content: String, slot: Int, subId: Int) {
+        send(context, sendTo, content, slot, subId, -1)
     }
 
-    @SuppressLint({"UnspecifiedImmutableFlag", "UnspecifiedRegisterReceiverFlag"})
-    public static void send(Context context, String send_to, String content, int slot, int sub_id, long message_id) {
-        if (PermissionChecker.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PermissionChecker.PERMISSION_GRANTED) {
-            Log.d("send_sms", "No permission.");
-            return;
+    @JvmStatic
+    @SuppressLint("UnspecifiedImmutableFlag", "UnspecifiedRegisterReceiverFlag")
+    fun send(
+        context: Context,
+        sendTo: String,
+        content: String,
+        slot: Int,
+        subId: Int,
+        contextId: Long
+    ) {
+        var messageId = contextId
+        if (PermissionChecker.checkSelfPermission(
+                context,
+                Manifest.permission.SEND_SMS
+            ) != PermissionChecker.PERMISSION_GRANTED
+        ) {
+            Log.d("send_sms", "No permission.")
+            return
         }
-        if (!other.isPhoneNumber(send_to)) {
-            log.writeLog(context, "[" + send_to + "] is an illegal phone number");
-            return;
+        if (!other.isPhoneNumber(sendTo)) {
+            log.writeLog(context, "[$sendTo] is an illegal phone number")
+            return
         }
-        SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
-        String bot_token = sharedPreferences.getString("bot_token", "");
-        String chat_id = sharedPreferences.getString("chat_id", "");
-        String request_uri = network.getUrl(bot_token, "sendMessage");
-        if (message_id != -1) {
-            Log.d("send_sms", "Find the message_id and switch to edit mode.");
-            request_uri = network.getUrl(bot_token, "editMessageText");
+        val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
+        val botToken = sharedPreferences.getString("bot_token", "")!!
+        val chatId = sharedPreferences.getString("chat_id", "")!!
+        var requestUri = network.getUrl(botToken, "sendMessage")
+        if (messageId != -1L) {
+            Log.d("send_sms", "Find the message_id and switch to edit mode.")
+            requestUri = network.getUrl(botToken, "editMessageText")
         }
-        RequestMessage request_body = new RequestMessage();
-        request_body.chatId = chat_id;
-        SmsManager sms_manager;
-        if (sub_id == -1) {
-            sms_manager = SmsManager.getDefault();
+        val requestBody = RequestMessage()
+        requestBody.chatId = chatId
+        @Suppress("DEPRECATION") val smsManager = if (subId == -1) {
+            SmsManager.getDefault()
         } else {
-            sms_manager = SmsManager.getSmsManagerForSubscriptionId(sub_id);
+            SmsManager.getSmsManagerForSubscriptionId(subId)
         }
-        String dual_sim = other.getDualSimCardDisplay(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
-        String send_content = "[" + dual_sim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + send_to + "\n" + context.getString(R.string.content) + content;
-        request_body.text = send_content + "\n" + context.getString(R.string.status) + context.getString(R.string.sending);
-        request_body.setMessageId(message_id);
-        Gson gson = new Gson();
-        String request_body_raw = gson.toJson(request_body);
-        RequestBody body = RequestBody.create(request_body_raw, constValue.JSON);
-        OkHttpClient okhttp_client = network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
-        Request request = new Request.Builder().url(request_uri).method("POST", body).build();
-        Call call = okhttp_client.newCall(request);
+        val dualSim = other.getDualSimCardDisplay(
+            context,
+            slot,
+            sharedPreferences.getBoolean("display_dual_sim_display_name", false)
+        )
+        val sendContent = """
+            [$dualSim${context.getString(R.string.send_sms_head)}]
+            ${context.getString(R.string.to)}$sendTo
+            ${context.getString(R.string.content)}$content
+            """.trimIndent()
+        requestBody.text = """
+            $sendContent
+            ${context.getString(R.string.status)}${context.getString(R.string.sending)}
+            """.trimIndent()
+        requestBody.messageId = messageId
+        val gson = Gson()
+        val requestBodyRaw = gson.toJson(requestBody)
+        val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
+        val okhttpClient = network.getOkhttpObj(
+            sharedPreferences.getBoolean("doh_switch", true),
+            Paper.book("system_config").read("proxy_config", proxy())
+        )
+        val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
+        val call = okhttpClient.newCall(request)
         try {
-            Response response = call.execute();
-            if (response.code() != 200) {
-                throw new IOException(String.valueOf(response.code()));
+            val response = call.execute()
+            if (response.code != 200) {
+                throw IOException(response.code.toString())
             }
-            if (message_id == -1) {
-                message_id = other.getMessageId(Objects.requireNonNull(response.body()).string());
+            if (messageId == -1L) {
+                messageId = other.getMessageId(Objects.requireNonNull(response.body).string())
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            log.writeLog(context, "failed to send message:" + e.getMessage());
+        } catch (e: IOException) {
+            e.printStackTrace()
+            log.writeLog(context, "failed to send message:" + e.message)
         }
-        ArrayList<String> divideContents = sms_manager.divideMessage(content);
-        ArrayList<PendingIntent> send_receiver_list = new ArrayList<>();
-        IntentFilter filter = new IntentFilter("send_sms");
-        BroadcastReceiver receiver = new SMSSendResultReceiver();
+        val divideContents = smsManager.divideMessage(content)
+        val sendReceiverList = ArrayList<PendingIntent>()
+        val filter = IntentFilter("send_sms")
+        val receiver: BroadcastReceiver = SMSSendResultReceiver()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.registerReceiver(receiver, filter,RECEIVER_EXPORTED);
-        }else{
-            context.registerReceiver(receiver, filter);
+            context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
+        } else {
+            context.registerReceiver(receiver, filter)
         }
-        Log.d("onSend", "onReceive: "+message_id);
-        Intent sent_intent = new Intent("send_sms");
-        sent_intent.putExtra("message_id", message_id);
-        sent_intent.putExtra("message_text", send_content);
-        sent_intent.putExtra("sub_id", sms_manager.getSubscriptionId());
-        PendingIntent sentIntent;
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            sentIntent = PendingIntent.getBroadcast(context, (int) message_id, sent_intent, PendingIntent.FLAG_IMMUTABLE);
-        }else{
-            sentIntent = PendingIntent.getBroadcast(context, 0, sent_intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Log.d("onSend", "onReceive: $messageId")
+        val intent = Intent("send_sms")
+        intent.putExtra("message_id", messageId)
+        intent.putExtra("message_text", sendContent)
+        intent.putExtra("sub_id", smsManager.subscriptionId)
+        val sentIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.getBroadcast(
+                context,
+                messageId.toInt(),
+                intent,
+                PendingIntent.FLAG_IMMUTABLE
+            )
+        } else {
+            PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
         }
-        send_receiver_list.add(sentIntent);
-        sms_manager.sendMultipartTextMessage(send_to, null, divideContents, send_receiver_list, null);
+        sendReceiverList.add(sentIntent)
+        smsManager.sendMultipartTextMessage(
+            sendTo,
+            null,
+            divideContents,
+            sendReceiverList,
+            null
+        )
     }
 
-    public static void fallbackSMS(Context context, String content, int sub_id) {
-        final String TAG = "send_fallback_sms";
-        if (PermissionChecker.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PermissionChecker.PERMISSION_GRANTED) {
-            Log.d(TAG, "No permission.");
-            return;
+    fun fallbackSMS(context: Context, content: String?, sub_id: Int) {
+        val TAG = "send_fallback_sms"
+        if (PermissionChecker.checkSelfPermission(
+                context,
+                Manifest.permission.SEND_SMS
+            ) != PermissionChecker.PERMISSION_GRANTED
+        ) {
+            Log.d(TAG, "No permission.")
+            return
         }
-        SharedPreferences sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE);
-        String trust_number = sharedPreferences.getString("trusted_phone_number", null);
-        if (trust_number == null) {
-            Log.i(TAG, "The trusted number is empty.");
-            return;
+        val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
+        val trustNumber = sharedPreferences.getString("trusted_phone_number", null)
+        if (trustNumber == null) {
+            Log.i(TAG, "The trusted number is empty.")
+            return
         }
         if (!sharedPreferences.getBoolean("fallback_sms", false)) {
-            Log.i(TAG, "SMS fallback is not turned on.");
-            return;
+            Log.i(TAG, "SMS fallback is not turned on.")
+            return
         }
-        SmsManager sms_manager;
-        if (sub_id == -1) {
-            sms_manager = SmsManager.getDefault();
+        val smsManager = if (sub_id == -1) {
+            SmsManager.getDefault()
         } else {
-            sms_manager = SmsManager.getSmsManagerForSubscriptionId(sub_id);
+            SmsManager.getSmsManagerForSubscriptionId(sub_id)
         }
-        ArrayList<String> divideContents = sms_manager.divideMessage(content);
-        sms_manager.sendMultipartTextMessage(trust_number, null, divideContents, null, null);
-
+        val divideContents = smsManager.divideMessage(content)
+        smsManager.sendMultipartTextMessage(trustNumber, null, divideContents, null, null)
     }
 }
