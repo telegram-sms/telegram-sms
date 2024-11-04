@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.qwe7002.telegram_sms.static_class.log
-import com.qwe7002.telegram_sms.static_class.service
+import com.qwe7002.telegram_sms.static_class.Service
 import io.paperdb.Paper
 
 class BootReceiver : BroadcastReceiver() {
@@ -21,7 +21,7 @@ class BootReceiver : BroadcastReceiver() {
                 context,
                 "Received [" + intent.action + "] broadcast, starting background service."
             )
-            service.startService(
+            Service.startService(
                 context,
                 sharedPreferences.getBoolean("battery_monitoring_switch", false),
                 sharedPreferences.getBoolean("chat_command", false)

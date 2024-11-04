@@ -36,8 +36,8 @@ import com.qwe7002.telegram_sms.static_class.log;
 import com.qwe7002.telegram_sms.static_class.network;
 import com.qwe7002.telegram_sms.static_class.other;
 import com.qwe7002.telegram_sms.static_class.Resend;
-import com.qwe7002.telegram_sms.static_class.sms;
-import com.qwe7002.telegram_sms.static_class.ussd;
+import com.qwe7002.telegram_sms.static_class.SMS;
+import com.qwe7002.telegram_sms.static_class.USSD;
 import com.qwe7002.telegram_sms.value.constValue;
 import com.qwe7002.telegram_sms.value.notifyId;
 
@@ -164,7 +164,7 @@ public class chat_command_service extends Service {
             } else {
                 subId = other.getSubId(context, slot);
             }
-            sms.send(context, to, content, slot, subId, messageId);
+            SMS.send(context, to, content, slot, subId, messageId);
             setSmsSendStatusStandby();
             return;
         }
@@ -281,7 +281,7 @@ public class chat_command_service extends Service {
                             }
                         }
                         if (commandList.length == 2) {
-                            ussd.sendUssd(context, commandList[1], sub_id);
+                            USSD.sendUssd(context, commandList[1], sub_id);
                             return;
                         }
                     }
@@ -348,7 +348,7 @@ public class chat_command_service extends Service {
                                 sendContent.append(msgSendList[i]);
                             }
                             if (other.getActiveCard(context) == 1) {
-                                sms.sendSms(context, msgSendTo, sendContent.toString(), -1, -1);
+                                SMS.sendSms(context, msgSendTo, sendContent.toString(), -1, -1);
                                 return;
                             }
                             int sendSlot = -1;
@@ -360,7 +360,7 @@ public class chat_command_service extends Service {
                             }
                             int subId = other.getSubId(context, sendSlot);
                             if (subId != -1) {
-                                sms.sendSms(context, msgSendTo, sendContent.toString(), sendSlot, subId);
+                                SMS.sendSms(context, msgSendTo, sendContent.toString(), sendSlot, subId);
                                 return;
                             }
                         }

@@ -20,7 +20,7 @@ import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
 import com.qwe7002.telegram_sms.static_class.network
 import com.qwe7002.telegram_sms.static_class.other
-import com.qwe7002.telegram_sms.static_class.sms
+import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.value.constValue
 import com.qwe7002.telegram_sms.value.notifyId
 import io.paperdb.Paper
@@ -132,14 +132,14 @@ class BatteryService : Service() {
             } else {
                 lastReceiveMessageId = -1
                 if (obj.action == Intent.ACTION_BATTERY_LOW) {
-                    sms.fallbackSMS(applicationContext, requestMessage.text, -1)
+                    SMS.fallbackSMS(applicationContext, requestMessage.text, -1)
                 }
             }
         } catch (e: IOException) {
             Log.i(TAG, "networkHandle: $e")
             log.writeLog(applicationContext, errorHead + e.message)
             if (obj.action == Intent.ACTION_BATTERY_LOW) {
-                sms.fallbackSMS(applicationContext, requestMessage.text, -1)
+                SMS.fallbackSMS(applicationContext, requestMessage.text, -1)
             }
         }
     }
