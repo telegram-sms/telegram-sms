@@ -14,7 +14,7 @@ import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
 import com.qwe7002.telegram_sms.static_class.network
 import com.qwe7002.telegram_sms.static_class.other
-import com.qwe7002.telegram_sms.static_class.resend
+import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.value.constValue
 import com.qwe7002.telegram_sms.value.notifyId
 import io.paperdb.Paper
@@ -80,8 +80,8 @@ class NotificationService : NotificationListenerService() {
         val messageThreadId = sharedPreferences.getString("message_thread_id", "")
         val requestUri = network.getUrl(botToken, "sendMessage")
         val requestBody = RequestMessage()
-        requestBody.chatId = chatId
-        requestBody.messageThreadId = messageThreadId
+        requestBody.chatId = chatId.toString()
+        requestBody.messageThreadId = messageThreadId.toString()
         requestBody.text = """
             ${getString(R.string.receive_notification_title)}
             ${getString(R.string.app_name_title)}$appName
@@ -100,7 +100,7 @@ class NotificationService : NotificationListenerService() {
             override fun onFailure(call: Call, e: IOException) {
                 Log.e(TAG, "onFailure: ", e)
                 log.writeLog(applicationContext, errorHead + e.message)
-                resend.addResendLoop(applicationContext, requestBody.text)
+                Resend.addResendLoop(applicationContext, requestBody.text)
             }
 
             @Throws(IOException::class)
@@ -108,7 +108,7 @@ class NotificationService : NotificationListenerService() {
                 val result = Objects.requireNonNull(response.body).string()
                 if (response.code != 200) {
                     log.writeLog(applicationContext, errorHead + response.code + " " + result)
-                    resend.addResendLoop(applicationContext, requestBody.text)
+                    Resend.addResendLoop(applicationContext, requestBody.text)
                 }
             }
         })
