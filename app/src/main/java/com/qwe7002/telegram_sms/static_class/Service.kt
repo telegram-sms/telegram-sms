@@ -12,7 +12,7 @@ import com.qwe7002.telegram_sms.NotificationService
 import com.qwe7002.telegram_sms.chat_command_service
 import com.qwe7002.telegram_sms.value.constValue
 
-object service {
+object Service {
     @JvmStatic
     fun stopAllService(context: Context) {
         val intent = Intent(constValue.BROADCAST_STOP_SERVICE)

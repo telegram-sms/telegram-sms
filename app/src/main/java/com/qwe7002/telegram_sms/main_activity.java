@@ -51,7 +51,7 @@ import com.qwe7002.telegram_sms.data_structure.RequestMessage;
 import com.qwe7002.telegram_sms.static_class.log;
 import com.qwe7002.telegram_sms.static_class.network;
 import com.qwe7002.telegram_sms.static_class.other;
-import com.qwe7002.telegram_sms.static_class.service;
+import com.qwe7002.telegram_sms.static_class.Service;
 import com.qwe7002.telegram_sms.value.constValue;
 
 import org.jetbrains.annotations.NotNull;
@@ -147,7 +147,7 @@ public class main_activity extends AppCompatActivity {
 
         if (sharedPreferences.getBoolean("initialized", false)) {
             checkVersionUpgrade(true);
-            service.startService(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
+            Service.startService(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
             ReSendJob.Companion.startJob(context);
             KeepAliveJob.Companion.startJob(context);
 
@@ -266,7 +266,7 @@ public class main_activity extends AppCompatActivity {
                 Snackbar.make(v, R.string.token_not_configure, Snackbar.LENGTH_LONG).show();
                 return;
             }
-            new Thread(() -> service.stopAllService(context)).start();
+            new Thread(() -> Service.stopAllService(context)).start();
             final ProgressDialog progressDialog = new ProgressDialog(main_activity.this);
             progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             progressDialog.setTitle(getString(R.string.get_recent_chat_title));
@@ -488,8 +488,8 @@ public class main_activity extends AppCompatActivity {
                     new Thread(() -> {
                         ReSendJob.Companion.stopJob(context);
                         KeepAliveJob.Companion.stopJob(context);
-                        service.stopAllService(context);
-                        service.startService(context, batteryMonitoringSwitch.isChecked(), chatCommandSwitch.isChecked());
+                        Service.stopAllService(context);
+                        Service.startService(context, batteryMonitoringSwitch.isChecked(), chatCommandSwitch.isChecked());
                         ReSendJob.Companion.startJob(context);
                         KeepAliveJob.Companion.startJob(context);
                     }).start();
@@ -553,7 +553,7 @@ public class main_activity extends AppCompatActivity {
         boolean back_status = setPermissionBack;
         setPermissionBack = false;
         if (back_status) {
-            if (service.isNotifyListener(context)) {
+            if (Service.isNotifyListener(context)) {
                 startActivity(new Intent(main_activity.this, NotifyActivity.class));
             }
         }
@@ -704,7 +704,7 @@ public class main_activity extends AppCompatActivity {
                 }
                 return true;
             case R.id.set_notify_menu_item:
-                if (!service.isNotifyListener(context)) {
+                if (!Service.isNotifyListener(context)) {
                     Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
@@ -748,9 +748,9 @@ public class main_activity extends AppCompatActivity {
                             proxyItem.password = proxyPassword.getText().toString();
                             Paper.book("system_config").write("proxy_config", proxyItem);
                             new Thread(() -> {
-                                service.stopAllService(context);
+                                Service.stopAllService(context);
                                 if (sharedPreferences.getBoolean("initialized", false)) {
-                                    service.startService(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
+                                    Service.startService(context, sharedPreferences.getBoolean("battery_monitoring_switch", false), sharedPreferences.getBoolean("chat_command", false));
                                 }
                             }).start();
                         })
