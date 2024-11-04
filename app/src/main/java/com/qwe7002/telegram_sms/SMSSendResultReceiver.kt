@@ -11,7 +11,7 @@ import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
 import com.qwe7002.telegram_sms.static_class.network
-import com.qwe7002.telegram_sms.static_class.resend
+import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.sms
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
@@ -41,9 +41,9 @@ class SMSSendResultReceiver : BroadcastReceiver() {
         val chatId = sharedPreferences.getString("chat_id", "")
         val messageThreadId = sharedPreferences.getString("message_thread_id", "")
         val requestBody = RequestMessage()
-        requestBody.chatId = chatId
+        requestBody.chatId = chatId.toString()
 
-        requestBody.messageThreadId = messageThreadId
+        requestBody.messageThreadId = messageThreadId.toString()
         var requestUri = network.getUrl(botToken, "sendMessage")
         val messageId = extras.getLong("message_id")
         if (messageId != -1L) {
@@ -79,7 +79,7 @@ class SMSSendResultReceiver : BroadcastReceiver() {
                 e.printStackTrace()
                 log.writeLog(context, errorHead + e.message)
                 sms.fallbackSMS(context, requestBody.text, sub)
-                resend.addResendLoop(context, requestBody.text)
+                Resend.addResendLoop(context, requestBody.text)
             }
 
             @Throws(IOException::class)
@@ -90,7 +90,7 @@ class SMSSendResultReceiver : BroadcastReceiver() {
                         errorHead + response.code + " " + Objects.requireNonNull(response.body)
                             .string()
                     )
-                    resend.addResendLoop(context, requestBody.text)
+                    Resend.addResendLoop(context, requestBody.text)
                 }
                 Log.d(TAG, "onResponse: "+response.body.string())
             }

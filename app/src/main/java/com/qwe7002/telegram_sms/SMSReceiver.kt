@@ -19,7 +19,7 @@ import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
 import com.qwe7002.telegram_sms.static_class.network
 import com.qwe7002.telegram_sms.static_class.other
-import com.qwe7002.telegram_sms.static_class.resend
+import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.service
 import com.qwe7002.telegram_sms.static_class.sms
 import com.qwe7002.telegram_sms.static_class.ussd
@@ -29,6 +29,7 @@ import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -109,8 +110,8 @@ class SMSReceiver : BroadcastReceiver() {
             isTrustedPhone = messageAddress.contains(trustedPhoneNumber)
         }
         val requestBody = RequestMessage()
-        requestBody.chatId = chatId
-        requestBody.messageThreadId = messageThreadId
+        requestBody.chatId = chatId.toString()
+        requestBody.messageThreadId = messageThreadId.toString()
 
         var messageBodyHtml = messageBody
         val messageHead = """
@@ -122,7 +123,7 @@ class SMSReceiver : BroadcastReceiver() {
         var isVerificationCode = false
         if (sharedPreferences.getBoolean("verification_code", false) && !isTrustedPhone) {
             if (messageBody.length <= 140) {
-                val verification = CodeauxLibPortable.find(context,messageBody)
+                val verification = CodeauxLibPortable.find(context, messageBody)
                 if (verification != null) {
                     requestBody.parseMode = "html"
                     messageBodyHtml = messageBody
@@ -260,7 +261,7 @@ class SMSReceiver : BroadcastReceiver() {
         }
 
 
-        val body: RequestBody = RequestBody.create(constValue.JSON,Gson().toJson(requestBody) )
+        val body: RequestBody = Gson().toJson(requestBody).toRequestBody(constValue.JSON)
         val okhttpObj = network.getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),
             Paper.book("system_config").read("proxy_config", proxy())
@@ -274,7 +275,7 @@ class SMSReceiver : BroadcastReceiver() {
                 e.printStackTrace()
                 log.writeLog(context, errorHead + e.message)
                 sms.fallbackSMS(context, requestBodyText, subId)
-                resend.addResendLoop(context, requestBody.text)
+                Resend.addResendLoop(context, requestBody.text)
             }
 
             @Throws(IOException::class)
@@ -283,7 +284,7 @@ class SMSReceiver : BroadcastReceiver() {
                 if (response.code != 200) {
                     log.writeLog(context, errorHead + response.code + " " + result)
                     sms.fallbackSMS(context, requestBodyText, subId)
-                    resend.addResendLoop(context, requestBody.text)
+                    Resend.addResendLoop(context, requestBody.text)
                 } else {
                     if (!other.isPhoneNumber(messageAddress)) {
                         log.writeLog(context, "[$messageAddress] Not a regular phone number.")

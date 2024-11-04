@@ -143,49 +143,31 @@ public class chatCommand {
             if (activeNetworkInfo == null) {
                 return netType;
             }
-            switch (activeNetworkInfo.getType()) {
-                case ConnectivityManager.TYPE_WIFI:
-                    netType = "WIFI";
-                    break;
-                case ConnectivityManager.TYPE_MOBILE:
-                    netType = checkCellularNetworkType(activeNetworkInfo.getSubtype());
-                    break;
-            }
+            netType = switch (activeNetworkInfo.getType()) {
+                case ConnectivityManager.TYPE_WIFI -> "WIFI";
+                case ConnectivityManager.TYPE_MOBILE ->
+                        checkCellularNetworkType(activeNetworkInfo.getSubtype());
+                default -> netType;
+            };
         }
 
         return netType;
     }
 
     private static String checkCellularNetworkType(int type) {
-        String net_type = "Unknown";
-        switch (type) {
-            case TelephonyManager.NETWORK_TYPE_NR:
-                net_type = "NR";
-                break;
-            case TelephonyManager.NETWORK_TYPE_LTE:
-                net_type = "LTE";
-                break;
-            case TelephonyManager.NETWORK_TYPE_HSPAP:
-            case TelephonyManager.NETWORK_TYPE_EVDO_0:
-            case TelephonyManager.NETWORK_TYPE_EVDO_A:
-            case TelephonyManager.NETWORK_TYPE_EVDO_B:
-            case TelephonyManager.NETWORK_TYPE_EHRPD:
-            case TelephonyManager.NETWORK_TYPE_HSDPA:
-            case TelephonyManager.NETWORK_TYPE_HSUPA:
-            case TelephonyManager.NETWORK_TYPE_HSPA:
-            case TelephonyManager.NETWORK_TYPE_TD_SCDMA:
-            case TelephonyManager.NETWORK_TYPE_UMTS:
-                net_type = "3G";
-                break;
-            case TelephonyManager.NETWORK_TYPE_GPRS:
-            case TelephonyManager.NETWORK_TYPE_EDGE:
-            case TelephonyManager.NETWORK_TYPE_CDMA:
-            case TelephonyManager.NETWORK_TYPE_1xRTT:
-            case TelephonyManager.NETWORK_TYPE_IDEN:
-                net_type = "2G";
-                break;
-        }
-        return net_type;
+        return switch (type) {
+            case TelephonyManager.NETWORK_TYPE_NR -> "NR";
+            case TelephonyManager.NETWORK_TYPE_LTE -> "LTE";
+            case TelephonyManager.NETWORK_TYPE_HSPAP, TelephonyManager.NETWORK_TYPE_EVDO_0,
+                 TelephonyManager.NETWORK_TYPE_EVDO_A, TelephonyManager.NETWORK_TYPE_EVDO_B,
+                 TelephonyManager.NETWORK_TYPE_EHRPD, TelephonyManager.NETWORK_TYPE_HSDPA,
+                 TelephonyManager.NETWORK_TYPE_HSUPA, TelephonyManager.NETWORK_TYPE_HSPA,
+                 TelephonyManager.NETWORK_TYPE_TD_SCDMA, TelephonyManager.NETWORK_TYPE_UMTS -> "3G";
+            case TelephonyManager.NETWORK_TYPE_GPRS, TelephonyManager.NETWORK_TYPE_EDGE,
+                 TelephonyManager.NETWORK_TYPE_CDMA, TelephonyManager.NETWORK_TYPE_1xRTT,
+                 TelephonyManager.NETWORK_TYPE_IDEN -> "2G";
+            default -> "Unknown";
+        };
     }
 
 }

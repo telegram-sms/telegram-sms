@@ -11,7 +11,7 @@ import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
 import com.qwe7002.telegram_sms.static_class.network
-import com.qwe7002.telegram_sms.static_class.resend
+import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.sms
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
@@ -40,7 +40,7 @@ class USSDCallBack(
         val chatId = sharedPreferences.getString("chat_id", "")
         this.dohSwitch = sharedPreferences.getBoolean("doh_switch", true)
         this.requestBody = RequestMessage()
-        requestBody.chatId = chatId
+        requestBody.chatId = chatId.toString()
         val botToken = sharedPreferences.getString("bot_token", "")
         this.requestUri = network.getUrl(botToken, "SendMessage")
         if (messageId != -1L) {
@@ -94,7 +94,7 @@ class USSDCallBack(
                 e.printStackTrace()
                 log.writeLog(context, errorHead + e.message)
                 sms.fallbackSMS(context, requestBody.text, -1)
-                resend.addResendLoop(context, requestBody.text)
+                Resend.addResendLoop(context, requestBody.text)
             }
 
             @Throws(IOException::class)
@@ -106,7 +106,7 @@ class USSDCallBack(
                             .string()
                     )
                     sms.fallbackSMS(context, requestBody.text, -1)
-                    resend.addResendLoop(context, requestBody.text)
+                    Resend.addResendLoop(context, requestBody.text)
                 }
             }
         })

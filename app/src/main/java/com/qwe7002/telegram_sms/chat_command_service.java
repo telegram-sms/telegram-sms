@@ -35,7 +35,7 @@ import com.qwe7002.telegram_sms.static_class.chatCommand;
 import com.qwe7002.telegram_sms.static_class.log;
 import com.qwe7002.telegram_sms.static_class.network;
 import com.qwe7002.telegram_sms.static_class.other;
-import com.qwe7002.telegram_sms.static_class.resend;
+import com.qwe7002.telegram_sms.static_class.Resend;
 import com.qwe7002.telegram_sms.static_class.sms;
 import com.qwe7002.telegram_sms.static_class.ussd;
 import com.qwe7002.telegram_sms.value.constValue;
@@ -140,7 +140,7 @@ public class chat_command_service extends Service {
                 String dualSim = other.getDualSimCardDisplay(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
                 String sendContent = "[" + dualSim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + to + "\n" + context.getString(R.string.content) + content;
                 requestBody.text = sendContent + "\n" + context.getString(R.string.status) + context.getString(R.string.cancel_button);
-                requestBody.messageId = messageId;
+                requestBody.setMessageId(messageId);
                 Gson gson = new Gson();
                 String requestBodyRaw = gson.toJson(requestBody);
                 RequestBody body = RequestBody.create(requestBodyRaw, constValue.JSON);
@@ -211,7 +211,7 @@ public class chat_command_service extends Service {
             SMSRequestInfo saveItem = Paper.book().read(jsonObject.get("reply_to_message").getAsJsonObject().get("message_id").getAsString(), null);
             if (saveItem != null && !requestMsg.isEmpty()) {
                 String phoneNumber = saveItem.phone;
-                int cardSlot = saveItem.card;
+                int cardSlot = saveItem.getCard();
                 sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS;
                 Paper.book("send_temp").write("slot", cardSlot).write("to", phoneNumber).write("content", requestMsg);
             }
@@ -450,7 +450,7 @@ public class chat_command_service extends Service {
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
                 log.writeLog(context, errorHead + e.getMessage());
-                resend.addResendLoop(context, requestBody.text);
+                Resend.addResendLoop(context, requestBody.text);
             }
 
             @Override
@@ -458,7 +458,7 @@ public class chat_command_service extends Service {
                 String response_string = Objects.requireNonNull(response.body()).string();
                 if (response.code() != 200) {
                     log.writeLog(context, errorHead + response.code() + " " + response_string);
-                    resend.addResendLoop(context, requestBody.text);
+                    Resend.addResendLoop(context, requestBody.text);
                 }
                 if (sendSmsNextStatus == SEND_SMS_STATUS.SEND_STATUS) {
                     Paper.book("send_temp").write("message_id", other.getMessageId(response_string));
