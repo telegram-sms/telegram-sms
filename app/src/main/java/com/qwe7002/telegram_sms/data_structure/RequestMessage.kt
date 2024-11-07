@@ -1,7 +1,7 @@
 package com.qwe7002.telegram_sms.data_structure
 
 import com.google.gson.annotations.SerializedName
-import com.qwe7002.telegram_sms.data_structure.replyMarkupKeyboard.keyboardMarkup
+import com.qwe7002.telegram_sms.data_structure.ReplyMarkupKeyboard.KeyboardMarkup
 
 class RequestMessage {
     //Turn off page preview to avoid being tracked
@@ -18,5 +18,5 @@ class RequestMessage {
     @SerializedName(value = "message_thread_id")
     lateinit var messageThreadId: String
     @SerializedName(value = "reply_markup")
-    lateinit var replyMarkup: keyboardMarkup
+    lateinit var replyMarkup: KeyboardMarkup
 }

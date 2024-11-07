@@ -17,8 +17,8 @@ import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
-import com.qwe7002.telegram_sms.static_class.network
-import com.qwe7002.telegram_sms.static_class.other
+import com.qwe7002.telegram_sms.static_class.Network
+import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.Service
 import com.qwe7002.telegram_sms.static_class.SMS
@@ -58,11 +58,11 @@ class SMSReceiver : BroadcastReceiver() {
         val botToken = sharedPreferences.getString("bot_token", "")
         val chatId = sharedPreferences.getString("chat_id", "")
         val messageThreadId = sharedPreferences.getString("message_thread_id", "")
-        val requestUri = network.getUrl(botToken, "sendMessage")
+        val requestUri = Network.getUrl(botToken.toString(), "sendMessage")
 
         var intentSlot = extras.getInt("slot", -1)
         val subId = extras.getInt("subscription", -1)
-        if (other.getActiveCard(context) >= 2 && intentSlot == -1) {
+        if (Other.getActiveCard(context) >= 2 && intentSlot == -1) {
             val manager = SubscriptionManager.from(context)
             if (ActivityCompat.checkSelfPermission(
                     context,
@@ -74,7 +74,7 @@ class SMSReceiver : BroadcastReceiver() {
             }
         }
         val slot = intentSlot
-        val dualSim = other.getDualSimCardDisplay(
+        val dualSim = Other.getDualSimCardDisplay(
             context,
             intentSlot,
             sharedPreferences.getBoolean("display_dual_sim_display_name", false)
@@ -180,8 +180,8 @@ class SMSReceiver : BroadcastReceiver() {
                             messageList[0].split(" ".toRegex()).dropLastWhile { it.isEmpty() }
                                 .toTypedArray()
                         if (messageInfo.size == 2) {
-                            val msgSendTo = other.getSendPhoneNumber(messageInfo[1])
-                            if (other.isPhoneNumber(msgSendTo)) {
+                            val msgSendTo = Other.getSendPhoneNumber(messageInfo[1])
+                            if (Other.isPhoneNumber(msgSendTo)) {
                                 val msgSendContent = StringBuilder()
                                 var i = 2
                                 while (i < messageList.size) {
@@ -192,7 +192,7 @@ class SMSReceiver : BroadcastReceiver() {
                                     ++i
                                 }
                                 var sendSlot = slot
-                                if (other.getActiveCard(context) > 1) {
+                                if (Other.getActiveCard(context) > 1) {
                                     when (commandList[0].trim { it <= ' ' }) {
                                         "/sendsms1" -> sendSlot = 0
                                         "/sendsms2" -> sendSlot = 1
@@ -204,7 +204,7 @@ class SMSReceiver : BroadcastReceiver() {
                                         msgSendTo,
                                         msgSendContent.toString(),
                                         sendSlot,
-                                        other.getSubId(context, sendSlot)
+                                        Other.getSubId(context, sendSlot)
                                     )
                                 }
                                     .start()
@@ -262,7 +262,7 @@ class SMSReceiver : BroadcastReceiver() {
 
 
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(constValue.JSON)
-        val okhttpObj = network.getOkhttpObj(
+        val okhttpObj = Network.getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),
             Paper.book("system_config").read("proxy_config", proxy())
         )
@@ -286,11 +286,11 @@ class SMSReceiver : BroadcastReceiver() {
                     SMS.fallbackSMS(context, requestBodyText, subId)
                     Resend.addResendLoop(context, requestBody.text)
                 } else {
-                    if (!other.isPhoneNumber(messageAddress)) {
+                    if (!Other.isPhoneNumber(messageAddress)) {
                         log.writeLog(context, "[$messageAddress] Not a regular phone number.")
                         return
                     }
-                    other.addMessageList(other.getMessageId(result), messageAddress, slot)
+                    Other.addMessageList(Other.getMessageId(result), messageAddress, slot)
                 }
             }
         })
