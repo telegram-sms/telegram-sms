@@ -18,8 +18,8 @@ import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
-import com.qwe7002.telegram_sms.static_class.network
-import com.qwe7002.telegram_sms.static_class.other
+import com.qwe7002.telegram_sms.static_class.Network
+import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.value.constValue
 import com.qwe7002.telegram_sms.value.notifyId
@@ -43,7 +43,7 @@ class BatteryService : Service() {
     @SuppressLint("InlinedApi")
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         val notification =
-            other.getNotificationObj(applicationContext, getString(R.string.battery_monitoring_notify))
+            Other.getNotificationObj(applicationContext, getString(R.string.battery_monitoring_notify))
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(
                 notifyId.BATTERY,
@@ -108,14 +108,14 @@ class BatteryService : Service() {
         requestMessage.chatId = chatId
         requestMessage.text = obj.content.toString()
         requestMessage.messageThreadId = messageThreadId
-        var requestUri = network.getUrl(botToken, "sendMessage")
+        var requestUri = Network.getUrl(botToken, "sendMessage")
         if ((System.currentTimeMillis() - lastReceiveTime) <= 5000L && lastReceiveMessageId != -1L) {
-            requestUri = network.getUrl(botToken, "editMessageText")
+            requestUri = Network.getUrl(botToken, "editMessageText")
             requestMessage.messageId = lastReceiveMessageId
             Log.d(TAG, "onReceive: edit_mode")
         }
         lastReceiveTime = System.currentTimeMillis()
-        val okhttpObj = network.getOkhttpObj(
+        val okhttpObj = Network.getOkhttpObj(
             dohSwitch,
             Paper.book("system_config").read("proxy_config", proxy())
         )
@@ -128,7 +128,7 @@ class BatteryService : Service() {
             val response = call.execute()
             if (response.code == 200) {
                 lastReceiveMessageId =
-                    other.getMessageId(Objects.requireNonNull(response.body).string())
+                    Other.getMessageId(Objects.requireNonNull(response.body).string())
             } else {
                 lastReceiveMessageId = -1
                 if (obj.action == Intent.ACTION_BATTERY_LOW) {

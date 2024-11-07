@@ -1,9 +1,14 @@
-package com.qwe7002.telegram_sms.data_structure;
+package com.qwe7002.telegram_sms.data_structure
 
-public class pollingBody {
+import com.google.gson.annotations.SerializedName
+
+class PollingBody {
     //Predefined types that accept return
-    @SuppressWarnings({"unused", "RedundantSuppression"})
-    public final String[] allowed_updates = {"message", "channel_post", "callback_query"};
-    public long offset;
-    public int timeout;
+    @Suppress("unused")
+    @SerializedName("allowed_updates")
+    val allowedUpdates: Array<String> = arrayOf("message", "channel_post", "callback_query")
+    @JvmField
+    var offset: Long = 0
+    @JvmField
+    var timeout: Int = 0
 }

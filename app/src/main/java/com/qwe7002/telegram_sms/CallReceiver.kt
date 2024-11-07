@@ -10,8 +10,8 @@ import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
-import com.qwe7002.telegram_sms.static_class.network
-import com.qwe7002.telegram_sms.static_class.other
+import com.qwe7002.telegram_sms.static_class.Network
+import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.value.constValue
@@ -69,11 +69,11 @@ class CallReceiver : BroadcastReceiver() {
                 val botToken = sharedPreferences.getString("bot_token", "")
                 val chatId = sharedPreferences.getString("chat_id", "")
                 val messageThreadId = sharedPreferences.getString("message_thread_id", "")
-                val requestUri = network.getUrl(botToken, "sendMessage")
+                val requestUri = Network.getUrl(botToken.toString(), "sendMessage")
                 val requestBody = RequestMessage()
                 requestBody.chatId = chatId.toString()
                 requestBody.messageThreadId = messageThreadId.toString()
-                val dual_sim = other.getDualSimCardDisplay(
+                val dual_sim = Other.getDualSimCardDisplay(
                     context,
                     slot,
                     sharedPreferences.getBoolean("display_dual_sim_display_name", false)
@@ -84,7 +84,7 @@ class CallReceiver : BroadcastReceiver() {
                     """.trimIndent()
                 val requestBodyRaw = Gson().toJson(requestBody)
                 val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
-                val okhttpObj = network.getOkhttpObj(
+                val okhttpObj = Network.getOkhttpObj(
                     sharedPreferences.getBoolean("doh_switch", true),
                     Paper.book("system_config").read("proxy_config", proxy())
                 )
@@ -96,7 +96,7 @@ class CallReceiver : BroadcastReceiver() {
                     override fun onFailure(call: Call, e: IOException) {
                         e.printStackTrace()
                         log.writeLog(context, errorHead + e.message)
-                        SMS.fallbackSMS(context, requestBody.text, other.getSubId(context, slot))
+                        SMS.fallbackSMS(context, requestBody.text, Other.getSubId(context, slot))
                         Resend.addResendLoop(context, requestBody.text)
                     }
 
@@ -110,14 +110,14 @@ class CallReceiver : BroadcastReceiver() {
                             Resend.addResendLoop(context, requestBody.text)
                         } else {
                             val result = Objects.requireNonNull(response.body).string()
-                            if (!other.isPhoneNumber(incomingNumber!!)) {
+                            if (!Other.isPhoneNumber(incomingNumber!!)) {
                                 log.writeLog(
                                     context,
                                     "[$incomingNumber] Not a regular phone number."
                                 )
                                 return
                             }
-                            other.addMessageList(other.getMessageId(result), incomingNumber, slot)
+                            Other.addMessageList(Other.getMessageId(result), incomingNumber, slot)
                         }
                     }
                 })

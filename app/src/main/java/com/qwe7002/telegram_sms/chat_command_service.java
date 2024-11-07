@@ -27,14 +27,14 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.qwe7002.telegram_sms.config.proxy;
-import com.qwe7002.telegram_sms.data_structure.pollingBody;
-import com.qwe7002.telegram_sms.data_structure.replyMarkupKeyboard;
+import com.qwe7002.telegram_sms.data_structure.PollingBody;
+import com.qwe7002.telegram_sms.data_structure.ReplyMarkupKeyboard;
 import com.qwe7002.telegram_sms.data_structure.RequestMessage;
 import com.qwe7002.telegram_sms.data_structure.SMSRequestInfo;
-import com.qwe7002.telegram_sms.static_class.chatCommand;
+import com.qwe7002.telegram_sms.static_class.ChatCommand;
 import com.qwe7002.telegram_sms.static_class.log;
-import com.qwe7002.telegram_sms.static_class.network;
-import com.qwe7002.telegram_sms.static_class.other;
+import com.qwe7002.telegram_sms.static_class.Network;
+import com.qwe7002.telegram_sms.static_class.Other;
 import com.qwe7002.telegram_sms.static_class.Resend;
 import com.qwe7002.telegram_sms.static_class.SMS;
 import com.qwe7002.telegram_sms.static_class.USSD;
@@ -136,15 +136,15 @@ public class chat_command_service extends Service {
             assert callbackData != null;
             if (!callbackData.equals(CALLBACK_DATA_VALUE.SEND)) {
                 setSmsSendStatusStandby();
-                String requestUri = network.getUrl(botToken, "editMessageText");
-                String dualSim = other.getDualSimCardDisplay(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
+                String requestUri = Network.getUrl(botToken, "editMessageText");
+                String dualSim = Other.getDualSimCardDisplay(context, slot, sharedPreferences.getBoolean("display_dual_sim_display_name", false));
                 String sendContent = "[" + dualSim + context.getString(R.string.send_sms_head) + "]" + "\n" + context.getString(R.string.to) + to + "\n" + context.getString(R.string.content) + content;
                 requestBody.text = sendContent + "\n" + context.getString(R.string.status) + context.getString(R.string.cancel_button);
                 requestBody.setMessageId(messageId);
                 Gson gson = new Gson();
                 String requestBodyRaw = gson.toJson(requestBody);
                 RequestBody body = RequestBody.create(requestBodyRaw, constValue.JSON);
-                OkHttpClient okhttpObj = network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+                OkHttpClient okhttpObj = Network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
                 Request request = new Request.Builder().url(requestUri).method("POST", body).build();
                 Call call = okhttpObj.newCall(request);
                 try {
@@ -159,10 +159,10 @@ public class chat_command_service extends Service {
                 return;
             }
             int subId = -1;
-            if (other.getActiveCard(context) == 1) {
+            if (Other.getActiveCard(context) == 1) {
                 slot = -1;
             } else {
-                subId = other.getSubId(context, slot);
+                subId = Other.getSubId(context, slot);
             }
             SMS.send(context, to, content, slot, subId, messageId);
             setSmsSendStatusStandby();
@@ -245,12 +245,12 @@ public class chat_command_service extends Service {
             case "/help":
             case "/start":
             case "/commandlist":
-                requestBody.text = chatCommand.getCommandList(context, command, isPrivate, privacyMode, botUsername);
+                requestBody.text = ChatCommand.getCommandList(context, command, isPrivate, privacyMode, botUsername);
                 hasCommand = true;
                 break;
             case "/ping":
             case "/getinfo":
-                requestBody.text = chatCommand.getInfo(context);
+                requestBody.text = ChatCommand.getInfo(context);
                 hasCommand = true;
                 break;
             case "/log":
@@ -275,9 +275,9 @@ public class chat_command_service extends Service {
                     if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
                         String[] commandList = requestMsg.split(" ");
                         int sub_id = -1;
-                        if (other.getActiveCard(context) == 2) {
+                        if (Other.getActiveCard(context) == 2) {
                             if (command.equals("/sendussd2")) {
-                                sub_id = other.getSubId(context, 1);
+                                sub_id = Other.getSubId(context, 1);
                             }
                         }
                         if (commandList.length == 2) {
@@ -296,14 +296,14 @@ public class chat_command_service extends Service {
                     break;
                 }
                 new Thread(() -> {
-                    if (network.checkNetworkStatus(context)) {
-                        OkHttpClient okhttpObj = network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+                    if (Network.checkNetworkStatus(context)) {
+                        OkHttpClient okhttpObj = Network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
                         for (String item : spamSMSHistory) {
                             RequestMessage sendSmsRequestBody = new RequestMessage();
                             sendSmsRequestBody.chatId = chatId;
                             sendSmsRequestBody.text = item;
                             sendSmsRequestBody.messageThreadId = messageThreadId;
-                            String requestUri = network.getUrl(botToken, "sendMessage");
+                            String requestUri = Network.getUrl(botToken, "sendMessage");
                             String requestBodyJson = new Gson().toJson(sendSmsRequestBody);
                             RequestBody body = RequestBody.create(requestBodyJson, constValue.JSON);
                             Request requestObj = new Request.Builder().url(requestUri).method("POST", body).build();
@@ -338,8 +338,8 @@ public class chat_command_service extends Service {
                 if (msgSendList.length > 1) {
                     String[] infoList = msgSendList[0].split(" ");
                     if (infoList.length == 2) {
-                        String msgSendTo = other.getSendPhoneNumber(infoList[1]);
-                        if (other.isPhoneNumber(msgSendTo)) {
+                        String msgSendTo = Other.getSendPhoneNumber(infoList[1]);
+                        if (Other.isPhoneNumber(msgSendTo)) {
                             StringBuilder sendContent = new StringBuilder();
                             for (int i = 1; i < msgSendList.length; ++i) {
                                 if (msgSendList.length != 2 && i != 1) {
@@ -347,18 +347,18 @@ public class chat_command_service extends Service {
                                 }
                                 sendContent.append(msgSendList[i]);
                             }
-                            if (other.getActiveCard(context) == 1) {
+                            if (Other.getActiveCard(context) == 1) {
                                 SMS.sendSms(context, msgSendTo, sendContent.toString(), -1, -1);
                                 return;
                             }
                             int sendSlot = -1;
-                            if (other.getActiveCard(context) > 1) {
+                            if (Other.getActiveCard(context) > 1) {
                                 sendSlot = 0;
                                 if (command.equals("/sendsms2")) {
                                     sendSlot = 1;
                                 }
                             }
-                            int subId = other.getSubId(context, sendSlot);
+                            int subId = Other.getSubId(context, sendSlot);
                             if (subId != -1) {
                                 SMS.sendSms(context, msgSendTo, sendContent.toString(), sendSlot, subId);
                                 return;
@@ -369,7 +369,7 @@ public class chat_command_service extends Service {
                     Log.i(TAG, "receiveHandle: " + messageType);
                     sendSmsNextStatus = SEND_SMS_STATUS.PHONE_INPUT_STATUS;
                     int sendSlot = -1;
-                    if (other.getActiveCard(context) > 1) {
+                    if (Other.getActiveCard(context) > 1) {
                         sendSlot = 0;
                         if (command.equals("/sendsms2")) {
                             sendSlot = 1;
@@ -411,8 +411,8 @@ public class chat_command_service extends Service {
                     resultSend = getString(R.string.enter_number);
                     break;
                 case SEND_SMS_STATUS.MESSAGE_INPUT_STATUS:
-                    String tempTo = other.getSendPhoneNumber(requestMsg);
-                    if (other.isPhoneNumber(tempTo)) {
+                    String tempTo = Other.getSendPhoneNumber(requestMsg);
+                    if (Other.isPhoneNumber(tempTo)) {
                         Paper.book("send_temp").write("to", tempTo);
                         resultSend = getString(R.string.enter_content);
 /*                        if(messageType.equals("private")) {*/
@@ -427,10 +427,10 @@ public class chat_command_service extends Service {
                     break;
                 case SEND_SMS_STATUS.WAITING_TO_SEND_STATUS:
                     Paper.book("send_temp").write("content", requestMsg);
-                    replyMarkupKeyboard.keyboardMarkup keyboardMarkup = new replyMarkupKeyboard.keyboardMarkup();
-                    ArrayList<ArrayList<replyMarkupKeyboard.InlineKeyboardButton>> inlineKeyboardButtons = new ArrayList<>();
-                    inlineKeyboardButtons.add(replyMarkupKeyboard.getInlineKeyboardObj(context.getString(R.string.send_button), CALLBACK_DATA_VALUE.SEND));
-                    inlineKeyboardButtons.add(replyMarkupKeyboard.getInlineKeyboardObj(context.getString(R.string.cancel_button), CALLBACK_DATA_VALUE.CANCEL));
+                    ReplyMarkupKeyboard.KeyboardMarkup keyboardMarkup = new ReplyMarkupKeyboard.KeyboardMarkup();
+                    ArrayList<ArrayList<ReplyMarkupKeyboard.InlineKeyboardButton>> inlineKeyboardButtons = new ArrayList<>();
+                    inlineKeyboardButtons.add(ReplyMarkupKeyboard.getInlineKeyboardObj(context.getString(R.string.send_button), CALLBACK_DATA_VALUE.SEND));
+                    inlineKeyboardButtons.add(ReplyMarkupKeyboard.getInlineKeyboardObj(context.getString(R.string.cancel_button), CALLBACK_DATA_VALUE.CANCEL));
                     keyboardMarkup.inlineKeyboard = inlineKeyboardButtons;
                     requestBody.replyMarkup = keyboardMarkup;
                     resultSend = context.getString(R.string.to) + Paper.book("send_temp").read("to") + "\n" + context.getString(R.string.content) + Paper.book("send_temp").read("content", "");
@@ -440,7 +440,7 @@ public class chat_command_service extends Service {
             requestBody.text = head + "\n" + resultSend;
         }
 
-        String requestUri = network.getUrl(botToken, "sendMessage");
+        String requestUri = Network.getUrl(botToken, "sendMessage");
         RequestBody body = RequestBody.create(new Gson().toJson(requestBody), constValue.JSON);
         Request sendRequest = new Request.Builder().url(requestUri).method("POST", body).build();
         Call call = okHttpClient.newCall(sendRequest);
@@ -461,7 +461,7 @@ public class chat_command_service extends Service {
                     Resend.addResendLoop(context, requestBody.text);
                 }
                 if (sendSmsNextStatus == SEND_SMS_STATUS.SEND_STATUS) {
-                    Paper.book("send_temp").write("message_id", other.getMessageId(response_string));
+                    Paper.book("send_temp").write("message_id", Other.getMessageId(response_string));
                 }
             }
         });
@@ -469,7 +469,7 @@ public class chat_command_service extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Notification notification = other.getNotificationObj(getApplicationContext(), getString(R.string.chat_command_service_name));
+        Notification notification = Other.getNotificationObj(getApplicationContext(), getString(R.string.chat_command_service_name));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(notifyId.CHAT_COMMAND, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
         }else{
@@ -489,7 +489,7 @@ public class chat_command_service extends Service {
         chatId = sharedPreferences.getString("chat_id", "");
         botToken = sharedPreferences.getString("bot_token", "");
         messageThreadId = sharedPreferences.getString("message_thread_id", "");
-        okHttpClient = network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
+        okHttpClient = Network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true), Paper.book("system_config").read("proxy_config", new proxy()));
         privacyMode = sharedPreferences.getBoolean("privacy_mode", false);
         wifiLock = ((WifiManager) Objects.requireNonNull(context.getApplicationContext().getSystemService(Context.WIFI_SERVICE))).createWifiLock(WifiManager.WIFI_MODE_FULL, "bot_command_polling_wifi");
         wakelock = ((PowerManager) Objects.requireNonNull(context.getSystemService(Context.POWER_SERVICE))).newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "bot_command_polling");
@@ -519,7 +519,7 @@ public class chat_command_service extends Service {
 
     private boolean getMe() {
         OkHttpClient okhttpClientNew = okHttpClient;
-        String requestUri = network.getUrl(botToken, "getMe");
+        String requestUri = Network.getUrl(botToken, "getMe");
         Request request = new Request.Builder().url(requestUri).build();
         Call call = okhttpClientNew.newCall(request);
         Response response;
@@ -570,7 +570,7 @@ public class chat_command_service extends Service {
         @Override
         public void run() {
             Log.d(TAG, "run: thread main start");
-            if (other.parseStringToLong(chatId) < 0) {
+            if (Other.parseStringToLong(chatId) < 0) {
                 botUsername = Paper.book().read("bot_username", null);
                 if (botUsername == null) {
                     while (!getMe()) {
@@ -591,8 +591,8 @@ public class chat_command_service extends Service {
                         .readTimeout(http_timeout, TimeUnit.SECONDS)
                         .writeTimeout(http_timeout, TimeUnit.SECONDS)
                         .build();
-                String requestUri = network.getUrl(botToken, "getUpdates");
-                pollingBody requestBody = new pollingBody();
+                String requestUri = Network.getUrl(botToken, "getUpdates");
+                PollingBody requestBody = new PollingBody();
                 requestBody.offset = offset;
                 requestBody.timeout = timeout;
                 if (firstRequest) {
@@ -607,7 +607,7 @@ public class chat_command_service extends Service {
                     response = call.execute();
                 } catch (IOException e) {
                     e.printStackTrace();
-                    if (!network.checkNetworkStatus(context)) {
+                    if (!Network.checkNetworkStatus(context)) {
                         log.writeLog(context, "No network connections available, Wait for the network to recover.");
                         Log.d(TAG, "run: break loop.");
                         break;
@@ -664,7 +664,7 @@ public class chat_command_service extends Service {
                     android.os.Process.killProcess(android.os.Process.myPid());
                     break;
                 case ConnectivityManager.CONNECTIVITY_ACTION:
-                    if (network.checkNetworkStatus(context)) {
+                    if (Network.checkNetworkStatus(context)) {
                         if (!threadMain.isAlive()) {
                             log.writeLog(context, "Network connections has been restored.");
                             threadMain = new Thread(new threadMainRunnable());

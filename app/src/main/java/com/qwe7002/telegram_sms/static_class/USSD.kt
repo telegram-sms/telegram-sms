@@ -28,7 +28,7 @@ object USSD {
     @RequiresApi(api = Build.VERSION_CODES.O)
     fun sendUssd(context: Context, ussdRaw: String, subId: Int) {
         val TAG = "send_ussd"
-        val ussd = other.getNineKeyMapConvert(ussdRaw)
+        val ussd = Other.getNineKeyMapConvert(ussdRaw)
         var tm =
             checkNotNull(context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager)
         if (subId != -1) {
@@ -45,7 +45,7 @@ object USSD {
 
         val botToken = sharedPreferences.getString("bot_token", "")!!
         val chatId = sharedPreferences.getString("chat_id", "")!!
-        val requestUri = network.getUrl(botToken, "sendMessage")
+        val requestUri = Network.getUrl(botToken, "sendMessage")
         val requestBody = RequestMessage()
         requestBody.chatId = chatId
         requestBody.text = """
@@ -54,7 +54,7 @@ object USSD {
             """.trimIndent()
         val requestBodyRaw = Gson().toJson(requestBody)
         val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
-        val okhttpClient = network.getOkhttpObj(
+        val okhttpClient = Network.getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),
             Paper.book("system_config").read("proxy_config", proxy())
         )
@@ -65,7 +65,7 @@ object USSD {
             var messageId = -1L
             try {
                 val response = call.execute()
-                messageId = other.getMessageId(
+                messageId = Other.getMessageId(
                     Objects.requireNonNull(response.body).string()
                 )
             } catch (e: IOException) {

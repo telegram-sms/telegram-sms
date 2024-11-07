@@ -10,7 +10,7 @@ import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
-import com.qwe7002.telegram_sms.static_class.network
+import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
 import okhttp3.OkHttpClient
@@ -26,12 +26,12 @@ class ReSendJob : JobService() {
     override fun onStartJob(params: JobParameters?): Boolean {
         Paper.init(applicationContext)
         val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
-        requestUri = network.getUrl(sharedPreferences.getString("bot_token", ""), "SendMessage")
+        requestUri = Network.getUrl(sharedPreferences.getString("bot_token", "").toString(), "SendMessage")
         Thread {
             val sendList: java.util.ArrayList<String>? =
                 Paper.book().read(tableName, java.util.ArrayList())
             val okhttpClient =
-                network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true),
+                Network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true),
                     Paper.book("system_config").read("proxy_config", proxy()))
             for (item in sendList!!) {
                 networkProgressHandle(

@@ -3,13 +3,13 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".main_activity">
+        tools:context=".MainActivity">
 
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:alpha="@dimen/alpha"
-        android:scaleType="fitEnd"
+        android:scaleType="center"
         android:src="@drawable/character_set"
         tools:ignore="ContentDescription" />
 
