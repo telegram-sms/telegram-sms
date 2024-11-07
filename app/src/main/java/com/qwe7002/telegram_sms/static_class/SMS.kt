@@ -49,17 +49,17 @@ object SMS {
             Log.d("send_sms", "No permission.")
             return
         }
-        if (!other.isPhoneNumber(sendTo)) {
+        if (!Other.isPhoneNumber(sendTo)) {
             log.writeLog(context, "[$sendTo] is an illegal phone number")
             return
         }
         val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
         val botToken = sharedPreferences.getString("bot_token", "")!!
         val chatId = sharedPreferences.getString("chat_id", "")!!
-        var requestUri = network.getUrl(botToken, "sendMessage")
+        var requestUri = Network.getUrl(botToken, "sendMessage")
         if (messageId != -1L) {
             Log.d("send_sms", "Find the message_id and switch to edit mode.")
-            requestUri = network.getUrl(botToken, "editMessageText")
+            requestUri = Network.getUrl(botToken, "editMessageText")
         }
         val requestBody = RequestMessage()
         requestBody.chatId = chatId
@@ -68,7 +68,7 @@ object SMS {
         } else {
             SmsManager.getSmsManagerForSubscriptionId(subId)
         }
-        val dualSim = other.getDualSimCardDisplay(
+        val dualSim = Other.getDualSimCardDisplay(
             context,
             slot,
             sharedPreferences.getBoolean("display_dual_sim_display_name", false)
@@ -86,7 +86,7 @@ object SMS {
         val gson = Gson()
         val requestBodyRaw = gson.toJson(requestBody)
         val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
-        val okhttpClient = network.getOkhttpObj(
+        val okhttpClient = Network.getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),
             Paper.book("system_config").read("proxy_config", proxy())
         )
@@ -98,7 +98,7 @@ object SMS {
                 throw IOException(response.code.toString())
             }
             if (messageId == -1L) {
-                messageId = other.getMessageId(Objects.requireNonNull(response.body).string())
+                messageId = Other.getMessageId(Objects.requireNonNull(response.body).string())
             }
         } catch (e: IOException) {
             e.printStackTrace()
@@ -159,8 +159,10 @@ object SMS {
             return
         }
         val smsManager = if (sub_id == -1) {
-            SmsManager.getDefault()
+            @Suppress("DEPRECATION")
+            SmsManager.getSmsManagerForSubscriptionId(SmsManager.getDefaultSmsSubscriptionId())
         } else {
+            @Suppress("DEPRECATION")
             SmsManager.getSmsManagerForSubscriptionId(sub_id)
         }
         val divideContents = smsManager.divideMessage(content)

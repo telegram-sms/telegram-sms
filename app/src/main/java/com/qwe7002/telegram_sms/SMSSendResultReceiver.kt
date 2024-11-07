@@ -10,7 +10,7 @@ import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
-import com.qwe7002.telegram_sms.static_class.network
+import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.value.constValue
@@ -44,12 +44,12 @@ class SMSSendResultReceiver : BroadcastReceiver() {
         requestBody.chatId = chatId.toString()
 
         requestBody.messageThreadId = messageThreadId.toString()
-        var requestUri = network.getUrl(botToken, "sendMessage")
+        var requestUri = Network.getUrl(botToken.toString(), "sendMessage")
         val messageId = extras.getLong("message_id")
         if (messageId != -1L) {
             Log.d(TAG, "Find the message_id and switch to edit mode.")
             Log.d(TAG, "onReceive: $messageId")
-            requestUri = network.getUrl(botToken, "editMessageText")
+            requestUri = Network.getUrl(botToken.toString(), "editMessageText")
             requestBody.messageId = messageId
         }
         var resultStatus = "Unknown"
@@ -67,7 +67,7 @@ class SMSSendResultReceiver : BroadcastReceiver() {
         requestBody.text = extras.getString("message_text")+"\n"+"""${context.getString(R.string.status)}$resultStatus""".trimIndent()
         val requestBodyRaw = Gson().toJson(requestBody)
         val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
-        val okhttpClient = network.getOkhttpObj(
+        val okhttpClient = Network.getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),
             Paper.book("system_config").read("proxy_config", proxy())
         )

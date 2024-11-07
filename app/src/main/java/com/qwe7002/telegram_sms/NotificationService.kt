@@ -12,8 +12,8 @@ import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
-import com.qwe7002.telegram_sms.static_class.network
-import com.qwe7002.telegram_sms.static_class.other
+import com.qwe7002.telegram_sms.static_class.Network
+import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.value.constValue
 import com.qwe7002.telegram_sms.value.notifyId
@@ -35,7 +35,7 @@ class NotificationService : NotificationListenerService() {
         super.onCreate()
         Paper.init(applicationContext)
         sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
-        val notification = other.getNotificationObj(
+        val notification = Other.getNotificationObj(
             applicationContext,
             getString(R.string.Notification_Listener_title)
         )
@@ -78,7 +78,7 @@ class NotificationService : NotificationListenerService() {
         val botToken = sharedPreferences.getString("bot_token", "")
         val chatId = sharedPreferences.getString("chat_id", "")
         val messageThreadId = sharedPreferences.getString("message_thread_id", "")
-        val requestUri = network.getUrl(botToken, "sendMessage")
+        val requestUri = Network.getUrl(botToken.toString(), "sendMessage")
         val requestBody = RequestMessage()
         requestBody.chatId = chatId.toString()
         requestBody.messageThreadId = messageThreadId.toString()
@@ -89,7 +89,7 @@ class NotificationService : NotificationListenerService() {
             ${getString(R.string.content)}$content
             """.trimIndent()
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(constValue.JSON)
-        val okhttpObj = network.getOkhttpObj(
+        val okhttpObj = Network.getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),
             Paper.book("system_config").read("proxy_config", proxy())
         )

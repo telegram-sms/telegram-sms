@@ -10,7 +10,7 @@ import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.log
-import com.qwe7002.telegram_sms.static_class.network
+import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.value.constValue
@@ -42,9 +42,9 @@ class USSDCallBack(
         this.requestBody = RequestMessage()
         requestBody.chatId = chatId.toString()
         val botToken = sharedPreferences.getString("bot_token", "")
-        this.requestUri = network.getUrl(botToken, "SendMessage")
+        this.requestUri = Network.getUrl(botToken.toString(), "SendMessage")
         if (messageId != -1L) {
-            this.requestUri = network.getUrl(botToken, "editMessageText")
+            this.requestUri = Network.getUrl(botToken.toString(), "editMessageText")
             requestBody.messageId = messageId
         }
         this.messageHeader = context.getString(R.string.send_ussd_head)
@@ -82,7 +82,7 @@ class USSDCallBack(
         requestBody.text = message
         val requestBodyJson = Gson().toJson(requestBody)
         val body: RequestBody = requestBodyJson.toRequestBody(constValue.JSON)
-        val okhttpClient = network.getOkhttpObj(
+        val okhttpClient = Network.getOkhttpObj(
             dohSwitch,
             Paper.book("system_config").read("proxy_config", proxy())
         )
