@@ -1,30 +1,33 @@
-package com.qwe7002.telegram_sms.data_structure;
+package com.qwe7002.telegram_sms.data_structure
 
-import com.google.gson.annotations.SerializedName;
+import com.google.gson.annotations.SerializedName
 
-import java.util.ArrayList;
-
-@SuppressWarnings({"unused", "RedundantSuppression"})
-public class replyMarkupKeyboard {
-    public static ArrayList<InlineKeyboardButton> getInlineKeyboardObj(String text, String callbackData) {
-        InlineKeyboardButton button = new InlineKeyboardButton();
-        button.text = text;
-        button.callbackData = callbackData;
-        ArrayList<InlineKeyboardButton> button_ArrayList = new ArrayList<>();
-        button_ArrayList.add(button);
-        return button_ArrayList;
+@Suppress("unused")
+object ReplyMarkupKeyboard {
+    @JvmStatic
+    fun getInlineKeyboardObj(
+        text: String,
+        callbackData: String
+    ): ArrayList<InlineKeyboardButton> {
+        val button = InlineKeyboardButton()
+        button.text = text
+        button.callbackData = callbackData
+        val buttonArraylist = ArrayList<InlineKeyboardButton>()
+        buttonArraylist.add(button)
+        return buttonArraylist
     }
 
-    public static class keyboardMarkup {
+    class KeyboardMarkup {
         @SerializedName("inline_keyboard")
-        public ArrayList<ArrayList<InlineKeyboardButton>> inlineKeyboard;
-        boolean oneTimeKeyboard = true;
+        lateinit var inlineKeyboard: ArrayList<ArrayList<InlineKeyboardButton>>
+        var oneTimeKeyboard: Boolean = true
     }
 
-    public static class InlineKeyboardButton {
-        String text;
+    class InlineKeyboardButton {
+        lateinit var text: String
+
         @SerializedName("callback_data")
-        String callbackData;
+        lateinit var callbackData: String
     }
 }
 

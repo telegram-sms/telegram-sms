@@ -131,7 +131,7 @@
         <activity android:name=".ScannerActivity"
             android:exported="false"/>
         <activity
-            android:name=".main_activity"
+            android:name=".MainActivity"
             android:windowSoftInputMode="adjustPan"
             android:exported="true"
             tools:ignore="Instantiatable,IntentFilterExportedReceiver">
