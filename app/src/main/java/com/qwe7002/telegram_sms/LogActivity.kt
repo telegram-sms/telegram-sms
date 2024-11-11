@@ -9,7 +9,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.qwe7002.telegram_sms.static_class.log
+import com.qwe7002.telegram_sms.static_class.Logs
 
 class LogActivity : AppCompatActivity() {
     private lateinit var observer: Observer
@@ -21,7 +21,7 @@ class LogActivity : AppCompatActivity() {
         setContentView(R.layout.activity_logcat)
         logcatTextview = findViewById(R.id.logcat_textview)
         this.setTitle(R.string.logcat)
-        logcatTextview.text = log.readLog(applicationContext, line)
+        logcatTextview.text = Logs.readLog(applicationContext, line)
         observer = Observer(applicationContext, logcatTextview)
     }
 
@@ -32,7 +32,7 @@ class LogActivity : AppCompatActivity() {
 
     public override fun onResume() {
         super.onResume()
-        logcatTextview.text = log.readLog(applicationContext, line)
+        logcatTextview.text = Logs.readLog(applicationContext, line)
         observer.startWatching()
     }
 
@@ -42,7 +42,7 @@ class LogActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        log.resetLogFile(applicationContext)
+        Logs.resetLogFile(applicationContext)
         return true
     }
 
@@ -50,7 +50,7 @@ class LogActivity : AppCompatActivity() {
         FileObserver(context.filesDir.absolutePath) {
         override fun onEvent(event: Int, path: String?) {
             if (event == MODIFY && path!!.contains("error.log")) {
-                runOnUiThread { logcat.text = log.readLog(context, line) }
+                runOnUiThread { logcat.text = Logs.readLog(context, line) }
             }
         }
     }

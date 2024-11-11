@@ -50,7 +50,7 @@ object SMS {
             return
         }
         if (!Other.isPhoneNumber(sendTo)) {
-            log.writeLog(context, "[$sendTo] is an illegal phone number")
+            Logs.writeLog(context, "[$sendTo] is an illegal phone number")
             return
         }
         val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
@@ -102,7 +102,7 @@ object SMS {
             }
         } catch (e: IOException) {
             e.printStackTrace()
-            log.writeLog(context, "failed to send message:" + e.message)
+            Logs.writeLog(context, "failed to send message:" + e.message)
         }
         val divideContents = smsManager.divideMessage(content)
         val sendReceiverList = ArrayList<PendingIntent>()

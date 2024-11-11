@@ -16,7 +16,7 @@ import com.github.sumimakito.codeauxlib.CodeauxLibPortable
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
-import com.qwe7002.telegram_sms.static_class.log
+import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Resend
@@ -93,7 +93,7 @@ class SMSReceiver : BroadcastReceiver() {
             }
         }
         if (messages.isEmpty()) {
-            log.writeLog(context, "Message length is equal to 0.")
+            Logs.writeLog(context, "Message length is equal to 0.")
             return
         }
 
@@ -134,7 +134,7 @@ class SMSReceiver : BroadcastReceiver() {
                     isVerificationCode = true
                 }
             } else {
-                log.writeLog(
+                Logs.writeLog(
                     context,
                     "SMS exceeds 140 characters, no verification code is recognized."
                 )
@@ -142,7 +142,7 @@ class SMSReceiver : BroadcastReceiver() {
         }
         requestBody.text = messageHead + messageBodyHtml
         if (isTrustedPhone) {
-            log.writeLog(context, "SMS from trusted mobile phone detected")
+            Logs.writeLog(context, "SMS from trusted mobile phone detected")
             val messageCommand =
                 messageBody.lowercase(Locale.getDefault()).replace("_", "").replace("-", "")
             val commandList =
@@ -273,7 +273,7 @@ class SMSReceiver : BroadcastReceiver() {
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
-                log.writeLog(context, errorHead + e.message)
+                Logs.writeLog(context, errorHead + e.message)
                 SMS.fallbackSMS(context, requestBodyText, subId)
                 Resend.addResendLoop(context, requestBody.text)
             }
@@ -282,12 +282,12 @@ class SMSReceiver : BroadcastReceiver() {
             override fun onResponse(call: Call, response: Response) {
                 val result = Objects.requireNonNull(response.body).string()
                 if (response.code != 200) {
-                    log.writeLog(context, errorHead + response.code + " " + result)
+                    Logs.writeLog(context, errorHead + response.code + " " + result)
                     SMS.fallbackSMS(context, requestBodyText, subId)
                     Resend.addResendLoop(context, requestBody.text)
                 } else {
                     if (!Other.isPhoneNumber(messageAddress)) {
-                        log.writeLog(context, "[$messageAddress] Not a regular phone number.")
+                        Logs.writeLog(context, "[$messageAddress] Not a regular phone number.")
                         return
                     }
                     Other.addMessageList(Other.getMessageId(result), messageAddress, slot)

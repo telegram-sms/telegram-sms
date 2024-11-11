@@ -17,7 +17,7 @@ import android.util.Log
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
-import com.qwe7002.telegram_sms.static_class.log
+import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.SMS
@@ -137,7 +137,7 @@ class BatteryService : Service() {
             }
         } catch (e: IOException) {
             Log.i(TAG, "networkHandle: $e")
-            log.writeLog(applicationContext, errorHead + e.message)
+            Logs.writeLog(applicationContext, errorHead + e.message)
             if (obj.action == Intent.ACTION_BATTERY_LOW) {
                 SMS.fallbackSMS(applicationContext, requestMessage.text, -1)
             }
