@@ -164,6 +164,8 @@ public class chat_command_service extends Service {
             } else {
                 subId = Other.getSubId(context, slot);
             }
+            assert to != null;
+            assert content != null;
             SMS.send(context, to, content, slot, subId, messageId);
             setSmsSendStatusStandby();
             return;
