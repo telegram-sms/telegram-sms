@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.qwe7002.telegram_sms
 
 import android.content.BroadcastReceiver
@@ -38,7 +40,7 @@ class CallReceiver : BroadcastReceiver() {
                 }
                 val telephony = context
                     .getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-                val customPhoneListener = callStatusListener(context, slot, incomingNumber)
+                val customPhoneListener = PhoneStatusListener(context, slot, incomingNumber)
                 telephony.listen(customPhoneListener, PhoneStateListener.LISTEN_CALL_STATE)
             }
 
@@ -47,7 +49,7 @@ class CallReceiver : BroadcastReceiver() {
         }
     }
 
-    internal class callStatusListener(
+    internal class PhoneStatusListener(
         private val context: Context,
         private val slot: Int,
         incomingNumber: String?
