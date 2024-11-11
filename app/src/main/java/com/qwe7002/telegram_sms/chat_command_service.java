@@ -32,7 +32,7 @@ import com.qwe7002.telegram_sms.data_structure.ReplyMarkupKeyboard;
 import com.qwe7002.telegram_sms.data_structure.RequestMessage;
 import com.qwe7002.telegram_sms.data_structure.SMSRequestInfo;
 import com.qwe7002.telegram_sms.static_class.ChatCommand;
-import com.qwe7002.telegram_sms.static_class.log;
+import com.qwe7002.telegram_sms.static_class.Logs;
 import com.qwe7002.telegram_sms.static_class.Network;
 import com.qwe7002.telegram_sms.static_class.Other;
 import com.qwe7002.telegram_sms.static_class.Resend;
@@ -91,7 +91,6 @@ public class chat_command_service extends Service {
 
     private static boolean isNumeric(String str) {
         for (int i = 0; i < str.length(); i++) {
-            System.out.println(str.charAt(i));
             if (!Character.isDigit(str.charAt(i))) {
                 return false;
             }
@@ -154,7 +153,7 @@ public class chat_command_service extends Service {
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
-                    log.writeLog(context, "failed to send message:" + e.getMessage());
+                    Logs.writeLog(context, "failed to send message:" + e.getMessage());
                 }
                 return;
             }
@@ -171,7 +170,7 @@ public class chat_command_service extends Service {
             return;
         }
         if (jsonObject == null) {
-            log.writeLog(context, "Request type is not allowed by security policy.");
+            Logs.writeLog(context, "Request type is not allowed by security policy.");
             return;
         }
         JsonObject fromObj = null;
@@ -267,7 +266,7 @@ public class chat_command_service extends Service {
                     }
                     line = getLine;
                 }
-                requestBody.text = getString(R.string.system_message_head) + log.readLog(context, line);
+                requestBody.text = getString(R.string.system_message_head) + Logs.readLog(context, line);
                 hasCommand = true;
                 break;
             case "/sendussd":
@@ -315,7 +314,7 @@ public class chat_command_service extends Service {
                                 public void onFailure(@NotNull Call call, @NotNull IOException e) {
                                     Log.d(TAG, "onFailure: " + e.getMessage());
                                     e.printStackTrace();
-                                    log.writeLog(context, e.getMessage());
+                                    Logs.writeLog(context, e.getMessage());
                                 }
 
                                 @Override
@@ -329,7 +328,7 @@ public class chat_command_service extends Service {
                             Paper.book().write("spam_sms_list", resendListLocal);
                         }
                     }
-                    log.writeLog(context, "Send spam message is complete.");
+                    Logs.writeLog(context, "Send spam message is complete.");
                 }).start();
                 return;
             case "/sendsms":
@@ -451,7 +450,7 @@ public class chat_command_service extends Service {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
-                log.writeLog(context, errorHead + e.getMessage());
+                Logs.writeLog(context, errorHead + e.getMessage());
                 Resend.addResendLoop(context, requestBody.text);
             }
 
@@ -459,7 +458,7 @@ public class chat_command_service extends Service {
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 String response_string = Objects.requireNonNull(response.body()).string();
                 if (response.code() != 200) {
-                    log.writeLog(context, errorHead + response.code() + " " + response_string);
+                    Logs.writeLog(context, errorHead + response.code() + " " + response_string);
                     Resend.addResendLoop(context, requestBody.text);
                 }
                 if (sendSmsNextStatus == SEND_SMS_STATUS.SEND_STATUS) {
@@ -529,7 +528,7 @@ public class chat_command_service extends Service {
             response = call.execute();
         } catch (IOException e) {
             e.printStackTrace();
-            log.writeLog(context, "Get username failed:" + e.getMessage());
+            Logs.writeLog(context, "Get username failed:" + e.getMessage());
             return false;
         }
         if (response.code() == 200) {
@@ -545,7 +544,7 @@ public class chat_command_service extends Service {
                 botUsername = resultObj.get("result").getAsJsonObject().get("username").getAsString();
                 Paper.book().write("bot_username", botUsername);
                 Log.d(TAG, "bot_username: " + botUsername);
-                log.writeLog(context, "Get the bot username: " + botUsername);
+                Logs.writeLog(context, "Get the bot username: " + botUsername);
             }
             return true;
         }
@@ -576,7 +575,7 @@ public class chat_command_service extends Service {
                 botUsername = Paper.book().read("bot_username", null);
                 if (botUsername == null) {
                     while (!getMe()) {
-                        log.writeLog(context, "Failed to get bot Username, Wait 5 seconds and try again.");
+                        Logs.writeLog(context, "Failed to get bot Username, Wait 5 seconds and try again.");
                         try {
                             Thread.sleep(5000);
                         } catch (InterruptedException e) {
@@ -610,12 +609,12 @@ public class chat_command_service extends Service {
                 } catch (IOException e) {
                     e.printStackTrace();
                     if (!Network.checkNetworkStatus(context)) {
-                        log.writeLog(context, "No network connections available, Wait for the network to recover.");
+                        Logs.writeLog(context, "No network connections available, Wait for the network to recover.");
                         Log.d(TAG, "run: break loop.");
                         break;
                     }
                     int sleepTime = 5;
-                    log.writeLog(context, "Connection to the Telegram API service failed.");
+                    Logs.writeLog(context, "Connection to the Telegram API service failed.");
                     try {
                         Thread.sleep(sleepTime * 1000L);
                     } catch (InterruptedException e1) {
@@ -640,7 +639,7 @@ public class chat_command_service extends Service {
                         firstRequest = false;
                     }
                 }else{
-                    log.writeLog(context, "Chat command response code: " + response.code());
+                    Logs.writeLog(context, "Chat command response code: " + response.code());
                 }
 
             }
@@ -668,7 +667,7 @@ public class chat_command_service extends Service {
                 case ConnectivityManager.CONNECTIVITY_ACTION:
                     if (Network.checkNetworkStatus(context)) {
                         if (!threadMain.isAlive()) {
-                            log.writeLog(context, "Network connections has been restored.");
+                            Logs.writeLog(context, "Network connections has been restored.");
                             threadMain = new Thread(new threadMainRunnable());
                             threadMain.start();
                         }

@@ -51,7 +51,7 @@ import com.qwe7002.telegram_sms.static_class.Other.parseStringToLong
 import com.qwe7002.telegram_sms.static_class.Service.isNotifyListener
 import com.qwe7002.telegram_sms.static_class.Service.startService
 import com.qwe7002.telegram_sms.static_class.Service.stopAllService
-import com.qwe7002.telegram_sms.static_class.log
+import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
 import okhttp3.Call
@@ -85,7 +85,7 @@ class MainActivity : AppCompatActivity() {
         }
         if (versionCode != currentVersionCode) {
             if (writeLog) {
-                log.resetLogFile(context)
+                Logs.resetLogFile(context)
             }
             Paper.book("system_config").write("version_code", currentVersionCode)
         }
@@ -319,7 +319,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "onFailure: $e")
                     progressDialog.cancel()
                     val message = errorHead + e.message
-                    log.writeLog(context, message)
+                    Logs.writeLog(context, message)
                     Looper.prepare()
                     Snackbar.make(v, message, Snackbar.LENGTH_LONG).show()
                     Looper.loop()
@@ -334,7 +334,7 @@ class MainActivity : AppCompatActivity() {
                             Objects.requireNonNull(response.body).string()
                         val resultObj = JsonParser.parseString(result).asJsonObject
                         val errorMessage = errorHead + resultObj["description"].asString
-                        log.writeLog(context, errorMessage)
+                        Logs.writeLog(context, errorMessage)
 
                         Looper.prepare()
                         Snackbar.make(v, errorMessage, Snackbar.LENGTH_LONG).show()
@@ -503,7 +503,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "onFailure: $e")
                     progressDialog.cancel()
                     val errorMessage = errorHead + e.message
-                    log.writeLog(context, errorMessage)
+                    Logs.writeLog(context, errorMessage)
                     Looper.prepare()
                     Snackbar.make(v!!, errorMessage, Snackbar.LENGTH_LONG)
                         .show()
@@ -520,7 +520,7 @@ class MainActivity : AppCompatActivity() {
                             Objects.requireNonNull(response.body).string()
                         val resultObj = JsonParser.parseString(result).asJsonObject
                         val errorMessage = errorHead + resultObj["description"]
-                        log.writeLog(context, errorMessage)
+                        Logs.writeLog(context, errorMessage)
                         Looper.prepare()
                         Snackbar.make(v!!, errorMessage, Snackbar.LENGTH_LONG).show()
                         Looper.loop()
@@ -725,7 +725,7 @@ class MainActivity : AppCompatActivity() {
                 progressDialog.cancel()
                 if (!response.isSuccessful) {
                     val errorMessage = errorHead + response.code
-                    log.writeLog(context, errorMessage)
+                    Logs.writeLog(context, errorMessage)
                 }
                 val jsonString = response.body.string()
                 Log.d(TAG, "onResponse: $jsonString")
@@ -755,7 +755,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "onFailure: $e")
                 progressDialog.cancel()
                 val errorMessage = errorHead + e.message
-                log.writeLog(context, errorMessage)
+                Logs.writeLog(context, errorMessage)
                 Looper.prepare()
                 Snackbar.make(findViewById(R.id.content), errorMessage, Snackbar.LENGTH_LONG)
                     .show()
