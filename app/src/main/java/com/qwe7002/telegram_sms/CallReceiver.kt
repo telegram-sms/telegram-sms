@@ -11,7 +11,7 @@ import android.util.Log
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
-import com.qwe7002.telegram_sms.static_class.log
+import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Resend
@@ -97,7 +97,7 @@ class CallReceiver : BroadcastReceiver() {
                 call.enqueue(object : Callback {
                     override fun onFailure(call: Call, e: IOException) {
                         e.printStackTrace()
-                        log.writeLog(context, errorHead + e.message)
+                        Logs.writeLog(context, errorHead + e.message)
                         SMS.fallbackSMS(context, requestBody.text, Other.getSubId(context, slot))
                         Resend.addResendLoop(context, requestBody.text)
                     }
@@ -108,12 +108,12 @@ class CallReceiver : BroadcastReceiver() {
                             val errorMessage =
                                 errorHead + response.code + " " + Objects.requireNonNull(response.body)
                                     .string()
-                            log.writeLog(context, errorMessage)
+                            Logs.writeLog(context, errorMessage)
                             Resend.addResendLoop(context, requestBody.text)
                         } else {
                             val result = Objects.requireNonNull(response.body).string()
                             if (!Other.isPhoneNumber(incomingNumber!!)) {
-                                log.writeLog(
+                                Logs.writeLog(
                                     context,
                                     "[$incomingNumber] Not a regular phone number."
                                 )

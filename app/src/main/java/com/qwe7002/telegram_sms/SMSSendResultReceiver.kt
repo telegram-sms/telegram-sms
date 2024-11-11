@@ -9,7 +9,7 @@ import android.util.Log
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
-import com.qwe7002.telegram_sms.static_class.log
+import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
@@ -77,7 +77,7 @@ class SMSSendResultReceiver : BroadcastReceiver() {
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
-                log.writeLog(context, errorHead + e.message)
+                Logs.writeLog(context, errorHead + e.message)
                 SMS.fallbackSMS(context, requestBody.text, sub)
                 Resend.addResendLoop(context, requestBody.text)
             }
@@ -85,7 +85,7 @@ class SMSSendResultReceiver : BroadcastReceiver() {
             @Throws(IOException::class)
             override fun onResponse(call: Call, response: Response) {
                 if (response.code != 200) {
-                    log.writeLog(
+                    Logs.writeLog(
                         context,
                         errorHead + response.code + " " + Objects.requireNonNull(response.body)
                             .string()

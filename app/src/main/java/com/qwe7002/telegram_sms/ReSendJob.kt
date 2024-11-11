@@ -9,7 +9,7 @@ import android.content.Context
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
-import com.qwe7002.telegram_sms.static_class.log
+import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
@@ -42,7 +42,7 @@ class ReSendJob : JobService() {
                 )
             }
             if (sendList.isNotEmpty()){
-                log.writeLog(applicationContext, "The resend failure message is complete.")
+                Logs.writeLog(applicationContext, "The resend failure message is complete.")
             }
             jobFinished(params, false)
         }.start()
@@ -78,7 +78,7 @@ class ReSendJob : JobService() {
                 Paper.book().write(tableName, resendListLocal)
             }
         } catch (e: IOException) {
-            log.writeLog(applicationContext, "An error occurred while resending: " + e.message)
+            Logs.writeLog(applicationContext, "An error occurred while resending: " + e.message)
             e.printStackTrace()
         }
     }
