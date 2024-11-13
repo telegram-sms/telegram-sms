@@ -9,7 +9,7 @@ import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import com.qwe7002.telegram_sms.BatteryService
 import com.qwe7002.telegram_sms.NotificationService
-import com.qwe7002.telegram_sms.chat_command_service
+import com.qwe7002.telegram_sms.ChatService
 import com.qwe7002.telegram_sms.value.constValue
 
 object Service {
@@ -27,7 +27,7 @@ object Service {
     @JvmStatic
     fun startService(context: Context, batterySwitch: Boolean, chatCommandSwitch: Boolean) {
         val batteryService = Intent(context, BatteryService::class.java)
-        val chatLongPollingService = Intent(context, chat_command_service::class.java)
+        val chatLongPollingService = Intent(context, ChatService::class.java)
         if (isNotifyListener(context)) {
             Log.d("start_service", "start_service: ")
             val thisComponent = ComponentName(context, NotificationService::class.java)
