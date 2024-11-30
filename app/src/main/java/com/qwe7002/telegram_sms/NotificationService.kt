@@ -82,12 +82,16 @@ class NotificationService : NotificationListenerService() {
         val requestBody = RequestMessage()
         requestBody.chatId = chatId.toString()
         requestBody.messageThreadId = messageThreadId.toString()
-        requestBody.text = """
+/*        requestBody.text = """
             ${getString(R.string.receive_notification_title)}
             ${getString(R.string.app_name_title)}$appName
             ${getString(R.string.title)}$title
             ${getString(R.string.content)}$content
-            """.trimIndent()
+            """.trimIndent()*/
+        requestBody.text = getString(R.string.receive_notification_title) + "\n" +
+                getString(R.string.app_name_title) + appName + "\n" +
+                getString(R.string.title) + title + "\n" +
+                getString(R.string.content) + content
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(constValue.JSON)
         val okhttpObj = Network.getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),
