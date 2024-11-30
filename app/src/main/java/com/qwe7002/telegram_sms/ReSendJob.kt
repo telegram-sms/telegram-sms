@@ -89,7 +89,7 @@ class ReSendJob : JobService() {
 
             val jobInfoBuilder = JobInfo.Builder(
                 20,
-                ComponentName(context.packageName, KeepAliveJob::class.java.getName())
+                ComponentName(context.packageName, ReSendJob::class.java.getName())
             )
                 .setPersisted(true)
             jobInfoBuilder.setPeriodic(TimeUnit.MINUTES.toMillis(15))
@@ -102,7 +102,7 @@ class ReSendJob : JobService() {
             val jobScheduler =
                 context.getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
 
-            jobScheduler.cancel(10)
+            jobScheduler.cancel(20)
         }
     }
 }
