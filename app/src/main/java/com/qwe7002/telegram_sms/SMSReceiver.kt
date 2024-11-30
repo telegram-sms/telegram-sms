@@ -233,10 +233,7 @@ class SMSReceiver : BroadcastReceiver() {
                 if (messageBody.contains(blackListItem)) {
                     val simpleDateFormat =
                         SimpleDateFormat(context.getString(R.string.time_format), Locale.UK)
-                    val writeMessage = """
-                        ${requestBody.text}
-                        ${context.getString(R.string.time)}${simpleDateFormat.format(Date(System.currentTimeMillis()))}
-                        """.trimIndent()
+                    val writeMessage = requestBody.text + "\n" + context.getString(R.string.time) + simpleDateFormat.format(Date(System.currentTimeMillis()))
                     Paper.init(context)
                     val spamSmsList = Paper.book().read("spam_sms_list", ArrayList<String>())!!
                     if (spamSmsList.size >= 5) {
