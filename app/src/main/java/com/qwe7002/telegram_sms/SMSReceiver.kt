@@ -120,22 +120,15 @@ class SMSReceiver : BroadcastReceiver() {
         var rawRequestBodyText = messageHead + messageBody
         var isVerificationCode = false
         if (sharedPreferences.getBoolean("verification_code", false) && !isTrustedPhone) {
-            if (messageBody.length <= 1000) {
-                val verification = CodeauxLibPortable.find(context, messageBody)
-                if (verification != null) {
-                    requestBody.parseMode = "html"
-                    messageBodyHtml = messageBody
-                        .replace("<", "&lt;")
-                        .replace(">", "&gt;")
-                        .replace("&", "&amp;")
-                        .replace(verification, "<code>$verification</code>")
-                    isVerificationCode = true
-                }
-            } else {
-                Logs.writeLog(
-                    context,
-                    "SMS exceeds 140 characters, no verification code is recognized."
-                )
+            val verification = CodeauxLibPortable.find(context, messageBody)
+            if (verification != null) {
+                requestBody.parseMode = "html"
+                messageBodyHtml = messageBody
+                    .replace("<", "&lt;")
+                    .replace(">", "&gt;")
+                    .replace("&", "&amp;")
+                    .replace(verification, "<code>$verification</code>")
+                isVerificationCode = true
             }
         }
         requestBody.text = messageHead + messageBodyHtml
@@ -158,8 +151,9 @@ class SMSReceiver : BroadcastReceiver() {
                                 sharedPreferences.getBoolean("chat_command", false)
                             )
                         }.start()
-                        rawRequestBodyText = context.getString(R.string.system_message_head) + "\n" +
-                                context.getString(R.string.restart_service)
+                        rawRequestBodyText =
+                            context.getString(R.string.system_message_head) + "\n" +
+                                    context.getString(R.string.restart_service)
                         requestBody.text = rawRequestBodyText
                     }
 
