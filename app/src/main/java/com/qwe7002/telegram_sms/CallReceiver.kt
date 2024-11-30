@@ -75,15 +75,16 @@ class CallReceiver : BroadcastReceiver() {
                 val requestBody = RequestMessage()
                 requestBody.chatId = chatId.toString()
                 requestBody.messageThreadId = messageThreadId.toString()
-                val dual_sim = Other.getDualSimCardDisplay(
+                val dualSim = Other.getDualSimCardDisplay(
                     context,
                     slot,
                     sharedPreferences.getBoolean("display_dual_sim_display_name", false)
                 )
-                requestBody.text = """
+/*                requestBody.text = """
                     [$dual_sim${context.getString(R.string.missed_call_head)}]
                     ${context.getString(R.string.Incoming_number)}$incomingNumber
-                    """.trimIndent()
+                    """.trimIndent()*/
+                requestBody.text = "[" + dualSim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + incomingNumber
                 val requestBodyRaw = Gson().toJson(requestBody)
                 val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
                 val okhttpObj = Network.getOkhttpObj(
