@@ -6,6 +6,7 @@ import android.app.job.JobScheduler
 import android.app.job.JobService
 import android.content.ComponentName
 import android.content.Context
+import android.util.Log
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
@@ -24,6 +25,7 @@ class ReSendJob : JobService() {
     private lateinit var requestUri: String
     private val tableName: String = "resend_list"
     override fun onStartJob(params: JobParameters?): Boolean {
+        Log.d("KeepAliveJob", "startJob: Try resending the message.")
         Paper.init(applicationContext)
         val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
         requestUri = Network.getUrl(sharedPreferences.getString("bot_token", "").toString(), "SendMessage")
@@ -44,8 +46,9 @@ class ReSendJob : JobService() {
             if (sendList.isNotEmpty()){
                 Logs.writeLog(applicationContext, "The resend failure message is complete.")
             }
-            jobFinished(params, false)
+            jobFinished(params, true)
         }.start()
+
         return true
     }
 
