@@ -56,12 +56,8 @@ class USSDCallBack(
         response: CharSequence
     ) {
         super.onReceiveUssdResponse(telephonyManager, request, response)
-        val message = """
-            $messageHeader
-            ${context.getString(R.string.request)}$request
-            ${context.getString(R.string.content)}$response
-            """.trimIndent()
-        network_progress_handle(message)
+        val message = messageHeader + "\n" + context.getString(R.string.request) + request + "\n" + context.getString(R.string.content) + response
+        networkProgressHandle(message)
     }
 
     override fun onReceiveUssdResponseFailed(
@@ -70,15 +66,16 @@ class USSDCallBack(
         failureCode: Int
     ) {
         super.onReceiveUssdResponseFailed(telephonyManager, request, failureCode)
-        val message = """
+/*        val message = """
             $messageHeader
             ${context.getString(R.string.request)}$request
             ${context.getString(R.string.error_message)}${getErrorCodeString(failureCode)}
-            """.trimIndent()
-        network_progress_handle(message)
+            """.trimIndent()*/
+        val message = messageHeader + "\n" + context.getString(R.string.request) + request + "\n" + context.getString(R.string.error_message) + getErrorCodeString(failureCode)
+        networkProgressHandle(message)
     }
 
-    private fun network_progress_handle(message: String) {
+    private fun networkProgressHandle(message: String) {
         requestBody.text = message
         val requestBodyJson = Gson().toJson(requestBody)
         val body: RequestBody = requestBodyJson.toRequestBody(constValue.JSON)
