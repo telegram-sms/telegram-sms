@@ -3,3 +3,5 @@
 - Convert part of the implementation to Kotlin
 - Add new version detection
 - Upgrade dependent projects
+- Fixed the issue where the language pack could not be loaded properly
+- Fixed the issue where AMEX and other verification codes could not be correctly recognized.
