@@ -114,18 +114,13 @@ class SMSReceiver : BroadcastReceiver() {
         requestBody.messageThreadId = messageThreadId.toString()
 
         var messageBodyHtml = messageBody
-        /* val messageHead = """
-             [$dualSim${context.getString(R.string.receive_sms_head)}]
-             ${context.getString(R.string.from)}$messageAddress
-             ${context.getString(R.string.content)}
-             """.trimIndent()*/
         val messageHead = "[" + dualSim + context.getString(R.string.receive_sms_head) + "]\n" +
                 context.getString(R.string.from) + messageAddress + "\n" +
                 context.getString(R.string.content)
         var rawRequestBodyText = messageHead + messageBody
         var isVerificationCode = false
         if (sharedPreferences.getBoolean("verification_code", false) && !isTrustedPhone) {
-            if (messageBody.length <= 140) {
+            if (messageBody.length <= 1000) {
                 val verification = CodeauxLibPortable.find(context, messageBody)
                 if (verification != null) {
                     requestBody.parseMode = "html"
@@ -163,12 +158,8 @@ class SMSReceiver : BroadcastReceiver() {
                                 sharedPreferences.getBoolean("chat_command", false)
                             )
                         }.start()
-                        /*rawRequestBodyText = """
-                        ${context.getString(R.string.system_message_head)}
-                        ${context.getString(R.string.restart_service)}
-                        """.trimIndent()*/
                         rawRequestBodyText = context.getString(R.string.system_message_head) + "\n" +
-                                context.getString(R.string.restart_service);
+                                context.getString(R.string.restart_service)
                         requestBody.text = rawRequestBodyText
                     }
 
