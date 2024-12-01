@@ -48,10 +48,7 @@ object USSD {
         val requestUri = Network.getUrl(botToken, "sendMessage")
         val requestBody = RequestMessage()
         requestBody.chatId = chatId
-        requestBody.text = """
-            ${context.getString(R.string.send_ussd_head)}
-            ${context.getString(R.string.ussd_code_running)}
-            """.trimIndent()
+        requestBody.text = "[${context.getString(R.string.send_ussd_head)}]\n[${context.getString(R.string.ussd_code_running)}]"
         val requestBodyRaw = Gson().toJson(requestBody)
         val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
         val okhttpClient = Network.getOkhttpObj(
