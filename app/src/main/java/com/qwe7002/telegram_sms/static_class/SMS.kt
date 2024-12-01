@@ -73,15 +73,8 @@ object SMS {
             slot,
             sharedPreferences.getBoolean("display_dual_sim_display_name", false)
         )
-        val sendContent = """
-            [$dualSim${context.getString(R.string.send_sms_head)}]
-            ${context.getString(R.string.to)}$sendTo
-            ${context.getString(R.string.content)}$content
-            """.trimIndent()
-        requestBody.text = """
-            $sendContent
-            ${context.getString(R.string.status)}${context.getString(R.string.sending)}
-            """.trimIndent()
+        val sendContent = "[${dualSim}${context.getString(R.string.send_sms_head)}]\n${context.getString(R.string.to)}$sendTo\n${context.getString(R.string.content)}$content"
+        requestBody.text = "$sendContent\n${context.getString(R.string.status)}${context.getString(R.string.sending)}"
         requestBody.messageId = messageId
         val gson = Gson()
         val requestBodyRaw = gson.toJson(requestBody)

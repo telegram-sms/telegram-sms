@@ -20,12 +20,7 @@ object Logs {
         val newFileMode = Context.MODE_APPEND
         val simpleDateFormat = SimpleDateFormat(context.getString(R.string.time_format), Locale.UK)
         val writeString =
-            "\n" + simpleDateFormat.format(Date(System.currentTimeMillis())) + " " + log;
-        /*        int log_count = Paper.book("system_config").read("log_count", 0);
-        if (log_count >= 50000) {
-            resetLogFile(context);
-        }
-        Paper.book("system_config").write("log_count", ++log_count);*/
+            "\n" + simpleDateFormat.format(Date(System.currentTimeMillis())) + " " + log
         writeLogFile(context, writeString, newFileMode)
     }
 

@@ -29,11 +29,6 @@ object ChatCommand {
         if (Other.getActiveCard(context) == 2) {
             smsCommand = context.getString(R.string.sendsms_dual)
         }
-       /* smsCommand += """
-            
-            ${context.getString(R.string.get_spam_sms)}
-            """.trimIndent()
-*/
         smsCommand += "\n" + context.getString(R.string.get_spam_sms)
         var ussdCommand = ""
         if (ActivityCompat.checkSelfPermission(
@@ -42,20 +37,20 @@ object ChatCommand {
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                ussdCommand = "\n" + context.getString(R.string.send_ussd_command);
+                ussdCommand = "\n" + context.getString(R.string.send_ussd_command)
                 if (Other.getActiveCard(context) == 2) {
-                    ussdCommand = "\n" + context.getString(R.string.send_ussd_dual_command);
+                    ussdCommand = "\n" + context.getString(R.string.send_ussd_dual_command)
                 }
             }
         }
 
         var result:String = if (command == "/commandlist") {
-            (context.getString(R.string.available_command) + "\n" + smsCommand + ussdCommand).replace("/", "");
+            (context.getString(R.string.available_command) + "\n" + smsCommand + ussdCommand).replace("/", "")
         }else {
-            context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.available_command) + "\n" + smsCommand + ussdCommand;
+            context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.available_command) + "\n" + smsCommand + ussdCommand
         }
         if (!isPrivate && privacyMode && botUsername.isNotEmpty()) {
-            result = result.replace(" -", "@$botUsername -");
+            result = result.replace(" -", "@$botUsername -")
         }
         return result
     }
@@ -64,7 +59,7 @@ object ChatCommand {
     fun getInfo(context: Context): String {
         var cardInfo = ""
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-            cardInfo = "\nSIM: " + Other.getSimDisplayName(context, 0);
+            cardInfo = "\nSIM: " + Other.getSimDisplayName(context, 0)
             if (Other.getActiveCard(context) == 2) {
                 cardInfo = "\nSIM1: " + Other.getSimDisplayName(context, 0) + "\nSIM2: " + Other.getSimDisplayName(context, 1);
             }
@@ -72,9 +67,9 @@ object ChatCommand {
         var spamCount = ""
         val spamSmsList = checkNotNull(Paper.book().read("spam_sms_list", ArrayList<String>()))
         if (spamSmsList.isNotEmpty()) {
-            spamCount = "\n" + context.getString(R.string.spam_count_title) + spamSmsList.size;
+            spamCount = "\n" + context.getString(R.string.spam_count_title) + spamSmsList.size
         }
-        return  context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryInfo(context) + "\n" + context.getString(R.string.current_network_connection_status) + getNetworkType(context) + spamCount + cardInfo;
+        return  context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryInfo(context) + "\n" + context.getString(R.string.current_network_connection_status) + getNetworkType(context) + spamCount + cardInfo
 
     }
 
