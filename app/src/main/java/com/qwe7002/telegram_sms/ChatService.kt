@@ -134,15 +134,6 @@ class ChatService : Service() {
                     slot,
                     sharedPreferences.getBoolean("display_dual_sim_display_name", false)
                 )
-                /*val sendContent = """
-                    [$dualSim${context!!.getString(R.string.send_sms_head)}]
-                    ${context!!.getString(R.string.to)}$to
-                    ${context!!.getString(R.string.content)}$content
-                    """.trimIndent()
-                requestBody.text = """
-                    $sendContent
-                    ${context!!.getString(R.string.status)}${context!!.getString(R.string.cancel_button)}
-                    """.trimIndent()*/
                 val sendContent =
                     "[" + dualSim + getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.to) + to + "\n" + getString(
                         R.string.content
@@ -451,25 +442,6 @@ class ChatService : Service() {
                     }
                     Paper.book("send_temp").write("slot", sendSlot)
                 }
-               /* } else if (isPrivate || (messageType == "supergroup" && messageThreadId.isNotEmpty())) {
-                    Log.i(TAG, "receiveHandle: $messageType")
-                    sendSmsNextStatus = SEND_SMS_STATUS.PHONE_INPUT_STATUS
-                    var sendSlot = -1
-                    if (getActiveCard(applicationContext) > 1) {
-                        sendSlot = 0
-                        if (command == "/sendsms2") {
-                            sendSlot = 1
-                        }
-                    }
-                    Paper.book("send_temp").write("slot", sendSlot)
-                }*/
-
-                /*requestBody.text = """
-                    [${context!!.getString(R.string.send_sms_head)}]
-                    ${getString(R.string.failed_to_get_information)}
-                    """.trimIndent()*/
-                /*requestBody.text =
-                    "[" + getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.failed_to_get_information);*/
             }
 
             else -> {
@@ -482,10 +454,6 @@ class ChatService : Service() {
                         return
                     }
                 }
-                /* requestBody.text = """
-                     ${context!!.getString(R.string.system_message_head)}
-                     ${getString(R.string.unknown_command)}
-                     """.trimIndent()*/
                 requestBody.text =
                     getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
             }
@@ -516,11 +484,7 @@ class ChatService : Service() {
                     if (isPhoneNumber(tempTo)) {
                         Paper.book("send_temp").write("to", tempTo)
                         resultSend = getString(R.string.enter_content)
-                        /*                        if(messageType.equals("private")) {*/
                         sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
-                        /*                        }else{
-                            sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS;
-                        }*/
                     } else {
                         setSmsSendStatusStandby()
                         resultSend = getString(R.string.unable_get_phone_number)
@@ -545,24 +509,12 @@ class ChatService : Service() {
                     )
                     keyboardMarkup.inlineKeyboard = inlineKeyboardButtons
                     requestBody.replyMarkup = keyboardMarkup
-                    /* resultSend = """
-                         ${context!!.getString(R.string.to)}${
-                         Paper.book("send_temp").read<Any>("to")
-                     }
-                         ${context!!.getString(R.string.content)}${
-                         Paper.book("send_temp").read("content", "")
-                     }
-                         """.trimIndent()*/
                     resultSend = getString(R.string.to) + Paper.book("send_temp")
                         .read("to") + "\n" + getString(R.string.content) + Paper.book("send_temp")
                         .read("content", "")
                     sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS
                 }
             }
-/*            requestBody.text = """
-                $head
-                $resultSend
-                """.trimIndent()*/
             requestBody.text = head + "\n" + resultSend;
 
         }

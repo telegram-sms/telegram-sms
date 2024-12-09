@@ -18,49 +18,24 @@ import java.util.Locale
 
 object Other {
     fun getNineKeyMapConvert(input: String): String {
-        val nineKeyMap: HashMap<Char, Int> = object : HashMap<Char, Int>() {
-            init {
-                put('A', 2)
-                put('B', 2)
-                put('C', 2)
-                put('D', 3)
-                put('E', 3)
-                put('F', 3)
-                put('G', 4)
-                put('H', 4)
-                put('I', 4)
-                put('J', 5)
-                put('K', 5)
-                put('L', 5)
-                put('M', 6)
-                put('N', 6)
-                put('O', 6)
-                put('P', 7)
-                put('Q', 7)
-                put('R', 7)
-                put('S', 7)
-                put('T', 8)
-                put('U', 8)
-                put('V', 8)
-                put('W', 9)
-                put('X', 9)
-                put('Y', 9)
-                put('Z', 9)
-            }
-        }
+        val nineKeyMap = mapOf(
+            'A' to 2, 'B' to 2, 'C' to 2,
+            'D' to 3, 'E' to 3, 'F' to 3,
+            'G' to 4, 'H' to 4, 'I' to 4,
+            'J' to 5, 'K' to 5, 'L' to 5,
+            'M' to 6, 'N' to 6, 'O' to 6,
+            'P' to 7, 'Q' to 7, 'R' to 7, 'S' to 7,
+            'T' to 8, 'U' to 8, 'V' to 8,
+            'W' to 9, 'X' to 9, 'Y' to 9, 'Z' to 9
+        )
         val result = StringBuilder()
         val phoneNumberCharArray = input.uppercase(Locale.getDefault()).toCharArray()
         for (c in phoneNumberCharArray) {
-            if (Character.isUpperCase(c)) {
-                result.append(nineKeyMap[c])
-            } else {
-                result.append(c)
-            }
+            result.append(nineKeyMap[c] ?: c)
         }
         return result.toString()
     }
 
-    @JvmStatic
     fun parseStringToLong(content: String): Long {
         var result: Long = 0
         try {
@@ -71,7 +46,6 @@ object Other {
         return result
     }
 
-    @JvmStatic
     fun getSendPhoneNumber(phoneNumber: String): String {
         var phone = phoneNumber
         phone = getNineKeyMapConvert(phone)
@@ -84,7 +58,6 @@ object Other {
         return result.toString()
     }
 
-    @JvmStatic
     fun getDualSimCardDisplay(context: Context, slot: Int, showName: Boolean): String {
         var dualSim = ""
         if (slot == -1) {
@@ -100,7 +73,6 @@ object Other {
         return dualSim
     }
 
-    @JvmStatic
     fun isPhoneNumber(str: String): Boolean {
         var i = str.length
         while (--i >= 0) {
@@ -119,8 +91,7 @@ object Other {
 
     @JvmStatic
     fun getMessageId(result: String): Long {
-        val result_obj = JsonParser.parseString(result).asJsonObject["result"].asJsonObject
-        return result_obj["message_id"].asLong
+        return JsonParser.parseString(result).asJsonObject["result"].asJsonObject["message_id"].asLong
     }
 
     @JvmStatic
