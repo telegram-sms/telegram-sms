@@ -72,8 +72,9 @@ class NotificationService : NotificationListenerService() {
                 Log.e(TAG, "onNotificationPosted: ", e)
             }
         }
-        val title = extras.getString(Notification.EXTRA_TITLE, "None")
-        val content = extras.getString(Notification.EXTRA_TEXT, "None")
+
+        val title = extras.getString(Notification.EXTRA_TITLE) ?: getString(R.string.unable_to_obtain_information)
+        val content = extras.getString(Notification.EXTRA_TEXT) ?: getString(R.string.unable_to_obtain_information)
 
         val botToken = sharedPreferences.getString("bot_token", "")
         val chatId = sharedPreferences.getString("chat_id", "")
@@ -82,12 +83,6 @@ class NotificationService : NotificationListenerService() {
         val requestBody = RequestMessage()
         requestBody.chatId = chatId.toString()
         requestBody.messageThreadId = messageThreadId.toString()
-/*        requestBody.text = """
-            ${getString(R.string.receive_notification_title)}
-            ${getString(R.string.app_name_title)}$appName
-            ${getString(R.string.title)}$title
-            ${getString(R.string.content)}$content
-            """.trimIndent()*/
         requestBody.text = getString(R.string.receive_notification_title) + "\n" +
                 getString(R.string.app_name_title) + appName + "\n" +
                 getString(R.string.title) + title + "\n" +

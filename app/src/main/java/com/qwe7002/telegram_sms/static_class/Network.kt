@@ -53,6 +53,7 @@ object Network {
             .writeTimeout(15, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            // Add proxy configuration
             if (proxyItem!=null && proxyItem.enable) {
                 val policy = ThreadPolicy.Builder().permitAll().build()
                 StrictMode.setThreadPolicy(policy)
