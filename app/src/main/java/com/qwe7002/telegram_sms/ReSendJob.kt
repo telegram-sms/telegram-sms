@@ -86,6 +86,7 @@ class ReSendJob : JobService() {
     }
     companion object {
         fun startJob(context: Context) {
+
             val jobScheduler =
                 context.getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
 

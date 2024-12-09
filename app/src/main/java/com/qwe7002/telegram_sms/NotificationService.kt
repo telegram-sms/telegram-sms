@@ -35,11 +35,11 @@ class NotificationService : NotificationListenerService() {
         super.onCreate()
         Paper.init(applicationContext)
         sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
-        val notification = Other.getNotificationObj(
+/*        val notification = Other.getNotificationObj(
             applicationContext,
             getString(R.string.Notification_Listener_title)
         )
-        startForeground(notifyId.NOTIFICATION_LISTENER_SERVICE, notification)
+        startForeground(notifyId.NOTIFICATION_LISTENER_SERVICE, notification)*/
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
