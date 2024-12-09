@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit
 
 class ReSendJob : JobService() {
     private lateinit var requestUri: String
-    private val tableName: String = "resend_list"
     override fun onStartJob(params: JobParameters?): Boolean {
         Log.d("KeepAliveJob", "startJob: Try resending the message.")
         Paper.init(applicationContext)
@@ -31,7 +30,7 @@ class ReSendJob : JobService() {
         requestUri = Network.getUrl(sharedPreferences.getString("bot_token", "").toString(), "SendMessage")
         Thread {
             val sendList: java.util.ArrayList<String>? =
-                Paper.book().read(tableName, java.util.ArrayList())
+                Paper.book("resend").read("list", java.util.ArrayList())
             val okhttpClient =
                 Network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true),
                     Paper.book("system_config").read("proxy_config", proxy()))
@@ -76,9 +75,9 @@ class ReSendJob : JobService() {
         try {
             val response = call.execute()
             if (response.code == 200) {
-                val resendListLocal = Paper.book().read(tableName, ArrayList<String>())!!
+                val resendListLocal = Paper.book("resend").read("list", ArrayList<String>())!!
                 resendListLocal.remove(message)
-                Paper.book().write(tableName, resendListLocal)
+                Paper.book("resend").write("list", resendListLocal)
             }
         } catch (e: IOException) {
             Logs.writeLog(applicationContext, "An error occurred while resending: " + e.message)

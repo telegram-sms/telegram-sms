@@ -13,12 +13,13 @@ object Resend {
     fun addResendLoop(context: Context, msg: String) {
         var message = msg
         Paper.init(context)
-        val resendList = Paper.book().read("resend_list", ArrayList<String>())
+        val resendList = Paper.book("resend").read("list", ArrayList<String>())
         val simpleDateFormat = SimpleDateFormat(context.getString(R.string.time_format), Locale.UK)
         message += "\n"+context.getString(R.string.time) + simpleDateFormat.format(Date(System.currentTimeMillis()))
-        checkNotNull(resendList)
-        resendList.add(message)
-        Paper.book().write("resend_list", resendList)
+        resendList?.add(message)
+        if (resendList != null) {
+            Paper.book("resend").write("list", resendList)
+        }
         ReSendJob.startJob(context)
     }
 }
