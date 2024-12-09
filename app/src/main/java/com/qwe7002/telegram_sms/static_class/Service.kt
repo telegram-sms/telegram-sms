@@ -29,7 +29,7 @@ object Service {
         val batteryService = Intent(context, BatteryService::class.java)
         val chatLongPollingService = Intent(context, ChatService::class.java)
         if (isNotifyListener(context)) {
-            Log.d("start_service", "start_service: ")
+            Log.d("start_service", "Notification listener is enabled.")
             val thisComponent = ComponentName(context, NotificationService::class.java)
             val pm = context.packageManager
             pm.setComponentEnabledSetting(
