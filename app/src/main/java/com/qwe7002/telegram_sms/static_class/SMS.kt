@@ -73,7 +73,14 @@ object SMS {
             slot,
             sharedPreferences.getBoolean("display_dual_sim_display_name", false)
         )
-        val sendContent = "[${dualSim}${context.getString(R.string.send_sms_head)}]\n${context.getString(R.string.to)}$sendTo\n${context.getString(R.string.content)}$content"
+        /*        val sendContent = "[${dualSim}${context.getString(R.string.send_sms_head)}]\n${context.getString(R.string.to)}$sendTo\n${context.getString(R.string.content)}$content"
+                requestBody.text = "$sendContent\n${context.getString(R.string.status)}${context.getString(R.string.sending)}"*/
+        val values = mapOf(
+            "SIM" to dualSim,
+            "To" to sendTo,
+            "Content" to content,
+        )
+        val sendContent = Template.render(context, R.string.TPL_send_sms, values)
         requestBody.text = "$sendContent\n${context.getString(R.string.status)}${context.getString(R.string.sending)}"
         requestBody.messageId = messageId
         val gson = Gson()
