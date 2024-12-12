@@ -143,9 +143,9 @@ class ChatService : Service() {
                                     sendContent + "\n" + getString(R.string.status) + getString(R.string.cancel_button);*/
                 requestBody.text = Template.render(
                     applicationContext,
-                    R.string.TPL_send_sms,
+                    "TPL_send_sms",
                     mapOf("SIM" to dualSim, "To" to to, "Content" to content)
-                ) + "\n" + getString(R.string.status) + getString(R.string.cancel_button);
+                ) + "\n" + getString(R.string.status) + getString(R.string.cancel_button)
                 requestBody.messageId = messageId
                 val gson = Gson()
                 val requestBodyRaw = gson.toJson(requestBody)
@@ -305,7 +305,7 @@ class ChatService : Service() {
                     }
                 }
                 requestBody.text =
-                    getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
+                    getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command)
             }
 
             "/getspamsms" -> {
@@ -455,7 +455,7 @@ class ChatService : Service() {
                     }
                 }
                 requestBody.text =
-                    getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
+                    getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command)
             }
         }
 
@@ -473,7 +473,7 @@ class ChatService : Service() {
 
             var resultSend = Template.render(
                 applicationContext,
-                R.string.TPL_send_sms_chat,
+                "TPL_send_sms_chat",
                 mapOf("SIM" to dualSim, "Content" to getString(R.string.failed_to_get_information))
             )
             Log.d(TAG, "Sending mode status: $sendSmsNextStatus")
@@ -483,7 +483,7 @@ class ChatService : Service() {
                     //resultSend = head + "\n" + getString(R.string.enter_number)
                     resultSend = Template.render(
                         applicationContext,
-                        R.string.TPL_send_sms_chat,
+                        "TPL_send_sms_chat",
                         mapOf("SIM" to dualSim, "Content" to getString(R.string.enter_number))
                     )
                 }
@@ -494,7 +494,7 @@ class ChatService : Service() {
                         Paper.book("send_temp").write("to", tempTo)
                         resultSend = Template.render(
                             applicationContext,
-                            R.string.TPL_send_sms_chat,
+                            "TPL_send_sms_chat",
                             mapOf("SIM" to dualSim, "Content" to getString(R.string.enter_content))
                         )
                         sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
@@ -502,7 +502,7 @@ class ChatService : Service() {
                         setSmsSendStatusStandby()
                         resultSend = Template.render(
                             applicationContext,
-                            R.string.TPL_send_sms_chat,
+                            "TPL_send_sms_chat",
                             mapOf("SIM" to dualSim, "Content" to getString(R.string.unable_get_phone_number))
                         )
                     }
@@ -531,11 +531,11 @@ class ChatService : Service() {
                         "To" to Paper.book("send_temp").read("to", "").toString(),
                         "Content" to Paper.book("send_temp").read("content", "").toString()
                     )
-                    resultSend = Template.render(applicationContext, R.string.TPL_send_sms, values)
+                    resultSend = Template.render(applicationContext, "TPL_send_sms", values)
                     sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS
                 }
             }
-            requestBody.text = resultSend;
+            requestBody.text = resultSend
 
         }
 

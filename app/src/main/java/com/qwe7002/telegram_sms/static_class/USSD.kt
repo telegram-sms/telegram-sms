@@ -50,7 +50,7 @@ object USSD {
         requestBody.chatId = chatId
         requestBody.text = Template.render(
             context,
-            R.string.TPL_send_USSD,
+            "TPL_send_USSD",
             mapOf("Request" to ussdRaw, "Response" to context.getString(R.string.ussd_code_running))
         )
         val requestBodyRaw = Gson().toJson(requestBody)

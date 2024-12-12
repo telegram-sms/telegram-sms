@@ -82,7 +82,7 @@ class CallReceiver : BroadcastReceiver() {
                     sharedPreferences.getBoolean("display_dual_sim_display_name", false)
                 )
 /*                requestBody.text = "[" + dualSim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + incomingNumber*/
-                requestBody.text = Template.render(context, R.string.TPL_missed_call, mapOf("SIM" to dualSim, "From" to incomingNumber.toString()))
+                requestBody.text = Template.render(context, "TPL_missed_call", mapOf("SIM" to dualSim, "From" to incomingNumber.toString()))
                 val requestBodyRaw = Gson().toJson(requestBody)
                 val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
                 val okhttpObj = Network.getOkhttpObj(

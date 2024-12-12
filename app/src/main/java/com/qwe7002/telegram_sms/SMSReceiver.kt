@@ -258,8 +258,8 @@ class SMSReceiver : BroadcastReceiver() {
             mapOf("SIM" to dualSim, "From" to messageAddress, "Content" to textContentHTML)
         val rawValues =
             mapOf("SIM" to dualSim, "From" to messageAddress, "Content" to textContent)
-        requestBody.text = Template.render(context, R.string.TPL_received_sms, values)
-        val requestBodyText = Template.render(context, R.string.TPL_received_sms, rawValues)
+        requestBody.text = Template.render(context, "TPL_received_sms", values)
+        val requestBodyText = Template.render(context, "TPL_received_sms", rawValues)
 
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(constValue.JSON)
         val okhttpObj = Network.getOkhttpObj(
