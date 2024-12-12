@@ -80,7 +80,7 @@ object SMS {
             "To" to sendTo,
             "Content" to content,
         )
-        val sendContent = Template.render(context, R.string.TPL_send_sms, values)
+        val sendContent = Template.render(context, "TPL_send_sms", values)
         requestBody.text = "$sendContent\n${context.getString(R.string.status)}${context.getString(R.string.sending)}"
         requestBody.messageId = messageId
         val gson = Gson()
