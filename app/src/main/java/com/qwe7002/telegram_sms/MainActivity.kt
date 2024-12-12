@@ -95,6 +95,7 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("BatteryLife")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate: "+R.string.TPL_received_sms)
         setContentView(R.layout.activity_main)
         context = applicationContext
         //load config

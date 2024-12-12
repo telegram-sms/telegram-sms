@@ -13,6 +13,7 @@ import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
+import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
 import okhttp3.Call
@@ -32,7 +33,6 @@ class USSDCallBack(
 ) : UssdResponseCallback() {
     private val dohSwitch: Boolean
     private var requestUri: String
-    private val messageHeader: String
     private val requestBody: RequestMessage
 
     init {
@@ -47,7 +47,6 @@ class USSDCallBack(
             this.requestUri = Network.getUrl(botToken.toString(), "editMessageText")
             requestBody.messageId = messageId
         }
-        this.messageHeader = context.getString(R.string.send_ussd_head)
     }
 
     override fun onReceiveUssdResponse(
@@ -56,7 +55,7 @@ class USSDCallBack(
         response: CharSequence
     ) {
         super.onReceiveUssdResponse(telephonyManager, request, response)
-        val message = messageHeader + "\n" + context.getString(R.string.request) + request + "\n" + context.getString(R.string.content) + response
+        val message = Template.render(context,R.string.TPL_send_USSD, mapOf("Request" to request, "Response" to response.toString()))
         networkProgressHandle(message)
     }
 
@@ -66,12 +65,7 @@ class USSDCallBack(
         failureCode: Int
     ) {
         super.onReceiveUssdResponseFailed(telephonyManager, request, failureCode)
-/*        val message = """
-            $messageHeader
-            ${context.getString(R.string.request)}$request
-            ${context.getString(R.string.error_message)}${getErrorCodeString(failureCode)}
-            """.trimIndent()*/
-        val message = messageHeader + "\n" + context.getString(R.string.request) + request + "\n" + context.getString(R.string.error_message) + getErrorCodeString(failureCode)
+        val message = Template.render(context,R.string.TPL_send_USSD, mapOf("Request" to request, "Response" to getErrorCodeString(failureCode)))
         networkProgressHandle(message)
     }
 

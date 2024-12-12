@@ -16,6 +16,7 @@ import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
+import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
 import okhttp3.Call
@@ -80,11 +81,8 @@ class CallReceiver : BroadcastReceiver() {
                     slot,
                     sharedPreferences.getBoolean("display_dual_sim_display_name", false)
                 )
-/*                requestBody.text = """
-                    [$dual_sim${context.getString(R.string.missed_call_head)}]
-                    ${context.getString(R.string.Incoming_number)}$incomingNumber
-                    """.trimIndent()*/
-                requestBody.text = "[" + dualSim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + incomingNumber
+/*                requestBody.text = "[" + dualSim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + incomingNumber*/
+                requestBody.text = Template.render(context, R.string.TPL_missed_call, mapOf("SIM" to dualSim, "From" to incomingNumber.toString()))
                 val requestBodyRaw = Gson().toJson(requestBody)
                 val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
                 val okhttpObj = Network.getOkhttpObj(
