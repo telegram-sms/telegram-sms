@@ -41,7 +41,7 @@
         <activity
             android:name=".TemplateActivity"
             android:exported="false"
-            android:label="@string/template"/>
+            android:label="@string/template_title"/>
         <activity
             android:name=".SpamActivity"
             android:exported="false"

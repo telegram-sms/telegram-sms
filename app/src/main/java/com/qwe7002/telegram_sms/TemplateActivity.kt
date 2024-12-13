@@ -1,5 +1,6 @@
 package com.qwe7002.telegram_sms
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
@@ -63,6 +64,7 @@ class TemplateActivity : AppCompatActivity() {
             return MessageViewHolder(view)
         }
 
+        @SuppressLint("InflateParams")
         override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
             val message = messageList[position]
             holder.titleTextView.text = message.title
