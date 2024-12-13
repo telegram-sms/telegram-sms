@@ -19,7 +19,7 @@ import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.Template.getStringByName
 import io.paperdb.Paper
 
-data class Message(val title: String,val template:String , val content: Map<String, String>)
+data class Message(val title: String, val template: String, val content: Map<String, String>)
 
 class TemplateActivity : AppCompatActivity() {
     lateinit var context: Context
@@ -37,10 +37,30 @@ class TemplateActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         val messages = listOf(
-            Message("SMS Receive","TPL_received_sms", mapOf("SIM" to "SIM1 ","From" to "1234567890", "Content" to "Hello, World!")),
-            Message("SMS Send","TPL_send_sms", mapOf("SIM" to "SIM1 ","To" to "1234567890", "Content" to "Hello, World!")),
-            Message("Missed Call","TPL_missed_call", mapOf("SIM" to "SIM1 ","From" to "1234567890")),
-            Message("Receive Notification","TPL_notification",  mapOf("APP" to "Telegram SMS","Title" to "This is title","Description" to "This is description")),
+            Message(
+                getString(R.string.receive_sms_title),
+                "TPL_received_sms",
+                mapOf("SIM" to "SIM1 ", "From" to "+16505551212", "Content" to "Hello, World!")
+            ),
+            Message(
+                getString(R.string.receive_sms_title),
+                "TPL_send_sms",
+                mapOf("SIM" to "SIM1 ", "To" to "+16505551212", "Content" to "Hello, World!")
+            ),
+            Message(
+                getString(R.string.missed_call_title),
+                "TPL_missed_call",
+                mapOf("SIM" to "SIM1 ", "From" to "+16505551212")
+            ),
+            Message(
+                getString(R.string.receive_notification_title),
+                "TPL_notification",
+                mapOf(
+                    "APP" to "Telegram SMS",
+                    "Title" to "This is title",
+                    "Description" to "This is description"
+                )
+            ),
         )
 
         val adapter = MessageAdapter(messages)
@@ -50,6 +70,7 @@ class TemplateActivity : AppCompatActivity() {
     class MessageAdapter(private val messageList: List<Message>) :
         RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
         lateinit var context: Context
+
         class MessageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             val titleTextView: TextView = view.findViewById(R.id.template_title)
             val contentTextView: TextView = view.findViewById(R.id.template_content)
@@ -67,23 +88,31 @@ class TemplateActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
             val message = messageList[position]
             holder.titleTextView.text = message.title
-            holder.contentTextView.text = Template.render(context, message.template, message.content)
+            holder.contentTextView.text =
+                Template.render(context, message.template, message.content)
             holder.cardView.setOnClickListener {
                 val inflater = LayoutInflater.from(context)
                 val dialogView = inflater.inflate(R.layout.set_template, null)
 
                 val editText = dialogView.findViewById<EditText>(R.id.template_editview)
-                val result = Paper.book("Template").read(message.template, getStringByName(context,message.template)).toString()
+                val result = Paper.book("Template")
+                    .read(message.template, getStringByName(context, message.template)).toString()
                 editText.setText(result)
                 AlertDialog.Builder(context)
-                    .setTitle(R.string.proxy_dialog_title)
+                    .setTitle(message.title)
                     .setView(dialogView as View)
                     .setPositiveButton(R.string.ok_button) { _: DialogInterface, _: Int ->
                         val inputText = editText.text.toString()
                         Template.save(context, message.template, inputText)
-                        holder.contentTextView.text = Template.render(context, message.template, message.content)
+                        holder.contentTextView.text =
+                            Template.render(context, message.template, message.content)
                     }
                     .setNegativeButton(R.string.cancel_button, null)
+                    .setNeutralButton(R.string.reset_button) { _: DialogInterface, _: Int ->
+                        Paper.book("Template").delete(message.template)
+                        holder.contentTextView.text =
+                            Template.render(context, message.template, message.content)
+                    }
                     .show()
             }
         }

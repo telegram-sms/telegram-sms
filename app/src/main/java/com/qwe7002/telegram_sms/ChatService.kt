@@ -135,12 +135,6 @@ class ChatService : Service() {
                     slot,
                     sharedPreferences.getBoolean("display_dual_sim_display_name", false)
                 )
-                /*                val sendContent =
-                                    "[" + dualSim + getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.to) + to + "\n" + getString(
-                                        R.string.content
-                                    ) + content;
-                                requestBody.text =
-                                    sendContent + "\n" + getString(R.string.status) + getString(R.string.cancel_button);*/
                 requestBody.text = Template.render(
                     applicationContext,
                     "TPL_send_sms",

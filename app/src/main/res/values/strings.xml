@@ -60,12 +60,9 @@
     <string name="using_privacy_mode">Respond only to commands containing the Bot username</string>
     <string name="scan_title">Scan QR code</string>
     <string name="no_camera_permission">Please allow camera access for QR code scanning.</string>
-    <string name="error_message_head">"Error message: "</string>
-    <string name="error_stop_message">A fatal error has occurred, the program has stopped.</string>
     <string name="app_list">App list</string>
     <string name="Notification_Listener_title">"Notification Listener "</string>
     <string name="request">"Request: "</string>
-    <string name="error_message">"Error message: "</string>
     <string name="send_ussd_command">/sendussd - Send USSD request</string>
     <string name="ussd_code_running">USSD code running…</string>
     <string name="privacy_reminder_information">You should be aware that using Telegram-SMS means you trust the way we handle your information. We fully understand that it is a significant responsibility, thus we work hard to protect your information and make sure you can take everything under control. Please refer to our privacy policy to understand your rights and better protect your privacy.</string>
@@ -107,4 +104,10 @@
     <string name="update_dialog_no">Talk to you later</string>
     <string name="unable_to_obtain_information">Unable to get message</string>
     <string name="template_title">Template</string>
+    <string name="reset_button">Reset</string>
+    <string name="send_sms_title">Send SMS</string>
+    <string name="missed_call_title">Missed Call</string>
+    <string name="receive_sms_title">Receive SMS</string>
+    <string name="receive_notification_title">Receive Notification</string>
+    <string name="send_ussd_title">Send USSD</string>
 </resources>
