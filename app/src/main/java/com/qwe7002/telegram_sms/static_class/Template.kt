@@ -1,5 +1,6 @@
 package com.qwe7002.telegram_sms.static_class
 
+import android.annotation.SuppressLint
 import android.content.Context
 import io.paperdb.Paper
 
@@ -13,6 +14,7 @@ object Template {
         }
         return result
     }
+    @SuppressLint("DiscouragedApi")
     @JvmStatic
     fun getStringByName(context: Context, name: String): String {
         val resId = context.resources.getIdentifier(name, "string", context.packageName)
