@@ -105,5 +105,6 @@
     <string name="update_dialog_body">%s is available for update. \n\nChange log:\n\n%s</string>
     <string name="update_dialog_ok">Update now</string>
     <string name="update_dialog_no">Talk to you later</string>
-    <string name="unable_to_obtain_information" >Unable to get message</string>
+    <string name="unable_to_obtain_information">Unable to get message</string>
+    <string name="template_title">Template</string>
 </resources>

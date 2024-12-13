@@ -892,7 +892,10 @@ class MainActivity : AppCompatActivity() {
                     .show()
                 return true
             }
-
+            R.id.template_menu_item -> {
+                startActivity(Intent(this, TemplateActivity::class.java))
+                return true
+            }
             R.id.user_manual_menu_item -> fileName =
                 "/guide/" + context.getString(R.string.Lang) + "/user-manual"
 

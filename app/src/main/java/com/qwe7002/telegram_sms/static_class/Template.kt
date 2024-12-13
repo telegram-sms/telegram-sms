@@ -13,12 +13,18 @@ object Template {
         }
         return result
     }
-    private fun getStringByName(context: Context, name: String): String {
+    @JvmStatic
+    fun getStringByName(context: Context, name: String): String {
         val resId = context.resources.getIdentifier(name, "string", context.packageName)
         return if (resId != 0) {
             context.getString(resId)
         } else {
             "String resource not found"
         }
+    }
+    @JvmStatic
+    fun save(context: Context, template: String, inputText: String) {
+        Paper.init(context)
+        Paper.book("Template").write(template, inputText)
     }
 }
