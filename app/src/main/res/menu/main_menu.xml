@@ -29,6 +29,10 @@
         android:title="@string/set_notification_listener"
         app:showAsAction="never" />
     <item
+        android:id="@+id/template_menu_item"
+        android:title="@string/template_title"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/spam_sms_keyword_menu_item"
         android:title="@string/spam_sms_keyword_title"
         app:showAsAction="never" />

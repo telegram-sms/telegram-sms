@@ -58,6 +58,8 @@ dependencies {
     implementation 'androidx.room:room-runtime:2.6.1'
     implementation 'androidx.core:core-ktx:1.15.0'
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.25'
+    implementation 'androidx.activity:activity-ktx:1.9.3'
+    implementation 'androidx.cardview:cardview:1.0.0'
 }
 
 tasks.register('copy_language_pack', Copy) {
