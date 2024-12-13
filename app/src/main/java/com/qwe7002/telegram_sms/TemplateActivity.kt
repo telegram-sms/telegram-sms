@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -70,8 +69,6 @@ class TemplateActivity : AppCompatActivity() {
             holder.titleTextView.text = message.title
             holder.contentTextView.text = Template.render(context, message.template, message.content)
             holder.cardView.setOnClickListener {
-                Log.d("TemplateActivity", "Click: $position")
-
                 val inflater = LayoutInflater.from(context)
                 val dialogView = inflater.inflate(R.layout.set_template, null)
 
