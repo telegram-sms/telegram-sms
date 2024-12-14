@@ -13,10 +13,9 @@ import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
-import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Resend
+import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.constValue
-import com.qwe7002.telegram_sms.value.notifyId
 import io.paperdb.Paper
 import okhttp3.Call
 import okhttp3.Callback
@@ -35,11 +34,6 @@ class NotificationService : NotificationListenerService() {
         super.onCreate()
         Paper.init(applicationContext)
         sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
-/*        val notification = Other.getNotificationObj(
-            applicationContext,
-            getString(R.string.Notification_Listener_title)
-        )
-        startForeground(notifyId.NOTIFICATION_LISTENER_SERVICE, notification)*/
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
@@ -83,10 +77,7 @@ class NotificationService : NotificationListenerService() {
         val requestBody = RequestMessage()
         requestBody.chatId = chatId.toString()
         requestBody.messageThreadId = messageThreadId.toString()
-        requestBody.text = getString(R.string.receive_notification_title) + "\n" +
-                getString(R.string.app_name_title) + appName + "\n" +
-                getString(R.string.title) + title + "\n" +
-                getString(R.string.content) + content
+        requestBody.text = Template.render( applicationContext, "TPL_notification", mapOf("APP" to appName, "Title" to title, "Description" to content))
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(constValue.JSON)
         val okhttpObj = Network.getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),

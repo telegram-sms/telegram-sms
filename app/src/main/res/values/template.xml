@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="TPL_received_sms">[{{SIM}} Receive SMS]\nFrom: {{From}}\nContent: {{Content}}</string>
+    <string name="TPL_send_sms">[{{SIM}} Send SMS]\nTo: {{To}}\nContent: {{Content}}</string>
+    <string name="TPL_send_sms_chat">[{{SIM}} Send SMS]\n{{Content}}</string>
+    <string name="TPL_missed_call">[{{SIM}} Missed Call]\nFrom: {{From}}</string>
+    <string name="TPL_notification">[Receive Notification]\nApp: {{APP}}\nTitle: {{Title}}\nDescription: {{Description}}</string>
+    <string name="TPL_send_USSD">[Send USSD]\nRequest: {{Request}}\nResponse: {{Response}}</string>
+</resources>

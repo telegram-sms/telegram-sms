@@ -6,3 +6,5 @@
 - Fixed the issue where the language pack could not be loaded properly
 - Fixed the issue where AMEX and other verification codes could not be correctly recognized.
 - Fix the problem that the resend service does not start automatically
+- Add message template editing function
+- Add CC function

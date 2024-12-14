@@ -1,18 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="Lang">en_gb</string>
     <string name="time_format">dd/MMM/yyyy HH:mm:ss z</string>
-    <string name="content">"Content: "</string>
-    <string name="from">"From: "</string>
-    <string name="to">"To: "</string>
-    <string name="send_sms_head">Send SMS</string>
     <string name="system_message_head">[System Information]</string>
     <string name="success_connect">Connected to the Telegram Server.</string>
     <string name="connect_wait_title">Connecting to the Telegram server…</string>
     <string name="connect_wait_message">Please wait…</string>
     <string name="select_chat">Select Chat</string>
-    <string name="missed_call_head">Missed Call</string>
-    <string name="Incoming_number">"Call From: "</string>
     <string name="battery_low">Battery is low.</string>
     <string name="charger_connect">Charger connected.</string>
     <string name="charger_disconnect">Charger disconnected.</string>
@@ -38,14 +32,13 @@
     <string name="battery_monitoring_notify">"Battery monitor "</string>
     <string name="chat_command_service_name">"Chat command "</string>
     <string name="success">Success</string>
-    <string name="receive_sms_head">Receive SMS</string>
     <string name="available_command">Available Commands:\n/help - Display help information\n/getinfo - Get system information\n/log - Output the last 10 log records</string>
     <string name="restart_service">Background service has been restarted.</string>
     <string name="status">"Status: "</string>
     <string name="send_failed">Failed</string>
     <string name="airplane_mode">Device is in Airplane mode</string>
     <string name="no_network">No service</string>
-    <string name="sendsms_dual">/sendsms1 - Send SMS using SIM slot 1\n/sendsms2 - Send SMS using SIM slot 2</string>
+    <string name="sendsms_dual" tools:ignore="Typos">/sendsms1 - Send SMS using SIM slot 1\n/sendsms2 - Send SMS using SIM slot 2</string>
     <string name="display_sim_card_alias_in_dual_card_mode">Display SIM card alias</string>
     <string name="failed_to_get_information">Fail to get information.</string>
     <string name="sendsms">/sendsms - Send SMS</string>
@@ -67,16 +60,9 @@
     <string name="using_privacy_mode">Respond only to commands containing the Bot username</string>
     <string name="scan_title">Scan QR code</string>
     <string name="no_camera_permission">Please allow camera access for QR code scanning.</string>
-    <string name="error_message_head">"Error message: "</string>
-    <string name="error_stop_message">A fatal error has occurred, the program has stopped.</string>
     <string name="app_list">App list</string>
-    <string name="receive_notification_title">[Receive Notification]</string>
-    <string name="app_name_title">"App: "</string>
-    <string name="title">"Title: "</string>
     <string name="Notification_Listener_title">"Notification Listener "</string>
-    <string name="send_ussd_head">[Send USSD]</string>
     <string name="request">"Request: "</string>
-    <string name="error_message">"Error message: "</string>
     <string name="send_ussd_command">/sendussd - Send USSD request</string>
     <string name="ussd_code_running">USSD code running…</string>
     <string name="privacy_reminder_information">You should be aware that using Telegram-SMS means you trust the way we handle your information. We fully understand that it is a significant responsibility, thus we work hard to protect your information and make sure you can take everything under control. Please refer to our privacy policy to understand your rights and better protect your privacy.</string>
@@ -106,7 +92,7 @@
     <string name="ok_button">OK</string>
     <string name="about_title">About</string>
     <string name="about_content">"Developer: qwe7002\nEnglish translation: @tangbao @jixunmoe\nCurrent version: "</string>
-    <string name="send_ussd_dual_command">"/sendussd1 - Send USSD request using SIM slot 1\n/sendussd2 - Send USSD request using SIM slot 2"</string>
+    <string name="send_ussd_dual_command" tools:ignore="Typos">"/sendussd1 - Send USSD request using SIM slot 1\n/sendussd2 - Send USSD request using SIM slot 2"</string>
     <string name="qrcode_notice">Keep this QR code safe!\nPlease don\'t share it with others.</string>
     <string name="cancel_button">Cancel</string>
     <string name="delete_button">Delete</string>
@@ -116,5 +102,12 @@
     <string name="update_dialog_body">%s is available for update. \n\nChange log:\n\n%s</string>
     <string name="update_dialog_ok">Update now</string>
     <string name="update_dialog_no">Talk to you later</string>
-    <string name="unable_to_obtain_information" >Unable to get message</string>
+    <string name="unable_to_obtain_information">Unable to get message</string>
+    <string name="template_title">Template</string>
+    <string name="reset_button">Reset</string>
+    <string name="send_sms_title">Send SMS</string>
+    <string name="missed_call_title">Missed Call</string>
+    <string name="receive_sms_title">Receive SMS</string>
+    <string name="receive_notification_title">Receive Notification</string>
+    <string name="send_ussd_title">Send USSD</string>
 </resources>

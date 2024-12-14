@@ -20,8 +20,9 @@ import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Resend
-import com.qwe7002.telegram_sms.static_class.Service
 import com.qwe7002.telegram_sms.static_class.SMS
+import com.qwe7002.telegram_sms.static_class.Service
+import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.USSD
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
@@ -101,7 +102,7 @@ class SMSReceiver : BroadcastReceiver() {
         for (item in messages) {
             messageBodyBuilder.append(item!!.messageBody)
         }
-        val messageBody = messageBodyBuilder.toString()
+        val textContent = messageBodyBuilder.toString()
 
         val messageAddress = messages[0]!!.originatingAddress!!
         val trustedPhoneNumber = sharedPreferences.getString("trusted_phone_number", null)
@@ -113,17 +114,13 @@ class SMSReceiver : BroadcastReceiver() {
         requestBody.chatId = chatId.toString()
         requestBody.messageThreadId = messageThreadId.toString()
 
-        var messageBodyHtml = messageBody
-        val messageHead = "[" + dualSim + context.getString(R.string.receive_sms_head) + "]\n" +
-                context.getString(R.string.from) + messageAddress + "\n" +
-                context.getString(R.string.content)
-        var rawRequestBodyText = messageHead + messageBody
+        var textContentHTML = textContent
         var isVerificationCode = false
         if (sharedPreferences.getBoolean("verification_code", false) && !isTrustedPhone) {
-            val verification = CodeauxLibPortable.find(context, messageBody)
+            val verification = CodeauxLibPortable.find(context, textContent)
             if (verification != null) {
                 requestBody.parseMode = "html"
-                messageBodyHtml = messageBody
+                textContentHTML = textContent
                     .replace("<", "&lt;")
                     .replace(">", "&gt;")
                     .replace("&", "&amp;")
@@ -131,16 +128,15 @@ class SMSReceiver : BroadcastReceiver() {
                 isVerificationCode = true
             }
         }
-        requestBody.text = messageHead + messageBodyHtml
         if (isTrustedPhone) {
             Logs.writeLog(context, "SMS from trusted mobile phone detected")
             val messageCommand =
-                messageBody.lowercase(Locale.getDefault()).replace("_", "").replace("-", "")
+                textContent.lowercase(Locale.getDefault()).replace("_", "").replace("-", "")
             val commandList =
                 messageCommand.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
             if (commandList.isNotEmpty()) {
                 val messageList =
-                    messageBody.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                    textContent.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                 when (commandList[0].trim { it <= ' ' }) {
                     "/restartservice" -> {
                         Thread {
@@ -151,7 +147,7 @@ class SMSReceiver : BroadcastReceiver() {
                                 sharedPreferences.getBoolean("chat_command", false)
                             )
                         }.start()
-                        rawRequestBodyText =
+                        val rawRequestBodyText =
                             context.getString(R.string.system_message_head) + "\n" +
                                     context.getString(R.string.restart_service)
                         requestBody.text = rawRequestBodyText
@@ -230,10 +226,13 @@ class SMSReceiver : BroadcastReceiver() {
                     continue
                 }
 
-                if (messageBody.contains(blackListItem)) {
+                if (textContent.contains(blackListItem)) {
                     val simpleDateFormat =
                         SimpleDateFormat(context.getString(R.string.time_format), Locale.UK)
-                    val writeMessage = requestBody.text + "\n" + context.getString(R.string.time) + simpleDateFormat.format(Date(System.currentTimeMillis()))
+                    val writeMessage =
+                        requestBody.text + "\n" + context.getString(R.string.time) + simpleDateFormat.format(
+                            Date(System.currentTimeMillis())
+                        )
                     Paper.init(context)
                     val spamSmsList = Paper.book().read("spam_sms_list", ArrayList<String>())!!
                     if (spamSmsList.size >= 5) {
@@ -247,7 +246,13 @@ class SMSReceiver : BroadcastReceiver() {
             }
         }
 
-
+        val values =
+            mapOf("SIM" to dualSim, "From" to messageAddress, "Content" to textContentHTML)
+        val rawValues =
+            mapOf("SIM" to dualSim, "From" to messageAddress, "Content" to textContent)
+        requestBody.text = Template.render(context, "TPL_received_sms", values)
+        val requestBodyText = Template.render(context, "TPL_received_sms", rawValues)
+        CCSendJob.startJob(context, requestBodyText)
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(constValue.JSON)
         val okhttpObj = Network.getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),
@@ -256,7 +261,6 @@ class SMSReceiver : BroadcastReceiver() {
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpObj.newCall(request)
         val errorHead = "Send SMS forward failed:"
-        val requestBodyText = rawRequestBodyText
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
