@@ -14,6 +14,7 @@ object Template {
         }
         return result
     }
+
     @SuppressLint("DiscouragedApi")
     @JvmStatic
     fun getStringByName(context: Context, name: String): String {

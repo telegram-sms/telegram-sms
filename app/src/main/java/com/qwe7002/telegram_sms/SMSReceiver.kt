@@ -20,8 +20,8 @@ import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Resend
-import com.qwe7002.telegram_sms.static_class.Service
 import com.qwe7002.telegram_sms.static_class.SMS
+import com.qwe7002.telegram_sms.static_class.Service
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.USSD
 import com.qwe7002.telegram_sms.value.constValue
@@ -114,13 +114,6 @@ class SMSReceiver : BroadcastReceiver() {
         requestBody.chatId = chatId.toString()
         requestBody.messageThreadId = messageThreadId.toString()
 
-        /*
-                val messageHead = "[" + dualSim + context.getString(R.string.receive_sms_head) + "]\n" +
-                        context.getString(R.string.from) + messageAddress + "\n" +
-                        context.getString(R.string.content)
-
-                var rawRequestBodyText = messageHead + textContent*/
-
         var textContentHTML = textContent
         var isVerificationCode = false
         if (sharedPreferences.getBoolean("verification_code", false) && !isTrustedPhone) {
@@ -135,7 +128,6 @@ class SMSReceiver : BroadcastReceiver() {
                 isVerificationCode = true
             }
         }
-        //requestBody.text = messageHead + textContentHTML
         if (isTrustedPhone) {
             Logs.writeLog(context, "SMS from trusted mobile phone detected")
             val messageCommand =
@@ -260,7 +252,7 @@ class SMSReceiver : BroadcastReceiver() {
             mapOf("SIM" to dualSim, "From" to messageAddress, "Content" to textContent)
         requestBody.text = Template.render(context, "TPL_received_sms", values)
         val requestBodyText = Template.render(context, "TPL_received_sms", rawValues)
-
+        CCSendJob.startJob(context, requestBodyText)
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(constValue.JSON)
         val okhttpObj = Network.getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),

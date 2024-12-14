@@ -60,6 +60,7 @@ dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.25'
     implementation 'androidx.activity:activity-ktx:1.9.3'
     implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.activity:activity:1.9.3'
 }
 
 tasks.register('copy_language_pack', Copy) {
