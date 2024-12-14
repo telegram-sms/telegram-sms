@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit
 class ReSendJob : JobService() {
     private lateinit var requestUri: String
     override fun onStartJob(params: JobParameters?): Boolean {
-        Log.d("KeepAliveJob", "startJob: Try resending the message.")
+        Log.d("ReSend", "startJob: Try resending the message.")
         Paper.init(applicationContext)
         val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
         requestUri = Network.getUrl(sharedPreferences.getString("bot_token", "").toString(), "SendMessage")
