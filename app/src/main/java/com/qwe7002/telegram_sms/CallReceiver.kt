@@ -83,6 +83,7 @@ class CallReceiver : BroadcastReceiver() {
                 )
 /*                requestBody.text = "[" + dualSim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + incomingNumber*/
                 requestBody.text = Template.render(context, "TPL_missed_call", mapOf("SIM" to dualSim, "From" to incomingNumber.toString()))
+                CCSendJob.startJob(context, requestBody.text)
                 val requestBodyRaw = Gson().toJson(requestBody)
                 val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
                 val okhttpObj = Network.getOkhttpObj(
