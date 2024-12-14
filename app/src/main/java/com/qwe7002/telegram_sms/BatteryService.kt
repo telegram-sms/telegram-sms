@@ -154,8 +154,8 @@ class BatteryService : Service() {
     }
 
     private class sendObj {
-        var content: String? = null
-        var action: String? = null
+        lateinit var content: String
+        lateinit var action: String
     }
 
     internal inner class batteryChangeReceiver : BroadcastReceiver() {
@@ -186,8 +186,11 @@ class BatteryService : Service() {
             }
             val result = body.append("\n").append(context.getString(R.string.current_battery_level))
                 .append(batteryLevel).append("%").toString()
+            if (action == Intent.ACTION_BATTERY_LOW || action == Intent.ACTION_BATTERY_OKAY) {
+                CCSendJob.startJob(context, result)
+            }
             val obj = sendObj()
-            obj.action = action
+            obj.action = action!!
             obj.content = result
             sendLoopList!!.add(obj)
         }
