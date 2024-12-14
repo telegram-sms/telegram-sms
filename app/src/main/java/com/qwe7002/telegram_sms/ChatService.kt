@@ -48,6 +48,7 @@ import com.qwe7002.telegram_sms.static_class.Other.parseStringToLong
 import com.qwe7002.telegram_sms.static_class.Resend.addResendLoop
 import com.qwe7002.telegram_sms.static_class.SMS.send
 import com.qwe7002.telegram_sms.static_class.SMS.sendSms
+import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.USSD.sendUssd
 import com.qwe7002.telegram_sms.value.constValue
 import com.qwe7002.telegram_sms.value.notifyId
@@ -134,12 +135,11 @@ class ChatService : Service() {
                     slot,
                     sharedPreferences.getBoolean("display_dual_sim_display_name", false)
                 )
-                val sendContent =
-                    "[" + dualSim + getString(R.string.send_sms_head) + "]" + "\n" + getString(R.string.to) + to + "\n" + getString(
-                        R.string.content
-                    ) + content;
-                requestBody.text =
-                    sendContent + "\n" + getString(R.string.status) + getString(R.string.cancel_button);
+                requestBody.text = Template.render(
+                    applicationContext,
+                    "TPL_send_sms",
+                    mapOf("SIM" to dualSim, "To" to to, "Content" to content)
+                ) + "\n" + getString(R.string.status) + getString(R.string.cancel_button)
                 requestBody.messageId = messageId
                 val gson = Gson()
                 val requestBodyRaw = gson.toJson(requestBody)
@@ -299,19 +299,13 @@ class ChatService : Service() {
                     }
                 }
                 requestBody.text =
-                    getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
+                    getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command)
             }
 
             "/getspamsms" -> {
                 val spamSMSHistory = Paper.book().read("spam_sms_list", ArrayList<String>())
                 checkNotNull(spamSMSHistory)
                 if (spamSMSHistory.isNotEmpty()) {
-                    /* requestBody.text = """
-                         ${context!!.getString(R.string.system_message_head)}
-                         ${getString(R.string.no_spam_history)}
-                         """.trimIndent()*/
-
-                    //break
                     Thread {
                         if (checkNetworkStatus(applicationContext)) {
                             val okhttpObj =
@@ -455,7 +449,7 @@ class ChatService : Service() {
                     }
                 }
                 requestBody.text =
-                    getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command);
+                    getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command)
             }
         }
 
@@ -470,24 +464,41 @@ class ChatService : Service() {
             if (sendSlotTemp != -1) {
                 dualSim = "SIM" + (sendSlotTemp + 1) + " "
             }
-            val head = "[" + dualSim + getString(R.string.send_sms_head) + "]"
-            var resultSend = getString(R.string.failed_to_get_information)
+
+            var resultSend = Template.render(
+                applicationContext,
+                "TPL_send_sms_chat",
+                mapOf("SIM" to dualSim, "Content" to getString(R.string.failed_to_get_information))
+            )
             Log.d(TAG, "Sending mode status: $sendSmsNextStatus")
             when (sendSmsNextStatus) {
                 SEND_SMS_STATUS.PHONE_INPUT_STATUS -> {
                     sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
-                    resultSend = getString(R.string.enter_number)
+                    //resultSend = head + "\n" + getString(R.string.enter_number)
+                    resultSend = Template.render(
+                        applicationContext,
+                        "TPL_send_sms_chat",
+                        mapOf("SIM" to dualSim, "Content" to getString(R.string.enter_number))
+                    )
                 }
 
                 SEND_SMS_STATUS.MESSAGE_INPUT_STATUS -> {
                     val tempTo = getSendPhoneNumber(requestMsg)
                     if (isPhoneNumber(tempTo)) {
                         Paper.book("send_temp").write("to", tempTo)
-                        resultSend = getString(R.string.enter_content)
+                        resultSend = Template.render(
+                            applicationContext,
+                            "TPL_send_sms_chat",
+                            mapOf("SIM" to dualSim, "Content" to getString(R.string.enter_content))
+                        )
                         sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
                     } else {
                         setSmsSendStatusStandby()
-                        resultSend = getString(R.string.unable_get_phone_number)
+                        resultSend = Template.render(
+                            applicationContext,
+                            "TPL_send_sms_chat",
+                            mapOf("SIM" to dualSim, "Content" to getString(R.string.unable_get_phone_number))
+                        )
                     }
                 }
 
@@ -509,13 +520,16 @@ class ChatService : Service() {
                     )
                     keyboardMarkup.inlineKeyboard = inlineKeyboardButtons
                     requestBody.replyMarkup = keyboardMarkup
-                    resultSend = getString(R.string.to) + Paper.book("send_temp")
-                        .read("to") + "\n" + getString(R.string.content) + Paper.book("send_temp")
-                        .read("content", "")
+                    val values = mapOf(
+                        "SIM" to dualSim,
+                        "To" to Paper.book("send_temp").read("to", "").toString(),
+                        "Content" to Paper.book("send_temp").read("content", "").toString()
+                    )
+                    resultSend = Template.render(applicationContext, "TPL_send_sms", values)
                     sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS
                 }
             }
-            requestBody.text = head + "\n" + resultSend;
+            requestBody.text = resultSend
 
         }
 
