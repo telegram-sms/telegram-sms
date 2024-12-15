@@ -15,14 +15,16 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.qwe7002.telegram_sms.TemplateActivity.MessageAdapter
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.Template.getStringByName
 import io.paperdb.Paper
 
 data class Message(val title: String, val template: String, val content: Map<String, String>)
-
+lateinit var adapter: MessageAdapter
 class TemplateActivity : AppCompatActivity() {
     lateinit var context: Context
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Paper.init(applicationContext)
@@ -63,7 +65,7 @@ class TemplateActivity : AppCompatActivity() {
             ),
         )
 
-        val adapter = MessageAdapter(messages)
+        adapter = MessageAdapter(messages)
         recyclerView.adapter = adapter
     }
 
@@ -84,7 +86,7 @@ class TemplateActivity : AppCompatActivity() {
             return MessageViewHolder(view)
         }
 
-        @SuppressLint("InflateParams")
+        @SuppressLint("InflateParams", "NotifyDataSetChanged")
         override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
             val message = messageList[position]
             holder.titleTextView.text = message.title
@@ -104,14 +106,12 @@ class TemplateActivity : AppCompatActivity() {
                     .setPositiveButton(R.string.ok_button) { _: DialogInterface, _: Int ->
                         val inputText = editText.text.toString()
                         Template.save(context, message.template, inputText)
-                        holder.contentTextView.text =
-                            Template.render(context, message.template, message.content)
+                        adapter.notifyDataSetChanged()
                     }
                     .setNegativeButton(R.string.cancel_button, null)
                     .setNeutralButton(R.string.reset_button) { _: DialogInterface, _: Int ->
                         Paper.book("Template").delete(message.template)
-                        holder.contentTextView.text =
-                            Template.render(context, message.template, message.content)
+                        adapter.notifyDataSetChanged()
                     }
                     .show()
             }
