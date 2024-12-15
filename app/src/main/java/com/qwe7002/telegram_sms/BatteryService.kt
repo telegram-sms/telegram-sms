@@ -187,7 +187,7 @@ class BatteryService : Service() {
             val result = body.append("\n").append(context.getString(R.string.current_battery_level))
                 .append(batteryLevel).append("%").toString()
             if (action == Intent.ACTION_BATTERY_LOW || action == Intent.ACTION_BATTERY_OKAY) {
-                CCSendJob.startJob(context, result)
+                CCSendJob.startJob(context,context.getString(R.string.app_name), result)
             }
             val obj = sendObj()
             obj.action = action!!

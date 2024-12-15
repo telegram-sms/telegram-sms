@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.qwe7002.telegram_sms.data_structure.CCService
@@ -25,7 +26,6 @@ import io.paperdb.Paper
 class CCActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //enableEdgeToEdge()
         setContentView(R.layout.activity_cc)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -54,7 +54,8 @@ class CCActivity : AppCompatActivity() {
                     val title = view.findViewById<TextView>(R.id.title)
                     val subtitle = view.findViewById<TextView>(R.id.subtitle)
 
-                    title.text = ccOptions.options[item?.type!!]+ item.enabled?.let { if (it) " (Enabled)" else " (Disabled)" }
+                    title.text =
+                        ccOptions.options[item?.type!!] + item.enabled?.let { if (it) " (Enabled)" else " (Disabled)" }
                     subtitle.text = item.webhook
 
                     return view
@@ -65,26 +66,47 @@ class CCActivity : AppCompatActivity() {
             AdapterView.OnItemClickListener { _: AdapterView<*>?, _: View?, position: Int, _: Long ->
                 val dialog = inflater.inflate(R.layout.set_cc_layout, null)
                 val spinner = dialog.findViewById<Spinner>(R.id.spinner_options)
-
-
-                val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ccOptions.options)
+                val adapter =
+                    ArrayAdapter(this, android.R.layout.simple_spinner_item, ccOptions.options)
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                 spinner.adapter = adapter
+                spinner.setSelection(serviceList[position].type)
+                spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                    override fun onItemSelected(
+                        parent: AdapterView<*>?,
+                        view: View?,
+                        position: Int,
+                        id: Long
+                    ) {
+                        Log.d("spinner", position.toString())
+                        when (position) {
+                            0 -> dialog.findViewById<EditText>(R.id.body_editview).isEnabled = false
+                            1 -> dialog.findViewById<EditText>(R.id.body_editview).isEnabled = true
+                        }
+                    }
+
+                    override fun onNothingSelected(parent: AdapterView<*>?) {
+                        Log.d("spinner", "nothing")
+                    }
+                }
                 val webhook =
                     dialog.findViewById<EditText>(R.id.webhook_editview)
                 webhook.setText(serviceList[position].webhook)
                 val body =
                     dialog.findViewById<EditText>(R.id.body_editview)
                 body.setText(serviceList[position].body)
+                val switch =
+                    dialog.findViewById<SwitchMaterial>(R.id.cc_enable_switch)
+                switch.isChecked = serviceList[position].enabled
                 AlertDialog.Builder(this)
-                    .setTitle(R.string.spam_keyword_edit_title)
+                    .setTitle(getString(R.string.edit_cc_service))
                     .setView(dialog)
                     .setPositiveButton(R.string.ok_button) { _: DialogInterface?, _: Int ->
                         CCService(
                             type = spinner.selectedItemPosition,
                             webhook = webhook.text.toString(),
-                            body =  body.text.toString(),
-                            enabled = true
+                            body = body.text.toString(),
+                            enabled = switch.isChecked
                         ).also { serviceList[position] = it }
                         saveAndFlush(serviceList, listAdapter)
                     }
@@ -103,20 +125,39 @@ class CCActivity : AppCompatActivity() {
             val dialog = inflater.inflate(R.layout.set_cc_layout, null)
             val spinner = dialog.findViewById<Spinner>(R.id.spinner_options)
 
-            val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ccOptions.options)
+            val adapter =
+                ArrayAdapter(this, android.R.layout.simple_spinner_item, ccOptions.options)
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spinner.adapter = adapter
+            spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    Log.d("spinner", position.toString())
+                    when (position) {
+                        0 -> dialog.findViewById<EditText>(R.id.body_editview).isEnabled = false
+                        1 -> dialog.findViewById<EditText>(R.id.body_editview).isEnabled = true
+                    }
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>?) {
+                    Log.d("spinner", "nothing")
+                }
+            }
             val editText = dialog.findViewById<EditText>(R.id.webhook_editview)
             val body =
                 dialog.findViewById<EditText>(R.id.body_editview)
-            AlertDialog.Builder(this).setTitle(R.string.spam_keyword_add_title)
+            AlertDialog.Builder(this).setTitle(getString(R.string.add_cc_service))
                 .setView(dialog)
                 .setPositiveButton(R.string.ok_button) { _: DialogInterface?, _: Int ->
                     CCService(
                         type = spinner.selectedItemPosition,
                         webhook = editText.text.toString(),
                         body = body.text.toString(),
-                        enabled = true
+                        enabled = dialog.findViewById<SwitchMaterial>(R.id.cc_enable_switch).isChecked
                     ).also { serviceList.add(it) }
                     saveAndFlush(serviceList, listAdapter)
                 }
