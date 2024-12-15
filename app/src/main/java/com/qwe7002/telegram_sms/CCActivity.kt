@@ -57,7 +57,7 @@ class CCActivity : AppCompatActivity() {
                     val subtitle = view.findViewById<TextView>(R.id.subtitle)
 
                     title.text =
-                        ccOptions.options[item?.type!!] + item.enabled.let { if (it) " (Enabled)" else " (Disabled)" }
+                        ccOptions.options[item?.method!!] + item.enabled.let { if (it) " (Enabled)" else " (Disabled)" }
                     subtitle.text = item.webhook
 
                     return view
@@ -72,7 +72,7 @@ class CCActivity : AppCompatActivity() {
                     ArrayAdapter(this, android.R.layout.simple_spinner_item, ccOptions.options)
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                 spinner.adapter = adapter
-                spinner.setSelection(serviceList[position].type)
+                spinner.setSelection(serviceList[position].method)
                 spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                     override fun onItemSelected(
                         parent: AdapterView<*>?,
@@ -97,6 +97,9 @@ class CCActivity : AppCompatActivity() {
                 val body =
                     dialog.findViewById<EditText>(R.id.body_editview)
                 body.setText(serviceList[position].body)
+                val header =
+                    dialog.findViewById<EditText>(R.id.header_editview)
+                header.setText(serviceList[position].header)
                 val switch =
                     dialog.findViewById<SwitchMaterial>(R.id.cc_enable_switch)
                 switch.isChecked = serviceList[position].enabled
@@ -105,9 +108,10 @@ class CCActivity : AppCompatActivity() {
                     .setView(dialog)
                     .setPositiveButton(R.string.ok_button) { _: DialogInterface?, _: Int ->
                         CCService(
-                            type = spinner.selectedItemPosition,
+                            method = spinner.selectedItemPosition,
                             webhook = webhook.text.toString(),
                             body = body.text.toString(),
+                            header = header.text.toString(),
                             enabled = switch.isChecked
                         ).also { serviceList[position] = it }
                         saveAndFlush(serviceList, listAdapter)
@@ -152,13 +156,16 @@ class CCActivity : AppCompatActivity() {
             val editText = dialog.findViewById<EditText>(R.id.webhook_editview)
             val body =
                 dialog.findViewById<EditText>(R.id.body_editview)
+            val header =
+                dialog.findViewById<EditText>(R.id.header_editview)
             AlertDialog.Builder(this).setTitle(getString(R.string.add_cc_service))
                 .setView(dialog)
                 .setPositiveButton(R.string.ok_button) { _: DialogInterface?, _: Int ->
                     CCService(
-                        type = spinner.selectedItemPosition,
+                        method = spinner.selectedItemPosition,
                         webhook = editText.text.toString(),
                         body = body.text.toString(),
+                        header = header.text.toString(),
                         enabled = dialog.findViewById<SwitchMaterial>(R.id.cc_enable_switch).isChecked
                     ).also { serviceList.add(it) }
                     saveAndFlush(serviceList, listAdapter)

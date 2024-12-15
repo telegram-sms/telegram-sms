@@ -41,7 +41,7 @@
         tools:targetApi="n">
         <activity
             android:name=".CCActivity"
-            android:label="Copy Notification"
+            android:label="@string/copy_notification_menu"
             android:exported="false" />
         <activity
             android:name=".TemplateActivity"

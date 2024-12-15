@@ -41,7 +41,23 @@
             tools:ignore="HardcodedText" />
 
     </com.google.android.material.textfield.TextInputLayout>
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp">
 
+        <EditText
+            android:id="@+id/header_editview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Header"
+            android:importantForAutofill="no"
+            android:inputType="textMultiLine"
+            android:maxLines="10"
+            android:singleLine="false"
+            tools:ignore="HardcodedText" />
+    </com.google.android.material.textfield.TextInputLayout>
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
