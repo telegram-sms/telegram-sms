@@ -412,7 +412,6 @@ class MainActivity : AppCompatActivity() {
                 }
             })
         }
-        startActivity(Intent(this, CCActivity::class.java))
         saveButton.setOnClickListener { v: View? ->
             if (botTokenEditView.text.toString().isEmpty() || chatIdEditView.text.toString()
                     .isEmpty()
@@ -843,7 +842,10 @@ class MainActivity : AppCompatActivity() {
                 startActivity(Intent(this, SpamActivity::class.java))
                 return true
             }
-
+            R.id.cc_menu_item -> {
+                startActivity(Intent(this, CCActivity::class.java))
+                return true
+            }
             R.id.set_proxy_menu_item -> {
                 val view = inflater.inflate(R.layout.set_proxy_layout, null)
                 val dohSwitch = findViewById<SwitchMaterial>(R.id.doh_switch)

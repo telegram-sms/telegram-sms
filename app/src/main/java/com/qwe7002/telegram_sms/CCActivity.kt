@@ -1,5 +1,6 @@
 package com.qwe7002.telegram_sms
 
+import android.annotation.SuppressLint
 import android.content.DialogInterface
 import android.os.Bundle
 import android.util.Log
@@ -43,6 +44,7 @@ class CCActivity : AppCompatActivity() {
         val serviceList: ArrayList<CCService> = gson.fromJson(serviceListJson, type)
         val listAdapter =
             object : ArrayAdapter<CCService>(this, R.layout.list_item_with_subtitle, serviceList) {
+                @SuppressLint("SetTextI18n")
                 override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                     val view = convertView ?: layoutInflater.inflate(
                         R.layout.list_item_with_subtitle,
@@ -55,7 +57,7 @@ class CCActivity : AppCompatActivity() {
                     val subtitle = view.findViewById<TextView>(R.id.subtitle)
 
                     title.text =
-                        ccOptions.options[item?.type!!] + item.enabled?.let { if (it) " (Enabled)" else " (Disabled)" }
+                        ccOptions.options[item?.type!!] + item.enabled.let { if (it) " (Enabled)" else " (Disabled)" }
                     subtitle.text = item.webhook
 
                     return view

@@ -55,7 +55,7 @@
             android:hint="Body"
             android:importantForAutofill="no"
             android:inputType="textMultiLine"
-            android:maxLines="5"
+            android:maxLines="10"
             android:singleLine="false"
             tools:ignore="HardcodedText" />
     </com.google.android.material.textfield.TextInputLayout>
