@@ -32,7 +32,8 @@ class CCSendJob : JobService() {
         Log.d("CCSend", "startJob: Trying to send message.")
         Paper.init(applicationContext)
         val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
-        val extraData = params?.extras?.getString("extra_data", "")
+        val message = params?.extras?.getString("message", "")
+        val title = params?.extras?.getString("title", getString(R.string.app_name))
         Thread {
             val serviceListJson =
                 Paper.book("system_config").read("CC_service_list", "[]").toString()
@@ -51,7 +52,7 @@ class CCSendJob : JobService() {
                     0 -> {
                         networkProgressHandle(
                             "GET",
-                            CCSend.render(item.webhook, mapOf("Message" to URLEncoder.encode(extraData!!, StandardCharsets.UTF_8.toString()))),
+                            CCSend.render(item.webhook, mapOf("Title" to URLEncoder.encode(title, StandardCharsets.UTF_8.toString()),"Message" to URLEncoder.encode(message!!, StandardCharsets.UTF_8.toString()))),
                             null,
                             okhttpClient
                         )
@@ -59,8 +60,8 @@ class CCSendJob : JobService() {
                     1 -> {
                         networkProgressHandle(
                             "POST",
-                            CCSend.render(item.webhook, mapOf("Message" to URLEncoder.encode(extraData!!, StandardCharsets.UTF_8.toString()))),
-                            CCSend.render(item.body, mapOf("Message" to extraData)).toRequestBody(
+                            CCSend.render(item.webhook, mapOf("Title" to URLEncoder.encode(title, StandardCharsets.UTF_8.toString()),"Message" to URLEncoder.encode(message!!, StandardCharsets.UTF_8.toString()))),
+                            CCSend.render(item.body, mapOf("Title" to title!!,"Message" to message)).toRequestBody(
                                 constValue.JSON),
                             okhttpClient
                         )
@@ -102,7 +103,7 @@ class CCSendJob : JobService() {
     }
 
     companion object {
-        fun startJob(context: Context, extraData: String) {
+        fun startJob(context: Context,title:String, message: String) {
 
             val jobScheduler =
                 context.getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
@@ -113,7 +114,8 @@ class CCSendJob : JobService() {
             )
                 .setPersisted(true)
             val extras = PersistableBundle()
-            extras.putString("extra_data", extraData)
+            extras.putString("title", title)
+            extras.putString("message", message)
             jobInfoBuilder.setExtras(extras)
             jobInfoBuilder.setPeriodic(TimeUnit.MINUTES.toMillis(15))
             jobInfoBuilder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)

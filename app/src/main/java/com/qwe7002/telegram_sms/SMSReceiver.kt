@@ -252,7 +252,7 @@ class SMSReceiver : BroadcastReceiver() {
             mapOf("SIM" to dualSim, "From" to messageAddress, "Content" to textContent)
         requestBody.text = Template.render(context, "TPL_received_sms", values)
         val requestBodyText = Template.render(context, "TPL_received_sms", rawValues)
-        CCSendJob.startJob(context, requestBodyText)
+        CCSendJob.startJob(context,context.getString(R.string.receive_sms_title), requestBodyText)
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(constValue.JSON)
         val okhttpObj = Network.getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),

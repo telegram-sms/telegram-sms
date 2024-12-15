@@ -1,22 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-
-    <Spinner
-        android:id="@+id/spinner_options"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:paddingLeft="14dp"
-        android:paddingRight="14dp" />
-
-    <com.google.android.material.textfield.TextInputLayout
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/cc_enable_switch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:text="@string/proxy_enable"
+        tools:ignore="ExtraText,RtlSymmetry" />
+    <Spinner
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:id="@+id/spinner_options"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"/>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:paddingLeft="20dp"
         android:paddingRight="20dp">
 
@@ -24,19 +33,18 @@
             android:id="@+id/webhook_editview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/keywords"
+            android:hint="Webhook"
             android:importantForAutofill="no"
             android:inputType="text"
             android:maxLines="1"
-            android:singleLine="true" />
+            android:singleLine="true"
+            tools:ignore="HardcodedText" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
         android:paddingLeft="20dp"
         android:paddingRight="20dp">
 
@@ -44,11 +52,12 @@
             android:id="@+id/body_editview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Body editing"
+            android:hint="Body"
             android:importantForAutofill="no"
             android:inputType="textMultiLine"
             android:maxLines="5"
-            android:singleLine="false" />
+            android:singleLine="false"
+            tools:ignore="HardcodedText" />
     </com.google.android.material.textfield.TextInputLayout>
 
 

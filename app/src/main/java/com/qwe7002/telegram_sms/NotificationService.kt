@@ -78,7 +78,7 @@ class NotificationService : NotificationListenerService() {
         requestBody.chatId = chatId.toString()
         requestBody.messageThreadId = messageThreadId.toString()
         requestBody.text = Template.render( applicationContext, "TPL_notification", mapOf("APP" to appName, "Title" to title, "Description" to content))
-        CCSendJob.startJob(applicationContext, requestBody.text)
+        CCSendJob.startJob(applicationContext,applicationContext.getString(R.string.Notification_Listener_title), requestBody.text)
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(constValue.JSON)
         val okhttpObj = Network.getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),

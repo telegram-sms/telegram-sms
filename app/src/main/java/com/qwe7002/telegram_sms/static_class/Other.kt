@@ -68,7 +68,7 @@ object Other {
             if (showName) {
                 result = "(" + getSimDisplayName(context, slot) + ")"
             }
-            dualSim = "SIM" + (slot + 1) + result
+            dualSim = "SIM" + (slot + 1) + result +" "
         }
         return dualSim
     }
