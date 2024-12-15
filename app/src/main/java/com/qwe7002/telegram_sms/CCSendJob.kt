@@ -189,12 +189,5 @@ class CCSendJob : JobService() {
             jobScheduler.schedule(jobInfoBuilder.build())
 
         }
-
-        fun stopJob(context: Context) {
-            val jobScheduler =
-                context.getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
-
-            jobScheduler.cancel(20)
-        }
     }
 }
