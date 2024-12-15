@@ -116,6 +116,7 @@ class SMSReceiver : BroadcastReceiver() {
 
         var textContentHTML = textContent
         var isVerificationCode = false
+        var verificationCode = ""
         if (sharedPreferences.getBoolean("verification_code", false) && !isTrustedPhone) {
             val verification = CodeauxLibPortable.find(context, textContent)
             if (verification != null) {
@@ -125,6 +126,7 @@ class SMSReceiver : BroadcastReceiver() {
                     .replace(">", "&gt;")
                     .replace("&", "&amp;")
                     .replace(verification, "<code>$verification</code>")
+                verificationCode = verification
                 isVerificationCode = true
             }
         }
@@ -252,7 +254,12 @@ class SMSReceiver : BroadcastReceiver() {
             mapOf("SIM" to dualSim, "From" to messageAddress, "Content" to textContent)
         requestBody.text = Template.render(context, "TPL_received_sms", values)
         val requestBodyText = Template.render(context, "TPL_received_sms", rawValues)
-        CCSendJob.startJob(context,context.getString(R.string.receive_sms_title), requestBodyText)
+        CCSendJob.startJob(
+            context,
+            context.getString(R.string.receive_sms_title),
+            requestBodyText,
+            verificationCode
+        )
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(constValue.JSON)
         val okhttpObj = Network.getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),

@@ -81,7 +81,6 @@ class CallReceiver : BroadcastReceiver() {
                     slot,
                     sharedPreferences.getBoolean("display_dual_sim_display_name", false)
                 )
-/*                requestBody.text = "[" + dualSim + context.getString(R.string.missed_call_head) + "]" + "\n" + context.getString(R.string.Incoming_number) + incomingNumber*/
                 requestBody.text = Template.render(context, "TPL_missed_call", mapOf("SIM" to dualSim, "From" to incomingNumber.toString()))
                 CCSendJob.startJob(context,context.getString(R.string.missed_call_title), requestBody.text)
                 val requestBodyRaw = Gson().toJson(requestBody)

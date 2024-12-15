@@ -32,8 +32,15 @@ class CCSendJob : JobService() {
         Log.d("CCSend", "startJob: Trying to send message.")
         Paper.init(applicationContext)
         val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
-        val message = params?.extras?.getString("message", "")
-        val title = params?.extras?.getString("title", getString(R.string.app_name))
+        val message: String = params?.extras?.getString("message", "") ?: ""
+        var title: String = params?.extras?.getString("title", getString(R.string.app_name))
+            ?: getString(R.string.app_name)
+        var verificationCode: String = params?.extras?.getString("verification_code", "") ?: ""
+        if (verificationCode.isEmpty()) {
+            verificationCode = message
+        } else {
+            title += getString(R.string.verification_code)
+        }
         Thread {
             val serviceListJson =
                 Paper.book("system_config").read("CC_service_list", "[]").toString()
@@ -52,17 +59,58 @@ class CCSendJob : JobService() {
                     0 -> {
                         networkProgressHandle(
                             "GET",
-                            CCSend.render(item.webhook, mapOf("Title" to URLEncoder.encode(title, StandardCharsets.UTF_8.toString()),"Message" to URLEncoder.encode(message!!, StandardCharsets.UTF_8.toString()))),
+                            CCSend.render(
+                                item.webhook,
+                                mapOf(
+                                    "Title" to URLEncoder.encode(
+                                        title,
+                                        StandardCharsets.UTF_8.toString()
+                                    ),
+                                    "Message" to URLEncoder.encode(
+                                        message,
+                                        StandardCharsets.UTF_8.toString()
+                                    ),
+                                    "Code" to URLEncoder.encode(
+                                        verificationCode,
+                                        StandardCharsets.UTF_8.toString()
+                                    )
+                                )
+                            ),
                             null,
                             okhttpClient
                         )
                     }
+
                     1 -> {
                         networkProgressHandle(
                             "POST",
-                            CCSend.render(item.webhook, mapOf("Title" to URLEncoder.encode(title, StandardCharsets.UTF_8.toString()),"Message" to URLEncoder.encode(message!!, StandardCharsets.UTF_8.toString()))),
-                            CCSend.render(item.body, mapOf("Title" to title!!,"Message" to message)).toRequestBody(
-                                constValue.JSON),
+                            CCSend.render(
+                                item.webhook,
+                                mapOf(
+                                    "Title" to URLEncoder.encode(
+                                        title,
+                                        StandardCharsets.UTF_8.toString()
+                                    ),
+                                    "Message" to URLEncoder.encode(
+                                        message,
+                                        StandardCharsets.UTF_8.toString()
+                                    ),
+                                    "Code" to URLEncoder.encode(
+                                        verificationCode,
+                                        StandardCharsets.UTF_8.toString()
+                                    )
+                                )
+                            ),
+                            CCSend.render(
+                                item.body,
+                                mapOf(
+                                    "Title" to title,
+                                    "Message" to message,
+                                    "Code" to verificationCode
+                                )
+                            ).toRequestBody(
+                                constValue.JSON
+                            ),
                             okhttpClient
                         )
                     }
@@ -103,8 +151,27 @@ class CCSendJob : JobService() {
     }
 
     companion object {
-        fun startJob(context: Context,title:String, message: String) {
+        fun startJob(context: Context, title: String, message: String, verificationCode: String) {
+            val jobScheduler =
+                context.getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
+            ccOptions.JOBID_counter += 1
+            val jobInfoBuilder = JobInfo.Builder(
+                ccOptions.JOBID_counter,
+                ComponentName(context.packageName, CCSendJob::class.java.getName())
+            )
+                .setPersisted(true)
+            val extras = PersistableBundle()
+            extras.putString("title", title)
+            extras.putString("message", message)
+            extras.putString("verification_code", verificationCode)
+            jobInfoBuilder.setExtras(extras)
+            jobInfoBuilder.setPeriodic(TimeUnit.MINUTES.toMillis(15))
+            jobInfoBuilder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+            jobScheduler.schedule(jobInfoBuilder.build())
 
+        }
+
+        fun startJob(context: Context, title: String, message: String) {
             val jobScheduler =
                 context.getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
             ccOptions.JOBID_counter += 1
