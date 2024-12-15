@@ -61,7 +61,7 @@ object ChatCommand {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
             cardInfo = "\nSIM: " + Other.getSimDisplayName(context, 0)
             if (Other.getActiveCard(context) == 2) {
-                cardInfo = "\nSIM1: " + Other.getSimDisplayName(context, 0) + "\nSIM2: " + Other.getSimDisplayName(context, 1);
+                cardInfo = "\nSIM1: " + Other.getSimDisplayName(context, 0) + "\nSIM2: " + Other.getSimDisplayName(context, 1)
             }
         }
         var spamCount = ""
