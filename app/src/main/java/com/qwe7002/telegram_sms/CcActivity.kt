@@ -354,7 +354,6 @@ class CcActivity : AppCompatActivity() {
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 0)
                 return true
             }
-
             else -> super.onOptionsItemSelected(item)
         }
     }
