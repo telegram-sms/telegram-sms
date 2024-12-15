@@ -43,7 +43,7 @@ class TemplateActivity : AppCompatActivity() {
                 mapOf("SIM" to "SIM1 ", "From" to "+16505551212", "Content" to "Hello, World!")
             ),
             Message(
-                getString(R.string.receive_sms_title),
+                getString(R.string.send_sms_title),
                 "TPL_send_sms",
                 mapOf("SIM" to "SIM1 ", "To" to "+16505551212", "Content" to "Hello, World!")
             ),
