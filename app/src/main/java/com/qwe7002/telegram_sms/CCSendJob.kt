@@ -25,7 +25,6 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.TimeUnit
 
 class CCSendJob : JobService() {
     override fun onStartJob(params: JobParameters?): Boolean {
@@ -183,7 +182,6 @@ class CCSendJob : JobService() {
             extras.putString("title", title)
             extras.putString("message", message)
             jobInfoBuilder.setExtras(extras)
-            jobInfoBuilder.setPeriodic(TimeUnit.MINUTES.toMillis(15))
             jobInfoBuilder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
             jobScheduler.schedule(jobInfoBuilder.build())
 
