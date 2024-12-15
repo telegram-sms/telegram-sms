@@ -112,6 +112,6 @@
     <string name="send_ussd_title">Send USSD</string>
     <string name="edit_cc_service">Edit CC Service</string>
     <string name="add_cc_service">Add CC Service</string>
-    <string name="copy_notification_menu">Copy Notification</string>
+    <string name="copy_notification_menu">Carbon copy</string>
     <string name="verification_code">" (Verification Code)"</string>
 </resources>
