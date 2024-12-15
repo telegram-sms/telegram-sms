@@ -44,7 +44,7 @@ class CCSendJob : JobService() {
             val serviceListJson =
                 Paper.book("system_config").read("CC_service_list", "[]").toString()
             val gson = Gson()
-            val type = object : TypeToken<ArrayList<CCService>>() {}.type
+            var type = object : TypeToken<ArrayList<CCService>>() {}.type
             val sendList: ArrayList<CCService> = gson.fromJson(serviceListJson, type)
             val okhttpClient =
                 Network.getOkhttpObj(
@@ -52,8 +52,13 @@ class CCSendJob : JobService() {
                     Paper.book("system_config").read("proxy_config", proxy())
                 )
             for (item in sendList) {
-
-                when (item.type) {
+                if(item.enabled.not()) continue
+                var header: Map<String, String> = mapOf()
+                if (item.header.isNotEmpty()) {
+                    type = object : TypeToken<Map<String, String>>() {}.type
+                    header = gson.fromJson(item.header, type)
+                }
+                when (item.method) {
                     // 0: GET, 1: POST
                     0 -> {
                         networkProgressHandle(
@@ -76,6 +81,7 @@ class CCSendJob : JobService() {
                                 )
                             ),
                             null,
+                            header,
                             okhttpClient
                         )
                     }
@@ -110,6 +116,7 @@ class CCSendJob : JobService() {
                             ).toRequestBody(
                                 constValue.JSON
                             ),
+                            header,
                             okhttpClient
                         )
                     }
@@ -130,14 +137,17 @@ class CCSendJob : JobService() {
 
     private fun networkProgressHandle(
         function: String,
-
         requestUri: String,
         body: RequestBody?,
+        header: Map<String, String>,
         okhttpClient: OkHttpClient,
     ) {
 
-        val requestObj: Request = Request.Builder().url(requestUri).method(function, body).build()
-        val call = okhttpClient.newCall(requestObj)
+        val requestObj = Request.Builder().url(requestUri).method(function, body)
+        for (item in header) {
+            requestObj.addHeader(item.key, item.value)
+        }
+        val call = okhttpClient.newCall(requestObj.build())
         try {
             val response = call.execute()
             if (response.code == 200) {
