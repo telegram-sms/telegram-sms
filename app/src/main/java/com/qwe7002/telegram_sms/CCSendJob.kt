@@ -165,7 +165,6 @@ class CCSendJob : JobService() {
             extras.putString("message", message)
             extras.putString("verification_code", verificationCode)
             jobInfoBuilder.setExtras(extras)
-            jobInfoBuilder.setPeriodic(TimeUnit.MINUTES.toMillis(15))
             jobInfoBuilder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
             jobScheduler.schedule(jobInfoBuilder.build())
 
