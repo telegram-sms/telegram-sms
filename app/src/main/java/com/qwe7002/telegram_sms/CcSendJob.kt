@@ -26,7 +26,7 @@ import java.io.IOException
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
-class CCSendJob : JobService() {
+class CcSendJob : JobService() {
     override fun onStartJob(params: JobParameters?): Boolean {
         Log.d("CCSend", "startJob: Trying to send message.")
         Paper.init(applicationContext)
@@ -152,6 +152,8 @@ class CCSendJob : JobService() {
             val response = call.execute()
             if (response.code == 200) {
                 Log.i("networkProgressHandle", "networkProgressHandle: Message sent successfully.")
+            }else{
+                Logs.writeLog(applicationContext, "Send message failed: " + response.code + " " + response.body.string())
             }
         } catch (e: IOException) {
             Logs.writeLog(applicationContext, "An error occurred while resending: " + e.message)
@@ -166,7 +168,7 @@ class CCSendJob : JobService() {
             ccOptions.JOBID_counter += 1
             val jobInfoBuilder = JobInfo.Builder(
                 ccOptions.JOBID_counter,
-                ComponentName(context.packageName, CCSendJob::class.java.getName())
+                ComponentName(context.packageName, CcSendJob::class.java.getName())
             )
                 .setPersisted(true)
             val extras = PersistableBundle()
@@ -185,7 +187,7 @@ class CCSendJob : JobService() {
             ccOptions.JOBID_counter += 1
             val jobInfoBuilder = JobInfo.Builder(
                 ccOptions.JOBID_counter,
-                ComponentName(context.packageName, CCSendJob::class.java.getName())
+                ComponentName(context.packageName, CcSendJob::class.java.getName())
             )
                 .setPersisted(true)
             val extras = PersistableBundle()

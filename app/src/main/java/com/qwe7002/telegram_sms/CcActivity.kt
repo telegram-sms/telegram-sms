@@ -376,6 +376,7 @@ class CcActivity : AppCompatActivity() {
                     return
                 }
                 val intent = Intent(applicationContext, ScannerActivity::class.java)
+                @Suppress("DEPRECATION")
                 startActivityForResult(intent, 1)
             }
         }
