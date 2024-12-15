@@ -316,7 +316,7 @@ class CcActivity : AppCompatActivity() {
     }
 
     private fun isValidUrl(url: String): Boolean {
-        val urlPattern = "^(http|https)://.*$"
+        val urlPattern = "^https://.*$"
         return url.matches(urlPattern.toRegex())
     }
 
@@ -339,14 +339,15 @@ class CcActivity : AppCompatActivity() {
         listAdapter: ArrayAdapter<CcSendService>
     ) {
         Log.d("save_and_flush", serviceList.toString())
-
         Paper.book("system_config").write("CC_service_list", Gson().toJson(serviceList))
         listAdapter.notifyDataSetChanged()
     }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.cc_menu, menu)
         return true
     }
+
     @SuppressLint("NonConstantResourceId", "SetTextI18n")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
@@ -354,6 +355,7 @@ class CcActivity : AppCompatActivity() {
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 0)
                 return true
             }
+
             else -> super.onOptionsItemSelected(item)
         }
     }
