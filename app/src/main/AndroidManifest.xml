@@ -40,7 +40,7 @@
         tools:ignore="DataExtractionRules,GoogleAppIndexingWarning,RtlEnabled,UnusedAttribute"
         tools:targetApi="n">
         <activity
-            android:name=".CCActivity"
+            android:name=".CcActivity"
             android:label="@string/copy_notification_menu"
             android:exported="false" />
         <activity

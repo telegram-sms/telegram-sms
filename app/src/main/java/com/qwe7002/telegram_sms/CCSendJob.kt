@@ -11,8 +11,8 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.qwe7002.telegram_sms.config.proxy
-import com.qwe7002.telegram_sms.data_structure.CCService
-import com.qwe7002.telegram_sms.static_class.CCSend
+import com.qwe7002.telegram_sms.data_structure.CcSendService
+import com.qwe7002.telegram_sms.static_class.CcSend
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.value.ccOptions
@@ -44,8 +44,8 @@ class CCSendJob : JobService() {
             val serviceListJson =
                 Paper.book("system_config").read("CC_service_list", "[]").toString()
             val gson = Gson()
-            var type = object : TypeToken<ArrayList<CCService>>() {}.type
-            val sendList: ArrayList<CCService> = gson.fromJson(serviceListJson, type)
+            var type = object : TypeToken<ArrayList<CcSendService>>() {}.type
+            val sendList: ArrayList<CcSendService> = gson.fromJson(serviceListJson, type)
             val okhttpClient =
                 Network.getOkhttpObj(
                     sharedPreferences.getBoolean("doh_switch", true),
@@ -63,7 +63,7 @@ class CCSendJob : JobService() {
                     0 -> {
                         networkProgressHandle(
                             "GET",
-                            CCSend.render(
+                            CcSend.render(
                                 item.webhook,
                                 mapOf(
                                     "Title" to URLEncoder.encode(
@@ -89,7 +89,7 @@ class CCSendJob : JobService() {
                     1 -> {
                         networkProgressHandle(
                             "POST",
-                            CCSend.render(
+                            CcSend.render(
                                 item.webhook,
                                 mapOf(
                                     "Title" to URLEncoder.encode(
@@ -106,7 +106,7 @@ class CCSendJob : JobService() {
                                     )
                                 )
                             ),
-                            CCSend.render(
+                            CcSend.render(
                                 item.body,
                                 mapOf(
                                     "Title" to title,
