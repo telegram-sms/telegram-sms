@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("BatteryLife")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "onCreate: "+R.string.TPL_received_sms)
+        Log.d(TAG, "onCreate: " + R.string.TPL_received_sms)
         setContentView(R.layout.activity_main)
         context = applicationContext
         //load config
@@ -305,7 +305,7 @@ class MainActivity : AppCompatActivity() {
                 .build()
             val requestBody = PollingBody()
             requestBody.timeout = 60
-            val body: RequestBody = RequestBody.create(constValue.JSON,Gson().toJson(requestBody))
+            val body: RequestBody = RequestBody.create(constValue.JSON, Gson().toJson(requestBody))
             val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
             val call = okhttpClient.newCall(request)
             progressDialog.setOnKeyListener { _: DialogInterface?, _: Int, keyEvent: KeyEvent ->
@@ -490,7 +490,7 @@ class MainActivity : AppCompatActivity() {
                 """.trimIndent()
             val gson = Gson()
             val requestBodyRaw = gson.toJson(requestBody)
-            val body: RequestBody = RequestBody.create(constValue.JSON,requestBodyRaw)
+            val body: RequestBody = RequestBody.create(constValue.JSON, requestBodyRaw)
             val okhttpObj = getOkhttpObj(
                 dohSwitch.isChecked,
                 Paper.book("system_config").read("proxy_config", proxy())
@@ -542,7 +542,8 @@ class MainActivity : AppCompatActivity() {
                     editor.putString(
                         "message_thread_id",
                         messageThreadIdEditView.text.toString().trim { it <= ' ' })
-                    if (trustedPhoneNumberEditView.text.toString().trim { it <= ' ' }.isNotEmpty()) {
+                    if (trustedPhoneNumberEditView.text.toString().trim { it <= ' ' }
+                            .isNotEmpty()) {
                         editor.putString(
                             "trusted_phone_number",
                             trustedPhoneNumberEditView.text.toString().trim { it <= ' ' })
@@ -703,6 +704,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkUpdate() {
+        var versionName = "unknown"
+        val packageManager = context.packageManager
+        val packageInfo: PackageInfo
+        try {
+            packageInfo = packageManager.getPackageInfo(context.packageName, 0)
+            versionName = packageInfo.versionName.toString()
+        } catch (e: PackageManager.NameNotFoundException) {
+            Log.d(TAG, "onOptionsItemSelected: $e")
+        }
+        if (versionName == "unknown" || versionName == "Debug" || versionName.startsWith("nightly")) {
+            return
+        }
         Paper.book("update").write("last_check", System.currentTimeMillis())
         val progressDialog = ProgressDialog(this@MainActivity)
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
@@ -731,15 +744,6 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "onResponse: $jsonString")
                 val gson = Gson()
                 val release = gson.fromJson(jsonString, GitHubRelease::class.java)
-                var versionName = "unknown"
-                val packageManager = context.packageManager
-                val packageInfo: PackageInfo
-                try {
-                    packageInfo = packageManager.getPackageInfo(context.packageName, 0)
-                    versionName = packageInfo.versionName.toString()
-                } catch (e: PackageManager.NameNotFoundException) {
-                    Log.d(TAG, "onOptionsItemSelected: $e")
-                }
                 if (release.tagName != versionName) {
                     runOnUiThread {
                         showUpdateDialog(
@@ -842,10 +846,12 @@ class MainActivity : AppCompatActivity() {
                 startActivity(Intent(this, SpamActivity::class.java))
                 return true
             }
+
             R.id.cc_menu_item -> {
-                startActivity(Intent(this, CCActivity::class.java))
+                startActivity(Intent(this, CcActivity::class.java))
                 return true
             }
+
             R.id.set_proxy_menu_item -> {
                 val view = inflater.inflate(R.layout.set_proxy_layout, null)
                 val dohSwitch = findViewById<SwitchMaterial>(R.id.doh_switch)
@@ -894,10 +900,12 @@ class MainActivity : AppCompatActivity() {
                     .show()
                 return true
             }
+
             R.id.template_menu_item -> {
                 startActivity(Intent(this, TemplateActivity::class.java))
                 return true
             }
+
             R.id.user_manual_menu_item -> fileName =
                 "/guide/" + context.getString(R.string.Lang) + "/user-manual"
 
