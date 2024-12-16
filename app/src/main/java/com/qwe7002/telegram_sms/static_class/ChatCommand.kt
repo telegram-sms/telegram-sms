@@ -47,7 +47,8 @@ object ChatCommand {
         var result:String = if (command == "/commandlist") {
             (context.getString(R.string.available_command) + "\n" + smsCommand + ussdCommand).replace("/", "")
         }else {
-            context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.available_command) + "\n" + smsCommand + ussdCommand
+            //context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.available_command) + "\n" + smsCommand + ussdCommand
+            Template.render(context,"TPL_system_message", mapOf("Message" to context.getString(R.string.available_command) + "\n" + smsCommand + ussdCommand))
         }
         if (!isPrivate && privacyMode && botUsername.isNotEmpty()) {
             result = result.replace(" -", "@$botUsername -")
@@ -69,7 +70,7 @@ object ChatCommand {
         if (spamSmsList.isNotEmpty()) {
             spamCount = "\n" + context.getString(R.string.spam_count_title) + spamSmsList.size
         }
-        return  context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.current_battery_level) + batteryInfo(context) + "\n" + context.getString(R.string.current_network_connection_status) + getNetworkType(context) + spamCount + cardInfo
+        return  Template.render(context,"TPL_system_message", mapOf("Message" to context.getString(R.string.current_battery_level) + batteryInfo(context) + "\n" + context.getString(R.string.current_network_connection_status) + getNetworkType(context) + spamCount + cardInfo))
 
     }
 
