@@ -149,10 +149,10 @@ class SMSReceiver : BroadcastReceiver() {
                                 sharedPreferences.getBoolean("chat_command", false)
                             )
                         }.start()
-                        val rawRequestBodyText =
+/*                        val rawRequestBodyText =
                             context.getString(R.string.system_message_head) + "\n" +
-                                    context.getString(R.string.restart_service)
-                        requestBody.text = rawRequestBodyText
+                                    context.getString(R.string.restart_service)*/
+                        requestBody.text = Template.render(context,"TPL_system_message", mapOf("Message" to context.getString(R.string.restart_service)))
                     }
 
                     "/sendsms", "/sendsms1", "/sendsms2" -> {
