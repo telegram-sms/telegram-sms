@@ -19,11 +19,11 @@ import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.Template.getStringByName
 import io.paperdb.Paper
 
-data class Message(val title: String, val template: String, val content: Map<String, String>)
+
 
 class TemplateActivity : AppCompatActivity() {
     lateinit var context: Context
-
+    data class Message(val title: String, val template: String, val content: Map<String, String>)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Paper.init(applicationContext)
