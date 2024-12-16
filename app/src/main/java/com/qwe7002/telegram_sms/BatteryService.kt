@@ -21,6 +21,7 @@ import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.SMS
+import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.constValue
 import com.qwe7002.telegram_sms.value.notifyId
 import io.paperdb.Paper
@@ -40,10 +41,14 @@ class BatteryService : Service() {
     private var lastReceiveMessageId: Long = -1
 
     private var sendLoopList: ArrayList<sendObj>? = null
+
     @SuppressLint("InlinedApi")
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         val notification =
-            Other.getNotificationObj(applicationContext, getString(R.string.battery_monitoring_notify))
+            Other.getNotificationObj(
+                applicationContext,
+                getString(R.string.battery_monitoring_notify)
+            )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(
                 notifyId.BATTERY,
@@ -169,7 +174,7 @@ class BatteryService : Service() {
                 Process.killProcess(Process.myPid())
                 return
             }
-            val body = StringBuilder(context.getString(R.string.system_message_head) + "\n")
+            val body = StringBuilder()
             val action = intent.action
             val batteryManager = context.getSystemService(BATTERY_SERVICE) as BatteryManager
             when (Objects.requireNonNull(action)) {
@@ -184,10 +189,15 @@ class BatteryService : Service() {
                 Log.d(TAG, "The previous battery is over 100%, and the correction is 100%.")
                 batteryLevel = 100
             }
-            val result = body.append("\n").append(context.getString(R.string.current_battery_level))
-                .append(batteryLevel).append("%").toString()
+            val result = Template.render(
+                applicationContext, "TPL_system_message", mapOf(
+                    "Message" to body.append("\n")
+                        .append(context.getString(R.string.current_battery_level))
+                        .append(batteryLevel).append("%").toString()
+                )
+            )
             if (action == Intent.ACTION_BATTERY_LOW || action == Intent.ACTION_BATTERY_OKAY) {
-                CcSendJob.startJob(context,context.getString(R.string.app_name), result)
+                CcSendJob.startJob(context, context.getString(R.string.app_name), result)
             }
             val obj = sendObj()
             obj.action = action!!

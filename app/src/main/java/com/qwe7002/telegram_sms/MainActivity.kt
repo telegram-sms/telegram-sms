@@ -52,6 +52,7 @@ import com.qwe7002.telegram_sms.static_class.Other.parseStringToLong
 import com.qwe7002.telegram_sms.static_class.Service.isNotifyListener
 import com.qwe7002.telegram_sms.static_class.Service.startService
 import com.qwe7002.telegram_sms.static_class.Service.stopAllService
+import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
 import okhttp3.Call
@@ -484,10 +485,15 @@ class MainActivity : AppCompatActivity() {
             val requestBody = RequestMessage()
             requestBody.chatId = chatIdEditView.text.toString().trim { it <= ' ' }
             requestBody.messageThreadId = messageThreadIdEditView.text.toString().trim { it <= ' ' }
-            requestBody.text = """
+            /*requestBody.text = """
                 ${getString(R.string.system_message_head)}
                 ${getString(R.string.success_connect)}
-                """.trimIndent()
+                """.trimIndent()*/
+            requestBody.text = Template.render(
+                context,
+                "TPL_system_message",
+                mapOf("Message" to getString(R.string.success_connect))
+            )
             val gson = Gson()
             val requestBodyRaw = gson.toJson(requestBody)
             val body: RequestBody = RequestBody.create(constValue.JSON, requestBodyRaw)
