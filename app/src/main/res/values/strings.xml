@@ -2,7 +2,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="Lang">en_gb</string>
     <string name="time_format">dd/MMM/yyyy HH:mm:ss z</string>
-    <string name="system_message_head">[System Information]</string>
     <string name="success_connect">Connected to the Telegram Server.</string>
     <string name="connect_wait_title">Connecting to the Telegram server…</string>
     <string name="connect_wait_message">Please wait…</string>

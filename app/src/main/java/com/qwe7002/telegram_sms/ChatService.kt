@@ -269,8 +269,12 @@ class ChatService : Service() {
                     }
                     line = getLine
                 }
-                requestBody.text =
-                    getString(R.string.system_message_head) + readLog(applicationContext, line)
+                //requestBody.text =
+                //getString(R.string.system_message_head) + readLog(applicationContext, line)
+                requestBody.text = Template.render(
+                    applicationContext, "TPL_system_message",
+                    mapOf("Message" to readLog(applicationContext, line))
+                )
                 hasCommand = true
             }
 
@@ -298,8 +302,12 @@ class ChatService : Service() {
                         }
                     }
                 }
-                requestBody.text =
-                    getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command)
+                //requestBody.text =
+                //getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command)
+                requestBody.text = Template.render(
+                    applicationContext, "TPL_system_message",
+                    mapOf("Message" to getString(R.string.unknown_command))
+                )
             }
 
             "/getspamsms" -> {
@@ -365,8 +373,12 @@ class ChatService : Service() {
                     }.start()
                     return
                 } else {
-                    requestBody.text =
-                        getString(R.string.system_message_head) + "\n" + getString(R.string.no_spam_history)
+                    /*requestBody.text =
+                        getString(R.string.system_message_head) + "\n" + getString(R.string.no_spam_history)*/
+                    requestBody.text = Template.render(
+                        applicationContext, "TPL_system_message",
+                        mapOf("Message" to getString(R.string.no_spam_history))
+                    )
                 }
             }
 
@@ -448,8 +460,12 @@ class ChatService : Service() {
                         return
                     }
                 }
-                requestBody.text =
-                    getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command)
+                /*requestBody.text =
+                    getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command)*/
+                requestBody.text = Template.render(
+                    applicationContext, "TPL_system_message",
+                    mapOf("Message" to getString(R.string.unknown_command))
+                )
             }
         }
 
@@ -497,7 +513,10 @@ class ChatService : Service() {
                         resultSend = Template.render(
                             applicationContext,
                             "TPL_send_sms_chat",
-                            mapOf("SIM" to dualSim, "Content" to getString(R.string.unable_get_phone_number))
+                            mapOf(
+                                "SIM" to dualSim,
+                                "Content" to getString(R.string.unable_get_phone_number)
+                            )
                         )
                     }
                 }

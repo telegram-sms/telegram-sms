@@ -6,4 +6,5 @@
     <string name="TPL_missed_call">[{{SIM}}Missed Call]\nFrom: {{From}}</string>
     <string name="TPL_notification">[Receive Notification]\nApp: {{APP}}\nTitle: {{Title}}\nDescription: {{Description}}</string>
     <string name="TPL_send_USSD">[Send USSD]\nRequest: {{Request}}\nResponse: {{Response}}</string>
+    <string name="TPL_system_message">[System Information]\n{{Message}}</string>
 </resources>
