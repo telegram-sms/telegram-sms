@@ -174,14 +174,18 @@ class BatteryService : Service() {
                 Process.killProcess(Process.myPid())
                 return
             }
-            val body = StringBuilder()
+
             val action = intent.action
             val batteryManager = context.getSystemService(BATTERY_SERVICE) as BatteryManager
-            when (Objects.requireNonNull(action)) {
-                Intent.ACTION_BATTERY_OKAY -> body.append(context.getString(R.string.low_battery_status_end))
-                Intent.ACTION_BATTERY_LOW -> body.append(context.getString(R.string.battery_low))
-                Intent.ACTION_POWER_CONNECTED -> body.append(context.getString(R.string.charger_connect))
-                Intent.ACTION_POWER_DISCONNECTED -> body.append(context.getString(R.string.charger_disconnect))
+            val message = when (Objects.requireNonNull(action)) {
+                Intent.ACTION_BATTERY_OKAY -> context.getString(R.string.low_battery_status_end)
+                Intent.ACTION_BATTERY_LOW -> context.getString(R.string.battery_low)
+                Intent.ACTION_POWER_CONNECTED -> context.getString(R.string.charger_connect)
+                Intent.ACTION_POWER_DISCONNECTED -> context.getString(R.string.charger_disconnect)
+                else -> {
+                    Log.e(TAG, "Unknown action: $action")
+                    return
+                }
             }
             var batteryLevel =
                 batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
@@ -190,10 +194,8 @@ class BatteryService : Service() {
                 batteryLevel = 100
             }
             val result = Template.render(
-                applicationContext, "TPL_system_message", mapOf(
-                    "Message" to body.append("\n")
-                        .append(context.getString(R.string.current_battery_level))
-                        .append(batteryLevel).append("%").toString()
+                applicationContext, "TPL_battery", mapOf(
+                    "Message" to message, "BatteryLevel" to batteryLevel.toString()
                 )
             )
             if (action == Intent.ACTION_BATTERY_LOW || action == Intent.ACTION_BATTERY_OKAY) {

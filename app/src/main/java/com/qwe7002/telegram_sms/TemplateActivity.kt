@@ -63,6 +63,14 @@ class TemplateActivity : AppCompatActivity() {
                     "Description" to "This is description"
                 )
             ),
+            Message(
+                getString(R.string.battery_title),
+                "TPL_battery",
+                mapOf(
+                    "Message" to context.getString(R.string.battery_low),
+                    "BatteryLevel" to "10"
+                )
+            ),
         )
 
         val adapter = MessageAdapter(this, messages)

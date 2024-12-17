@@ -7,4 +7,5 @@
     <string name="TPL_notification">[Receive Notification]\nApp: {{APP}}\nTitle: {{Title}}\nDescription: {{Description}}</string>
     <string name="TPL_send_USSD">[Send USSD]\nRequest: {{Request}}\nResponse: {{Response}}</string>
     <string name="TPL_system_message">[System Information]\n{{Message}}</string>
+    <string name="TPL_battery">[Battery Monitoring]\nBattery level: {{BatteryLevel}}%\n{{Message}}</string>
 </resources>

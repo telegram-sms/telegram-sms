@@ -6,6 +6,7 @@ import android.app.job.JobScheduler
 import android.app.job.JobService
 import android.content.ComponentName
 import android.content.Context
+import android.net.Uri
 import android.os.PersistableBundle
 import android.util.Log
 import com.google.gson.Gson
@@ -23,8 +24,6 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 class CcSendJob : JobService() {
     override fun onStartJob(params: JobParameters?): Boolean {
@@ -66,18 +65,9 @@ class CcSendJob : JobService() {
                             CcSend.render(
                                 item.webhook,
                                 mapOf(
-                                    "Title" to URLEncoder.encode(
-                                        title,
-                                        StandardCharsets.UTF_8.toString()
-                                    ),
-                                    "Message" to URLEncoder.encode(
-                                        message,
-                                        StandardCharsets.UTF_8.toString()
-                                    ),
-                                    "Code" to URLEncoder.encode(
-                                        verificationCode,
-                                        StandardCharsets.UTF_8.toString()
-                                    )
+                                    "Title" to Uri.encode(title),
+                                    "Message" to Uri.encode(message),
+                                    "Code" to Uri.encode(verificationCode)
                                 )
                             ),
                             null,
@@ -92,18 +82,9 @@ class CcSendJob : JobService() {
                             CcSend.render(
                                 item.webhook,
                                 mapOf(
-                                    "Title" to URLEncoder.encode(
-                                        title,
-                                        StandardCharsets.UTF_8.toString()
-                                    ),
-                                    "Message" to URLEncoder.encode(
-                                        message,
-                                        StandardCharsets.UTF_8.toString()
-                                    ),
-                                    "Code" to URLEncoder.encode(
-                                        verificationCode,
-                                        StandardCharsets.UTF_8.toString()
-                                    )
+                                    "Title" to Uri.encode(title),
+                                    "Message" to Uri.encode(message),
+                                    "Code" to Uri.encode(verificationCode)
                                 )
                             ),
                             CcSend.render(
