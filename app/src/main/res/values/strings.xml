@@ -109,6 +109,7 @@
     <string name="receive_sms_title">Receive SMS</string>
     <string name="receive_notification_title">Receive Notification</string>
     <string name="send_ussd_title">Send USSD</string>
+    <string name="battery_title">Battery Monitoring</string>
     <string name="edit_cc_service">Edit Cc Service</string>
     <string name="add_cc_service">Add Cc Service</string>
     <string name="copy_notification_menu">Carbon copy</string>
