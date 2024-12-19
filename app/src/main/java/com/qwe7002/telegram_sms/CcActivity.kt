@@ -38,6 +38,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 class CcActivity : AppCompatActivity() {
+    private lateinit var listAdapter: ArrayAdapter<CcSendService>
+    private lateinit var serviceList: ArrayList<CcSendService>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_cc)
@@ -54,8 +56,8 @@ class CcActivity : AppCompatActivity() {
             Paper.book("system_config").read("CC_service_list", "[]").toString()
         val gson = Gson()
         val type = object : TypeToken<ArrayList<CcSendService>>() {}.type
-        val serviceList: ArrayList<CcSendService> = gson.fromJson(serviceListJson, type)
-        val listAdapter =
+        serviceList = gson.fromJson(serviceListJson, type)
+        listAdapter =
             object :
                 ArrayAdapter<CcSendService>(this, R.layout.list_item_with_subtitle, serviceList) {
                 @SuppressLint("SetTextI18n")
@@ -388,52 +390,15 @@ class CcActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 1) {
+            Log.d("onActivityResult", "onActivityResult: $resultCode")
             if (resultCode == constValue.RESULT_CONFIG_JSON) {
                 val gson = Gson()
                 val jsonConfig = gson.fromJson(
                     data!!.getStringExtra("config_json"),
                     CcSendService::class.java
                 )
-                val serviceListJson =
-                    Paper.book("system_config").read("CC_service_list", "[]").toString()
-                val type = object : TypeToken<ArrayList<CcSendService>>() {}.type
-                val serviceList: ArrayList<CcSendService> = gson.fromJson(serviceListJson, type)
-                val listAdapter =
-                    object : ArrayAdapter<CcSendService>(
-                        this,
-                        R.layout.list_item_with_subtitle,
-                        serviceList
-                    ) {
-                        @SuppressLint("SetTextI18n")
-                        override fun getView(
-                            position: Int,
-                            convertView: View?,
-                            parent: ViewGroup
-                        ): View {
-                            val view = convertView ?: layoutInflater.inflate(
-                                R.layout.list_item_with_subtitle,
-                                parent,
-                                false
-                            )
-                            val item = getItem(position)
-
-                            val title = view.findViewById<TextView>(R.id.title)
-                            val subtitle = view.findViewById<TextView>(R.id.subtitle)
-
-                            title.text =
-                                ccOptions.options[item?.method!!] + item.enabled.let { if (it) " (Enabled)" else " (Disabled)" }
-                            subtitle.text = item.webhook
-
-                            return view
-                        }
-                    }
-                CcSendService(
-                    method = jsonConfig.method,
-                    webhook = jsonConfig.webhook,
-                    body = jsonConfig.body,
-                    header = jsonConfig.header,
-                    enabled = jsonConfig.enabled
-                ).also { serviceList.add(it) }
+                Log.d("onActivityResult", "onActivityResult: $jsonConfig")
+                serviceList.add(jsonConfig)
                 saveAndFlush(serviceList, listAdapter)
             }
         }
