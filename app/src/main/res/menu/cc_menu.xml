@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
@@ -7,4 +8,10 @@
         android:icon="@drawable/ic_scan_code"
         android:title="@string/scan_title"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/send_test_menu_item"
+        android:icon="@drawable/ic_play"
+        android:title="Send test message"
+        app:showAsAction="ifRoom"
+        tools:ignore="HardcodedText" />
 </menu>
