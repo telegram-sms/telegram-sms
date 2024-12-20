@@ -20,7 +20,6 @@ import android.widget.EditText
 import android.widget.ListView
 import android.widget.Spinner
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -369,7 +368,11 @@ class CcActivity : AppCompatActivity() {
                         mapOf("Message" to "This is a test message.")
                     )
                 )
-                Toast.makeText(this, "Test message sent.", Toast.LENGTH_SHORT).show()
+                Snackbar.make(
+                    findViewById(R.id.bot_token_editview),
+                    "Test message sent.",
+                    Snackbar.LENGTH_SHORT
+                ).show()
                 return true
             }
 
