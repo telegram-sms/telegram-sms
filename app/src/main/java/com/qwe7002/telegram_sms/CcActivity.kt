@@ -20,6 +20,7 @@ import android.widget.EditText
 import android.widget.ListView
 import android.widget.Spinner
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -31,6 +32,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.qwe7002.telegram_sms.data_structure.CcSendService
+import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.ccOptions
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
@@ -318,8 +320,7 @@ class CcActivity : AppCompatActivity() {
     }
 
     private fun isValidUrl(url: String): Boolean {
-        val urlPattern = "^https://.*$"
-        return url.matches(urlPattern.toRegex())
+        return url.startsWith("https://")
     }
 
     private fun isValidJson(json: String): Boolean {
@@ -355,6 +356,20 @@ class CcActivity : AppCompatActivity() {
         return when (item.itemId) {
             R.id.scan_menu_item -> {
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 0)
+                return true
+            }
+
+            R.id.send_test_menu_item -> {
+                CcSendJob.startJob(
+                    applicationContext,
+                    getString(R.string.app_name),
+                    Template.render(
+                        applicationContext,
+                        "TPL_system_message",
+                        mapOf("Message" to "This is a test message.")
+                    )
+                )
+                Toast.makeText(this, "Test message sent.", Toast.LENGTH_SHORT).show()
                 return true
             }
 
