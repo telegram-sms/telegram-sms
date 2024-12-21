@@ -359,6 +359,14 @@ class CcActivity : AppCompatActivity() {
             }
 
             R.id.send_test_menu_item -> {
+                if (serviceList.isEmpty()) {
+                    Snackbar.make(
+                        findViewById(R.id.send_test_menu_item),
+                        "No service available.",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                    return true
+                }
                 CcSendJob.startJob(
                     applicationContext,
                     getString(R.string.app_name),
@@ -369,7 +377,7 @@ class CcActivity : AppCompatActivity() {
                     )
                 )
                 Snackbar.make(
-                    findViewById(R.id.bot_token_editview),
+                    findViewById(R.id.send_test_menu_item),
                     "Test message sent.",
                     Snackbar.LENGTH_SHORT
                 ).show()
@@ -407,8 +415,8 @@ class CcActivity : AppCompatActivity() {
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        Log.d("onActivityResult", "onActivityResult: $resultCode")
         if (requestCode == 1) {
-            Log.d("onActivityResult", "onActivityResult: $resultCode")
             if (resultCode == constValue.RESULT_CONFIG_JSON) {
                 val gson = Gson()
                 val jsonConfig = gson.fromJson(
