@@ -721,7 +721,8 @@ class MainActivity : AppCompatActivity() {
         Paper.book("update").write("last_check", System.currentTimeMillis())
         val progressDialog = ProgressDialog(this@MainActivity)
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
-        progressDialog.setTitle(getString(R.string.connect_wait_title))
+        //todo: use string resource
+        progressDialog.setTitle("Check update")
         progressDialog.setMessage(getString(R.string.connect_wait_message))
         progressDialog.isIndeterminate = false
         progressDialog.setCancelable(false)
@@ -821,7 +822,9 @@ class MainActivity : AppCompatActivity() {
 
             R.id.config_qrcode_menu_item -> {
                 if (sharedPreferences.getBoolean("initialized", false)) {
-                    startActivity(Intent(this, QrcodeActivity::class.java))
+                    //startActivity(Intent(this, QrcodeActivity::class.java))
+                    val intent = Intent(context, QrcodeActivity::class.java)
+                    startActivityForResult(intent, 1)
                 } else {
                     Snackbar.make(
                         findViewById(R.id.bot_token_editview),
