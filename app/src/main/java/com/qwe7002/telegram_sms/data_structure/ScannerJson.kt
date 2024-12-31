@@ -32,5 +32,8 @@ data class ScannerJson(
     val verificationCode: Boolean,
 
     @SerializedName("topic_id")
-    val topicID: String
+    val topicID: String,
+
+    @SerializedName("cc_service")
+    val ccService: ArrayList<CcSendService>? = null,
 )

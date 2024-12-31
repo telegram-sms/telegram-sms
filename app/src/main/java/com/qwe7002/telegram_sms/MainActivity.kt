@@ -485,10 +485,6 @@ class MainActivity : AppCompatActivity() {
             val requestBody = RequestMessage()
             requestBody.chatId = chatIdEditView.text.toString().trim { it <= ' ' }
             requestBody.messageThreadId = messageThreadIdEditView.text.toString().trim { it <= ' ' }
-            /*requestBody.text = """
-                ${getString(R.string.system_message_head)}
-                ${getString(R.string.success_connect)}
-                """.trimIndent()*/
             requestBody.text = Template.render(
                 context,
                 "TPL_system_message",
@@ -949,7 +945,6 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 1) {
             if (resultCode == constValue.RESULT_CONFIG_JSON) {
-                //JsonObject jsonConfig = JsonParser.parseString(Objects.requireNonNull(data.getStringExtra("config_json"))).getAsJsonObject();
                 val gson = Gson()
                 val jsonConfig = gson.fromJson(
                     data!!.getStringExtra("config_json"),
@@ -996,6 +991,10 @@ class MainActivity : AppCompatActivity() {
                 }
                 val topicIdView = findViewById<EditText>(R.id.message_thread_id_editview)
                 topicIdView.setText(jsonConfig.topicID)
+                if (jsonConfig.ccService != null) {
+                    Paper.book("system_config")
+                        .write("CC_service_list", Gson().toJson(jsonConfig.ccService))
+                }
             }
         }
     }
