@@ -1,11 +1,12 @@
-package com.qwe7002.telegram_sms.static_class
-
 import android.util.Base64
 import java.security.Key
+import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
+import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.GCMParameterSpec
+import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
 object AES {
@@ -13,10 +14,13 @@ object AES {
     private const val TRANSFORMATION = "AES/GCM/NoPadding"
     private const val TAG_LENGTH_BIT = 128
     private const val IV_LENGTH_BYTE = 12
+    private const val SALT_LENGTH_BYTE = 16
+    private const val ITERATION_COUNT = 65536
+    private const val KEY_LENGTH_BIT = 256
 
     fun generateKey(): Key {
         val keyGen = KeyGenerator.getInstance(ALGORITHM)
-        keyGen.init(256)
+        keyGen.init(KEY_LENGTH_BIT)
         return keyGen.generateKey()
     }
 
@@ -35,6 +39,9 @@ object AES {
 
     fun decrypt(encryptedData: String, key: Key): String {
         val encryptedIvAndText = Base64.decode(encryptedData, Base64.DEFAULT)
+        if (encryptedIvAndText.size < IV_LENGTH_BYTE) {
+            throw IllegalArgumentException("Invalid encrypted data")
+        }
         val iv = ByteArray(IV_LENGTH_BYTE)
         System.arraycopy(encryptedIvAndText, 0, iv, 0, iv.size)
         val gcmParameterSpec = GCMParameterSpec(TAG_LENGTH_BIT, iv)
@@ -47,11 +54,12 @@ object AES {
     }
 
     fun getKeyFromString(keyString: String): Key {
-        val decodedKey = Base64.decode(keyString, Base64.DEFAULT)
-        return SecretKeySpec(decodedKey, 0, decodedKey.size, ALGORITHM)
-    }
-
-    fun keyToString(key: Key): String {
-        return Base64.encodeToString(key.encoded, Base64.DEFAULT)
+        val md = MessageDigest.getInstance("MD5")
+        val salt = md.digest(keyString.toByteArray())
+        val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
+        val spec = PBEKeySpec(keyString.toCharArray(), salt, ITERATION_COUNT, KEY_LENGTH_BIT)
+        val tmp = factory.generateSecret(spec)
+        val decodedKey = tmp.encoded
+        return SecretKeySpec(decodedKey, ALGORITHM)
     }
 }

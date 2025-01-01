@@ -821,17 +821,8 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.config_qrcode_menu_item -> {
-                if (sharedPreferences.getBoolean("initialized", false)) {
-                    //startActivity(Intent(this, QrcodeActivity::class.java))
-                    val intent = Intent(context, QrcodeActivity::class.java)
-                    startActivityForResult(intent, 1)
-                } else {
-                    Snackbar.make(
-                        findViewById(R.id.bot_token_editview),
-                        "Uninitialized.",
-                        Snackbar.LENGTH_LONG
-                    ).show()
-                }
+                val intent = Intent(context, QrcodeActivity::class.java)
+                startActivityForResult(intent, 1)
                 return true
             }
 
