@@ -1,9 +1,9 @@
+
 import android.util.Base64
 import java.security.Key
 import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.PBEKeySpec
@@ -14,15 +14,9 @@ object AES {
     private const val TRANSFORMATION = "AES/GCM/NoPadding"
     private const val TAG_LENGTH_BIT = 128
     private const val IV_LENGTH_BYTE = 12
-    private const val SALT_LENGTH_BYTE = 16
     private const val ITERATION_COUNT = 65536
     private const val KEY_LENGTH_BIT = 256
-
-    fun generateKey(): Key {
-        val keyGen = KeyGenerator.getInstance(ALGORITHM)
-        keyGen.init(KEY_LENGTH_BIT)
-        return keyGen.generateKey()
-    }
+    
 
     fun encrypt(data: String, key: Key): String {
         val cipher = Cipher.getInstance(TRANSFORMATION)
@@ -54,9 +48,9 @@ object AES {
     }
 
     fun getKeyFromString(keyString: String): Key {
-        val md = MessageDigest.getInstance("MD5")
+        val md = MessageDigest.getInstance("SHA-256")
         val salt = md.digest(keyString.toByteArray())
-        val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
+        val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
         val spec = PBEKeySpec(keyString.toCharArray(), salt, ITERATION_COUNT, KEY_LENGTH_BIT)
         val tmp = factory.generateSecret(spec)
         val decodedKey = tmp.encoded
