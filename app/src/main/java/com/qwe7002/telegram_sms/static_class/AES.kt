@@ -48,8 +48,8 @@ object AES {
     }
 
     fun getKeyFromString(keyString: String): Key {
-        val md = MessageDigest.getInstance("SHA-256")
-        val salt = md.digest(keyString.toByteArray())
+        val sha = MessageDigest.getInstance("SHA-256")
+        val salt = sha.digest(keyString.toByteArray())
         val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
         val spec = PBEKeySpec(keyString.toCharArray(), salt, ITERATION_COUNT, KEY_LENGTH_BIT)
         val tmp = factory.generateSecret(spec)
