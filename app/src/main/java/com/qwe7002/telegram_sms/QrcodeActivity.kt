@@ -2,7 +2,6 @@
 
 package com.qwe7002.telegram_sms
 
-import AES
 import android.annotation.SuppressLint
 import android.app.ProgressDialog
 import android.content.ClipData
@@ -28,6 +27,7 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.data_structure.ScannerJson
+import com.qwe7002.telegram_sms.static_class.AES
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.value.constValue

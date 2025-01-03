@@ -1,4 +1,4 @@
-
+package com.qwe7002.telegram_sms.static_class
 import android.util.Base64
 import java.security.Key
 import java.security.MessageDigest
