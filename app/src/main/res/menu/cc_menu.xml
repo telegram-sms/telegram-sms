@@ -14,4 +14,8 @@
         android:title="Send test message"
         app:showAsAction="ifRoom"
         tools:ignore="HardcodedText" />
+    <item
+        android:id="@+id/receive_config_menu_item"
+        android:title="Receive configuration"
+        tools:ignore="HardcodedText" />
 </menu>

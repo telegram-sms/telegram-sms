@@ -8,20 +8,36 @@
         android:id="@+id/cc_enable_switch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
-        android:paddingStart="20dp"
+        android:paddingStart="25dp"
         android:paddingEnd="20dp"
+        android:layout_marginTop="20dp"
         android:text="@string/proxy_enable"
         tools:ignore="ExtraText,RtlSymmetry" />
-    <Spinner
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
+    <com.jaredrummler.materialspinner.MaterialSpinner
         android:id="@+id/spinner_options"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingStart="14dp"
-        android:paddingEnd="14dp"/>
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp" />
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp">
+
+        <EditText
+            android:id="@+id/cc_service_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Name"
+            android:importantForAutofill="no"
+            android:inputType="text"
+            android:maxLines="1"
+            android:singleLine="true"
+            tools:ignore="HardcodedText" />
+
+    </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"

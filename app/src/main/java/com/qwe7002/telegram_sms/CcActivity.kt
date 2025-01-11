@@ -2,6 +2,8 @@ package com.qwe7002.telegram_sms
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.ProgressDialog
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -18,7 +20,6 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.ListView
-import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -28,19 +29,30 @@ import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.switchmaterial.SwitchMaterial
+import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.jaredrummler.materialspinner.MaterialSpinner
+import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.CcSendService
+import com.qwe7002.telegram_sms.static_class.AES
+import com.qwe7002.telegram_sms.static_class.Logs
+import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.ccOptions
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.IOException
 
 class CcActivity : AppCompatActivity() {
     private lateinit var listAdapter: ArrayAdapter<CcSendService>
     private lateinit var serviceList: ArrayList<CcSendService>
+    private val url = "https://example.com/config".toHttpUrlOrNull()!!
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_cc)
@@ -68,13 +80,12 @@ class CcActivity : AppCompatActivity() {
                         parent,
                         false
                     )
-                    val item = getItem(position)
+                    val item = getItem(position)!!
 
                     val title = view.findViewById<TextView>(R.id.title)
                     val subtitle = view.findViewById<TextView>(R.id.subtitle)
 
-                    title.text =
-                        ccOptions.options[item?.method!!] + item.enabled.let { if (it) " (Enabled)" else " (Disabled)" }
+                    title.text = item.name + item.enabled.let { if (it) " (Enabled)" else " (Disabled)" }
                     subtitle.text = item.webhook
 
                     return view
@@ -84,30 +95,18 @@ class CcActivity : AppCompatActivity() {
         ccList.onItemClickListener =
             AdapterView.OnItemClickListener { _: AdapterView<*>?, _: View?, position: Int, _: Long ->
                 val dialog = inflater.inflate(R.layout.set_cc_layout, null)
-                val spinner = dialog.findViewById<Spinner>(R.id.spinner_options)
-                val adapter =
-                    ArrayAdapter(this, android.R.layout.simple_spinner_item, ccOptions.options)
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                spinner.adapter = adapter
-                spinner.setSelection(serviceList[position].method)
-                spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                    override fun onItemSelected(
-                        parent: AdapterView<*>?,
-                        view: View?,
-                        position: Int,
-                        id: Long
-                    ) {
-                        Log.d("spinner", position.toString())
-                        when (position) {
-                            0 -> dialog.findViewById<EditText>(R.id.body_editview).isEnabled = false
-                            1 -> dialog.findViewById<EditText>(R.id.body_editview).isEnabled = true
-                        }
-                    }
 
-                    override fun onNothingSelected(parent: AdapterView<*>?) {
-                        Log.d("spinner", "nothing")
+                val spinner = dialog.findViewById<MaterialSpinner>(R.id.spinner_options)
+                spinner.setItems(ccOptions.options)
+                spinner.setOnItemSelectedListener { view, position, id, item ->
+                    Log.d("spinner", position.toString())
+                    val bodyEdit = dialog.findViewById<EditText>(R.id.body_editview)
+                    when (position) {
+                        0 -> bodyEdit.isEnabled = false
+                        1 -> bodyEdit.isEnabled = true
                     }
                 }
+                spinner.selectedIndex = serviceList[position].method
                 val webhook =
                     dialog.findViewById<EditText>(R.id.webhook_editview)
                 webhook.setText(serviceList[position].webhook)
@@ -192,12 +191,15 @@ class CcActivity : AppCompatActivity() {
                 val switch =
                     dialog.findViewById<SwitchMaterial>(R.id.cc_enable_switch)
                 switch.isChecked = serviceList[position].enabled
+                val name = dialog.findViewById<EditText>(R.id.cc_service_name)
+                name.setText(serviceList[position].name)
                 AlertDialog.Builder(this)
                     .setTitle(getString(R.string.edit_cc_service))
                     .setView(dialog)
                     .setPositiveButton(R.string.ok_button) { _: DialogInterface?, _: Int ->
                         CcSendService(
-                            method = spinner.selectedItemPosition,
+                            name = name.text.toString(),
+                            method = spinner.selectedIndex,
                             webhook = webhook.text.toString(),
                             body = body.text.toString(),
                             header = header.text.toString(),
@@ -218,7 +220,7 @@ class CcActivity : AppCompatActivity() {
 
         fab.setOnClickListener {
             val dialog = inflater.inflate(R.layout.set_cc_layout, null)
-            val spinner = dialog.findViewById<Spinner>(R.id.spinner_options)
+            /*val spinner = dialog.findViewById<Spinner>(R.id.spinner_options)
 
             val adapter =
                 ArrayAdapter(this, android.R.layout.simple_spinner_item, ccOptions.options)
@@ -240,6 +242,16 @@ class CcActivity : AppCompatActivity() {
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
                     Log.d("spinner", "nothing")
+                }
+            }*/
+            val spinner = dialog.findViewById<MaterialSpinner>(R.id.spinner_options)
+            spinner.setItems(ccOptions.options)
+            spinner.setOnItemSelectedListener { view, position, id, item ->
+                Log.d("spinner", position.toString())
+                val bodyEdit = dialog.findViewById<EditText>(R.id.body_editview)
+                when (position) {
+                    0 -> bodyEdit.isEnabled = false
+                    1 -> bodyEdit.isEnabled = true
                 }
             }
             val webhook = dialog.findViewById<EditText>(R.id.webhook_editview)
@@ -301,11 +313,13 @@ class CcActivity : AppCompatActivity() {
                     }
                 }
             })
+            val name = dialog.findViewById<EditText>(R.id.cc_service_name)
             AlertDialog.Builder(this).setTitle(getString(R.string.add_cc_service))
                 .setView(dialog)
                 .setPositiveButton(R.string.ok_button) { _: DialogInterface?, _: Int ->
                     CcSendService(
-                        method = spinner.selectedItemPosition,
+                        name = name.text.toString(),
+                        method = spinner.selectedIndex,
                         webhook = webhook.text.toString(),
                         body = body.text.toString(),
                         header = header.text.toString(),
@@ -384,8 +398,120 @@ class CcActivity : AppCompatActivity() {
                 return true
             }
 
+            R.id.receive_config_menu_item -> {
+                getConfig()
+                return true
+            }
+
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun getConfig() {
+        showGetDialog(this, getString(R.string.please_enter_your_info)) { id, password ->
+            val progressDialog = ProgressDialog(this)
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
+            progressDialog.setTitle(getString(R.string.getting_configuration))
+            progressDialog.setMessage(getString(R.string.connect_wait_message))
+            progressDialog.isIndeterminate = false
+            progressDialog.setCancelable(false)
+            progressDialog.show()
+            Thread {
+                val sharedPreferences =
+                    applicationContext.getSharedPreferences("data", MODE_PRIVATE)
+                val okhttpObject = Network.getOkhttpObj(
+                    sharedPreferences.getBoolean("doh_switch", true),
+                    Paper.book("system_config").read("proxy_config", proxy())
+                )
+                val httpUrlBuilder: HttpUrl.Builder = url.newBuilder()
+                httpUrlBuilder.addQueryParameter("key", id)
+                val httpUrl = httpUrlBuilder.build()
+                val requestObj = Request.Builder().url(httpUrl).method("GET", null)
+                val call = okhttpObject.newCall(requestObj.build())
+                try {
+                    val response = call.execute()
+                    if (response.code == 200) {
+                        val responseBody = response.body.string()
+                        try {
+                            val decryptConfig =
+                                AES.decrypt(responseBody, AES.getKeyFromString(password))
+                            val gson = Gson()
+                            val config = gson.fromJson(decryptConfig, CcSendService::class.java)
+                            serviceList.add(config)
+                            saveAndFlush(serviceList, listAdapter)
+                        } catch (e: Exception) {
+                            Logs.writeLog(
+                                applicationContext,
+                                "An error occurred while resending: " + e.message
+                            )
+                            runOnUiThread {
+                                AlertDialog.Builder(this)
+                                    .setTitle(R.string.error_title)
+                                    .setMessage(getString(R.string.an_error_occurred_while_decrypting_the_configuration))
+                                    .setPositiveButton("OK") { _, _ -> getConfig() }
+                                    .show()
+
+                            }
+                            e.printStackTrace()
+                        }
+                    } else {
+                        runOnUiThread {
+                            AlertDialog.Builder(this)
+                                .setTitle(R.string.error_title)
+                                .setMessage(getString(R.string.an_error_occurred_while_getting_the_configuration) + response.code)
+                                .setPositiveButton("OK") { _, _ -> }
+                                .show()
+                        }
+                    }
+                } catch (e: IOException) {
+                    Logs.writeLog(
+                        applicationContext,
+                        "An error occurred while resending: " + e.message
+                    )
+                    e.printStackTrace()
+                } finally {
+                    progressDialog.dismiss()
+                }
+            }.start()
+        }
+    }
+
+    @Suppress("SameParameterValue")
+    private fun showGetDialog(context: Context, title: String, callback: (String, String) -> Unit) {
+        val builder = AlertDialog.Builder(context)
+        builder.setTitle(title)
+        val dialogView = layoutInflater.inflate(R.layout.set_config_layout, null)
+        builder.setView(dialogView)
+        val idInput = dialogView.findViewById<EditText>(R.id.config_id_editview)
+        val passwordInput = dialogView.findViewById<EditText>(R.id.config_password_editview)
+        builder.setPositiveButton("OK", null)
+        builder.setNegativeButton("Cancel") { dialog, _ ->
+            dialog.cancel()
+        }
+
+        val dialog = builder.create()
+        dialog.setOnShowListener {
+            val button = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            button.setOnClickListener {
+                val idView = dialogView.findViewById<TextInputLayout>(R.id.config_id_layout)
+                val passwordView =
+                    dialogView.findViewById<TextInputLayout>(R.id.config_password_layout)
+                val id = idInput.text.toString()
+                val password = passwordInput.text.toString()
+                if (id.isEmpty()) {
+                    idView.error = getString(R.string.error_id_cannot_be_empty)
+                } else if (password.isEmpty()) {
+                    passwordView.error = getString(R.string.error_password_cannot_be_empty)
+                } else if (id.length != 9) {
+                    idView.error = getString(R.string.error_id_must_be_9_characters)
+                } else {
+                    callback(id, password)
+                    dialog.dismiss()
+                }
+            }
+        }
+        dialog.show()
     }
 
     override fun onRequestPermissionsResult(

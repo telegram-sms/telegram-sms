@@ -1,6 +1,7 @@
 package com.qwe7002.telegram_sms.data_structure
 
 data class CcSendService(
+    val name: String,
     val method: Int,
     val webhook: String,
     val body: String,
