@@ -17,6 +17,7 @@ import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.static_class.Template
+import com.qwe7002.telegram_sms.value.CcType
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
 import okhttp3.Call
@@ -82,7 +83,7 @@ class CallReceiver : BroadcastReceiver() {
                     sharedPreferences.getBoolean("display_dual_sim_display_name", false)
                 )
                 requestBody.text = Template.render(context, "TPL_missed_call", mapOf("SIM" to dualSim, "From" to incomingNumber.toString()))
-                CcSendJob.startJob(context,context.getString(R.string.missed_call_title), requestBody.text)
+                CcSendJob.startJob(context,CcType.CALL,context.getString(R.string.missed_call_title), requestBody.text)
                 val requestBodyRaw = Gson().toJson(requestBody)
                 val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
                 val okhttpObj = Network.getOkhttpObj(

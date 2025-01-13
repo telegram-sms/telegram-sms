@@ -24,6 +24,7 @@ import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.static_class.Service
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.USSD
+import com.qwe7002.telegram_sms.value.CcType
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
 import okhttp3.Call
@@ -253,6 +254,7 @@ class SMSReceiver : BroadcastReceiver() {
         val requestBodyText = Template.render(context, "TPL_received_sms", rawValues)
         CcSendJob.startJob(
             context,
+            CcType.SMS,
             context.getString(R.string.receive_sms_title),
             requestBodyText,
             verificationCode

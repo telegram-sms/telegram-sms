@@ -15,6 +15,7 @@ import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.Template
+import com.qwe7002.telegram_sms.value.CcType
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
 import okhttp3.Call
@@ -78,7 +79,7 @@ class NotificationService : NotificationListenerService() {
         requestBody.chatId = chatId.toString()
         requestBody.messageThreadId = messageThreadId.toString()
         requestBody.text = Template.render( applicationContext, "TPL_notification", mapOf("APP" to appName, "Title" to title, "Description" to content))
-        CcSendJob.startJob(applicationContext,applicationContext.getString(R.string.Notification_Listener_title), requestBody.text)
+        CcSendJob.startJob(applicationContext,CcType.NOTIFICATION,applicationContext.getString(R.string.Notification_Listener_title), requestBody.text)
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(constValue.JSON)
         val okhttpObj = Network.getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),

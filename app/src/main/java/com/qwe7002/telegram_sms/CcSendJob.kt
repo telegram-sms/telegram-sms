@@ -12,10 +12,12 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.qwe7002.telegram_sms.config.proxy
+import com.qwe7002.telegram_sms.data_structure.CcConfig
 import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.static_class.CcSend
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
+import com.qwe7002.telegram_sms.value.CcType
 import com.qwe7002.telegram_sms.value.ccOptions
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
@@ -143,7 +145,8 @@ class CcSendJob : JobService() {
     }
 
     companion object {
-        fun startJob(context: Context, title: String, message: String, verificationCode: String) {
+        fun startJob(context: Context,type: Int, title: String, message: String, verificationCode: String) {
+            if(!checkType(type)) return
             val jobScheduler =
                 context.getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
             ccOptions.JOBID_counter += 1
@@ -159,10 +162,10 @@ class CcSendJob : JobService() {
             jobInfoBuilder.setExtras(extras)
             jobInfoBuilder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
             jobScheduler.schedule(jobInfoBuilder.build())
-
         }
 
-        fun startJob(context: Context, title: String, message: String) {
+        fun startJob(context: Context,type: Int, title: String, message: String) {
+            if(!checkType(type)) return
             val jobScheduler =
                 context.getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
             ccOptions.JOBID_counter += 1
@@ -177,7 +180,20 @@ class CcSendJob : JobService() {
             jobInfoBuilder.setExtras(extras)
             jobInfoBuilder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
             jobScheduler.schedule(jobInfoBuilder.build())
-
+        }
+        private fun checkType(type:Int): Boolean {
+            val ccConfig = Paper.book("system_config").read("cc_config", "{}").toString()
+            val gson = Gson()
+            val configType = object : TypeToken<CcConfig>() {}.type
+            val config: CcConfig = gson.fromJson(ccConfig, configType)
+            return when (type) {
+                -1 -> true
+                CcType.SMS -> config.receiveSMS
+                CcType.CALL -> config.missedCall
+                CcType.NOTIFICATION -> config.receiveNotification
+                CcType.BATTERY -> config.battery
+                else -> false
+            }
         }
     }
 }

@@ -22,6 +22,7 @@ import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.static_class.Template
+import com.qwe7002.telegram_sms.value.CcType
 import com.qwe7002.telegram_sms.value.constValue
 import com.qwe7002.telegram_sms.value.notifyId
 import io.paperdb.Paper
@@ -199,7 +200,7 @@ class BatteryService : Service() {
                 )
             )
             if (action == Intent.ACTION_BATTERY_LOW || action == Intent.ACTION_BATTERY_OKAY) {
-                CcSendJob.startJob(context, context.getString(R.string.app_name), result)
+                CcSendJob.startJob(context,CcType.BATTERY, context.getString(R.string.app_name), result)
             }
             val obj = sendObj()
             obj.action = action!!

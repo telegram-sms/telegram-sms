@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.qwe7002.telegram_sms
 
 import android.Manifest
@@ -34,6 +36,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.jaredrummler.materialspinner.MaterialSpinner
 import com.qwe7002.telegram_sms.config.proxy
+import com.qwe7002.telegram_sms.data_structure.CcConfig
 import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.static_class.AES
 import com.qwe7002.telegram_sms.static_class.Logs
@@ -49,6 +52,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
 
+@Suppress("NAME_SHADOWING")
 class CcActivity : AppCompatActivity() {
     private lateinit var listAdapter: ArrayAdapter<CcSendService>
     private lateinit var serviceList: ArrayList<CcSendService>
@@ -85,7 +89,8 @@ class CcActivity : AppCompatActivity() {
                     val title = view.findViewById<TextView>(R.id.title)
                     val subtitle = view.findViewById<TextView>(R.id.subtitle)
 
-                    title.text = item.name + item.enabled.let { if (it) " (Enabled)" else " (Disabled)" }
+                    title.text =
+                        item.name + item.enabled.let { if (it) " (Enabled)" else " (Disabled)" }
                     subtitle.text = item.webhook
 
                     return view
@@ -98,7 +103,7 @@ class CcActivity : AppCompatActivity() {
 
                 val spinner = dialog.findViewById<MaterialSpinner>(R.id.spinner_options)
                 spinner.setItems(ccOptions.options)
-                spinner.setOnItemSelectedListener { view, position, id, item ->
+                spinner.setOnItemSelectedListener { _, position, _, _ ->
                     Log.d("spinner", position.toString())
                     val bodyEdit = dialog.findViewById<EditText>(R.id.body_editview)
                     when (position) {
@@ -220,30 +225,6 @@ class CcActivity : AppCompatActivity() {
 
         fab.setOnClickListener {
             val dialog = inflater.inflate(R.layout.set_cc_layout, null)
-            /*val spinner = dialog.findViewById<Spinner>(R.id.spinner_options)
-
-            val adapter =
-                ArrayAdapter(this, android.R.layout.simple_spinner_item, ccOptions.options)
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            spinner.adapter = adapter
-            spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    Log.d("spinner", position.toString())
-                    when (position) {
-                        0 -> dialog.findViewById<EditText>(R.id.body_editview).isEnabled = false
-                        1 -> dialog.findViewById<EditText>(R.id.body_editview).isEnabled = true
-                    }
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) {
-                    Log.d("spinner", "nothing")
-                }
-            }*/
             val spinner = dialog.findViewById<MaterialSpinner>(R.id.spinner_options)
             spinner.setItems(ccOptions.options)
             spinner.setOnItemSelectedListener { view, position, id, item ->
@@ -383,6 +364,7 @@ class CcActivity : AppCompatActivity() {
                 }
                 CcSendJob.startJob(
                     applicationContext,
+                    -1,
                     getString(R.string.app_name),
                     Template.render(
                         applicationContext,
@@ -400,6 +382,40 @@ class CcActivity : AppCompatActivity() {
 
             R.id.receive_config_menu_item -> {
                 getConfig()
+                return true
+            }
+
+            R.id.cc_config_menu_item -> {
+                val inflater = this.layoutInflater
+                val dialog = inflater.inflate(R.layout.set_cc_config_layout, null)
+                val receiverSMSSwitch = dialog.findViewById<SwitchMaterial>(R.id.cc_sms_switch)
+                val receiverCallSwitch = dialog.findViewById<SwitchMaterial>(R.id.cc_call_switch)
+                val receiverNotificationSwitch =
+                    dialog.findViewById<SwitchMaterial>(R.id.cc_notify_switch)
+                val receiverBatterySwitch =
+                    dialog.findViewById<SwitchMaterial>(R.id.cc_battery_switch)
+                val ccConfig = Paper.book("system_config").read("cc_config", "{}").toString()
+                val gson = Gson()
+                val type = object : TypeToken<CcConfig>() {}.type
+                val config:CcConfig = gson.fromJson(ccConfig, type)
+                receiverSMSSwitch.isChecked = config.receiveSMS
+                receiverCallSwitch.isChecked = config.missedCall
+                receiverNotificationSwitch.isChecked = config.receiveNotification
+                receiverBatterySwitch.isChecked = config.battery
+                AlertDialog.Builder(this)
+                    .setTitle("Please select the service that needs to be copied")
+                    .setView(dialog)
+                    .setPositiveButton(R.string.ok_button) { _: DialogInterface?, _: Int ->
+                        val ccConfig = CcConfig(
+                            receiverSMSSwitch.isChecked,
+                            receiverCallSwitch.isChecked,
+                            receiverNotificationSwitch.isChecked,
+                            receiverBatterySwitch.isChecked
+                        )
+                        Paper.book("system_config").write("cc_config", Gson().toJson(ccConfig))
+                    }
+                    .setNeutralButton(R.string.cancel_button, null)
+                    .show()
                 return true
             }
 

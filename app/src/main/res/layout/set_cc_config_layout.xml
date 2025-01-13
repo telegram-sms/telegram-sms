@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/cc_sms_switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="25dp"
+        android:paddingEnd="20dp"
+        android:layout_marginTop="20dp"
+        android:text="@string/receive_sms_title"
+        tools:ignore="ExtraText,RtlSymmetry" />
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/cc_call_switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="25dp"
+        android:paddingEnd="20dp"
+        android:layout_marginTop="20dp"
+        android:text="@string/missed_call_title"
+        tools:ignore="ExtraText,RtlSymmetry" />
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/cc_notify_switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="25dp"
+        android:paddingEnd="20dp"
+        android:layout_marginTop="20dp"
+        android:text="@string/receive_notification_title"
+        tools:ignore="ExtraText,RtlSymmetry" />
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/cc_battery_switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="25dp"
+        android:paddingEnd="20dp"
+        android:layout_marginTop="20dp"
+        android:text="@string/battery_title"
+        tools:ignore="ExtraText,RtlSymmetry" />
+
+</LinearLayout>
