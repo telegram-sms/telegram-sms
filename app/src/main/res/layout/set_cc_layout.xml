@@ -13,13 +13,6 @@
         android:layout_marginTop="20dp"
         android:text="@string/proxy_enable"
         tools:ignore="ExtraText,RtlSymmetry" />
-    <com.jaredrummler.materialspinner.MaterialSpinner
-        android:id="@+id/spinner_options"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp" />
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -46,50 +39,16 @@
         android:paddingRight="20dp">
 
         <EditText
-            android:id="@+id/webhook_editview"
+            android:id="@+id/har_editview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Webhook"
+            android:hint="HAR"
             android:importantForAutofill="no"
             android:inputType="text"
-            android:maxLines="1"
-            android:singleLine="true"
-            tools:ignore="HardcodedText" />
-
-    </com.google.android.material.textfield.TextInputLayout>
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingLeft="20dp"
-        android:paddingRight="20dp">
-
-        <EditText
-            android:id="@+id/header_editview"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Header"
-            android:importantForAutofill="no"
-            android:inputType="textMultiLine"
             android:maxLines="10"
             android:singleLine="false"
             tools:ignore="HardcodedText" />
-    </com.google.android.material.textfield.TextInputLayout>
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingLeft="20dp"
-        android:paddingRight="20dp">
 
-        <EditText
-            android:id="@+id/body_editview"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Body"
-            android:importantForAutofill="no"
-            android:inputType="textMultiLine"
-            android:maxLines="10"
-            android:singleLine="false"
-            tools:ignore="HardcodedText" />
     </com.google.android.material.textfield.TextInputLayout>
 
 

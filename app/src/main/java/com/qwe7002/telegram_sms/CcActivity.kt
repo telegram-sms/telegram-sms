@@ -34,22 +34,19 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.jaredrummler.materialspinner.MaterialSpinner
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.CcConfig
 import com.qwe7002.telegram_sms.data_structure.CcSendService
+import com.qwe7002.telegram_sms.data_structure.HAR
 import com.qwe7002.telegram_sms.static_class.AES
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Template
-import com.qwe7002.telegram_sms.value.ccOptions
 import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Request
-import org.json.JSONArray
-import org.json.JSONObject
 import java.io.IOException
 
 @Suppress("NAME_SHADOWING")
@@ -91,7 +88,7 @@ class CcActivity : AppCompatActivity() {
 
                     title.text =
                         item.name + item.enabled.let { if (it) " (Enabled)" else " (Disabled)" }
-                    subtitle.text = item.webhook
+                    subtitle.text = item.har.log.entries[0].request.url
 
                     return view
                 }
@@ -101,20 +98,9 @@ class CcActivity : AppCompatActivity() {
             AdapterView.OnItemClickListener { _: AdapterView<*>?, _: View?, position: Int, _: Long ->
                 val dialog = inflater.inflate(R.layout.set_cc_layout, null)
 
-                val spinner = dialog.findViewById<MaterialSpinner>(R.id.spinner_options)
-                spinner.setItems(ccOptions.options)
-                spinner.setOnItemSelectedListener { _, position, _, _ ->
-                    Log.d("spinner", position.toString())
-                    val bodyEdit = dialog.findViewById<EditText>(R.id.body_editview)
-                    when (position) {
-                        0 -> bodyEdit.isEnabled = false
-                        1 -> bodyEdit.isEnabled = true
-                    }
-                }
-                spinner.selectedIndex = serviceList[position].method
                 val webhook =
-                    dialog.findViewById<EditText>(R.id.webhook_editview)
-                webhook.setText(serviceList[position].webhook)
+                    dialog.findViewById<EditText>(R.id.har_editview)
+                webhook.setText(gson.toJson(serviceList[position].har))
                 webhook.addTextChangedListener(object : TextWatcher {
                     override fun beforeTextChanged(
                         s: CharSequence?,
@@ -134,62 +120,8 @@ class CcActivity : AppCompatActivity() {
 
                     override fun afterTextChanged(s: Editable?) {
                         val text = s.toString()
-                        if (!isValidUrl(text)) {
-                            webhook.error = "Invalid URL"
-                        }
-                    }
-                })
-                val body =
-                    dialog.findViewById<EditText>(R.id.body_editview)
-                body.setText(serviceList[position].body)
-                body.addTextChangedListener(object : TextWatcher {
-                    override fun beforeTextChanged(
-                        s: CharSequence?,
-                        start: Int,
-                        count: Int,
-                        after: Int
-                    ) {
-                    }
-
-                    override fun onTextChanged(
-                        s: CharSequence?,
-                        start: Int,
-                        before: Int,
-                        count: Int
-                    ) {
-                    }
-
-                    override fun afterTextChanged(s: Editable?) {
-                        val text = s.toString()
-                        if (!isValidJson(text)) {
-                            body.error = "Invalid JSON"
-                        }
-                    }
-                })
-                val header =
-                    dialog.findViewById<EditText>(R.id.header_editview)
-                header.setText(serviceList[position].header)
-                header.addTextChangedListener(object : TextWatcher {
-                    override fun beforeTextChanged(
-                        s: CharSequence?,
-                        start: Int,
-                        count: Int,
-                        after: Int
-                    ) {
-                    }
-
-                    override fun onTextChanged(
-                        s: CharSequence?,
-                        start: Int,
-                        before: Int,
-                        count: Int
-                    ) {
-                    }
-
-                    override fun afterTextChanged(s: Editable?) {
-                        val text = s.toString()
-                        if (!isValidJson(text)) {
-                            header.error = "Invalid JSON"
+                        if (!isValidHarJson(text)) {
+                            webhook.error = "Invalid JSON structure"
                         }
                     }
                 })
@@ -204,11 +136,8 @@ class CcActivity : AppCompatActivity() {
                     .setPositiveButton(R.string.ok_button) { _: DialogInterface?, _: Int ->
                         CcSendService(
                             name = name.text.toString(),
-                            method = spinner.selectedIndex,
-                            webhook = webhook.text.toString(),
-                            body = body.text.toString(),
-                            header = header.text.toString(),
-                            enabled = switch.isChecked
+                            enabled = switch.isChecked,
+                            har = gson.fromJson(webhook.text.toString(), HAR::class.java)
                         ).also { serviceList[position] = it }
                         saveAndFlush(serviceList, listAdapter)
                     }
@@ -225,17 +154,7 @@ class CcActivity : AppCompatActivity() {
 
         fab.setOnClickListener {
             val dialog = inflater.inflate(R.layout.set_cc_layout, null)
-            val spinner = dialog.findViewById<MaterialSpinner>(R.id.spinner_options)
-            spinner.setItems(ccOptions.options)
-            spinner.setOnItemSelectedListener { view, position, id, item ->
-                Log.d("spinner", position.toString())
-                val bodyEdit = dialog.findViewById<EditText>(R.id.body_editview)
-                when (position) {
-                    0 -> bodyEdit.isEnabled = false
-                    1 -> bodyEdit.isEnabled = true
-                }
-            }
-            val webhook = dialog.findViewById<EditText>(R.id.webhook_editview)
+            val webhook = dialog.findViewById<EditText>(R.id.har_editview)
             webhook.addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(
                     s: CharSequence?,
@@ -249,48 +168,8 @@ class CcActivity : AppCompatActivity() {
 
                 override fun afterTextChanged(s: Editable?) {
                     val text = s.toString()
-                    if (!isValidUrl(text)) {
-                        webhook.error = "Invalid URL"
-                    }
-                }
-            })
-            val body =
-                dialog.findViewById<EditText>(R.id.body_editview)
-            body.addTextChangedListener(object : TextWatcher {
-                override fun beforeTextChanged(
-                    s: CharSequence?,
-                    start: Int,
-                    count: Int,
-                    after: Int
-                ) {
-                }
-
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
-                override fun afterTextChanged(s: Editable?) {
-                    val text = s.toString()
-                    if (!isValidJson(text)) {
-                        body.error = "Invalid JSON"
-                    }
-                }
-            })
-            val header =
-                dialog.findViewById<EditText>(R.id.header_editview)
-            header.addTextChangedListener(object : TextWatcher {
-                override fun beforeTextChanged(
-                    s: CharSequence?,
-                    start: Int,
-                    count: Int,
-                    after: Int
-                ) {
-                }
-
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
-                override fun afterTextChanged(s: Editable?) {
-                    val text = s.toString()
-                    if (!isValidJson(text)) {
-                        header.error = "Invalid JSON"
+                    if (!isValidHarJson(text)) {
+                        webhook.error = "Invalid JSON structure"
                     }
                 }
             })
@@ -300,11 +179,8 @@ class CcActivity : AppCompatActivity() {
                 .setPositiveButton(R.string.ok_button) { _: DialogInterface?, _: Int ->
                     CcSendService(
                         name = name.text.toString(),
-                        method = spinner.selectedIndex,
-                        webhook = webhook.text.toString(),
-                        body = body.text.toString(),
-                        header = header.text.toString(),
-                        enabled = dialog.findViewById<SwitchMaterial>(R.id.cc_enable_switch).isChecked
+                        enabled = dialog.findViewById<SwitchMaterial>(R.id.cc_enable_switch).isChecked,
+                        har = gson.fromJson(webhook.text.toString(), HAR::class.java)
                     ).also { serviceList.add(it) }
                     saveAndFlush(serviceList, listAdapter)
                 }
@@ -313,21 +189,13 @@ class CcActivity : AppCompatActivity() {
         }
     }
 
-    private fun isValidUrl(url: String): Boolean {
-        return url.startsWith("https://")
-    }
-
-    private fun isValidJson(json: String): Boolean {
+    private fun isValidHarJson(json: String): Boolean {
         return try {
-            JSONObject(json)
+            val gson = Gson()
+            gson.fromJson(json, HAR::class.java)
             true
         } catch (ex: Exception) {
-            try {
-                JSONArray(json)
-                true
-            } catch (ex1: Exception) {
-                false
-            }
+            false
         }
     }
 
@@ -397,7 +265,8 @@ class CcActivity : AppCompatActivity() {
                 val ccConfig = Paper.book("system_config").read("cc_config", "{}").toString()
                 val gson = Gson()
                 val type = object : TypeToken<CcConfig>() {}.type
-                val config:CcConfig = gson.fromJson(ccConfig, type)
+                val config: CcConfig = gson.fromJson(ccConfig, type)
+
                 receiverSMSSwitch.isChecked = config.receiveSMS
                 receiverCallSwitch.isChecked = config.missedCall
                 receiverNotificationSwitch.isChecked = config.receiveNotification

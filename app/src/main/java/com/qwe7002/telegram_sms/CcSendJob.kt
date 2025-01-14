@@ -19,15 +19,18 @@ import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.value.CcType
 import com.qwe7002.telegram_sms.value.ccOptions
-import com.qwe7002.telegram_sms.value.constValue
 import io.paperdb.Paper
-import okhttp3.OkHttpClient
+import okhttp3.FormBody
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 
 class CcSendJob : JobService() {
+    @Suppress("NAME_SHADOWING")
     override fun onStartJob(params: JobParameters?): Boolean {
         Log.d("CCSend", "startJob: Trying to send message.")
         Paper.init(applicationContext)
@@ -45,7 +48,7 @@ class CcSendJob : JobService() {
             val serviceListJson =
                 Paper.book("system_config").read("CC_service_list", "[]").toString()
             val gson = Gson()
-            var type = object : TypeToken<ArrayList<CcSendService>>() {}.type
+            val type = object : TypeToken<ArrayList<CcSendService>>() {}.type
             val sendList: ArrayList<CcSendService> = gson.fromJson(serviceListJson, type)
             val okhttpClient =
                 Network.getOkhttpObj(
@@ -53,55 +56,110 @@ class CcSendJob : JobService() {
                     Paper.book("system_config").read("proxy_config", proxy())
                 )
             for (item in sendList) {
-                if(item.enabled.not()) continue
-                var header: Map<String, String> = mapOf()
-                if (item.header.isNotEmpty()) {
-                    type = object : TypeToken<Map<String, String>>() {}.type
-                    header = gson.fromJson(item.header, type)
-                }
-                when (item.method) {
-                    // 0: GET, 1: POST
-                    0 -> {
-                        networkProgressHandle(
-                            "GET",
-                            CcSend.render(
-                                item.webhook,
-                                mapOf(
-                                    "Title" to Uri.encode(title),
-                                    "Message" to Uri.encode(message),
-                                    "Code" to Uri.encode(verificationCode)
-                                )
-                            ),
-                            null,
-                            header,
-                            okhttpClient
+                if (item.enabled.not()) continue
+                if (item.har.log.entries.isEmpty()) continue
+                for (entry in item.har.log.entries) {
+                    val request = entry.request
+                    val header: Map<String, String> =
+                        request.headers.associate { it.name to it.value }
+                    val uri = request.url.toHttpUrlOrNull()!!
+                    val httpUrlBuilder: HttpUrl.Builder = uri.newBuilder()
+                    val query: Map<String, String> =
+                        request.queryString.associate { it.name to it.value }
+                    for (queryItem in query) {
+                        val value = CcSend.render(
+                            queryItem.value,
+                            mapOf(
+                                "Title" to Uri.encode(title),
+                                "Message" to Uri.encode(message),
+                                "Code" to Uri.encode(verificationCode)
+                            )
                         )
+                        httpUrlBuilder.addQueryParameter(queryItem.key, value)
                     }
+                    val body: RequestBody? = if (request.postData != null) {
+                        when (val mimeType = request.postData.mimeType.toMediaTypeOrNull()) {
+                            null -> {
+                                Logs.writeLog(
+                                    applicationContext,
+                                    "The MIME type of the request is not supported."
+                                )
+                                continue
+                            }
 
-                    1 -> {
-                        networkProgressHandle(
-                            "POST",
-                            CcSend.render(
-                                item.webhook,
-                                mapOf(
-                                    "Title" to Uri.encode(title),
-                                    "Message" to Uri.encode(message),
-                                    "Code" to Uri.encode(verificationCode)
+                            "application/x-www-form-urlencoded".toMediaTypeOrNull() -> {
+                                val params: Map<String, String> =
+                                    request.postData.params?.associate {
+                                        it.name to CcSend.render(
+                                            it.value, mapOf(
+                                                "Title" to title,
+                                                "Message" to message,
+                                                "Code" to verificationCode
+                                            )
+                                        )
+                                    } ?: mapOf()
+                                FormBody.Builder().apply {
+                                    for (param in params) {
+                                        add(param.key, param.value)
+                                    }
+                                }.build()
+                            }
+
+                            "application/json".toMediaTypeOrNull() -> {
+                                val value = CcSend.render(
+                                    request.postData.text ?: "",
+                                    mapOf(
+                                        "Title" to title,
+                                        "Message" to message,
+                                        "Code" to verificationCode
+                                    )
                                 )
-                            ),
-                            CcSend.render(
-                                item.body,
-                                mapOf(
-                                    "Title" to title,
-                                    "Message" to message,
-                                    "Code" to verificationCode
+                                value.toRequestBody(mimeType)
+                            }
+
+                            else -> {
+                                Logs.writeLog(
+                                    applicationContext,
+                                    "The MIME type of the request is not supported."
                                 )
-                            ).toRequestBody(
-                                constValue.JSON
-                            ),
-                            header,
-                            okhttpClient
+                                continue
+                            }
+                        }
+                    } else {
+                        null
+                    }
+                    val cookie: Map<String, String> =
+                        request.cookies.associate { it.name to it.value }
+
+                    val requestObj = Request.Builder().url(httpUrlBuilder.build().toString())
+                        .method(request.method, body)
+                    requestObj.addHeader(
+                        "Cookie",
+                        cookie.map { "${it.key}=${it.value}" }.joinToString(";")
+                    )
+                    for (item in header) {
+                        requestObj.addHeader(item.key, item.value)
+                    }
+                    val call = okhttpClient.newCall(requestObj.build())
+                    try {
+                        val response = call.execute()
+                        if (response.isSuccessful) {
+                            Log.i(
+                                "networkProgressHandle",
+                                "networkProgressHandle: Message sent successfully."
+                            )
+                        } else {
+                            Logs.writeLog(
+                                applicationContext,
+                                "Send message failed: " + response.code + " " + response.body.string()
+                            )
+                        }
+                    } catch (e: IOException) {
+                        Logs.writeLog(
+                            applicationContext,
+                            "An error occurred while resending: " + e.message
                         )
+                        e.printStackTrace()
                     }
                 }
             }
@@ -118,35 +176,16 @@ class CcSendJob : JobService() {
         return false
     }
 
-    private fun networkProgressHandle(
-        function: String,
-        requestUri: String,
-        body: RequestBody?,
-        header: Map<String, String>,
-        okhttpClient: OkHttpClient,
-    ) {
-
-        val requestObj = Request.Builder().url(requestUri).method(function, body)
-        for (item in header) {
-            requestObj.addHeader(item.key, item.value)
-        }
-        val call = okhttpClient.newCall(requestObj.build())
-        try {
-            val response = call.execute()
-            if (response.code == 200) {
-                Log.i("networkProgressHandle", "networkProgressHandle: Message sent successfully.")
-            }else{
-                Logs.writeLog(applicationContext, "Send message failed: " + response.code + " " + response.body.string())
-            }
-        } catch (e: IOException) {
-            Logs.writeLog(applicationContext, "An error occurred while resending: " + e.message)
-            e.printStackTrace()
-        }
-    }
 
     companion object {
-        fun startJob(context: Context,type: Int, title: String, message: String, verificationCode: String) {
-            if(!checkType(type)) return
+        fun startJob(
+            context: Context,
+            type: Int,
+            title: String,
+            message: String,
+            verificationCode: String
+        ) {
+            if (!checkType(type)) return
             val jobScheduler =
                 context.getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
             ccOptions.JOBID_counter += 1
@@ -164,8 +203,8 @@ class CcSendJob : JobService() {
             jobScheduler.schedule(jobInfoBuilder.build())
         }
 
-        fun startJob(context: Context,type: Int, title: String, message: String) {
-            if(!checkType(type)) return
+        fun startJob(context: Context, type: Int, title: String, message: String) {
+            if (!checkType(type)) return
             val jobScheduler =
                 context.getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
             ccOptions.JOBID_counter += 1
@@ -181,13 +220,15 @@ class CcSendJob : JobService() {
             jobInfoBuilder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
             jobScheduler.schedule(jobInfoBuilder.build())
         }
-        private fun checkType(type:Int): Boolean {
+
+        private fun checkType(type: Int): Boolean {
+            Log.d("checkType", "checkType: $type")
             val ccConfig = Paper.book("system_config").read("cc_config", "{}").toString()
             val gson = Gson()
             val configType = object : TypeToken<CcConfig>() {}.type
             val config: CcConfig = gson.fromJson(ccConfig, configType)
             return when (type) {
-                -1 -> true
+                -1 -> true // For Test message
                 CcType.SMS -> config.receiveSMS
                 CcType.CALL -> config.missedCall
                 CcType.NOTIFICATION -> config.receiveNotification
