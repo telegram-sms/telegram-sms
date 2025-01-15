@@ -128,15 +128,13 @@ class CcSendJob : JobService() {
                     } else {
                         null
                     }
-                    val cookie: Map<String, String> =
-                        request.cookies.associate { it.name to it.value }
 
                     val requestObj = Request.Builder().url(httpUrlBuilder.build().toString())
                         .method(request.method, body)
-                    requestObj.addHeader(
-                        "Cookie",
-                        cookie.map { "${it.key}=${it.value}" }.joinToString(";")
-                    )
+                    if (request.cookies.isNotEmpty()) {
+                        val cookieHeader = request.cookies.joinToString("; ") { "${it.name}=${it.value}" }
+                        requestObj.addHeader("Cookie", cookieHeader)
+                    }
                     for (item in header) {
                         requestObj.addHeader(item.key, item.value)
                     }
