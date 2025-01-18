@@ -67,7 +67,7 @@ class CcActivity : AppCompatActivity() {
         val ccList = findViewById<ListView>(R.id.cc_list)
 
         val serviceListJson =
-            Paper.book("system_config").read("CC_service_list", "[]").toString()
+            Paper.book("carbon_copy").read("CC_service_list", "[]").toString()
         val gson = Gson()
         val type = object : TypeToken<ArrayList<CcSendService>>() {}.type
         serviceList = gson.fromJson(serviceListJson, type)
@@ -85,7 +85,6 @@ class CcActivity : AppCompatActivity() {
 
                     val title = view.findViewById<TextView>(R.id.title)
                     val subtitle = view.findViewById<TextView>(R.id.subtitle)
-
                     title.text =
                         item.name + item.enabled.let { if (it) " (Enabled)" else " (Disabled)" }
                     subtitle.text = item.har.log.entries[0].request.url
@@ -204,7 +203,7 @@ class CcActivity : AppCompatActivity() {
         listAdapter: ArrayAdapter<CcSendService>
     ) {
         Log.d("save_and_flush", serviceList.toString())
-        Paper.book("system_config").write("CC_service_list", Gson().toJson(serviceList))
+        Paper.book("carbon_copy").write("CC_service_list", Gson().toJson(serviceList))
         listAdapter.notifyDataSetChanged()
     }
 
@@ -262,7 +261,7 @@ class CcActivity : AppCompatActivity() {
                     dialog.findViewById<SwitchMaterial>(R.id.cc_notify_switch)
                 val receiverBatterySwitch =
                     dialog.findViewById<SwitchMaterial>(R.id.cc_battery_switch)
-                val ccConfig = Paper.book("system_config").read("cc_config", "{}").toString()
+                val ccConfig = Paper.book("carbon_copy").read("cc_config", "{}").toString()
                 val gson = Gson()
                 val type = object : TypeToken<CcConfig>() {}.type
                 val config: CcConfig = gson.fromJson(ccConfig, type)
@@ -281,7 +280,7 @@ class CcActivity : AppCompatActivity() {
                             receiverNotificationSwitch.isChecked,
                             receiverBatterySwitch.isChecked
                         )
-                        Paper.book("system_config").write("cc_config", Gson().toJson(ccConfig))
+                        Paper.book("carbon_copy").write("cc_config", Gson().toJson(ccConfig))
                     }
                     .setNeutralButton(R.string.cancel_button, null)
                     .show()

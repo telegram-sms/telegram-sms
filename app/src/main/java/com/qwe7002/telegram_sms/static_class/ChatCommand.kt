@@ -47,7 +47,6 @@ object ChatCommand {
         var result:String = if (command == "/commandlist") {
             (context.getString(R.string.available_command) + "\n" + smsCommand + ussdCommand).replace("/", "")
         }else {
-            //context.getString(R.string.system_message_head) + "\n" + context.getString(R.string.available_command) + "\n" + smsCommand + ussdCommand
             Template.render(context,"TPL_system_message", mapOf("Message" to context.getString(R.string.available_command) + "\n" + smsCommand + ussdCommand))
         }
         if (!isPrivate && privacyMode && botUsername.isNotEmpty()) {

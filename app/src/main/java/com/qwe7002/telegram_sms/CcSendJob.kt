@@ -46,7 +46,7 @@ class CcSendJob : JobService() {
         }
         Thread {
             val serviceListJson =
-                Paper.book("system_config").read("CC_service_list", "[]").toString()
+                Paper.book("carbon_copy").read("CC_service_list", "[]").toString()
             val gson = Gson()
             val type = object : TypeToken<ArrayList<CcSendService>>() {}.type
             val sendList: ArrayList<CcSendService> = gson.fromJson(serviceListJson, type)
@@ -58,6 +58,11 @@ class CcSendJob : JobService() {
             for (item in sendList) {
                 if (item.enabled.not()) continue
                 if (item.har.log.entries.isEmpty()) continue
+                val mapper = mapOf(
+                    "Title" to Uri.encode(title),
+                    "Message" to Uri.encode(message),
+                    "Code" to Uri.encode(verificationCode)
+                )
                 for (entry in item.har.log.entries) {
                     val request = entry.request
                     val header: Map<String, String> =
@@ -69,11 +74,7 @@ class CcSendJob : JobService() {
                     for (queryItem in query) {
                         val value = CcSend.render(
                             queryItem.value,
-                            mapOf(
-                                "Title" to Uri.encode(title),
-                                "Message" to Uri.encode(message),
-                                "Code" to Uri.encode(verificationCode)
-                            )
+                            mapper
                         )
                         httpUrlBuilder.addQueryParameter(queryItem.key, value)
                     }
@@ -91,11 +92,7 @@ class CcSendJob : JobService() {
                                 val params: Map<String, String> =
                                     request.postData.params?.associate {
                                         it.name to CcSend.render(
-                                            it.value, mapOf(
-                                                "Title" to title,
-                                                "Message" to message,
-                                                "Code" to verificationCode
-                                            )
+                                            it.value, mapper
                                         )
                                     } ?: mapOf()
                                 FormBody.Builder().apply {
@@ -108,11 +105,7 @@ class CcSendJob : JobService() {
                             "application/json".toMediaTypeOrNull() -> {
                                 val value = CcSend.render(
                                     request.postData.text ?: "",
-                                    mapOf(
-                                        "Title" to title,
-                                        "Message" to message,
-                                        "Code" to verificationCode
-                                    )
+                                    mapper
                                 )
                                 value.toRequestBody(mimeType)
                             }
@@ -129,10 +122,14 @@ class CcSendJob : JobService() {
                         null
                     }
 
-                    val requestObj = Request.Builder().url(httpUrlBuilder.build().toString())
+                    val sendUrl = CcSend.render(
+                        httpUrlBuilder.build().toString(), mapper
+                    )
+                    val requestObj = Request.Builder().url(sendUrl)
                         .method(request.method, body)
                     if (request.cookies.isNotEmpty()) {
-                        val cookieHeader = request.cookies.joinToString("; ") { "${it.name}=${it.value}" }
+                        val cookieHeader =
+                            request.cookies.joinToString("; ") { "${it.name}=${it.value}" }
                         requestObj.addHeader("Cookie", cookieHeader)
                     }
                     for (item in header) {
@@ -221,7 +218,7 @@ class CcSendJob : JobService() {
 
         private fun checkType(type: Int): Boolean {
             Log.d("checkType", "checkType: $type")
-            val ccConfig = Paper.book("system_config").read("cc_config", "{}").toString()
+            val ccConfig = Paper.book("carbon_copy").read("cc_config", "{}").toString()
             val gson = Gson()
             val configType = object : TypeToken<CcConfig>() {}.type
             val config: CcConfig = gson.fromJson(ccConfig, configType)
