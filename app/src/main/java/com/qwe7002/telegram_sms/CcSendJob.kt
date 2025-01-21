@@ -57,7 +57,9 @@ class CcSendJob : JobService() {
                 )
             for (item in sendList) {
                 if (item.enabled.not()) continue
-                if (item.har.log.entries.isEmpty()) continue
+                if (item.har.log.entries.isEmpty()) {
+                    Log.e("HAR", "onStartJob: " + item.name + " HAR is empty.")
+                }
                 val mapper = mapOf(
                     "Title" to Uri.encode(title),
                     "Message" to Uri.encode(message),

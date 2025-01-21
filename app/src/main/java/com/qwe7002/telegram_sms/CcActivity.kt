@@ -84,10 +84,16 @@ class CcActivity : AppCompatActivity() {
                     val item = getItem(position)!!
 
                     val title = view.findViewById<TextView>(R.id.title)
-                    val subtitle = view.findViewById<TextView>(R.id.subtitle)
                     title.text =
                         item.name + item.enabled.let { if (it) " (Enabled)" else " (Disabled)" }
-                    subtitle.text = item.har.log.entries[0].request.url
+                    // Ensure the log object is not null before accessing its methods
+                    val subtitle = view.findViewById<TextView>(R.id.subtitle)
+                    val log = item.har.log
+                    if (log.entries.isNotEmpty()) {
+                        subtitle.text = log.entries[0].request.url
+                    } else {
+                        subtitle.text = "No entries available"
+                    }
 
                     return view
                 }
@@ -194,6 +200,7 @@ class CcActivity : AppCompatActivity() {
             gson.fromJson(json, HAR::class.java)
             true
         } catch (ex: Exception) {
+            ex.printStackTrace()
             false
         }
     }
