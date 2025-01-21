@@ -53,7 +53,7 @@ import java.io.IOException
 class CcActivity : AppCompatActivity() {
     private lateinit var listAdapter: ArrayAdapter<CcSendService>
     private lateinit var serviceList: ArrayList<CcSendService>
-    private val url = "https://example.com/config".toHttpUrlOrNull()!!
+    private val url = "https://api.telegram-sms.com/cc-config".toHttpUrlOrNull()!!
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_cc)
@@ -86,7 +86,6 @@ class CcActivity : AppCompatActivity() {
                     val title = view.findViewById<TextView>(R.id.title)
                     title.text =
                         item.name + item.enabled.let { if (it) " (Enabled)" else " (Disabled)" }
-                    // Ensure the log object is not null before accessing its methods
                     val subtitle = view.findViewById<TextView>(R.id.subtitle)
                     val log = item.har.log
                     if (log.entries.isNotEmpty()) {

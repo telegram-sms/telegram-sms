@@ -69,7 +69,7 @@ class CcSendJob : JobService() {
                     val request = entry.request
                     val header: Map<String, String> =
                         request.headers.associate { it.name to it.value }
-                    val uri = request.url.toHttpUrlOrNull()!!
+                    val uri = CcSend.render(request.url,mapper).toHttpUrlOrNull()!!
                     val httpUrlBuilder: HttpUrl.Builder = uri.newBuilder()
                     val query: Map<String, String> =
                         request.queryString.associate { it.name to it.value }
