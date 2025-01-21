@@ -82,16 +82,17 @@ class CcActivity : AppCompatActivity() {
                         false
                     )
                     val item = getItem(position)!!
-
                     val title = view.findViewById<TextView>(R.id.title)
                     title.text =
-                        item.name + item.enabled.let { if (it) " (Enabled)" else " (Disabled)" }
+                        item.name + item.enabled.let { if (it) getString(R.string.ccservice_enabled) else getString(
+                            R.string.ccservice_disabled
+                        ) }
                     val subtitle = view.findViewById<TextView>(R.id.subtitle)
                     val log = item.har.log
                     if (log.entries.isNotEmpty()) {
                         subtitle.text = log.entries[0].request.url
                     } else {
-                        subtitle.text = "No entries available"
+                        subtitle.text = getString(R.string.no_entries_available)
                     }
 
                     return view
@@ -125,7 +126,7 @@ class CcActivity : AppCompatActivity() {
                     override fun afterTextChanged(s: Editable?) {
                         val text = s.toString()
                         if (!isValidHarJson(text)) {
-                            webhook.error = "Invalid JSON structure"
+                            webhook.error = getString(R.string.invalid_json_structure)
                         }
                     }
                 })
@@ -173,7 +174,7 @@ class CcActivity : AppCompatActivity() {
                 override fun afterTextChanged(s: Editable?) {
                     val text = s.toString()
                     if (!isValidHarJson(text)) {
-                        webhook.error = "Invalid JSON structure"
+                        webhook.error = getString(R.string.invalid_json_structure)
                     }
                 }
             })
@@ -230,7 +231,7 @@ class CcActivity : AppCompatActivity() {
                 if (serviceList.isEmpty()) {
                     Snackbar.make(
                         findViewById(R.id.send_test_menu_item),
-                        "No service available.",
+                        getString(R.string.no_service_available),
                         Snackbar.LENGTH_SHORT
                     ).show()
                     return true
@@ -242,7 +243,7 @@ class CcActivity : AppCompatActivity() {
                     Template.render(
                         applicationContext,
                         "TPL_system_message",
-                        mapOf("Message" to "This is a test message.")
+                        mapOf("Message" to getString(R.string.this_is_a_test_message))
                     )
                 )
                 Snackbar.make(
@@ -277,7 +278,7 @@ class CcActivity : AppCompatActivity() {
                 receiverNotificationSwitch.isChecked = config.receiveNotification
                 receiverBatterySwitch.isChecked = config.battery
                 AlertDialog.Builder(this)
-                    .setTitle("Please select the service that needs to be copied")
+                    .setTitle(getString(R.string.cc_service_config_title))
                     .setView(dialog)
                     .setPositiveButton(R.string.ok_button) { _: DialogInterface?, _: Int ->
                         val ccConfig = CcConfig(
@@ -339,7 +340,7 @@ class CcActivity : AppCompatActivity() {
                                 AlertDialog.Builder(this)
                                     .setTitle(R.string.error_title)
                                     .setMessage(getString(R.string.an_error_occurred_while_decrypting_the_configuration))
-                                    .setPositiveButton("OK") { _, _ -> getConfig() }
+                                    .setPositiveButton(R.string.ok_button) { _, _ -> getConfig() }
                                     .show()
 
                             }
@@ -350,7 +351,7 @@ class CcActivity : AppCompatActivity() {
                             AlertDialog.Builder(this)
                                 .setTitle(R.string.error_title)
                                 .setMessage(getString(R.string.an_error_occurred_while_getting_the_configuration) + response.code)
-                                .setPositiveButton("OK") { _, _ -> }
+                                .setPositiveButton(R.string.ok_button) { _, _ -> }
                                 .show()
                         }
                     }
@@ -375,8 +376,8 @@ class CcActivity : AppCompatActivity() {
         builder.setView(dialogView)
         val idInput = dialogView.findViewById<EditText>(R.id.config_id_editview)
         val passwordInput = dialogView.findViewById<EditText>(R.id.config_password_editview)
-        builder.setPositiveButton("OK", null)
-        builder.setNegativeButton("Cancel") { dialog, _ ->
+        builder.setPositiveButton(R.string.ok_button, null)
+        builder.setNegativeButton(R.string.cancel_button) { dialog, _ ->
             dialog.cancel()
         }
 
