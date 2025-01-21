@@ -17,8 +17,8 @@ import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.static_class.CcSend
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
+import com.qwe7002.telegram_sms.static_class.SnowFlake
 import com.qwe7002.telegram_sms.value.CcType
-import com.qwe7002.telegram_sms.value.ccOptions
 import io.paperdb.Paper
 import okhttp3.FormBody
 import okhttp3.HttpUrl
@@ -185,9 +185,8 @@ class CcSendJob : JobService() {
             if (!checkType(type)) return
             val jobScheduler =
                 context.getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
-            ccOptions.JOBID_counter += 1
             val jobInfoBuilder = JobInfo.Builder(
-                ccOptions.JOBID_counter,
+                SnowFlake.generate().toString().padStart(4, '0').toInt().toInt(),
                 ComponentName(context.packageName, CcSendJob::class.java.getName())
             )
                 .setPersisted(true)
@@ -204,9 +203,8 @@ class CcSendJob : JobService() {
             if (!checkType(type)) return
             val jobScheduler =
                 context.getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
-            ccOptions.JOBID_counter += 1
             val jobInfoBuilder = JobInfo.Builder(
-                ccOptions.JOBID_counter,
+                SnowFlake.generate().toString().padStart(4, '0').toInt(),
                 ComponentName(context.packageName, CcSendJob::class.java.getName())
             )
                 .setPersisted(true)

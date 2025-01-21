@@ -8,6 +8,5 @@ public class ccOptions {
         options.add("GET");
         options.add("POST");
     }
-    public static Integer JOBID_counter = 100;
 }
 
