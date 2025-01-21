@@ -128,8 +128,8 @@
     <string name="error_password_must_be_6_characters">Password length needs to be greater than 6 characters</string>
     <string name="invalid_json_structure">Invalid JSON structure</string>
     <string name="no_entries_available">No entries available</string>
-    <string name="ccservice_enabled">" (Enabled)"</string>
-    <string name="ccservice_disabled">" (Disabled)"</string>
+    <string name="cc_service_enabled">" (Enabled)"</string>
+    <string name="cc_service_disabled">" (Disabled)"</string>
     <string name="this_is_a_test_message">This is a test message.</string>
     <string name="no_service_available">No service available.</string>
     <string name="cc_service_config_title">Please select the service that needs to be copied</string>

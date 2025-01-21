@@ -84,8 +84,8 @@ class CcActivity : AppCompatActivity() {
                     val item = getItem(position)!!
                     val title = view.findViewById<TextView>(R.id.title)
                     title.text =
-                        item.name + item.enabled.let { if (it) getString(R.string.ccservice_enabled) else getString(
-                            R.string.ccservice_disabled
+                        item.name + item.enabled.let { if (it) getString(R.string.cc_service_enabled) else getString(
+                            R.string.cc_service_disabled
                         ) }
                     val subtitle = view.findViewById<TextView>(R.id.subtitle)
                     val log = item.har.log
