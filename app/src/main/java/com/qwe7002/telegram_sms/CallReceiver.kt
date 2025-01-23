@@ -35,17 +35,16 @@ class CallReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         Paper.init(context)
         Log.d("call_receiver", "Receive action: " + intent.action)
-        when (Objects.requireNonNull(intent.action)) {
+        when (intent.action) {
             "android.intent.action.PHONE_STATE" -> {
                 if (intent.getStringExtra("incoming_number") != null) {
-                    incomingNumber = intent.getStringExtra("incoming_number")
+                    incomingNumber = intent.getStringExtra("incoming_number")!!
                 }
                 val telephony = context
                     .getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
                 val customPhoneListener = PhoneStatusListener(context, slot, incomingNumber)
                 telephony.listen(customPhoneListener, PhoneStateListener.LISTEN_CALL_STATE)
             }
-
             "android.intent.action.SUBSCRIPTION_PHONE_STATE" -> slot =
                 intent.getIntExtra("slot", -1)
         }
@@ -57,7 +56,9 @@ class CallReceiver : BroadcastReceiver() {
         incomingNumber: String?
     ) : PhoneStateListener() {
         init {
-            Companion.incomingNumber = incomingNumber
+            if (incomingNumber != null) {
+                Companion.incomingNumber = incomingNumber
+            }
         }
 
         @Deprecated("Deprecated in Java")
@@ -112,7 +113,7 @@ class CallReceiver : BroadcastReceiver() {
                             Resend.addResendLoop(context, requestBody.text)
                         } else {
                             val result = Objects.requireNonNull(response.body).string()
-                            if (!Other.isPhoneNumber(incomingNumber!!)) {
+                            if (!Other.isPhoneNumber(incomingNumber)) {
                                 Logs.writeLog(
                                     context,
                                     "[$incomingNumber] Not a regular phone number."
@@ -129,13 +130,13 @@ class CallReceiver : BroadcastReceiver() {
 
         companion object {
             private var lastReceiveStatus = TelephonyManager.CALL_STATE_IDLE
-            private var incomingNumber: String? = null
+            private lateinit var incomingNumber: String
         }
     }
 
     companion object {
         private var slot = 0
-        private var incomingNumber: String? = null
+        private lateinit var incomingNumber: String
     }
 }
 

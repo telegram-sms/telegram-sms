@@ -37,11 +37,11 @@ class BatteryService : Service() {
     private lateinit var botToken: String
     private lateinit var chatId: String
     private lateinit var messageThreadId: String
+    private lateinit var sendLoopList: ArrayList<sendObj>
     private var dohSwitch: Boolean = false
     private var lastReceiveTime: Long = 0
     private var lastReceiveMessageId: Long = -1
 
-    private var sendLoopList: ArrayList<sendObj>? = null
 
     @SuppressLint("InlinedApi")
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
@@ -90,13 +90,13 @@ class BatteryService : Service() {
         Thread {
             val needRemove = ArrayList<sendObj>()
             while (true) {
-                for (item in sendLoopList!!) {
+                for (item in sendLoopList) {
                     networkHandle(item)
                     needRemove.add(item)
                 }
-                sendLoopList!!.removeAll(needRemove.toSet())
+                sendLoopList.removeAll(needRemove.toSet())
                 needRemove.clear()
-                if (sendLoopList!!.isEmpty()) {
+                if (sendLoopList.isEmpty()) {
                     //Only enter sleep mode when there are no messages
                     try {
                         Thread.sleep(1000)
@@ -200,12 +200,17 @@ class BatteryService : Service() {
                 )
             )
             if (action == Intent.ACTION_BATTERY_LOW || action == Intent.ACTION_BATTERY_OKAY) {
-                CcSendJob.startJob(context,CcType.BATTERY, context.getString(R.string.app_name), result)
+                CcSendJob.startJob(
+                    context,
+                    CcType.BATTERY,
+                    context.getString(R.string.app_name),
+                    result
+                )
             }
             val obj = sendObj()
             obj.action = action!!
             obj.content = result
-            sendLoopList!!.add(obj)
+            sendLoopList.add(obj)
         }
     }
 
