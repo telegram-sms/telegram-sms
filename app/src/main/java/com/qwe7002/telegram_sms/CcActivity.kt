@@ -84,12 +84,15 @@ class CcActivity : AppCompatActivity() {
                     val item = getItem(position)!!
                     val title = view.findViewById<TextView>(R.id.title)
                     title.text =
-                        item.name + item.enabled.let { if (it) getString(R.string.cc_service_enabled) else getString(
-                            R.string.cc_service_disabled
-                        ) }
+                        item.name + item.enabled.let {
+                            if (it) getString(R.string.cc_service_enabled) else getString(
+                                R.string.cc_service_disabled
+                            )
+                        }
                     val subtitle = view.findViewById<TextView>(R.id.subtitle)
                     val log = item.har.log
-                    if (log.entries.isNotEmpty()) {
+                    @Suppress("SENSELESS_COMPARISON")
+                    if (log != null && log.entries.isNotEmpty()) {
                         subtitle.text = log.entries[0].request.url
                     } else {
                         subtitle.text = getString(R.string.no_entries_available)
@@ -318,6 +321,7 @@ class CcActivity : AppCompatActivity() {
                 val httpUrlBuilder: HttpUrl.Builder = url.newBuilder()
                 httpUrlBuilder.addQueryParameter("key", id)
                 val httpUrl = httpUrlBuilder.build()
+                Log.d("config", "getConfig: $httpUrl")
                 val requestObj = Request.Builder().url(httpUrl).method("GET", null)
                 val call = okhttpObject.newCall(requestObj.build())
                 try {
@@ -330,7 +334,9 @@ class CcActivity : AppCompatActivity() {
                             val gson = Gson()
                             val config = gson.fromJson(decryptConfig, CcSendService::class.java)
                             serviceList.add(config)
-                            saveAndFlush(serviceList, listAdapter)
+                            runOnUiThread {
+                                saveAndFlush(serviceList, listAdapter)
+                            }
                         } catch (e: Exception) {
                             Logs.writeLog(
                                 applicationContext,
