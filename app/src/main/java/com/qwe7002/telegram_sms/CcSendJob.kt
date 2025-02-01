@@ -61,6 +61,11 @@ class CcSendJob : JobService() {
                     Log.e("HAR", "onStartJob: " + item.name + " HAR is empty.")
                 }
                 val mapper = mapOf(
+                    "Title" to title,
+                    "Message" to message,
+                    "Code" to verificationCode
+                )
+                val encodeMapper = mapOf(
                     "Title" to Uri.encode(title),
                     "Message" to Uri.encode(message),
                     "Code" to Uri.encode(verificationCode)
@@ -69,14 +74,14 @@ class CcSendJob : JobService() {
                     val request = entry.request
                     val header: Map<String, String> =
                         request.headers.associate { it.name to it.value }
-                    val uri = CcSend.render(request.url,mapper).toHttpUrlOrNull()!!
+                    val uri =request.url.toHttpUrlOrNull()!!
                     val httpUrlBuilder: HttpUrl.Builder = uri.newBuilder()
                     val query: Map<String, String> =
                         request.queryString.associate { it.name to it.value }
                     for (queryItem in query) {
                         val value = CcSend.render(
                             queryItem.value,
-                            mapper
+                            encodeMapper
                         )
                         httpUrlBuilder.addQueryParameter(queryItem.key, value)
                     }
@@ -125,7 +130,7 @@ class CcSendJob : JobService() {
                     }
 
                     val sendUrl = CcSend.render(
-                        httpUrlBuilder.build().toString(), mapper
+                        httpUrlBuilder.build().toString(), encodeMapper
                     )
                     val requestObj = Request.Builder().url(sendUrl)
                         .method(request.method, body)
