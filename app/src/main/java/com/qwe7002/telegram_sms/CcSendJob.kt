@@ -62,8 +62,8 @@ class CcSendJob : JobService() {
                 }
                 val mapper = mapOf(
                     "Title" to title,
-                    "Message" to message.replace("\n","\u000a"),
-                    "Code" to verificationCode.replace("\n","\u000a")
+                    "Message" to message,
+                    "Code" to verificationCode
                 )
                 val encodeMapper = mapOf(
                     "Title" to Uri.encode(title),
