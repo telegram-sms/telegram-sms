@@ -47,7 +47,6 @@ import com.qwe7002.telegram_sms.static_class.Other.isPhoneNumber
 import com.qwe7002.telegram_sms.static_class.Other.parseStringToLong
 import com.qwe7002.telegram_sms.static_class.Resend.addResendLoop
 import com.qwe7002.telegram_sms.static_class.SMS.send
-import com.qwe7002.telegram_sms.static_class.SMS.sendSms
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.USSD.sendUssd
 import com.qwe7002.telegram_sms.value.constValue
@@ -78,6 +77,7 @@ class ChatService : Service() {
         const val PHONE_INPUT_STATUS: Int = 0
         const val MESSAGE_INPUT_STATUS: Int = 1
         const val WAITING_TO_SEND_STATUS: Int = 2
+        const val READY_TO_SEND_STATUS: Int = 4
         const val SEND_STATUS: Int = 3
     }
 
@@ -383,69 +383,56 @@ class ChatService : Service() {
             }
 
             "/sendsms", "/sendsms1", "/sendsms2" -> {
+                var sendSlot = -1
+                if (getActiveCard(applicationContext) > 1) {
+                    sendSlot = 0
+                    if (command == "/sendsms2") {
+                        sendSlot = 1
+                    }
+                }
                 val msgSendList =
                     requestMsg.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                Log.i(TAG, "receiveHandle: " + msgSendList.size)
+                Log.i(TAG, "msgSendList: " + msgSendList.size)
                 if (msgSendList.size > 1) {
-                    val infoList =
-                        msgSendList[0].split(" ".toRegex()).dropLastWhile { it.isEmpty() }
-                            .toTypedArray()
-                    if (infoList.size == 2) {
-                        val msgSendTo = getSendPhoneNumber(
-                            infoList[1]
-                        )
-                        if (isPhoneNumber(msgSendTo)) {
-                            val sendContent = StringBuilder()
-                            var i = 1
-                            while (i < msgSendList.size) {
-                                if (msgSendList.size != 2 && i != 1) {
-                                    sendContent.append("\n")
-                                }
-                                sendContent.append(msgSendList[i])
-                                ++i
+                    sendSmsNextStatus = SEND_SMS_STATUS.READY_TO_SEND_STATUS
+                    val msgSendTo = getSendPhoneNumber(
+                        msgSendList[1]
+                    )
+                    if (isPhoneNumber(msgSendTo)) {
+                        Paper.book("send_temp").write("to", msgSendTo)
+                        val sendContent = StringBuilder()
+                        var i = 2
+                        while (i < msgSendList.size) {
+                            if (msgSendList.size != 3 && i != 2) {
+                                sendContent.append("\n")
                             }
-                            if (getActiveCard(applicationContext) == 1) {
-                                sendSms(
-                                    applicationContext,
-                                    msgSendTo,
-                                    sendContent.toString(),
-                                    -1,
-                                    -1
-                                )
-                                return
-                            }
-                            var sendSlot = -1
-                            if (getActiveCard(applicationContext) > 1) {
-                                sendSlot = 0
-                                if (command == "/sendsms2") {
-                                    sendSlot = 1
-                                }
-                            }
-                            val subId = getSubId(
-                                applicationContext, sendSlot
-                            )
-                            if (subId != -1) {
-                                sendSms(
-                                    applicationContext,
-                                    msgSendTo,
-                                    sendContent.toString(),
-                                    sendSlot,
-                                    subId
-                                )
-                                return
-                            }
+                            sendContent.append(msgSendList[i])
+                            ++i
                         }
+                        if (getActiveCard(applicationContext) == 1) {
+                            Paper.book("send_temp").read("slot", -1)
+                            Paper.book("send_temp").write("content", sendContent.toString())
+                        } else {
+                            val subId = getSubId(applicationContext, sendSlot)
+                            Paper.book("send_temp").read("slot", subId)
+                            Paper.book("send_temp").write("content", sendContent.toString())
+                        }
+                    } else {
+                        setSmsSendStatusStandby()
+                        requestBody.text = Template.render(
+                            applicationContext,
+                            "TPL_send_sms_chat",
+                            mapOf(
+                                "SIM" to "",
+                                "Content" to getString(R.string.unable_get_phone_number)
+                            )
+                        )
                     }
+
                 } else {
+                    Log.i(TAG, "Enter the interactive SMS sending mode")
                     Log.i(TAG, "receiveHandle: $messageType")
                     sendSmsNextStatus = SEND_SMS_STATUS.PHONE_INPUT_STATUS
-                    var sendSlot = -1
-                    if (getActiveCard(applicationContext) > 1) {
-                        sendSlot = 0
-                        if (command == "/sendsms2") {
-                            sendSlot = 1
-                        }
-                    }
                     Paper.book("send_temp").write("slot", sendSlot)
                 }
             }
@@ -460,8 +447,6 @@ class ChatService : Service() {
                         return
                     }
                 }
-                /*requestBody.text =
-                    getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command)*/
                 requestBody.text = Template.render(
                     applicationContext, "TPL_system_message",
                     mapOf("Message" to getString(R.string.unknown_command))
@@ -470,6 +455,7 @@ class ChatService : Service() {
         }
 
         if (hasCommand) {
+            Log.i(TAG, "receiveHandle: Enter the state of standby.")
             setSmsSendStatusStandby()
         }
         if (!hasCommand && sendSmsNextStatus != -1) {
@@ -523,6 +509,32 @@ class ChatService : Service() {
 
                 SEND_SMS_STATUS.WAITING_TO_SEND_STATUS -> {
                     Paper.book("send_temp").write("content", requestMsg)
+                    val keyboardMarkup = KeyboardMarkup()
+                    val inlineKeyboardButtons = ArrayList<ArrayList<InlineKeyboardButton>>()
+                    inlineKeyboardButtons.add(
+                        getInlineKeyboardObj(
+                            getString(R.string.send_button),
+                            CALLBACK_DATA_VALUE.SEND
+                        )
+                    )
+                    inlineKeyboardButtons.add(
+                        getInlineKeyboardObj(
+                            getString(R.string.cancel_button),
+                            CALLBACK_DATA_VALUE.CANCEL
+                        )
+                    )
+                    keyboardMarkup.inlineKeyboard = inlineKeyboardButtons
+                    requestBody.replyMarkup = keyboardMarkup
+                    val values = mapOf(
+                        "SIM" to dualSim,
+                        "To" to Paper.book("send_temp").read("to", "").toString(),
+                        "Content" to Paper.book("send_temp").read("content", "").toString()
+                    )
+                    resultSend = Template.render(applicationContext, "TPL_send_sms", values)
+                    sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS
+                }
+
+                SEND_SMS_STATUS.READY_TO_SEND_STATUS -> {
                     val keyboardMarkup = KeyboardMarkup()
                     val inlineKeyboardButtons = ArrayList<ArrayList<InlineKeyboardButton>>()
                     inlineKeyboardButtons.add(
@@ -681,7 +693,7 @@ class ChatService : Service() {
         }
 
     private fun setSmsSendStatusStandby() {
-        Log.d(TAG, "set_sms_send_status_standby: ")
+        Log.d(TAG, "set_sms_send_status_standby")
         sendSmsNextStatus = SEND_SMS_STATUS.STANDBY_STATUS
         Paper.book("send_temp").destroy()
     }
