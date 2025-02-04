@@ -106,10 +106,11 @@ class CcActivity : AppCompatActivity() {
             AdapterView.OnItemClickListener { _: AdapterView<*>?, _: View?, position: Int, _: Long ->
                 val dialog = inflater.inflate(R.layout.set_cc_layout, null)
 
-                val webhook =
+                val har =
                     dialog.findViewById<EditText>(R.id.har_editview)
-                webhook.setText(gson.toJson(serviceList[position].har))
-                webhook.addTextChangedListener(object : TextWatcher {
+                val prettyGson = Gson().newBuilder().setPrettyPrinting().create()
+                har.setText(prettyGson.toJson(serviceList[position].har))
+                har.addTextChangedListener(object : TextWatcher {
                     override fun beforeTextChanged(
                         s: CharSequence?,
                         start: Int,
@@ -129,7 +130,7 @@ class CcActivity : AppCompatActivity() {
                     override fun afterTextChanged(s: Editable?) {
                         val text = s.toString()
                         if (!isValidHarJson(text)) {
-                            webhook.error = getString(R.string.invalid_json_structure)
+                            har.error = getString(R.string.invalid_json_structure)
                         }
                     }
                 })
@@ -145,7 +146,7 @@ class CcActivity : AppCompatActivity() {
                         CcSendService(
                             name = name.text.toString(),
                             enabled = switch.isChecked,
-                            har = gson.fromJson(webhook.text.toString(), HAR::class.java)
+                            har = gson.fromJson(har.text.toString(), HAR::class.java)
                         ).also { serviceList[position] = it }
                         saveAndFlush(serviceList, listAdapter)
                     }

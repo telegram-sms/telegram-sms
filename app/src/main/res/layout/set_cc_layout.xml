@@ -44,7 +44,7 @@
             android:layout_height="wrap_content"
             android:hint="HAR"
             android:importantForAutofill="no"
-            android:inputType="text"
+            android:inputType="textMultiLine"
             android:maxLines="10"
             android:singleLine="false"
             tools:ignore="HardcodedText" />
