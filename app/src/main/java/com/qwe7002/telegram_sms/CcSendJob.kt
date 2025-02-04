@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.PersistableBundle
 import android.util.Log
 import com.google.gson.Gson
+import com.google.gson.JsonParser
 import com.google.gson.reflect.TypeToken
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.CcConfig
@@ -74,7 +75,7 @@ class CcSendJob : JobService() {
                     val request = entry.request
                     val header: Map<String, String> =
                         request.headers.associate { it.name to it.value }
-                    val uriHttp = CcSend.render(request.url,encodeMapper).toHttpUrlOrNull()!!
+                    val uriHttp = CcSend.render(request.url, encodeMapper).toHttpUrlOrNull()!!
                     val httpUrlBuilder: HttpUrl.Builder = uriHttp.newBuilder()
                     val query: Map<String, String> =
                         request.queryString.associate { it.name to it.value }
@@ -114,7 +115,8 @@ class CcSendJob : JobService() {
                                     request.postData.text ?: "",
                                     mapper
                                 )
-                                value.toRequestBody(mimeType)
+                                val jsonElement = JsonParser.parseString(value)
+                                Gson().toJson(jsonElement).toRequestBody(mimeType)
                             }
 
                             else -> {
@@ -131,6 +133,7 @@ class CcSendJob : JobService() {
                             "POST" -> {
                                 FormBody.Builder().build()
                             }
+
                             else -> {
                                 Logs.writeLog(
                                     applicationContext,
@@ -178,7 +181,10 @@ class CcSendJob : JobService() {
                 }
             }
             if (sendList.isNotEmpty()) {
-                Logs.writeLog(applicationContext, "The sending was completed, and a total of ${sendList.size} messages were sent.")
+                Logs.writeLog(
+                    applicationContext,
+                    "The sending was completed, and a total of ${sendList.size} messages were sent."
+                )
             }
             jobFinished(params, false)
         }.start()
