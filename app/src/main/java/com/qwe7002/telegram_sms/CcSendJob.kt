@@ -74,8 +74,8 @@ class CcSendJob : JobService() {
                     val request = entry.request
                     val header: Map<String, String> =
                         request.headers.associate { it.name to it.value }
-                    val uri =request.url.toHttpUrlOrNull()!!
-                    val httpUrlBuilder: HttpUrl.Builder = uri.newBuilder()
+                    val uriHttp = CcSend.render(request.url,encodeMapper).toHttpUrlOrNull()!!
+                    val httpUrlBuilder: HttpUrl.Builder = uriHttp.newBuilder()
                     val query: Map<String, String> =
                         request.queryString.associate { it.name to it.value }
                     for (queryItem in query) {
@@ -126,7 +126,19 @@ class CcSendJob : JobService() {
                             }
                         }
                     } else {
-                        null
+                        when (request.method) {
+                            "GET" -> null
+                            "POST" -> {
+                                FormBody.Builder().build()
+                            }
+                            else -> {
+                                Logs.writeLog(
+                                    applicationContext,
+                                    "The request method is not supported."
+                                )
+                                continue
+                            }
+                        }
                     }
 
                     val sendUrl = CcSend.render(
@@ -166,7 +178,7 @@ class CcSendJob : JobService() {
                 }
             }
             if (sendList.isNotEmpty()) {
-                Logs.writeLog(applicationContext, "The resend failure message is complete.")
+                Logs.writeLog(applicationContext, "The sending was completed, and a total of ${sendList.size} messages were sent.")
             }
             jobFinished(params, false)
         }.start()
