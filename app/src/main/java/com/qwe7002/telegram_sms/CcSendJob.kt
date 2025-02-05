@@ -60,6 +60,7 @@ class CcSendJob : JobService() {
                 if (item.enabled.not()) continue
                 if (item.har.log.entries.isEmpty()) {
                     Log.e("HAR", "onStartJob: " + item.name + " HAR is empty.")
+                    continue
                 }
                 val mapper = mapOf(
                     "Title" to title,
