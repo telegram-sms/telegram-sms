@@ -115,8 +115,12 @@ class CcSendJob : JobService() {
                                     request.postData.text ?: "",
                                     mapper
                                 )
-                                val jsonElement = JsonParser.parseString(value)
-                                Gson().toJson(jsonElement).toRequestBody(mimeType)
+                                if (value.isNotEmpty()) {
+                                    val jsonElement = JsonParser.parseString(value)
+                                    Gson().toJson(jsonElement).toRequestBody(mimeType)
+                                } else {
+                                    "{}".toRequestBody(mimeType)
+                                }
                             }
 
                             else -> {
@@ -183,7 +187,7 @@ class CcSendJob : JobService() {
             if (sendList.isNotEmpty()) {
                 Logs.writeLog(
                     applicationContext,
-                    "The sending was completed, and a total of ${sendList.size} messages were sent."
+                    "The CC sending was completed, and a total of ${sendList.size} messages were sent."
                 )
             }
             jobFinished(params, false)
