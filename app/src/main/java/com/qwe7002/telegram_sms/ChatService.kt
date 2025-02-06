@@ -613,8 +613,7 @@ class ChatService : Service() {
         }
     }
 
-    private val me: Boolean
-        get() {
+    fun getMe(): Boolean {
             val requestUri = getUrl(botToken, "getMe")
             val request = Request.Builder().url(requestUri).build()
             return try {
@@ -662,9 +661,9 @@ private inner class ThreadMainRunnable : Runnable {
         if (parseStringToLong(chatId) < 0) {
             botUsername = Paper.book().read<String>("bot_username", "").toString()
             if (botUsername.isEmpty()) {
-                while (!me) {
-                    writeLog(applicationContext, "Failed to get bot Username, Wait 5 seconds and try again.")
-                    Thread.sleep(5000)
+                while (!getMe()) {
+                    writeLog(applicationContext, "Failed to get bot Username, Wait 1 seconds and try again.")
+                    Thread.sleep(1000)
                 }
             }
             Log.i(TAG, "run: The Bot Username is loaded. The Bot Username is: $botUsername")
