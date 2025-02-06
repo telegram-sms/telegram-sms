@@ -389,6 +389,7 @@ class ChatService : Service() {
                         sendSlot = 1
                     }
                 }
+                Paper.book("send_temp").write("slot", sendSlot)
                 val msgSendList =
                     requestMsg.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                 Log.i(TAG, "msgSendList: " + msgSendList.size)
@@ -400,14 +401,7 @@ class ChatService : Service() {
                     if (isPhoneNumber(msgSendTo)) {
                         Paper.book("send_temp").write("to", msgSendTo)
                         val sendContent = msgSendList.drop(2).joinToString("\n")
-                        if (getActiveCard(applicationContext) == 1) {
-                            Paper.book("send_temp").read("slot", -1)
-                            Paper.book("send_temp").write("content", sendContent)
-                        } else {
-                            val subId = getSubId(applicationContext, sendSlot)
-                            Paper.book("send_temp").read("slot", subId)
-                            Paper.book("send_temp").write("content", sendContent)
-                        }
+                        Paper.book("send_temp").write("content", sendContent)
                     } else {
                         setSmsSendStatusStandby()
                         requestBody.text = Template.render(
@@ -424,7 +418,6 @@ class ChatService : Service() {
                     Log.i(TAG, "Enter the interactive SMS sending mode")
                     Log.i(TAG, "receiveHandle: $messageType")
                     sendSmsNextStatus = SEND_SMS_STATUS.PHONE_INPUT_STATUS
-                    Paper.book("send_temp").write("slot", sendSlot)
                 }
             }
 
@@ -494,7 +487,9 @@ class ChatService : Service() {
                 }
 
                 SEND_SMS_STATUS.WAITING_TO_SEND_STATUS, SEND_SMS_STATUS.READY_TO_SEND_STATUS -> {
-                    Paper.book("send_temp").write("content", requestMsg)
+                    if(sendSmsNextStatus == SEND_SMS_STATUS.WAITING_TO_SEND_STATUS){
+                        Paper.book("send_temp").write("content", requestMsg)
+                    }
                     val keyboardMarkup = KeyboardMarkup().apply {
                         inlineKeyboard = arrayListOf(
                             getInlineKeyboardObj(
