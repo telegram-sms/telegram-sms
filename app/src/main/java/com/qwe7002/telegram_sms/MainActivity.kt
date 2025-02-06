@@ -507,7 +507,10 @@ class MainActivity : AppCompatActivity() {
                     val errorMessage = errorHead + e.message
                     Logs.writeLog(context, errorMessage)
                     Looper.prepare()
-                    Snackbar.make(v!!, errorMessage, Snackbar.LENGTH_LONG)
+                    AlertDialog.Builder(v!!.context)
+                        .setTitle(R.string.error_title)
+                        .setMessage(errorMessage)
+                        .setPositiveButton(R.string.ok_button, null)
                         .show()
                     Looper.loop()
                 }
@@ -524,7 +527,11 @@ class MainActivity : AppCompatActivity() {
                         val errorMessage = errorHead + resultObj["description"]
                         Logs.writeLog(context, errorMessage)
                         Looper.prepare()
-                        Snackbar.make(v!!, errorMessage, Snackbar.LENGTH_LONG).show()
+                        AlertDialog.Builder(v!!.context)
+                            .setTitle(R.string.error_title)
+                            .setMessage(errorMessage)
+                            .setPositiveButton(R.string.ok_button, null)
+                            .show()
                         Looper.loop()
                         return
                     }
@@ -535,6 +542,7 @@ class MainActivity : AppCompatActivity() {
                         )
                         Paper.book().destroy()
                     }
+                    Paper.book("resend").destroy()
                     Paper.book("system_config")
                         .write("version", constValue.SYSTEM_CONFIG_VERSION)
                     checkVersionUpgrade(false)

@@ -105,56 +105,49 @@ object ChatCommand {
         return batteryStringBuilder.toString()
     }
 
-    @Suppress("DEPRECATION")
     private fun getNetworkType(context: Context): String {
-        var netType = "Unknown"
-        val connectManager =
-            checkNotNull(context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager)
-        val telephonyManager =
-            checkNotNull(context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            val networks = connectManager.allNetworks
-            for (network in networks) {
-                val networkCapabilities =
-                    checkNotNull(connectManager.getNetworkCapabilities(network))
-                if (!networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
-                    if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                        netType = "WIFI"
-                    }
-                    if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-                        if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_IMS)) {
-                            continue
-                        }
-                        if (ActivityCompat.checkSelfPermission(
-                                context,
-                                Manifest.permission.READ_PHONE_STATE
-                            ) != PackageManager.PERMISSION_GRANTED
-                        ) {
-                            Log.d("get_network_type", "No permission.")
-                        }
-                        netType = checkCellularNetworkType(telephonyManager.dataNetworkType)
-                    }
-                    if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH)) {
-                        netType = "Bluetooth"
-                    }
-                    if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
-                        netType = "Ethernet"
-                    }
-                }
-            }
-        } else {
-            val activeNetworkInfo = connectManager.activeNetworkInfo ?: return netType
-            netType = when (activeNetworkInfo.type) {
-                ConnectivityManager.TYPE_WIFI -> "WIFI"
-                ConnectivityManager.TYPE_MOBILE -> checkCellularNetworkType(activeNetworkInfo.subtype)
-                else -> netType
-            }
+        val connectManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        val netType = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.N -> getNetworkTypeForNewerVersions(connectManager, telephonyManager, context)
+            else -> getNetworkTypeForOlderVersions(connectManager)
         }
-
         return netType
     }
 
+    private fun getNetworkTypeForNewerVersions(connectManager: ConnectivityManager, telephonyManager: TelephonyManager, context: Context): String {
+        val networks = connectManager.allNetworks
+        for (network in networks) {
+            val networkCapabilities = connectManager.getNetworkCapabilities(network) ?: continue
+            if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) continue
+            when {
+                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> return "WIFI"
+                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
+/*                    if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_IMS)) continue*/
+                    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                        Log.d("get_network_type", "No permission.")
+                        continue
+                    }
+                    return checkCellularNetworkType(telephonyManager.dataNetworkType)
+                }
+                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH) -> return "Bluetooth"
+                networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> return "Ethernet"
+            }
+        }
+        return "Unknown"
+    }
+
+    private fun getNetworkTypeForOlderVersions(connectManager: ConnectivityManager): String {
+        val activeNetworkInfo = connectManager.activeNetworkInfo ?: return "Unknown"
+        return when (activeNetworkInfo.type) {
+            ConnectivityManager.TYPE_WIFI -> "WIFI"
+            ConnectivityManager.TYPE_MOBILE -> checkCellularNetworkType(activeNetworkInfo.subtype)
+            else -> "Unknown"
+        }
+    }
+
     private fun checkCellularNetworkType(type: Int): String {
+        Log.d("checkCellularNetworkType", "checkCellularNetworkType: $type")
         return when (type) {
             TelephonyManager.NETWORK_TYPE_NR -> "NR"
             TelephonyManager.NETWORK_TYPE_LTE -> "LTE"
