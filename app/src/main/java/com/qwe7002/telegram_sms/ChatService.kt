@@ -400,22 +400,14 @@ class ChatService : Service() {
                     )
                     if (isPhoneNumber(msgSendTo)) {
                         Paper.book("send_temp").write("to", msgSendTo)
-                        val sendContent = StringBuilder()
-                        var i = 2
-                        while (i < msgSendList.size) {
-                            if (msgSendList.size != 3 && i != 2) {
-                                sendContent.append("\n")
-                            }
-                            sendContent.append(msgSendList[i])
-                            ++i
-                        }
+                        val sendContent = msgSendList.drop(2).joinToString("\n")
                         if (getActiveCard(applicationContext) == 1) {
                             Paper.book("send_temp").read("slot", -1)
-                            Paper.book("send_temp").write("content", sendContent.toString())
+                            Paper.book("send_temp").write("content", sendContent)
                         } else {
                             val subId = getSubId(applicationContext, sendSlot)
                             Paper.book("send_temp").read("slot", subId)
-                            Paper.book("send_temp").write("content", sendContent.toString())
+                            Paper.book("send_temp").write("content", sendContent)
                         }
                     } else {
                         setSmsSendStatusStandby()

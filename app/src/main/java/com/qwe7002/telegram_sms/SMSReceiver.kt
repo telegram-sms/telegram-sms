@@ -21,7 +21,6 @@ import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
-import com.qwe7002.telegram_sms.static_class.Service
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.USSD
 import com.qwe7002.telegram_sms.value.CcType
@@ -135,72 +134,41 @@ class SMSReceiver : BroadcastReceiver() {
             Logs.writeLog(context, "SMS from trusted mobile phone detected")
             val messageCommand =
                 textContent.lowercase(Locale.getDefault()).replace("_", "").replace("-", "")
-            val commandList =
-                messageCommand.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            val commandList = messageCommand.split("\n").filter { it.isNotEmpty() }.toTypedArray()
             if (commandList.isNotEmpty()) {
-                val messageList =
-                    textContent.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                when (commandList[0].trim { it <= ' ' }) {
-                    "/restartservice" -> {
-                        Thread {
-                            Service.stopAllService(context)
-                            Service.startService(
-                                context,
-                                sharedPreferences.getBoolean("battery_monitoring_switch", false),
-                                sharedPreferences.getBoolean("chat_command", false)
-                            )
-                        }.start()
-                        requestBody.text = Template.render(context,"TPL_system_message", mapOf("Message" to context.getString(R.string.restart_service)))
-                    }
-
+                val messageList = textContent.split("\n").filter { it.isNotEmpty() }.toTypedArray()
+                when (commandList[0].trim()) {
                     "/sendsms", "/sendsms1", "/sendsms2" -> {
-                        if (ContextCompat.checkSelfPermission(
-                                context,
-                                Manifest.permission.SEND_SMS
-                            ) != PackageManager.PERMISSION_GRANTED
-                        ) {
-                            Log.i(TAG, "No SMS permission.")
-                            return
-                        }
                         val messageInfo =
-                            messageList[0].split(" ".toRegex()).dropLastWhile { it.isEmpty() }
-                                .toTypedArray()
+                            messageList[0].split(" ").filter { it.isNotEmpty() }.toTypedArray()
                         if (messageInfo.size == 2) {
                             val msgSendTo = Other.getSendPhoneNumber(messageInfo[1])
                             if (Other.isPhoneNumber(msgSendTo)) {
-                                val msgSendContent = StringBuilder()
-                                var i = 2
-                                while (i < messageList.size) {
-                                    if (i != 2) {
-                                        msgSendContent.append("\n")
-                                    }
-                                    msgSendContent.append(messageList[i])
-                                    ++i
-                                }
+                                val msgSendContent = messageList.drop(2).joinToString("\n")
                                 var sendSlot = slot
                                 if (Other.getActiveCard(context) > 1) {
-                                    when (commandList[0].trim { it <= ' ' }) {
-                                        "/sendsms1" -> sendSlot = 0
-                                        "/sendsms2" -> sendSlot = 1
+                                    sendSlot = when (commandList[0].trim()) {
+                                        "/sendsms1" -> 0
+                                        "/sendsms2" -> 1
+                                        else -> sendSlot
                                     }
                                 }
                                 Thread {
                                     SMS.sendSms(
                                         context,
                                         msgSendTo,
-                                        msgSendContent.toString(),
+                                        msgSendContent,
                                         sendSlot,
                                         Other.getSubId(context, sendSlot)
                                     )
-                                }
-                                    .start()
+                                }.start()
                                 return
                             }
                         }
                     }
 
-                    "/sendussd" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        if (ContextCompat.checkSelfPermission(
+                    "/sendussd" -> {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && ContextCompat.checkSelfPermission(
                                 context,
                                 Manifest.permission.CALL_PHONE
                             ) == PackageManager.PERMISSION_GRANTED
@@ -209,14 +177,15 @@ class SMSReceiver : BroadcastReceiver() {
                                 USSD.sendUssd(context, messageList[1], subId)
                                 return
                             }
+                        } else {
+                            Log.i(TAG, "send_ussd: No permission.")
+                            return
                         }
-                    } else {
-                        Log.i(TAG, "send_ussd: No permission.")
-                        return
                     }
                 }
             }
         }
+
 
         if (!isVerificationCode && !isTrustedPhone) {
             val blackListArray =
