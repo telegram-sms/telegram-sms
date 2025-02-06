@@ -25,7 +25,6 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.PollingBody
-import com.qwe7002.telegram_sms.data_structure.ReplyMarkupKeyboard.InlineKeyboardButton
 import com.qwe7002.telegram_sms.data_structure.ReplyMarkupKeyboard.KeyboardMarkup
 import com.qwe7002.telegram_sms.data_structure.ReplyMarkupKeyboard.getInlineKeyboardObj
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
@@ -94,7 +93,7 @@ class ChatService : Service() {
 
     private fun receiveHandle(resultObj: JsonObject, getIdOnly: Boolean) {
         val updateId = resultObj["update_id"].asLong
-        offset = updateId + 1
+        RequestOffset = updateId + 1
         if (getIdOnly) {
             Log.d(TAG, "receive_handle: get_id_only")
             return
@@ -452,12 +451,8 @@ class ChatService : Service() {
         }
         if (!hasCommand && sendSmsNextStatus != -1) {
             Log.i(TAG, "receive_handle: Enter the interactive SMS sending mode.")
-            var dualSim = ""
-            val sendSlotTemp =
-                Paper.book("send_temp").read("slot", -1)!!
-            if (sendSlotTemp != -1) {
-                dualSim = "SIM" + (sendSlotTemp + 1) + " "
-            }
+            val sendSlotTemp = Paper.book("send_temp").read("slot", -1)!!
+            val dualSim = if (sendSlotTemp != -1) "SIM${sendSlotTemp + 1} " else ""
 
             var resultSend = Template.render(
                 applicationContext,
@@ -465,11 +460,10 @@ class ChatService : Service() {
                 mapOf("SIM" to dualSim, "Content" to getString(R.string.failed_to_get_information))
             )
             Log.d(TAG, "Sending mode status: $sendSmsNextStatus")
-            when (sendSmsNextStatus) {
+            resultSend = when (sendSmsNextStatus) {
                 SEND_SMS_STATUS.PHONE_INPUT_STATUS -> {
                     sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
-                    //resultSend = head + "\n" + getString(R.string.enter_number)
-                    resultSend = Template.render(
+                    Template.render(
                         applicationContext,
                         "TPL_send_sms_chat",
                         mapOf("SIM" to dualSim, "Content" to getString(R.string.enter_number))
@@ -480,15 +474,15 @@ class ChatService : Service() {
                     val tempTo = getSendPhoneNumber(requestMsg)
                     if (isPhoneNumber(tempTo)) {
                         Paper.book("send_temp").write("to", tempTo)
-                        resultSend = Template.render(
+                        sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
+                        Template.render(
                             applicationContext,
                             "TPL_send_sms_chat",
                             mapOf("SIM" to dualSim, "Content" to getString(R.string.enter_content))
                         )
-                        sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
                     } else {
                         setSmsSendStatusStandby()
-                        resultSend = Template.render(
+                        Template.render(
                             applicationContext,
                             "TPL_send_sms_chat",
                             mapOf(
@@ -499,61 +493,33 @@ class ChatService : Service() {
                     }
                 }
 
-                SEND_SMS_STATUS.WAITING_TO_SEND_STATUS -> {
+                SEND_SMS_STATUS.WAITING_TO_SEND_STATUS, SEND_SMS_STATUS.READY_TO_SEND_STATUS -> {
                     Paper.book("send_temp").write("content", requestMsg)
-                    val keyboardMarkup = KeyboardMarkup()
-                    val inlineKeyboardButtons = ArrayList<ArrayList<InlineKeyboardButton>>()
-                    inlineKeyboardButtons.add(
-                        getInlineKeyboardObj(
-                            getString(R.string.send_button),
-                            CALLBACK_DATA_VALUE.SEND
+                    val keyboardMarkup = KeyboardMarkup().apply {
+                        inlineKeyboard = arrayListOf(
+                            getInlineKeyboardObj(
+                                getString(R.string.send_button),
+                                CALLBACK_DATA_VALUE.SEND
+                            ),
+                            getInlineKeyboardObj(
+                                getString(R.string.cancel_button),
+                                CALLBACK_DATA_VALUE.CANCEL
+                            )
                         )
-                    )
-                    inlineKeyboardButtons.add(
-                        getInlineKeyboardObj(
-                            getString(R.string.cancel_button),
-                            CALLBACK_DATA_VALUE.CANCEL
-                        )
-                    )
-                    keyboardMarkup.inlineKeyboard = inlineKeyboardButtons
+                    }
                     requestBody.replyMarkup = keyboardMarkup
                     val values = mapOf(
                         "SIM" to dualSim,
                         "To" to Paper.book("send_temp").read("to", "").toString(),
                         "Content" to Paper.book("send_temp").read("content", "").toString()
                     )
-                    resultSend = Template.render(applicationContext, "TPL_send_sms", values)
                     sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS
+                    Template.render(applicationContext, "TPL_send_sms", values)
                 }
 
-                SEND_SMS_STATUS.READY_TO_SEND_STATUS -> {
-                    val keyboardMarkup = KeyboardMarkup()
-                    val inlineKeyboardButtons = ArrayList<ArrayList<InlineKeyboardButton>>()
-                    inlineKeyboardButtons.add(
-                        getInlineKeyboardObj(
-                            getString(R.string.send_button),
-                            CALLBACK_DATA_VALUE.SEND
-                        )
-                    )
-                    inlineKeyboardButtons.add(
-                        getInlineKeyboardObj(
-                            getString(R.string.cancel_button),
-                            CALLBACK_DATA_VALUE.CANCEL
-                        )
-                    )
-                    keyboardMarkup.inlineKeyboard = inlineKeyboardButtons
-                    requestBody.replyMarkup = keyboardMarkup
-                    val values = mapOf(
-                        "SIM" to dualSim,
-                        "To" to Paper.book("send_temp").read("to", "").toString(),
-                        "Content" to Paper.book("send_temp").read("content", "").toString()
-                    )
-                    resultSend = Template.render(applicationContext, "TPL_send_sms", values)
-                    sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS
-                }
+                else -> resultSend
             }
             requestBody.text = resultSend
-
         }
 
         val requestUri = getUrl(
@@ -649,39 +615,30 @@ class ChatService : Service() {
 
     private val me: Boolean
         get() {
-            val okhttpClientNew = okHttpClient
-            val requestUri =
-                getUrl(botToken, "getMe")
-            val request: Request = Request.Builder().url(requestUri).build()
-            val call = okhttpClientNew.newCall(request)
-            val response: Response
-            try {
-                response = call.execute()
+            val requestUri = getUrl(botToken, "getMe")
+            val request = Request.Builder().url(requestUri).build()
+            return try {
+                val response = okHttpClient.newCall(request).execute()
+                if (response.code == 200) {
+                    val result = response.body.string()
+                    val resultObj = JsonParser.parseString(result).asJsonObject
+                    if (resultObj["ok"].asBoolean) {
+                        botUsername = resultObj["result"].asJsonObject["username"].asString
+                        Paper.book().write("bot_username", botUsername)
+                        Log.d(TAG, "bot_username: $botUsername")
+                        writeLog(applicationContext, "Get the bot username: $botUsername")
+                        true
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                }
             } catch (e: IOException) {
                 e.printStackTrace()
-                writeLog(applicationContext, "Get username failed:" + e.message)
-                return false
+                writeLog(applicationContext, "Get username failed: ${e.message}")
+                false
             }
-            if (response.code == 200) {
-                val result: String
-                try {
-                    result =
-                        Objects.requireNonNull(response.body).string()
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                    return false
-                }
-                val resultObj = JsonParser.parseString(result).asJsonObject
-                if (resultObj["ok"].asBoolean) {
-                    botUsername =
-                        resultObj["result"].asJsonObject["username"].asString
-                    Paper.book().write("bot_username", botUsername)
-                    Log.d(TAG, "bot_username: $botUsername")
-                    writeLog(applicationContext, "Get the bot username: $botUsername")
-                }
-                return true
-            }
-            return false
         }
 
     private fun setSmsSendStatusStandby() {
@@ -699,81 +656,37 @@ class ChatService : Service() {
         super.onDestroy()
     }
 
-    private inner class ThreadMainRunnable : Runnable {
-        override fun run() {
-            Log.d(TAG, "run: thread main start")
-            if (parseStringToLong(chatId) < 0) {
-                botUsername = Paper.book().read<String>("bot_username", "").toString()
-                if (botUsername.isEmpty()) {
-                    while (!me) {
-                        writeLog(
-                            applicationContext,
-                            "Failed to get bot Username, Wait 5 seconds and try again."
-                        )
-                        try {
-                            Thread.sleep(5000)
-                        } catch (e: InterruptedException) {
-                            e.printStackTrace()
-                        }
-                    }
+private inner class ThreadMainRunnable : Runnable {
+    override fun run() {
+        Log.d(TAG, "run: thread main start")
+        if (parseStringToLong(chatId) < 0) {
+            botUsername = Paper.book().read<String>("bot_username", "").toString()
+            if (botUsername.isEmpty()) {
+                while (!me) {
+                    writeLog(applicationContext, "Failed to get bot Username, Wait 5 seconds and try again.")
+                    Thread.sleep(5000)
                 }
-                Log.i(
-                    TAG,
-                    "run: The Bot Username is loaded. The Bot Username is: $botUsername"
-                )
             }
-            while (true) {
-                val timeout = 60
-                val httpTimeout = 65
-                val okhttpClientNew = okHttpClient.newBuilder()
-                    .readTimeout(httpTimeout.toLong(), TimeUnit.SECONDS)
-                    .writeTimeout(httpTimeout.toLong(), TimeUnit.SECONDS)
-                    .build()
-                val requestUri = getUrl(
-                    botToken, "getUpdates"
-                )
-                val requestBody = PollingBody()
-                requestBody.offset = offset
-                requestBody.timeout = timeout
-                if (firstRequest) {
-                    requestBody.timeout = 0
-                    Log.d(TAG, "run: first_request")
-                }
-                val body: RequestBody =
-                    Gson().toJson(requestBody).toRequestBody(constValue.JSON)
-                val request: Request =
-                    Request.Builder().url(requestUri).method("POST", body).build()
-                val call = okhttpClientNew.newCall(request)
-                var response: Response
-                try {
-                    response = call.execute()
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                    if (!checkNetworkStatus(applicationContext)) {
-                        writeLog(
-                            applicationContext,
-                            "No network connections available, Wait for the network to recover."
-                        )
-                        Log.d(TAG, "run: break loop.")
-                        break
-                    }
-                    val sleepTime = 5
-                    writeLog(applicationContext, "Connection to the Telegram API service failed.")
-                    try {
-                        Thread.sleep(sleepTime * 1000L)
-                    } catch (e1: InterruptedException) {
-                        e1.printStackTrace()
-                    }
-                    continue
-                }
-                if (response.code == 200) {
-                    var result: String
-                    try {
-                        result = Objects.requireNonNull(response.body).string()
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                        continue
-                    }
+            Log.i(TAG, "run: The Bot Username is loaded. The Bot Username is: $botUsername")
+        }
+        while (true) {
+            val timeout = 60
+            val httpTimeout = 65
+            val okhttpClientNew = okHttpClient.newBuilder()
+                .readTimeout(httpTimeout.toLong(), TimeUnit.SECONDS)
+                .writeTimeout(httpTimeout.toLong(), TimeUnit.SECONDS)
+                .build()
+            val requestUri = getUrl(botToken, "getUpdates")
+            val requestBody = PollingBody().apply {
+                this.offset = RequestOffset
+                this.timeout = if (firstRequest) 0 else timeout
+            }
+            val body = Gson().toJson(requestBody).toRequestBody(constValue.JSON)
+            val request = Request.Builder().url(requestUri).post(body).build()
+            try {
+                val response = okhttpClientNew.newCall(request).execute()
+                if (response.isSuccessful) {
+                    val result = response.body.string()
                     val resultObj = JsonParser.parseString(result).asJsonObject
                     if (resultObj["ok"].asBoolean) {
                         val resultArray = resultObj["result"].asJsonArray
@@ -783,11 +696,21 @@ class ChatService : Service() {
                         firstRequest = false
                     }
                 } else {
-                    writeLog(applicationContext, "Chat command response code: " + response.code)
+                    writeLog(applicationContext, "Chat command response code: ${response.code}")
                 }
+            } catch (e: IOException) {
+                e.printStackTrace()
+                if (!checkNetworkStatus(applicationContext)) {
+                    writeLog(applicationContext, "No network connections available, Wait for the network to recover.")
+                    Log.d(TAG, "run: break loop.")
+                    break
+                }
+                writeLog(applicationContext, "Connection to the Telegram API service failed.")
+                Thread.sleep(5000)
             }
         }
     }
+}
 
 
     override fun onBind(intent: Intent): IBinder? {
@@ -819,7 +742,7 @@ class ChatService : Service() {
     }
 
     companion object {
-        private var offset: Long = 0
+        private var RequestOffset: Long = 0
         private lateinit var sharedPreferences: SharedPreferences
         private var sendSmsNextStatus = SEND_SMS_STATUS.STANDBY_STATUS
         private lateinit var threadMain: Thread
