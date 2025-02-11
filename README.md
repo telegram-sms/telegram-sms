@@ -1,13 +1,14 @@
 # Telegram SMS
 
 <p align="center">
-<img src="https://vip1.loli.net/2020/09/28/PzWnqVZgcbE7wCv.png" alt="Telegram SMS">
+<img src="https://pic.reallct.com/qwe7002/pic/2025/02/10/67a9d01eee6e3.png" alt="Telegram SMS">
 </p>
 
 ![Min Android Version](https://img.shields.io/badge/Min%20Android%20Version-5.1-orange.svg?style=flat-square)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg?style=flat-square)](https://github.com/telegram-sms/telegram-sms/blob/master/LICENSE)
 [![GitHub Releases](https://img.shields.io/github/downloads/telegram-sms/telegram-sms/latest/app-release.apk?style=flat-square)](https://github.com/telegram-sms/telegram-sms/releases/latest)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=shield&issueType=license)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_shield&issueType=license)
+
 
 
 ## News, Questions and Contributions

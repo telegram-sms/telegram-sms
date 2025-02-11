@@ -26,6 +26,8 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" /> <!-- Required permissions to send USSD -->
     <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.RECEIVE_MMS"/>
+    <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH"/>
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
@@ -47,9 +49,8 @@
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.BROADCAST_WAP_PUSH">
-            <intent-filter android:priority="2147483647">
+            <intent-filter>
                 <action android:name="android.provider.Telephony.WAP_PUSH_DELIVER" />
-
                 <data android:mimeType="application/vnd.wap.mms-message" />
             </intent-filter>
         </receiver>
@@ -134,7 +135,7 @@
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
-            <intent-filter android:priority="2147483647">
+            <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_DELIVER" />
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
@@ -142,7 +143,7 @@
         <receiver
             android:name=".CallReceiver"
             android:exported="true">
-            <intent-filter android:priority="2147483647">
+            <intent-filter>
                 <action android:name="android.intent.action.PHONE_STATE" />
                 <action android:name="android.intent.action.SUBSCRIPTION_PHONE_STATE" />
             </intent-filter>

@@ -268,8 +268,6 @@ class ChatService : Service() {
                     }
                     line = getLine
                 }
-                //requestBody.text =
-                //getString(R.string.system_message_head) + readLog(applicationContext, line)
                 requestBody.text = Template.render(
                     applicationContext, "TPL_system_message",
                     mapOf("Message" to readLog(applicationContext, line))
@@ -278,31 +276,19 @@ class ChatService : Service() {
             }
 
             "/sendussd", "/sendussd1", "/sendussd2" -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    if (ActivityCompat.checkSelfPermission(
-                            applicationContext,
-                            Manifest.permission.CALL_PHONE
-                        ) == PackageManager.PERMISSION_GRANTED
-                    ) {
-                        val commandList =
-                            requestMsg.split(" ".toRegex()).dropLastWhile { it.isEmpty() }
-                                .toTypedArray()
-                        var subId = -1
-                        if (getActiveCard(applicationContext) == 2) {
-                            if (command == "/sendussd2") {
-                                subId = getSubId(
-                                    applicationContext, 1
-                                )
-                            }
-                        }
-                        if (commandList.size == 2) {
-                            sendUssd(applicationContext, commandList[1], subId)
-                            return
-                        }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                    ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+                    val commandList = requestMsg.split(" ").filter { it.isNotEmpty() }
+                    var subId = -1
+                    if (getActiveCard(applicationContext) == 2 && command == "/sendussd2") {
+                        subId = getSubId(applicationContext, 1)
+                    }
+                    if (commandList.size == 2) {
+                        sendUssd(applicationContext, commandList[1], subId)
+                        return
                     }
                 }
-                //requestBody.text =
-                //getString(R.string.system_message_head) + "\n" + getString(R.string.unknown_command)
+
                 requestBody.text = Template.render(
                     applicationContext, "TPL_system_message",
                     mapOf("Message" to getString(R.string.unknown_command))

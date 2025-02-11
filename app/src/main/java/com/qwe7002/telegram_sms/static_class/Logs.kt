@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import com.qwe7002.telegram_sms.R
 import io.paperdb.Paper
-import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -18,49 +17,40 @@ object Logs {
     fun writeLog(context: Context, log: String) {
         Log.i("write_log", log)
         val newFileMode = Context.MODE_APPEND
-        val simpleDateFormat = SimpleDateFormat(context.getString(R.string.time_format), Locale.UK)
+        val simpleDateFormat = SimpleDateFormat(context.getString(R.string.time_format), Locale.getDefault())
         val writeString =
             "\n" + simpleDateFormat.format(Date(System.currentTimeMillis())) + " " + log
         writeLogFile(context, writeString, newFileMode)
     }
 
     @JvmStatic
-    fun readLog(context: Context, line: Int): String {
-        val result = context.getString(R.string.no_logs)
+   fun readLog(context: Context, line: Int): String {
+        val noLogString = context.getString(R.string.no_logs)
         val TAG = "read_file_last_line"
         val builder = StringBuilder()
-        lateinit var fileInputStream: FileInputStream
-        lateinit var channel: FileChannel
         try {
-            fileInputStream = context.openFileInput("error.log")
-            channel = fileInputStream.channel
-            val buffer: ByteBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size())
-            buffer.position(channel.size().toInt())
-            var count = 0
-            for (i in channel.size() - 1 downTo 0) {
-                val c = Char(buffer[i.toInt()].toUShort())
-                builder.insert(0, c)
-                if (c == '\n') {
-                    if (count == (line - 1)) {
-                        break
+            context.openFileInput("error.log").use { fileInputStream ->
+                fileInputStream.channel.use { channel ->
+                    val buffer: ByteBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size())
+                    buffer.position(channel.size().toInt())
+                    var count = 0
+                    for (i in channel.size() - 1 downTo 0) {
+                        val c = Char(buffer[i.toInt()].toUShort())
+                        builder.insert(0, c)
+                        if (c == '\n') {
+                            if (count == (line - 1)) {
+                                break
+                            }
+                            ++count
+                        }
                     }
-                    ++count
                 }
             }
-            return builder.toString().ifEmpty {
-                result
-            }
+            return builder.toString().ifEmpty { noLogString }
         } catch (e: IOException) {
             e.printStackTrace()
             Log.d(TAG, "Unable to read the file.")
-            return result
-        } finally {
-            try {
-                fileInputStream.close()
-                channel.close()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
+            return noLogString
         }
     }
 
