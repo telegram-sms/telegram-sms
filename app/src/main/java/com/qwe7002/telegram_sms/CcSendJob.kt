@@ -138,7 +138,9 @@ class CcSendJob : JobService() {
                             "POST" -> {
                                 FormBody.Builder().build()
                             }
-
+                            "PUT" -> {
+                                FormBody.Builder().build()
+                            }
                             else -> {
                                 Logs.writeLog(
                                     applicationContext,

@@ -8,3 +8,5 @@
 - Fix the problem that the resend service does not start automatically
 - Add message template editing function
 - Add CC function
+- Fixed the issue where the message could not be sent when the message template was empty
+- Fix sms sending failure issue

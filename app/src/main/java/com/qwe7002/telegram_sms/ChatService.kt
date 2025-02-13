@@ -358,8 +358,6 @@ class ChatService : Service() {
                     }.start()
                     return
                 } else {
-                    /*requestBody.text =
-                        getString(R.string.system_message_head) + "\n" + getString(R.string.no_spam_history)*/
                     requestBody.text = Template.render(
                         applicationContext, "TPL_system_message",
                         mapOf("Message" to getString(R.string.no_spam_history))
@@ -594,7 +592,7 @@ class ChatService : Service() {
         }
     }
 
-    fun getMe(): Boolean {
+    private fun getMyUserName(): Boolean {
             val requestUri = getUrl(botToken, "getMe")
             val request = Request.Builder().url(requestUri).build()
             return try {
@@ -642,7 +640,7 @@ private inner class ThreadMainRunnable : Runnable {
         if (parseStringToLong(chatId) < 0) {
             botUsername = Paper.book().read<String>("bot_username", "").toString()
             if (botUsername.isEmpty()) {
-                while (!getMe()) {
+                while (!getMyUserName()) {
                     writeLog(applicationContext, "Failed to get bot Username, Wait 1 seconds and try again.")
                     Thread.sleep(1000)
                 }
