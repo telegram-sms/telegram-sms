@@ -20,6 +20,10 @@ android {
         jvmTarget = '17'
     }
 
+    androidResources {
+        generateLocaleConfig true
+    }
+
     signingConfigs {
         release {
             storeFile file("keys.jks")
