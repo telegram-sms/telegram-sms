@@ -2,5 +2,9 @@
 <resources>
     <string name="app_name" translatable="false">Telegram SMS</string>
     <!-- Modified at 10:00 AM UTC, October 26, 2023 - Added device admin explanation string -->
-    <string name="device_admin_explanation">Enable device admin to allow the app to operate reliably and prevent accidental uninstallation. This is required for the app's core background functionality.</string>
+    <string name="device_admin_explanation">Enable device admin to allow the app to operate reliably and prevent accidental uninstallation. This is required for the app\'s core background functionality.</string>
+    <!-- Modified at 12:00 PM UTC, October 26, 2023 - Strings for MyDeviceAdminReceiver key protection -->
+    <string name="device_admin_disable_warning_no_key">Standard device admin deactivation. No secret key protection is currently configured for this app.</string>
+    <string name="device_admin_disable_authorized">Deactivation previously authorized. You may now proceed to disable Device Admin.</string>
+    <string name="device_admin_disable_protected_message">Deactivation requires authorization. Please open the app, use the \'Authorize Admin Deactivation\' option with your 16-digit secret key to proceed.</string>
 </resources>

@@ -143,6 +143,15 @@
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
+        <!-- Modified at 1:00 PM UTC, October 26, 2023 - Added VerifyAdminDisableActivity -->
+        <activity
+            android:name=".VerifyAdminDisableActivity"
+            android:label="Verify Deactivation"
+            android:theme="@style/AppTheme"
+            android:exported="false">
+            <!-- This activity is only launched internally by the app -->
+        </activity>
+
         <!-- Modified at 10:00 AM UTC, October 26, 2023 - Added MyDeviceAdminReceiver -->
         <receiver
             android:name=".MyDeviceAdminReceiver"

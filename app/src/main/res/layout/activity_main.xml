@@ -153,6 +153,44 @@
                 android:text="@string/using_doh"
                 tools:ignore="RtlSymmetry" />
 
+            <!-- Modified at 12:30 PM UTC, October 26, 2023 - Added UI for setting 16-digit secret key -->
+            <TextView
+                android:id="@+id/secret_key_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Set 16-Digit Secret Key (for admin deactivation protection):" />
+
+            <EditText
+                android:id="@+id/secret_key_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter 16 digits"
+                android:inputType="textPassword"
+                android:maxLength="16" />
+
+            <Button
+                android:id="@+id/save_secret_key_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Save Secret Key" />
+
+            <!-- Modified at 12:30 PM UTC, October 26, 2023 - Added button to launch deactivation authorization -->
+            <Button
+                android:id="@+id/authorize_admin_disable_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Authorize Admin Deactivation" />
+
+            <TextView
+                android:id="@+id/key_status_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Status: Initializing..." />
+
+
             <Button
                 android:id="@+id/get_id_button"
                 android:layout_width="match_parent"

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Modified at 11:30 AM UTC, October 26, 2023 - Layout for VerifyAdminDisableActivity -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enter 16-Digit Secret Key"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/secret_key_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:maxLength="16"
+        android:hint="16-digit key" />
+
+    <Button
+        android:id="@+id/verify_key_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Verify and Authorize" />
+</LinearLayout>

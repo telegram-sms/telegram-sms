@@ -10,6 +10,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 // Modified at 10:00 AM UTC, October 26, 2023 - Added imports for Device Admin
+// Modified at 12:30 PM UTC, October 26, 2023 - Added imports for secret key setup
+import android.widget.TextView;
+import android.widget.Toast;
+// End of modification
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -142,6 +146,45 @@ public class main_activity extends AppCompatActivity {
         final SwitchMaterial DualSimDisplayNameSwitch = findViewById(R.id.display_dual_sim_switch);
         final Button saveButton = findViewById(R.id.save_button);
         final Button getIdButton = findViewById(R.id.get_id_button);
+
+        // Modified at 12:30 PM UTC, October 26, 2023 - Init UI for secret key
+        EditText secretKeyInput = findViewById(R.id.secret_key_input);
+        Button saveSecretKeyButton = findViewById(R.id.save_secret_key_button);
+        Button authorizeAdminDisableButton = findViewById(R.id.authorize_admin_disable_button);
+        TextView keyStatusTextView = findViewById(R.id.key_status_text_view);
+
+        // Modified at 12:30 PM UTC, October 26, 2023 - Display current key status
+        if (KeyHelper.INSTANCE.isKeySet(getApplicationContext())) {
+            keyStatusTextView.setText("Secret key is set. Protection active.");
+        } else {
+            keyStatusTextView.setText("No secret key set. Admin deactivation is not protected by a key.");
+        }
+
+        // Modified at 12:30 PM UTC, October 26, 2023 - Logic to save secret key
+        saveSecretKeyButton.setOnClickListener(v -> {
+            String key = secretKeyInput.getText().toString();
+            if (key.length() == 16) {
+                KeyHelper.INSTANCE.saveKeyHash(getApplicationContext(), key);
+                Toast.makeText(main_activity.this, "Secret key saved and protection enabled.", Toast.LENGTH_SHORT).show();
+                secretKeyInput.setText(""); // Clear input
+                // Update status after saving
+                if (KeyHelper.INSTANCE.isKeySet(getApplicationContext())) {
+                    keyStatusTextView.setText("Secret key is set. Protection active.");
+                }
+            } else {
+                Toast.makeText(main_activity.this, "Secret key must be exactly 16 digits.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Modified at 12:30 PM UTC, October 26, 2023 - Logic to launch VerifyAdminDisableActivity
+        authorizeAdminDisableButton.setOnClickListener(v -> {
+            if (!KeyHelper.INSTANCE.isKeySet(getApplicationContext())) {
+                Toast.makeText(main_activity.this, "Please set a secret key first.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Intent intent = new Intent(main_activity.this, VerifyAdminDisableActivity.class);
+            startActivity(intent);
+        });
 
 
         if (!sharedPreferences.getBoolean("privacy_dialog_agree", false)) {
@@ -572,6 +615,15 @@ public class main_activity extends AppCompatActivity {
                 startActivity(new Intent(main_activity.this, notify_apps_list_activity.class));
             }
         }
+        // Modified at 12:30 PM UTC, October 26, 2023 - Refresh key status on resume
+        TextView keyStatusTextView = findViewById(R.id.key_status_text_view);
+        if (KeyHelper.INSTANCE.isKeySet(getApplicationContext())) {
+            keyStatusTextView.setText("Secret key is set. Protection active.");
+        } else {
+            keyStatusTextView.setText("No secret key set. Admin deactivation is not protected by a key.");
+        }
+        // Also reset the admin disable authorized flag in case the user backed out from VerifyAdminDisableActivity
+        KeyHelper.INSTANCE.setAdminDisableAuthorized(getApplicationContext(), false);
     }
 
     @Override
