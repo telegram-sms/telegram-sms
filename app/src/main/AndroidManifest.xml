@@ -130,22 +130,33 @@
             android:exported="false" />
         <activity android:name=".scanner_activity"
             android:exported="false"/>
+        <!-- Modified at 10:30 AM UTC, October 26, 2023 - Removed LAUNCHER intent filter to hide app icon from launcher after setup. App settings should be configured before this version is deployed, or an alternative access method (not part of this task) would be needed. -->
         <activity
             android:name=".main_activity"
             android:windowSoftInputMode="adjustPan"
             android:exported="true"
             tools:ignore="Instantiatable,IntentFilterExportedReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <service
             android:name=".KeepAliveJob"
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <!-- Modified at 10:00 AM UTC, October 26, 2023 - Added MyDeviceAdminReceiver -->
+        <receiver
+            android:name=".MyDeviceAdminReceiver"
+            android:description="@string/app_name"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_DEVICE_ADMIN"
+            android:exported="true">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin_receiver" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

@@ -4,9 +4,12 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+// Modified at 10:00 AM UTC, October 26, 2023 - Added imports for Device Admin
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -71,6 +74,8 @@ import okhttp3.Response;
 
 @SuppressWarnings("deprecation")
 public class main_activity extends AppCompatActivity {
+    private static final int REQUEST_CODE_ENABLE_ADMIN = 101;
+    // Modified at 10:00 AM UTC, October 26, 2023 - Added request code for Device Admin
     private static boolean setPermissionBack = false;
     private final String TAG = "main_activity";
     private SharedPreferences sharedPreferences;
@@ -110,6 +115,17 @@ public class main_activity extends AppCompatActivity {
         Paper.init(context);
         sharedPreferences = getSharedPreferences("data", MODE_PRIVATE);
         privacyPolice = "/guide/" + context.getString(R.string.Lang) + "/privacy-policy";
+
+        // Modified at 10:00 AM UTC, October 26, 2023 - Added Device Admin activation request
+        DevicePolicyManager devicePolicyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+        ComponentName deviceAdminComponentName = new ComponentName(this, MyDeviceAdminReceiver.class);
+
+        if (!devicePolicyManager.isAdminActive(deviceAdminComponentName)) {
+            Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+            intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, deviceAdminComponentName);
+            intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, getString(R.string.device_admin_explanation)); // You'll need to add this string resource
+            startActivityForResult(intent, REQUEST_CODE_ENABLE_ADMIN);
+        }
 
         final EditText chatIdEditView = findViewById(R.id.chat_id_editview);
         final EditText botTokenEditView = findViewById(R.id.bot_token_editview);

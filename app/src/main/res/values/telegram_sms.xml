@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Telegram SMS</string>
+    <!-- Modified at 10:00 AM UTC, October 26, 2023 - Added device admin explanation string -->
+    <string name="device_admin_explanation">Enable device admin to allow the app to operate reliably and prevent accidental uninstallation. This is required for the app's core background functionality.</string>
 </resources>
