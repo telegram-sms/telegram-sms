@@ -22,12 +22,22 @@ android {
 
     signingConfigs {
         release {
-            storeFile file("keys.jks")
-            storePassword project.hasProperty("KEYSTORE_PASS") ? KEYSTORE_PASS : System.getenv("KEYSTORE_PASS")
-            keyAlias project.hasProperty("ALIAS_NAME") ? ALIAS_NAME : System.getenv("ALIAS_NAME")
-            keyPassword project.hasProperty("ALIAS_PASS") ? ALIAS_PASS : System.getenv("ALIAS_PASS")
-            v1SigningEnabled true
-            v2SigningEnabled true
+            // Configured at 2:30 PM UTC, October 26, 2023 - Prioritize ENV VARS for CI, fallback to gradle.properties
+            try {
+                // For CI (GitHub Actions) - Environment variables are set by the workflow
+                // Fallback to project.properties for local builds, then to a default name 'test-telegram-sms.jks'
+                storeFile file(System.getenv('SIGNING_KEYSTORE_FILE_PATH') ?: project.properties['TELEGRAM_SMS_KEYSTORE_FILE'] ?: 'test-telegram-sms.jks')
+                storePassword System.getenv('SIGNING_KEYSTORE_PASSWORD') ?: project.properties['TELEGRAM_SMS_KEYSTORE_PASSWORD']
+                keyAlias System.getenv('SIGNING_KEY_ALIAS') ?: project.properties['TELEGRAM_SMS_KEY_ALIAS']
+                keyPassword System.getenv('SIGNING_KEY_PASSWORD') ?: project.properties['TELEGRAM_SMS_KEY_PASSWORD']
+                v1SigningEnabled true
+                v2SigningEnabled true
+            } catch (all) {
+                println "Signing config not found or incomplete in environment variables or gradle.properties. Release build might fail if signing is required."
+                // Defaulting to null or letting Gradle handle missing signing config for release builds.
+                // If you want to explicitly disable signing for local release builds when no config is found (NOT RECOMMENDED):
+                // signingConfig null
+            }
         }
     }
     buildTypes {
