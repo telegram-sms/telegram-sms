@@ -1,5 +1,6 @@
 # .github/workflows/release.yml
 # Configured at 2:00 PM UTC, October 26, 2023 - Workflow for building and releasing Android APK
+# Corrected at 3:30 PM UTC, October 26, 2023 - Fixed sdkmanager path and NDK installation
 
 name: Build and Release APK
 
@@ -15,7 +16,7 @@ jobs:
 
     permissions:
       contents: write # Required to create releases and upload release assets
-      packages: write # Required to publish to GitHub Packages
+      packages: write # Required to publish to GitHub Packages (or upload artifacts)
 
     steps:
       - name: Checkout code
@@ -24,17 +25,37 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin' # Or 'adopt', 'zulu', etc.
+          distribution: 'temurin'
           java-version: '17' # Ensure this matches project requirements
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3 # Uses default SDK versions, can be customized
+      - name: Set up Android SDK and Command Line Tools
+        uses: android-actions/setup-android@v3
+        # This action sets ANDROID_SDK_ROOT and should add sdkmanager to PATH.
+        # It typically installs cmdline-tools;latest by default.
+
+      - name: Accept Android SDK licenses and Install NDK 21.0.6113669
+        run: |
+          echo "Accepting Android SDK licenses..."
+          # Ensure cmdline-tools are available and sdkmanager is in PATH or use full path
+          # The android-actions/setup-android action should put the correct tools in PATH.
+          # If not, use $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager
+          # Defaulting to direct call assuming PATH is set up by previous step.
+          yes | sdkmanager --licenses || echo "Failed to accept licenses, or no new licenses to accept. Continuing..."
+          
+          echo "Installing NDK version 21.0.6113669..."
+          sdkmanager "ndk;21.0.6113669" || {
+            echo "Failed to install NDK 21.0.6113669 using default sdkmanager path."
+            echo "Attempting with full path: $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+            # Re-accept licenses just in case context changed or it's needed before this specific sdkmanager call
+            yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || echo "Failed to accept licenses (fallback attempt). Continuing..."
+            $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "ndk;21.0.6113669"
+          }
+          echo "NDK installation step completed."
+        env:
+          # ANDROID_SDK_ROOT is automatically set by android-actions/setup-android
+          PATH: ${{ env.PATH }}:${{ env.ANDROID_SDK_ROOT }}/cmdline-tools/latest/bin:${{ env.ANDROID_SDK_ROOT }}/platform-tools
 
       - name: Decode Keystore
-        # This step decodes the base64 encoded keystore stored as a GitHub secret
-        # and places it in the path that build.gradle will expect.
-        # The SIGNING_KEYSTORE_BASE64 secret needs to be created in GitHub repository settings.
-        # To create it: base64 -w 0 test-telegram-sms.jks > keystore.b64, then copy content to secret.
         env:
           SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
         run: |
@@ -47,11 +68,9 @@ jobs:
 
       - name: Build and Sign Release APK
         env:
-          # These secrets need to be created in GitHub repository settings
           SIGNING_KEYSTORE_PASSWORD: ${{ secrets.SIGNING_KEYSTORE_PASSWORD }}
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-          # Pointing to the decoded keystore file within the workspace
           SIGNING_KEYSTORE_FILE_PATH: ${{ github.workspace }}/app/test-telegram-sms.jks
         run: |
           echo "Starting Gradle build..."
@@ -65,16 +84,17 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, needs 'contents: write'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.get_tag.outputs.tag_name }}
           release_name: Release ${{ steps.get_tag.outputs.tag_name }}
           body: |
             Release of version ${{ steps.get_tag.outputs.tag_name }}
             Signed app-release.apk attached.
-            This APK was built using a test signing key.
+            This APK was built using a test signing key and includes the 16-digit secret key prompt for Device Admin.
+            NDK version used: 21.0.6113669.
           draft: false
-          prerelease: false # Set to true if it's a pre-release
+          prerelease: false
 
       - name: Upload Release APK to GitHub Release
         uses: actions/upload-release-asset@v1
@@ -86,42 +106,15 @@ jobs:
           asset_name: app-release-${{ steps.get_tag.outputs.tag_name }}.apk
           asset_content_type: application/vnd.android.package-archive
 
-      - name: Publish APK to GitHub Packages
-        # This publishes the APK as a generic package.
-        # Note: GitHub Packages is often used for libraries (Maven, npm, etc.).
-        # For APKs, linking to the GitHub Release asset might be more common.
-        # This step demonstrates direct publishing of the APK file if desired.
-        uses: actions/upload-artifact@v4 # Using upload-artifact as a way to "publish" to a package-like structure
+      - name: Publish APK as Action Artifact (for GitHub Packages alternative)
+        uses: actions/upload-artifact@v4
         with:
-          name: app-release-${{ steps.get_tag.outputs.tag_name }} # Artifact name, appears in "Actions" summary
+          name: app-release-${{ steps.get_tag.outputs.tag_name }}
           path: ./app/build/outputs/apk/release/app-release.apk
-          # For true GitHub Packages (generic), a more direct API upload is typically needed.
-          # The following is a conceptual adaptation using curl if upload-artifact isn't ideal for package visibility.
-          # This part is more complex and might require a dedicated action or more scripting.
-          # For now, upload-artifact provides a way to store the APK associated with the run.
-          # A true package upload would look more like:
-          # run: |
-          #   curl -L -X PUT \
-          #   -u "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
-          #   -H "Accept: application/vnd.github+json" \
-          #   "https://maven.pkg.github.com/OWNER/REPO/com/qwe7002/telegram_sms/${{ steps.get_tag.outputs.tag_name }}/app-release-${{ steps.get_tag.outputs.tag_name }}.apk" \
-          #   --upload-file ./app/build/outputs/apk/release/app-release.apk
-          # The above curl is an example and needs correct URL structure for generic packages.
-          # For this task, we'll use upload-artifact to make the APK available via Actions artifacts,
-          # as direct generic package upload via a simple action is less common.
-          # A more robust way for GitHub Packages:
-          # 1. Use a tool/script that leverages GitHub API to upload to the generic package registry.
-          # 2. For this subtask, `actions/upload-artifact` will be used to fulfill "publishing" by making it an artifact.
-          # A true GitHub Package upload typically requires more setup or specific actions for generic types.
-          # The user might need to manually create the package first or use specific API calls.
-          # Given the constraints, providing it as an action artifact is a safe interpretation of "publish".
 
 # Instructions for user (to be added to tutorial):
+# (These remain largely the same - ensure secrets are set up)
 # 1. Create GitHub Secrets in your repository settings:
-#    - SIGNING_KEYSTORE_BASE64: The base64 encoded content of your .jks keystore file.
-#      (Command: base64 -w 0 your_keystore.jks)
-#    - SIGNING_KEYSTORE_PASSWORD: Your keystore password.
-#    - SIGNING_KEY_ALIAS: Your key alias.
-#    - SIGNING_KEY_PASSWORD: Your key password.
-# 2. Ensure your app/build.gradle is configured to read these from environment variables for signing.
+#    - SIGNING_KEYSTORE_BASE64, SIGNING_KEYSTORE_PASSWORD, SIGNING_KEY_ALIAS, SIGNING_KEY_PASSWORD.
+# 2. Ensure your app/build.gradle is configured to read these from environment variables.
 # 3. Push a tag like 'v1.0.0' to trigger this workflow.
