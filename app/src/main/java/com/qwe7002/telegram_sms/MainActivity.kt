@@ -110,6 +110,7 @@ class MainActivity : AppCompatActivity() {
         val messageThreadIdView = findViewById<TextInputLayout>(R.id.message_thread_id_view)
         val trustedPhoneNumberEditView = findViewById<EditText>(R.id.trusted_phone_number_editview)
         val chatCommandSwitch = findViewById<SwitchMaterial>(R.id.chat_command_switch)
+        val callNotifySwitch = findViewById<SwitchMaterial>(R.id.call_notify_switch)
         val fallbackSmsSwitch = findViewById<SwitchMaterial>(R.id.fallback_sms_switch)
         val batteryMonitoringSwitch = findViewById<SwitchMaterial>(R.id.battery_monitoring_switch)
         val chargerStatusSwitch = findViewById<SwitchMaterial>(R.id.charger_status_switch)
@@ -182,6 +183,8 @@ class MainActivity : AppCompatActivity() {
                 chargerStatusSwitch.isChecked = false
             }
         }
+
+        callNotifySwitch.isChecked = sharedPreferences.getBoolean("call_notify", false)
 
         fallbackSmsSwitch.isChecked = sharedPreferences.getBoolean("fallback_sms", false)
         if (trustedPhoneNumberEditView.length() == 0) {
@@ -574,6 +577,7 @@ class MainActivity : AppCompatActivity() {
                     editor.putBoolean("privacy_mode", privacyModeSwitch.isChecked)
                     editor.putBoolean("initialized", true)
                     editor.putBoolean("privacy_dialog_agree", true)
+                    editor.putBoolean("call_notify", callNotifySwitch.isChecked)
                     editor.apply()
                     Thread {
                         ReSendJob.stopJob(context)
@@ -978,6 +982,12 @@ class MainActivity : AppCompatActivity() {
                     privacyModeSwitch,
                     messageThreadIdView
                 )
+
+                val callNotifySwitch = findViewById<SwitchMaterial>(R.id.call_notify_switch)
+                callNotifySwitch.isChecked = jsonConfig.callNotifySwitch
+
+                val dualSimDisplayNameSwitch = findViewById<SwitchMaterial>(R.id.display_dual_sim_switch)
+                dualSimDisplayNameSwitch.isChecked = jsonConfig.dualSimDisplayNameSwitch
 
                 val trustedPhoneNumber = findViewById<EditText>(R.id.trusted_phone_number_editview)
                 trustedPhoneNumber.setText(jsonConfig.trustedPhoneNumber)

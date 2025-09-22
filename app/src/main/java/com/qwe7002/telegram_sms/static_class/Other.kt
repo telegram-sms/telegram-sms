@@ -36,14 +36,15 @@ object Other {
         return result.toString()
     }
 
-    fun parseStringToLong(content: String): Long {
-        var result: Long = 0
-        try {
-            result = content.toLong()
-        } catch (e: NumberFormatException) {
-            e.printStackTrace()
+    fun parseStringToLong(value: String?): Long {
+        if (value.isNullOrBlank()) { // 或者 value.isNullOrEmpty()
+            return 0L // 或者其他合适的默认值，或者抛出自定义异常
         }
-        return result
+        return try {
+            value.toLong()
+        } catch (e: NumberFormatException) {
+            0L // 或者记录错误，然后返回默认值
+        }
     }
 
     fun getSendPhoneNumber(phoneNumber: String): String {

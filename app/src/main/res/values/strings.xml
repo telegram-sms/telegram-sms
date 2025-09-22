@@ -133,4 +133,10 @@
     <string name="this_is_a_test_message">This is a test message.</string>
     <string name="no_service_available">No service available.</string>
     <string name="cc_service_config_title">Please select the service that needs to be copied</string>
+    <string name="call_notify">Notify when call received</string>
+    <string name="receiving_call_title">Receiving Call</string>
+    <string name="Incoming_number">Incoming Number:</string>
+    <string name="app_name_title">App Name:</string>
+    <string name="title">Title:</string>
+    <string name="system_message_head">[System Information]</string>
 </resources>

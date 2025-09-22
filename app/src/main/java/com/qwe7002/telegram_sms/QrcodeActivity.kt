@@ -105,6 +105,8 @@ class QrcodeActivity : AppCompatActivity() {
             sharedPreferences.getBoolean("chat_command", false),
             sharedPreferences.getBoolean("fallback_sms", false),
             sharedPreferences.getBoolean("privacy_mode", false),
+            sharedPreferences.getBoolean("call_notify", false),
+            sharedPreferences.getBoolean("display_dual_sim_display_name", false),
             sharedPreferences.getBoolean("verification_code", false),
             sharedPreferences.getString("message_thread_id", "")!!,
             sendList

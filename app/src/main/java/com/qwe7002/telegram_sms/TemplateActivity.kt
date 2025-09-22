@@ -71,6 +71,11 @@ class TemplateActivity : AppCompatActivity() {
                     "BatteryLevel" to "10"
                 )
             ),
+            Message(
+                getString(R.string.missed_call_title),
+                "TPL_receiving_call",
+                mapOf("SIM" to "SIM1 ", "From" to "+16505551212")
+            ),
         )
 
         val adapter = MessageAdapter(this, messages)

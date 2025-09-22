@@ -27,7 +27,7 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
-import java.util.Objects
+// import java.util.Objects // This import seems unused in the provided snippet
 
 @Suppress("DEPRECATION")
 class CallReceiver : BroadcastReceiver() {
@@ -35,14 +35,17 @@ class CallReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         Paper.init(context)
         Log.d("call_receiver", "Receive action: " + intent.action)
+        // Removed local lateinit var incomingNumber
+
         when (intent.action) {
             "android.intent.action.PHONE_STATE" -> {
-                if (intent.getStringExtra("incoming_number") != null) {
-                    incomingNumber = intent.getStringExtra("incoming_number")!!
-                }
+                // Removed logic that tried to initialize a local incomingNumber
+                // PhoneStatusListener will get the number from its own callback
+
                 val telephony = context
                     .getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-                val customPhoneListener = PhoneStatusListener(context, slot, incomingNumber)
+                // PhoneStatusListener constructor no longer takes incomingNumber
+                val customPhoneListener = PhoneStatusListener(context, slot)
                 telephony.listen(customPhoneListener, PhoneStateListener.LISTEN_CALL_STATE)
             }
             "android.intent.action.SUBSCRIPTION_PHONE_STATE" -> slot =
@@ -52,23 +55,28 @@ class CallReceiver : BroadcastReceiver() {
 
     internal class PhoneStatusListener(
         private val context: Context,
-        private val slot: Int,
-        incomingNumber: String?
+        private val slot: Int
+        // Removed constructor parameter: incomingNumber: String?
     ) : PhoneStateListener() {
-        init {
-            if (incomingNumber != null) {
-                Companion.incomingNumber = incomingNumber
-            }
-        }
+
+        // Removed init block that used constructor's incomingNumber
 
         @Deprecated("Deprecated in Java")
         override fun onCallStateChanged(nowState: Int, nowIncomingNumber: String) {
-            if (lastReceiveStatus == TelephonyManager.CALL_STATE_RINGING
-                && nowState == TelephonyManager.CALL_STATE_IDLE
-            ) {
+            // Use nowIncomingNumber from the callback parameter directly.
+            // It can be an empty string if the number is unknown.
+            val actualIncomingNumber = if (nowIncomingNumber.isNullOrEmpty()) {
+                Log.w("PhoneStatusListener", "Incoming number from callback is null or empty. Using 'Unknown'.")
+                // Consider using a string resource: context.getString(R.string.unknown_caller_id)
+                "Unknown"
+            } else {
+                nowIncomingNumber
+            }
+
+            if (lastReceiveStatus == TelephonyManager.CALL_STATE_IDLE && nowState == TelephonyManager.CALL_STATE_RINGING) {
                 val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
-                if (!sharedPreferences.getBoolean("initialized", false)) {
-                    Log.i("call_status_listener", "Uninitialized, Phone receiver is deactivated.")
+                if (!sharedPreferences.getBoolean("call_notify", true)) {
+                    Log.i("call_status_listener", "Call notifications are disabled by user setting.")
                     return
                 }
                 val botToken = sharedPreferences.getString("bot_token", "")
@@ -83,8 +91,70 @@ class CallReceiver : BroadcastReceiver() {
                     slot,
                     sharedPreferences.getBoolean("display_dual_sim_display_name", false)
                 )
-                requestBody.text = Template.render(context, "TPL_missed_call", mapOf("SIM" to dualSim, "From" to incomingNumber.toString()))
-                CcSendJob.startJob(context,CcType.CALL,context.getString(R.string.missed_call_title), requestBody.text)
+                // Use actualIncomingNumber from the callback
+                requestBody.text = Template.render(context, "TPL_receiving_call", mapOf("SIM" to dualSim, "From" to actualIncomingNumber))
+                CcSendJob.startJob(context, CcType.CALL, context.getString(R.string.receiving_call_title), requestBody.text)
+                val requestBodyRaw = Gson().toJson(requestBody)
+                val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
+                val okhttpObj = Network.getOkhttpObj(
+                    sharedPreferences.getBoolean("doh_switch", true),
+                    Paper.book("system_config").read("proxy_config", proxy())
+                )
+                val request: Request =
+                    Request.Builder().url(requestUri).method("POST", body).build()
+                val call = okhttpObj.newCall(request)
+                val errorHead = "Send receiving call error:"
+                call.enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        e.printStackTrace()
+                        Logs.writeLog(context, "$errorHead ${e.message}")
+                        SMS.fallbackSMS(context, requestBody.text, Other.getSubId(context, slot))
+                        Resend.addResendLoop(context, requestBody.text)
+                    }
+
+                    @Throws(IOException::class)
+                    override fun onResponse(call: Call, response: Response) {
+                        val responseBodyStr = response.body?.string()
+                        if (!response.isSuccessful) {
+                            val errorMessage = "$errorHead ${response.code} $responseBodyStr"
+                            Logs.writeLog(context, errorMessage)
+                            Resend.addResendLoop(context, requestBody.text)
+                        } else {
+                            // Use actualIncomingNumber from the callback
+                            if (!Other.isPhoneNumber(actualIncomingNumber) && actualIncomingNumber != "Unknown") {
+                                Logs.writeLog(
+                                    context,
+                                    "[$actualIncomingNumber] Not a regular phone number."
+                                )
+                                return
+                            }
+                            Other.addMessageList(Other.getMessageId(responseBodyStr ?: ""), actualIncomingNumber, slot)
+                        }
+                    }
+                })
+            }
+            if (lastReceiveStatus == TelephonyManager.CALL_STATE_RINGING && nowState == TelephonyManager.CALL_STATE_IDLE) {
+                val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
+                if (!sharedPreferences.getBoolean("initialized", false)) {
+                    Log.i("call_status_listener", "Uninitialized, Phone receiver is deactivated.")
+                    return
+                }
+
+                val botToken = sharedPreferences.getString("bot_token", "")
+                val chatId = sharedPreferences.getString("chat_id", "")
+                val messageThreadId = sharedPreferences.getString("message_thread_id", "")
+                val requestUri = Network.getUrl(botToken.toString(), "sendMessage")
+                val requestBody = RequestMessage()
+                requestBody.chatId = chatId.toString()
+                requestBody.messageThreadId = messageThreadId.toString()
+                val dualSim = Other.getDualSimCardDisplay(
+                    context,
+                    slot,
+                    sharedPreferences.getBoolean("display_dual_sim_display_name", false)
+                )
+                // Use actualIncomingNumber from the callback
+                requestBody.text = Template.render(context, "TPL_missed_call", mapOf("SIM" to dualSim, "From" to actualIncomingNumber))
+                CcSendJob.startJob(context, CcType.CALL, context.getString(R.string.missed_call_title), requestBody.text)
                 val requestBodyRaw = Gson().toJson(requestBody)
                 val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
                 val okhttpObj = Network.getOkhttpObj(
@@ -98,29 +168,28 @@ class CallReceiver : BroadcastReceiver() {
                 call.enqueue(object : Callback {
                     override fun onFailure(call: Call, e: IOException) {
                         e.printStackTrace()
-                        Logs.writeLog(context, errorHead + e.message)
+                        Logs.writeLog(context, "$errorHead ${e.message}")
                         SMS.fallbackSMS(context, requestBody.text, Other.getSubId(context, slot))
                         Resend.addResendLoop(context, requestBody.text)
                     }
 
                     @Throws(IOException::class)
                     override fun onResponse(call: Call, response: Response) {
-                        if (response.code != 200) {
-                            val errorMessage =
-                                errorHead + response.code + " " + Objects.requireNonNull(response.body)
-                                    .string()
+                        val responseBodyStr = response.body?.string()
+                        if (!response.isSuccessful) {
+                            val errorMessage = "$errorHead ${response.code} $responseBodyStr"
                             Logs.writeLog(context, errorMessage)
                             Resend.addResendLoop(context, requestBody.text)
                         } else {
-                            val result = Objects.requireNonNull(response.body).string()
-                            if (!Other.isPhoneNumber(incomingNumber)) {
+                            // Use actualIncomingNumber from the callback
+                            if (!Other.isPhoneNumber(actualIncomingNumber) && actualIncomingNumber != "Unknown") {
                                 Logs.writeLog(
                                     context,
-                                    "[$incomingNumber] Not a regular phone number."
+                                    "[$actualIncomingNumber] Not a regular phone number."
                                 )
                                 return
                             }
-                            Other.addMessageList(Other.getMessageId(result), incomingNumber, slot)
+                            Other.addMessageList(Other.getMessageId(responseBodyStr ?: ""), actualIncomingNumber, slot)
                         }
                     }
                 })
@@ -130,14 +199,12 @@ class CallReceiver : BroadcastReceiver() {
 
         companion object {
             private var lastReceiveStatus = TelephonyManager.CALL_STATE_IDLE
-            private lateinit var incomingNumber: String
+            // Removed: private lateinit var incomingNumber: String
         }
     }
 
     companion object {
         private var slot = 0
-        private lateinit var incomingNumber: String
+        // Removed: private lateinit var incomingNumber: String
     }
 }
-
-
