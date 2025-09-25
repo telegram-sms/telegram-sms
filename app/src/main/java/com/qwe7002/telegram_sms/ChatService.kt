@@ -87,7 +87,7 @@ class ChatService : Service() {
     private lateinit var killReceiver: StopReceiver
     private lateinit var wakelock: WakeLock
     private lateinit var wifiLock: WifiLock
-    private var botUsername = ""
+    private lateinit var botUsername: String
     private val TAG = "chat_command_service"
     private var privacyMode = false
 
@@ -277,11 +277,7 @@ class ChatService : Service() {
 
             "/sendussd", "/sendussd1", "/sendussd2" -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                    ActivityCompat.checkSelfPermission(
-                        applicationContext,
-                        Manifest.permission.CALL_PHONE
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
+                    ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
                     val commandList = requestMsg.split(" ").filter { it.isNotEmpty() }
                     var subId = -1
                     if (getActiveCard(applicationContext) == 2 && command == "/sendussd2") {
@@ -475,7 +471,7 @@ class ChatService : Service() {
                 }
 
                 SEND_SMS_STATUS.WAITING_TO_SEND_STATUS, SEND_SMS_STATUS.READY_TO_SEND_STATUS -> {
-                    if (sendSmsNextStatus == SEND_SMS_STATUS.WAITING_TO_SEND_STATUS) {
+                    if(sendSmsNextStatus == SEND_SMS_STATUS.WAITING_TO_SEND_STATUS){
                         Paper.book("send_temp").write("content", requestMsg)
                     }
                     val keyboardMarkup = KeyboardMarkup().apply {
@@ -597,31 +593,31 @@ class ChatService : Service() {
     }
 
     private fun getMyUserName(): Boolean {
-        val requestUri = getUrl(botToken, "getMe")
-        val request = Request.Builder().url(requestUri).build()
-        return try {
-            val response = okHttpClient.newCall(request).execute()
-            if (response.code == 200) {
-                val result = response.body.string()
-                val resultObj = JsonParser.parseString(result).asJsonObject
-                if (resultObj["ok"].asBoolean) {
-                    botUsername = resultObj["result"].asJsonObject["username"].asString
-                    Paper.book().write("bot_username", botUsername)
-                    Log.d(TAG, "bot_username: $botUsername")
-                    writeLog(applicationContext, "Get the bot username: $botUsername")
-                    true
+            val requestUri = getUrl(botToken, "getMe")
+            val request = Request.Builder().url(requestUri).build()
+            return try {
+                val response = okHttpClient.newCall(request).execute()
+                if (response.code == 200) {
+                    val result = response.body.string()
+                    val resultObj = JsonParser.parseString(result).asJsonObject
+                    if (resultObj["ok"].asBoolean) {
+                        botUsername = resultObj["result"].asJsonObject["username"].asString
+                        Paper.book().write("bot_username", botUsername)
+                        Log.d(TAG, "bot_username: $botUsername")
+                        writeLog(applicationContext, "Get the bot username: $botUsername")
+                        true
+                    } else {
+                        false
+                    }
                 } else {
                     false
                 }
-            } else {
+            } catch (e: IOException) {
+                e.printStackTrace()
+                writeLog(applicationContext, "Get username failed: ${e.message}")
                 false
             }
-        } catch (e: IOException) {
-            e.printStackTrace()
-            writeLog(applicationContext, "Get username failed: ${e.message}")
-            false
         }
-    }
 
     private fun setSmsSendStatusStandby() {
         Log.d(TAG, "set_sms_send_status_standby")
@@ -638,67 +634,64 @@ class ChatService : Service() {
         super.onDestroy()
     }
 
-    private inner class ThreadMainRunnable : Runnable {
-        override fun run() {
-            Log.d(TAG, "run: thread main start")
-            if (parseStringToLong(chatId) < 0) {
-                botUsername = Paper.book().read<String>("bot_username", "").toString()
-                if (botUsername.isEmpty()) {
-                    while (!getMyUserName()) {
-                        writeLog(
-                            applicationContext,
-                            "Failed to get bot Username, Wait 1 seconds and try again."
-                        )
-                        Thread.sleep(1000)
-                    }
-                }
-                Log.i(TAG, "run: The Bot Username is loaded. The Bot Username is: $botUsername")
+private inner class ThreadMainRunnable : Runnable {
+    override fun run() {
+        Log.d(TAG, "run: thread main start")
+//        if (parseStringToLong(chatId) < 0) {
+        botUsername = Paper.book().read<String>("bot_username", "").toString()
+        if (botUsername.isEmpty() && (privacyMode || parseStringToLong(chatId) < 0)) {
+            while (!getMyUserName()) {
+                writeLog(
+                    applicationContext,
+                    "Failed to get bot Username, Wait 1 seconds and try again."
+                )
+                Thread.sleep(1000)
             }
-            while (true) {
-                val timeout = 60
-                val httpTimeout = 65
-                val okhttpClientNew = okHttpClient.newBuilder()
-                    .readTimeout(httpTimeout.toLong(), TimeUnit.SECONDS)
-                    .writeTimeout(httpTimeout.toLong(), TimeUnit.SECONDS)
-                    .build()
-                val requestUri = getUrl(botToken, "getUpdates")
-                val requestBody = PollingBody().apply {
-                    this.offset = RequestOffset
-                    this.timeout = if (firstRequest) 0 else timeout
-                }
-                val body = Gson().toJson(requestBody).toRequestBody(constValue.JSON)
-                val request = Request.Builder().url(requestUri).post(body).build()
-                try {
-                    val response = okhttpClientNew.newCall(request).execute()
-                    if (response.isSuccessful) {
-                        val result = response.body.string()
-                        val resultObj = JsonParser.parseString(result).asJsonObject
-                        if (resultObj["ok"].asBoolean) {
-                            val resultArray = resultObj["result"].asJsonArray
-                            for (item in resultArray) {
-                                receiveHandle(item.asJsonObject, firstRequest)
-                            }
-                            firstRequest = false
+        }
+        Log.i(TAG, "run: The Bot Username is loaded. The Bot Username is: $botUsername")
+//        }
+        while (true) {
+            val timeout = 60
+            val httpTimeout = 65
+            val okhttpClientNew = okHttpClient.newBuilder()
+                .readTimeout(httpTimeout.toLong(), TimeUnit.SECONDS)
+                .writeTimeout(httpTimeout.toLong(), TimeUnit.SECONDS)
+                .build()
+            val requestUri = getUrl(botToken, "getUpdates")
+            val requestBody = PollingBody().apply {
+                this.offset = RequestOffset
+                this.timeout = if (firstRequest) 0 else timeout
+            }
+            val body = Gson().toJson(requestBody).toRequestBody(constValue.JSON)
+            val request = Request.Builder().url(requestUri).post(body).build()
+            try {
+                val response = okhttpClientNew.newCall(request).execute()
+                if (response.isSuccessful) {
+                    val result = response.body.string()
+                    val resultObj = JsonParser.parseString(result).asJsonObject
+                    if (resultObj["ok"].asBoolean) {
+                        val resultArray = resultObj["result"].asJsonArray
+                        for (item in resultArray) {
+                            receiveHandle(item.asJsonObject, firstRequest)
                         }
-                    } else {
-                        writeLog(applicationContext, "Chat command response code: ${response.code}")
+                        firstRequest = false
                     }
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                    if (!checkNetworkStatus(applicationContext)) {
-                        writeLog(
-                            applicationContext,
-                            "No network connections available, Wait for the network to recover."
-                        )
-                        Log.d(TAG, "run: break loop.")
-                        break
-                    }
-                    writeLog(applicationContext, "Connection to the Telegram API service failed.")
-                    Thread.sleep(5000)
+                } else {
+                    writeLog(applicationContext, "Chat command response code: ${response.code}")
                 }
+            } catch (e: IOException) {
+                e.printStackTrace()
+                if (!checkNetworkStatus(applicationContext)) {
+                    writeLog(applicationContext, "No network connections available, Wait for the network to recover.")
+                    Log.d(TAG, "run: break loop.")
+                    break
+                }
+                writeLog(applicationContext, "Connection to the Telegram API service failed.")
+                Thread.sleep(5000)
             }
         }
     }
+}
 
 
     override fun onBind(intent: Intent): IBinder? {
