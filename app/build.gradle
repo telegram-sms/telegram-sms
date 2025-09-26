@@ -85,18 +85,15 @@ android {
         variant.outputs.all { output ->
             if (variant.buildType.name == "release") {
                 if (currentBranch == "nightly") {
-                    // Your custom name for nightly release
-                    output.outputFileName = "..//telegram-sms-nightly-${commitId}.apk"
+                    // Custom name for nightly release
+                    output.outputFileName = "telegram-sms-nightly-${commitId}.apk"
                 } else if (currentBranch == "master") {
-                    // Your custom name for master release
+                    // Custom name for master release
                     output.outputFileName = "telegram-sms-${commitId}.apk"
                 }
             } else if (variant.buildType.name == "debug") {
-                // For debug builds, we might also want a commit ID!
-                // Let's keep it simple as per your original file for now.
-                // But using commitId here is also a good idea.
                 if (currentBranch == "nightly") {
-                    output.outputFileName = "../nightly/telegram-sms-nightly-debug.apk"
+                    output.outputFileName = ".telegram-sms-nightly-debug-.apk"
                 } else { // Any other branch's debug build
                     output.outputFileName = "telegram-sms-debug.apk"
                 }
