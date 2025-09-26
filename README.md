@@ -7,13 +7,10 @@
 ![Min Android Version](https://img.shields.io/badge/Min%20Android%20Version-5.1-orange.svg?style=flat-square)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg?style=flat-square)](https://github.com/telegram-sms/telegram-sms/blob/master/LICENSE)
 [![GitHub Releases](https://img.shields.io/github/downloads/telegram-sms/telegram-sms/latest/app-release.apk?style=flat-square)](https://github.com/telegram-sms/telegram-sms/releases/latest)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=flat-square)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_shield)
-![nightly pipeline status](https://git.reall.us/telegram-sms/telegram-sms/badges/nightly/pipeline.svg?ignore_skipped=true)
-![Master pipeline status](https://git.reall.us/telegram-sms/telegram-sms/badges/master/pipeline.svg?ignore_skipped=true)
-![Release Status](https://git.reall.us/telegram-sms/telegram-sms/-/badges/release.svg)
-## We're in this together
 
-> Fight COVID-19. Stay at home. Save lives.
+~~## We're in this together
+
+> Fight COVID-19. Stay at home. Save lives.~~
 
 ## News, Questions and Contributions
 

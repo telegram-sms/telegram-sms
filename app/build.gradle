@@ -7,13 +7,28 @@ static def getGitCommitId() {
     }
 }
 
-static def getGitBranch() {
+// For getting git information
+def getGitBranch() {
+    // 优先从 GitLab CI 的环境变量中获取分支名
+    // Prioritize getting the branch name from the GitLab CI environment variable.
+    def ciBranch = System.getenv("CI_COMMIT_REF_NAME")
+    if (ciBranch != null && !ciBranch.isEmpty()) {
+        println "Found CI branch: " + ciBranch
+        return ciBranch
+    }
+
+    // 如果不在 CI 环境中（比如在本地），则回退到使用 git 命令
+    // If not in a CI environment (e.g., locally), fall back to using the git command.
     try {
-        return 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
+        def localBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
+        println "Found local branch: " + localBranch
+        return localBranch
     } catch (e) {
+        println "Could not determine branch, falling back to 'unknown-branch'"
         return "unknown-branch"
     }
 }
+
 
 // Get the branch name before configuring Android, so we can use it directly later.
 def currentBranch = getGitBranch()
@@ -87,13 +102,13 @@ android {
                 if (currentBranch == "nightly") {
                     // Custom name for nightly release
                     output.outputFileName = "telegram-sms-nightly-${commitId}.apk"
-                } else if (currentBranch == "master") {
+                } else {
                     // Custom name for master release
                     output.outputFileName = "telegram-sms-${commitId}.apk"
                 }
             } else if (variant.buildType.name == "debug") {
                 if (currentBranch == "nightly") {
-                    output.outputFileName = ".telegram-sms-nightly-debug-.apk"
+                    output.outputFileName = ".telegram-sms-nightly-debug.apk"
                 } else { // Any other branch's debug build
                     output.outputFileName = "telegram-sms-debug.apk"
                 }
