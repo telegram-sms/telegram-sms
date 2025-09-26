@@ -1,15 +1,19 @@
 # Telegram SMS
 
 <p align="center">
-<img src="https://pic.reallct.com/qwe7002/pic/2025/02/10/67a9d01eee6e3.png" alt="Telegram SMS">
+<img src="https://vip1.loli.net/2020/09/28/PzWnqVZgcbE7wCv.png" alt="Telegram SMS">
 </p>
 
 ![Min Android Version](https://img.shields.io/badge/Min%20Android%20Version-5.1-orange.svg?style=flat-square)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg?style=flat-square)](https://github.com/telegram-sms/telegram-sms/blob/master/LICENSE)
 [![GitHub Releases](https://img.shields.io/github/downloads/telegram-sms/telegram-sms/latest/app-release.apk?style=flat-square)](https://github.com/telegram-sms/telegram-sms/releases/latest)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=shield&issueType=license)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_shield&issueType=license)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms.svg?type=flat-square)](https://app.fossa.io/projects/git%2Bgithub.com%2Fqwe7002%2Ftelegram-sms?ref=badge_shield)
+![nightly pipeline status](https://git.reall.us/telegram-sms/telegram-sms/badges/nightly/pipeline.svg?ignore_skipped=true)
+![Master pipeline status](https://git.reall.us/telegram-sms/telegram-sms/badges/master/pipeline.svg?ignore_skipped=true)
+![Release Status](https://git.reall.us/telegram-sms/telegram-sms/-/badges/release.svg)
+## We're in this together
 
-
+> Fight COVID-19. Stay at home. Save lives.
 
 ## News, Questions and Contributions
 
@@ -59,10 +63,12 @@ You can set this APP as the default SMS APP, which will stop popping up SMS noti
 
 ## User Manual
 
-- [English](https://get.telegram-sms.com/wiki/User_manual)
-- [简体中文](https://get.telegram-sms.com/wiki/用户手册)
-- [繁體中文](https://get.telegram-sms.com/wiki/用戶手冊)
-- [日本語](https://get.telegram-sms.com/wiki/マニュアル)
+- [English](https://telegram-sms.com/user-manual.html)
+- [简体中文](https://telegram-sms.com/zh_cn/user-manual.html)
+- [繁體中文](https://telegram-sms.com/zh_tw/user-manual.html)
+- [日本語](https://telegram-sms.com/ja_jp/user-manual.html)
+- [Español](https://telegram-sms.com/es_es/user-manual.html)
+- [Русский](https://telegram-sms.com/ru_ru/user-manual.html)
 
 ## Licenses
 
@@ -109,19 +115,19 @@ The creation of this APP would not be possible without the help from the followi
 I would also like to thank the following people for their hard work to localise this project:
 
 - English
-  - [@tangbao](https://github.com/tangbao)
-  - [@jixunmoe](https://github.com/jixunmoe) ([Donate](https://paypal.me/jixun))
+    - [@tangbao](https://github.com/tangbao)
+    - [@jixunmoe](https://github.com/jixunmoe) ([Donate](https://paypal.me/jixun))
 - Japanese
-  - [@Lollycc](https://github.com/lollycc)
-  - [@AisakaMk2](https://github.com/AisakaMk2)
-  - [@Qiaogun](https://github.com/Qiaogun)
+    - [@Lollycc](https://github.com/lollycc)
+    - [@AisakaMk2](https://github.com/AisakaMk2)
+    - [@Qiaogun](https://github.com/Qiaogun)
 - Spanish
-  - [@David Alonso](https://github.com/lpdavidgc)
+    - [@David Alonso](https://github.com/lpdavidgc)
 - Chinese(Traditional)
-  - [@lm902](https://github.com/lm902)
-  - [@孟武尼德霍格龍](https://github.com/tony8077616)
+    - [@lm902](https://github.com/lm902)
+    - [@孟武尼德霍格龍](https://github.com/tony8077616)
 - Cantonese (Simp./Trad.) (Remember: these translations are only available when the locale is set/fallbacked to 粵語（香港）or 粤语（中华人民共和国） )
-  - [@ous50](https://github.com/ous50)
+    - [@ous50](https://github.com/ous50)
 
 This APP uses the following public DNS service:
 
@@ -133,5 +139,7 @@ And finally, [sm.ms](https://sm.ms) for hosting images used in this page.
 
 - [via Github](https://get.telegram-sms.com/donate/github)
 - [via Paypal](https://get.telegram-sms.com/donate/paypal)
+- [via Bitcoin](bitcoin:17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae) (**17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae**)
+- [via UnionPay (中国银联云闪付)](https://get.telegram-sms.com/donate/unionpay)
 
 Your donation will make me work better for this project.
