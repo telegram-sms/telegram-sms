@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 android {
     compileSdk 35
     defaultConfig {
-        applicationId 'com.qwe7002.telegram_sms.dev'
+        applicationId 'com.qwe7002.telegram_sms'
         minSdkVersion 22
         //noinspection OldTargetApi
         targetSdk 34

@@ -1,12 +1,56 @@
-- Support android 15
-- Fixed some unexpected errors
-- Convert part of the implementation to Kotlin
-- Add new version detection
-- Upgrade dependent projects
-- Fixed the issue where the language pack could not be loaded properly
-- Fixed the issue where AMEX and other verification codes could not be correctly recognized.
-- Fix the problem that the resend service does not start automatically
-- Add message template editing function
-- Add CC function
-- Fixed the issue where the message could not be sent when the message template was empty
-- Fix sms sending failure issue
+- 修复了发送短信时确认框无法弹出以及状态更新的错误
+- 修复了 Android 13 上推送不显示的问题
+- 修改了编译脚本
+- 更新了项目依赖
+- 修复了在 Android 15 上持续崩溃的问题
+- 增加了对 Telegram Topic (话题) 功能的支持，包括从 Topic ID 获取消息
+- 将多个核心组件从 Java 重构为 Kotlin，以提升性能和可维护性
+- 修复了错误的开关动画效果
+- 修复了启动功能 (Startup function) 的错误
+- 修复了实现错误和 Job 问题
+- 允许从外部应用拉起服务
+- 只在 Release 版本中编译特定代码
+- 修改了键盘功能的实现
+- 为 SDK 33+ 添加了通知权限支持
+- 解耦了部分实现，将函数独立处理
+- 修复了功能并重构了部分实现
+- 移除了过长的包名以优化结构
+- 避免了消息的重复处理
+- 实现了从 Topic ID 获取消息的功能
+- 移除了不再需要的配置更新部分
+- 新增了粤语语言支持
+- 降低了编译目标版本到 30 以保证功能可靠性
+- 修改了自动重发服务的实现，并添加了时间选项
+- 为 Android S (API 31) 实现了 PendingIntent 的正确发布方式
+- 为 API 31 实现了新的 Splashscreen 启动画面
+- 由于功能不稳定，移除了 SIM 卡状态检测功能
+- 替换了旧的函数并修复了语言包错误
+- 优化了背景实现和二维码生成/扫描视图及库
+- 修复了类型转换错误 (Wrong casting)
+- 迁移了构建源，并移除了对 x86 架构的支持
+- 修改了多卡逻辑并修复了短信发送故障
+- 更换了短信指令的实现方式
+- 修复了二维码识别错误和后台服务的 Loop 异常
+- 将多个功能模块 (public_func, service_func) 进行拆分和重构
+- 优化了电池电量显示和判断逻辑
+- 修改了数据结构，将 `proxy_config` 移出
+- 修复了主线程调用 DoH (DNS-over-HTTPS) 导致的 ANR (应用无响应) 问题
+- 支持多行日志显示
+- 修改了二维码生成方法
+- 修复了 ANR 问题并优化了实现
+- 升级了短信黑名单的 UI
+- 优化了 USSD 服务的字母转数字方法
+- 添加了获取应用信息的权限
+- 更新 Kotlin 到 1.4 版本，并修复了获取不到 SIM Slot 信息的问题
+- 更新了 Gradle 和多个核心依赖库的版本
+- 实现了 Socks5 代理和垃圾短信关键词识别功能
+- 修复了在 MIUI 系统下收不到推送的 bug
+- 修复了消息重发 (resend) 时不解析 HTML 的问题
+- 添加了自动重发失败消息的实现
+- 修复了 USSD 发送的 bug
+- 实现了隐私模式，并修复了相关配置保存问题
+- 实现了 `getupdates` 的长连接轮询，替代旧的 Webhook 方式
+- 实现了可控的电源状态监控，并添加了充电状态提示
+- 为网络请求添加了连接池共享，优化了网络性能
+- 实现了短信发送状态的自动编辑更新
+- 实现了自动重启服务和前台服务保活机制
