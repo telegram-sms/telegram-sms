@@ -1,3 +1,24 @@
+// For getting git information
+def getGitCommitId() {
+    try {
+        return 'git rev-parse --short HEAD'.execute().text.trim()
+    } catch (e) {
+        return "unknown-commit"
+    }
+}
+
+def getGitBranch() {
+    try {
+        return 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
+    } catch (e) {
+        return "unknown-branch"
+    }
+}
+
+// Get the branch name before configuring Android, so we can use it directly later.
+def currentBranch = getGitBranch()
+
+
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 android {
@@ -8,7 +29,7 @@ android {
         //noinspection OldTargetApi
         targetSdk 34
         versionCode System.getenv("VERSION_CODE") == null ? 1 : System.getenv("VERSION_CODE").toInteger()
-        versionName System.getenv("VERSION_NAME") == null ? "Debug": System.getenv("VERSION_NAME").toString()
+        versionName System.getenv("VERSION_NAME") == null ? "Debug" : System.getenv("VERSION_NAME").toString()
     }
 
     compileOptions {
@@ -38,13 +59,50 @@ android {
         release {
             minifyEnabled false
             signingConfig signingConfigs.release
-            ndk{
+            ndk {
                 //noinspection ChromeOsAbiSupport
                 abiFilters "armeabi-v7a", "arm64-v8a"
             }
+
+            // Centralized logic for release builds based on branch
+            if (currentBranch == "nightly") {
+                applicationIdSuffix ".nightly"
+                resValue "string", "app_name", "Telegram SMS (Nightly)"
+            }
+            // For master branch, no suffix and default app name are used, so no 'else' is needed.
+        }
+
+        debug {
+            applicationIdSuffix ".debug"
+            resValue "string", "app_name", "Telegram SMS (Debug)"
         }
     }
     namespace 'com.qwe7002.telegram_sms'
+
+    // Centralized output file naming logic
+    applicationVariants.all { variant ->
+        def commitId = getGitCommitId()
+        variant.outputs.all { output ->
+            if (variant.buildType.name == "release") {
+                if (currentBranch == "nightly") {
+                    // Your custom name for nightly release
+                    output.outputFileName = "../../nightly/telegram-sms-nightly-${commitId}.apk"
+                } else if (currentBranch == "master") {
+                    // Your custom name for master release
+                    output.outputFileName = "telegram-sms-${commitId}.apk"
+                }
+            } else if (variant.buildType.name == "debug") {
+                // For debug builds, we might also want a commit ID!
+                // Let's keep it simple as per your original file for now.
+                // But using commitId here is also a good idea.
+                if (currentBranch == "nightly") {
+                    output.outputFileName = "../../nightly/telegram-sms-nightly-debug-${commitId}.apk"
+                } else { // Any other branch's debug build
+                    output.outputFileName = "telegram-sms-debug-${commitId}.apk"
+                }
+            }
+        }
+    }
 }
 
 dependencies {
