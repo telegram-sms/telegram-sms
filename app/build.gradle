@@ -1,5 +1,5 @@
 // For getting git information
-def getGitCommitId() {
+static def getGitCommitId() {
     try {
         return 'git rev-parse --short HEAD'.execute().text.trim()
     } catch (e) {
@@ -7,7 +7,7 @@ def getGitCommitId() {
     }
 }
 
-def getGitBranch() {
+static def getGitBranch() {
     try {
         return 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
     } catch (e) {
@@ -22,7 +22,7 @@ def currentBranch = getGitBranch()
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 android {
-    compileSdk 35
+    compileSdkVersion 36
     defaultConfig {
         applicationId 'com.qwe7002.telegram_sms'
         minSdkVersion 22
@@ -86,7 +86,7 @@ android {
             if (variant.buildType.name == "release") {
                 if (currentBranch == "nightly") {
                     // Your custom name for nightly release
-                    output.outputFileName = "../../nightly/telegram-sms-nightly-${commitId}.apk"
+                    output.outputFileName = "..//telegram-sms-nightly-${commitId}.apk"
                 } else if (currentBranch == "master") {
                     // Your custom name for master release
                     output.outputFileName = "telegram-sms-${commitId}.apk"
@@ -96,9 +96,9 @@ android {
                 // Let's keep it simple as per your original file for now.
                 // But using commitId here is also a good idea.
                 if (currentBranch == "nightly") {
-                    output.outputFileName = "../../nightly/telegram-sms-nightly-debug-${commitId}.apk"
+                    output.outputFileName = "../nightly/telegram-sms-nightly-debug.apk"
                 } else { // Any other branch's debug build
-                    output.outputFileName = "telegram-sms-debug-${commitId}.apk"
+                    output.outputFileName = "telegram-sms-debug.apk"
                 }
             }
         }
