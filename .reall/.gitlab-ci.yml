@@ -9,7 +9,7 @@ cache:
 variables:
   OWNER: telegram-sms
   REPO: telegram-sms
-
+  GIT_DEPTH: 0
 
 build_nightly:
   image: alvrme/alpine-android:android-35-jdk17
@@ -21,6 +21,7 @@ build_nightly:
     - apk --update --no-cache add git openssl bash curl wget
     - echo -n ${KEYSTORE} | base64 -d > app/keys.jks
     - git submodule update --init --recursive
+    - export RELEASE_TAG="${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date +%Y%m%d%H%M)"
     - export VERSION_CODE=${CI_PIPELINE_ID}
     - export VERSION_NAME=${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}
     - export GRADLE_USER_HOME=$(pwd)/.gradle && mkdir -p ${GRADLE_USER_HOME}
@@ -29,8 +30,9 @@ build_nightly:
     - ./gradlew assembleRelease
     - wget https://github.com/tcnksm/ghr/releases/download/v0.17.0/ghr_v0.17.0_linux_amd64.tar.gz
     - tar -zxvf  ghr_v0.17.0_linux_amd64.tar.gz
-    - git push --set-upstream https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
     - ghr_v0.17.0_linux_amd64/ghr -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -b "$(cat .reall/changelog.txt)" --prerelease "${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date "+%Y%m%d%H%M")" "./app/build/outputs/apk/release/"
+    - git remote set-url origin https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git
+    - git push origin "${RELEASE_TAG}"
   artifacts:
     paths:
       - app/build/outputs/apk/release/*.apk
