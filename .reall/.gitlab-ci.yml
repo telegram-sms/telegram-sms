@@ -13,7 +13,7 @@ variables:
 build_nightly:
   image: alvrme/alpine-android:android-35-jdk17
   stage: build
-  retry: 2
+  retry: 1
   only:
     - nightly
   script:
@@ -30,11 +30,11 @@ build_nightly:
     - echo -e "org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true" >> ${GRADLE_USER_HOME}/gradle.properties
     - chmod +x ./gradlew
     - ./gradlew assembleRelease
+    - git remote set-url origin https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git
+    - git push origin "${RELEASE_TAG}"
     - wget https://github.com/tcnksm/ghr/releases/download/v0.17.0/ghr_v0.17.0_linux_amd64.tar.gz
     - tar -zxvf  ghr_v0.17.0_linux_amd64.tar.gz
     - ./ghr_v0.17.0_linux_amd64/ghr -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -b "$(cat .reall/changelog.txt)" --prerelease "${RELEASE_TAG}" "./app/build/outputs/apk/release/"
-    - git remote set-url origin https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git
-    - git push origin "${RELEASE_TAG}"
   artifacts:
     paths:
       - app/build/outputs/apk/release/*.apk
