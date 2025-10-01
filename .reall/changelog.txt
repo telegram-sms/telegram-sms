@@ -3,6 +3,7 @@
 - Dynamically set `applicationIdSuffix` and the application's display name based on the current Git branch (e.g., `nightly`, `debug`), allowing different versions to be installed side-by-side.
 - Introduced a new APK filename convention that includes the short Git commit hash for improved version traceability.
 - Performed minor formatting adjustments in the `.gitlab-ci.yml` configuration for better readability.
+- Renamed Release tag to <buildType>-<buildDate>-<commitSHA256>
 
 > [!NOTE]
 > This update refactors the entire build process to better distinguish between `nightly` and `master` (release) builds.

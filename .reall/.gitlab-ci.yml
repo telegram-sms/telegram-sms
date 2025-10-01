@@ -23,19 +23,17 @@ build_nightly:
     - git config --global user.email "ci-bot@telegram-sms.com"
     - git config --global user.name "GitLab CI Bot"
     - git submodule update --init --recursive
-    - export RELEASE_TAG="${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}-$(date +%Y%m%d%H%M)"
-    - echo ${RELEASE_TAG}
+    - export RELEASE_TAG="${CI_COMMIT_REF_NAME}-$(date +%Y%m%d%H%M)-${CI_COMMIT_SHORT_SHA}"
     - export VERSION_CODE=${CI_PIPELINE_ID}
-    - echo ${VERSION_CODE}
     - export VERSION_NAME=${RELEASE_TAG}
     - export GRADLE_USER_HOME=$(pwd)/.gradle && mkdir -p ${GRADLE_USER_HOME}
     - echo -e "org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true" >> ${GRADLE_USER_HOME}/gradle.properties
     - chmod +x ./gradlew
     - ./gradlew assembleRelease
-    - git push --set-upstream https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
     - wget https://github.com/tcnksm/ghr/releases/download/v0.17.0/ghr_v0.17.0_linux_amd64.tar.gz
     - tar -zxvf  ghr_v0.17.0_linux_amd64.tar.gz
-    - ./ghr_v0.17.0_linux_amd64/ghr -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -b "$(cat .reall/changelog.txt)" --prerelease "${RELEASE_TAG}" "./app/build/outputs/apk/release/"
+    - git push --set-upstream https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
+    - ./ghr_v0.17.0_linux_amd64/ghr -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -c nightly -b "$(cat .reall/changelog.txt)" --prerelease "${RELEASE_TAG}" "./app/build/outputs/apk/release/"
   artifacts:
     paths:
       - app/build/outputs/apk/release/*.apk
@@ -63,11 +61,10 @@ build_release:
     - chmod +x ./gradlew
     - ./gradlew app:copy_language_pack
     - ./gradlew assembleRelease
+    - git push --set-upstream https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
     - wget https://github.com/tcnksm/ghr/releases/download/v0.17.0/ghr_v0.17.0_linux_amd64.tar.gz
     - tar -zxvf  ghr_v0.17.0_linux_amd64.tar.gz
     - ./ghr_v0.17.0_linux_amd64/ghr -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -b "$(cat .reall/changelog.txt)" "${RELEASE_TAG}" "./app/build/outputs/apk/release/"
-    - git remote set-url origin https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git
-    - git push origin "${RELEASE_TAG}"
   artifacts:
     paths:
       - app/build/outputs/apk/release/*.apk
