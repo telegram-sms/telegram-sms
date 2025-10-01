@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
         //load config
         Paper.init(context)
         sharedPreferences = getSharedPreferences("data", MODE_PRIVATE)
-        privacyPolice = "/guide/" + context.getString(R.string.Lang) + "/privacy-policy"
+        privacyPolice = "/privacy-policy"
 
         val chatIdEditView = findViewById<EditText>(R.id.chat_id_editview)
         val botTokenEditView = findViewById<EditText>(R.id.bot_token_editview)
@@ -633,7 +633,7 @@ class MainActivity : AppCompatActivity() {
         builder.setNegativeButton(R.string.decline, null)
         builder.setNeutralButton(R.string.visit_page) { _: DialogInterface?, _: Int ->
             val uri = Uri.parse(
-                "https://get.telegram-sms.com$privacyPolice"
+                "https://telegram-sms.com$privacyPolice"
             )
             val privacyBuilder = CustomTabsIntent.Builder()
             privacyBuilder.setToolbarColor(ContextCompat.getColor(context, R.color.colorPrimary))
@@ -913,16 +913,16 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.user_manual_menu_item -> fileName =
-                "/guide/" + context.getString(R.string.Lang) + "/user-manual"
-
+//                "/guide/" + context.getString(R.string.Lang) + "/user-manual"
+                "/user-manual"
             R.id.privacy_policy_menu_item -> fileName = privacyPolice
             R.id.question_and_answer_menu_item -> fileName =
-                "/guide/" + context.getString(R.string.Lang) + "/Q&A"
-
+//                "/guide/" + context.getString(R.string.Lang) + "/Q&A"
+                "/Q&A"
             R.id.donate_menu_item -> fileName = "/donate"
         }
         checkNotNull(fileName)
-        val uri = Uri.parse("https://get.telegram-sms.com$fileName")
+        val uri = Uri.parse("https://telegram-sms.com$fileName")
         val builder = CustomTabsIntent.Builder()
         val params = CustomTabColorSchemeParams.Builder().setToolbarColor(
             ContextCompat.getColor(
