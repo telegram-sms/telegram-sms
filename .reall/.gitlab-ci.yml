@@ -30,10 +30,7 @@ build_nightly:
     - echo -e "org.gradle.jvmargs=-Xmx1536m\n org.gradle.parallel=true" >> ${GRADLE_USER_HOME}/gradle.properties
     - chmod +x ./gradlew
     - ./gradlew assembleRelease
-    - git remote set-url origin https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git
-    - git tag {RELEASE_TAG}
-    - git push origin nightly
-    - git push origin --tags
+    - git push --set-upstream https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
     - wget https://github.com/tcnksm/ghr/releases/download/v0.17.0/ghr_v0.17.0_linux_amd64.tar.gz
     - tar -zxvf  ghr_v0.17.0_linux_amd64.tar.gz
     - ./ghr_v0.17.0_linux_amd64/ghr -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -b "$(cat .reall/changelog.txt)" --prerelease "${RELEASE_TAG}" "./app/build/outputs/apk/release/"
