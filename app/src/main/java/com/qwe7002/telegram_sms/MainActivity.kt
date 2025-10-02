@@ -116,8 +116,6 @@ class MainActivity : AppCompatActivity() {
         val chargerStatusSwitch = findViewById<SwitchMaterial>(R.id.charger_status_switch)
         val dohSwitch = findViewById<SwitchMaterial>(R.id.doh_switch)
         val verificationCodeSwitch = findViewById<SwitchMaterial>(R.id.verification_code_switch)
-        val privacyModeSwitch = findViewById<SwitchMaterial>(R.id.privacy_switch)
-        val dualSimDisplayNameSwitch = findViewById<SwitchMaterial>(R.id.display_dual_sim_switch)
         val saveButton = findViewById<Button>(R.id.save_button)
         val getIdButton = findViewById<Button>(R.id.get_id_button)
 
@@ -131,10 +129,8 @@ class MainActivity : AppCompatActivity() {
         val messageThreadIdSave = sharedPreferences.getString("message_thread_id", "")!!
 
         if (parseStringToLong(chatIdSave) < 0) {
-            privacyModeSwitch.visibility = View.VISIBLE
             messageThreadIdView.visibility = View.VISIBLE
         } else {
-            privacyModeSwitch.visibility = View.GONE
             messageThreadIdView.visibility = View.GONE
         }
 
@@ -148,20 +144,6 @@ class MainActivity : AppCompatActivity() {
             ReSendJob.startJob(context)
             KeepAliveJob.startJob(context)
         }
-        var dualSimDisplayNameConfig =
-            sharedPreferences.getBoolean("display_dual_sim_display_name", false)
-        if (ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_PHONE_STATE
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            if (getActiveCard(context) < 2) {
-                dualSimDisplayNameSwitch.isEnabled = false
-                dualSimDisplayNameConfig = false
-            }
-            dualSimDisplayNameSwitch.isChecked = dualSimDisplayNameConfig
-        }
-
         botTokenEditView.setText(botTokenSave)
         chatIdEditView.setText(chatIdSave)
         messageThreadIdEditView.setText(messageThreadIdSave)
@@ -215,8 +197,6 @@ class MainActivity : AppCompatActivity() {
         chatCommandSwitch.setOnClickListener {
             privacyModeCheckbox(
                 chatIdEditView.text.toString(),
-                chatCommandSwitch,
-                privacyModeSwitch,
                 messageThreadIdView
             )
         }
@@ -228,40 +208,6 @@ class MainActivity : AppCompatActivity() {
                 !Paper.book("system_config").read("proxy_config", proxy())!!.enable
         }
 
-        privacyModeSwitch.isChecked = sharedPreferences.getBoolean("privacy_mode", false)
-
-        if (ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_PHONE_STATE
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val tm = checkNotNull(getSystemService(TELEPHONY_SERVICE) as TelephonyManager)
-                if (tm.phoneCount <= 1) {
-                    dualSimDisplayNameSwitch.visibility = View.GONE
-                }
-            }
-        }
-        dualSimDisplayNameSwitch.setOnClickListener {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.READ_PHONE_STATE
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                dualSimDisplayNameSwitch.isChecked = false
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.READ_PHONE_STATE),
-                    1
-                )
-            } else {
-                if (getActiveCard(context) < 2) {
-                    dualSimDisplayNameSwitch.isEnabled = false
-                    dualSimDisplayNameSwitch.isChecked = false
-                }
-            }
-        }
-
 
         chatIdEditView.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
@@ -271,8 +217,6 @@ class MainActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
                 privacyModeCheckbox(
                     chatIdEditView.text.toString(),
-                    chatCommandSwitch,
-                    privacyModeSwitch,
                     messageThreadIdView
                 )
             }
@@ -568,13 +512,8 @@ class MainActivity : AppCompatActivity() {
                         batteryMonitoringSwitch.isChecked
                     )
                     editor.putBoolean("charger_status", chargerStatusSwitch.isChecked)
-                    editor.putBoolean(
-                        "display_dual_sim_display_name",
-                        dualSimDisplayNameSwitch.isChecked
-                    )
                     editor.putBoolean("verification_code", verificationCodeSwitch.isChecked)
                     editor.putBoolean("doh_switch", dohSwitch.isChecked)
-                    editor.putBoolean("privacy_mode", privacyModeSwitch.isChecked)
                     editor.putBoolean("initialized", true)
                     editor.putBoolean("privacy_dialog_agree", true)
                     editor.putBoolean("call_notify", callNotifySwitch.isChecked)
@@ -602,21 +541,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun privacyModeCheckbox(
         chatId: String,
-        chatCommand: SwitchMaterial,
-        privacyModeSwitch: SwitchMaterial,
         messageTopicIdView: TextInputLayout
     ) {
-        if (!chatCommand.isChecked) {
-            privacyModeSwitch.visibility = View.GONE
-            privacyModeSwitch.isChecked = false
-        }
         if (parseStringToLong(chatId) < 0) {
             messageTopicIdView.visibility = View.VISIBLE
-            privacyModeSwitch.visibility = View.VISIBLE
         } else {
             messageTopicIdView.visibility = View.GONE
-            privacyModeSwitch.visibility = View.GONE
-            privacyModeSwitch.isChecked = false
         }
     }
 
@@ -694,23 +624,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 val intent = Intent(context, ScannerActivity::class.java)
                 startActivityForResult(intent, 1)
-            }
-
-            1 -> {
-                val dualSimDisplayName = findViewById<SwitchMaterial>(R.id.display_dual_sim_switch)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                        val tm =
-                            checkNotNull(getSystemService(TELEPHONY_SERVICE) as TelephonyManager)
-                        if (tm.phoneCount <= 1 || getActiveCard(
-                                context
-                            ) < 2
-                        ) {
-                            dualSimDisplayName.isEnabled = false
-                            dualSimDisplayName.isChecked = false
-                        }
-                    }
-                }
             }
         }
     }
@@ -915,10 +828,12 @@ class MainActivity : AppCompatActivity() {
             R.id.user_manual_menu_item -> fileName =
 //                "/guide/" + context.getString(R.string.Lang) + "/user-manual"
                 "/user-manual"
+
             R.id.privacy_policy_menu_item -> fileName = privacyPolice
             R.id.question_and_answer_menu_item -> fileName =
 //                "/guide/" + context.getString(R.string.Lang) + "/Q&A"
                 "/Q&A"
+
             R.id.donate_menu_item -> fileName = "/donate"
         }
         checkNotNull(fileName)
@@ -972,22 +887,16 @@ class MainActivity : AppCompatActivity() {
 
                 val chatCommand = findViewById<SwitchMaterial>(R.id.chat_command_switch)
                 chatCommand.isChecked = jsonConfig.chatCommand
-                val privacyModeSwitch = findViewById<SwitchMaterial>(R.id.privacy_switch)
-                privacyModeSwitch.isChecked = jsonConfig.privacyMode
                 val messageThreadIdView = findViewById<TextInputLayout>(R.id.message_thread_id_view)
 
                 privacyModeCheckbox(
                     jsonConfig.chatId,
-                    chatCommand,
-                    privacyModeSwitch,
                     messageThreadIdView
                 )
 
                 val callNotifySwitch = findViewById<SwitchMaterial>(R.id.call_notify_switch)
                 callNotifySwitch.isChecked = jsonConfig.callNotifySwitch
 
-                val dualSimDisplayNameSwitch = findViewById<SwitchMaterial>(R.id.display_dual_sim_switch)
-                dualSimDisplayNameSwitch.isChecked = jsonConfig.dualSimDisplayNameSwitch
 
                 val trustedPhoneNumber = findViewById<EditText>(R.id.trusted_phone_number_editview)
                 trustedPhoneNumber.setText(jsonConfig.trustedPhoneNumber)

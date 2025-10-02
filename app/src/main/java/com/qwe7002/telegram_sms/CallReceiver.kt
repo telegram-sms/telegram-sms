@@ -27,7 +27,6 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
-// import java.util.Objects // This import seems unused in the provided snippet
 
 @Suppress("DEPRECATION")
 class CallReceiver : BroadcastReceiver() {
@@ -88,8 +87,7 @@ class CallReceiver : BroadcastReceiver() {
                 requestBody.messageThreadId = messageThreadId.toString()
                 val dualSim = Other.getDualSimCardDisplay(
                     context,
-                    slot,
-                    sharedPreferences.getBoolean("display_dual_sim_display_name", false)
+                    slot
                 )
                 // Use actualIncomingNumber from the callback
                 requestBody.text = Template.render(context, "TPL_receiving_call", mapOf("SIM" to dualSim, "From" to actualIncomingNumber))
@@ -149,8 +147,7 @@ class CallReceiver : BroadcastReceiver() {
                 requestBody.messageThreadId = messageThreadId.toString()
                 val dualSim = Other.getDualSimCardDisplay(
                     context,
-                    slot,
-                    sharedPreferences.getBoolean("display_dual_sim_display_name", false)
+                    slot
                 )
                 // Use actualIncomingNumber from the callback
                 requestBody.text = Template.render(context, "TPL_missed_call", mapOf("SIM" to dualSim, "From" to actualIncomingNumber))

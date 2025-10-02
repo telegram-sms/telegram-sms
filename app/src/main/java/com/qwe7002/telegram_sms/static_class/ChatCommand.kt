@@ -1,6 +1,7 @@
 package com.qwe7002.telegram_sms.static_class
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -11,6 +12,7 @@ import android.os.BatteryManager
 import android.os.Build
 import android.telephony.TelephonyManager
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import com.qwe7002.telegram_sms.R
 import io.paperdb.Paper
@@ -22,7 +24,6 @@ object ChatCommand {
         context: Context,
         command: String,
         isPrivate: Boolean,
-        privacyMode: Boolean,
         botUsername: String
     ): String {
         var smsCommand = context.getString(R.string.sendsms)
@@ -49,7 +50,7 @@ object ChatCommand {
         }else {
             Template.render(context,"TPL_system_message", mapOf("Message" to context.getString(R.string.available_command) + "\n" + smsCommand + ussdCommand))
         }
-        if (!isPrivate && privacyMode && botUsername.isNotEmpty()) {
+        if (!isPrivate && botUsername.isNotEmpty()) {
             result = result.replace(" -", "@$botUsername -")
         }
         return result
@@ -59,9 +60,9 @@ object ChatCommand {
     fun getInfo(context: Context): String {
         var cardInfo = ""
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-            cardInfo = "\nSIM: " + Other.getSimDisplayName(context, 0)
+            cardInfo = "\nSIM: " + Phone.getSimDisplayName(context, 0)
             if (Other.getActiveCard(context) == 2) {
-                cardInfo = "\nSIM1: " + Other.getSimDisplayName(context, 0) + "\nSIM2: " + Other.getSimDisplayName(context, 1)
+                cardInfo = "\nSIM1: " + Phone.getSimDisplayName(context, 0) + "\nSIM2: " + Phone.getSimDisplayName(context, 1)
             }
         }
         var spamCount = ""
@@ -115,6 +116,7 @@ object ChatCommand {
         return netType
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     private fun getNetworkTypeForNewerVersions(connectManager: ConnectivityManager, telephonyManager: TelephonyManager, context: Context): String {
         val networks = connectManager.allNetworks
         for (network in networks) {
@@ -146,6 +148,7 @@ object ChatCommand {
         }
     }
 
+    @SuppressLint("LongLogTag")
     private fun checkCellularNetworkType(type: Int): String {
         Log.d("checkCellularNetworkType", "checkCellularNetworkType: $type")
         return when (type) {

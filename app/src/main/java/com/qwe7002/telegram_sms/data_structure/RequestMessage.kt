@@ -19,4 +19,7 @@ class RequestMessage {
     lateinit var messageThreadId: String
     @SerializedName(value = "reply_markup")
     lateinit var replyMarkup: KeyboardMarkup
+
+    @SerializedName(value = "disable_notification")
+    var disableNotification: Boolean = false
 }

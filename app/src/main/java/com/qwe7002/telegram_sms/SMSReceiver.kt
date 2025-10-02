@@ -78,7 +78,6 @@ class SMSReceiver : BroadcastReceiver() {
         val dualSim = Other.getDualSimCardDisplay(
             context,
             intentSlot,
-            sharedPreferences.getBoolean("display_dual_sim_display_name", false)
         )
 
         val pdus = (extras["pdus"] as Array<*>?)!!
@@ -191,26 +190,9 @@ class SMSReceiver : BroadcastReceiver() {
             val blackListArray =
                 Paper.book("system_config").read("block_keyword_list", ArrayList<String>())!!
             for (blackListItem in blackListArray) {
-                if (blackListItem.isEmpty()) {
-                    continue
-                }
-
                 if (textContent.contains(blackListItem)) {
-                    val simpleDateFormat =
-                        SimpleDateFormat(context.getString(R.string.time_format), Locale.UK)
-                    val writeMessage =
-                        requestBody.text + "\n" + context.getString(R.string.time) + simpleDateFormat.format(
-                            Date(System.currentTimeMillis())
-                        )
-                    Paper.init(context)
-                    val spamSmsList = Paper.book().read("spam_sms_list", ArrayList<String>())!!
-                    if (spamSmsList.size >= 5) {
-                        spamSmsList.removeAt(0)
-                    }
-                    spamSmsList.add(writeMessage)
-                    Paper.book().write("spam_sms_list", spamSmsList)
-                    Log.i(TAG, "Detected message contains blacklist keywords, add spam list")
-                    return
+                    Log.i(TAG, "Detected message contains blacklist keywords")
+                    requestBody.disableNotification = true
                 }
             }
         }

@@ -138,22 +138,6 @@
                 tools:ignore="RtlSymmetry" />
 
             <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/display_dual_sim_switch"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="3dp"
-                android:text="@string/display_sim_card_alias_in_dual_card_mode"
-                tools:ignore="RtlSymmetry" />
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/privacy_switch"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="3dp"
-                android:text="@string/using_privacy_mode"
-                tools:ignore="RtlSymmetry" />
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/doh_switch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

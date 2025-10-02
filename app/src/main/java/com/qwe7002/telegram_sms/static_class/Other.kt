@@ -42,7 +42,7 @@ object Other {
         }
         return try {
             value.toLong()
-        } catch (e: NumberFormatException) {
+        } catch (_: NumberFormatException) {
             0L // 或者记录错误，然后返回默认值
         }
     }
@@ -59,20 +59,6 @@ object Other {
         return result.toString()
     }
 
-    fun getDualSimCardDisplay(context: Context, slot: Int, showName: Boolean): String {
-        var dualSim = ""
-        if (slot == -1) {
-            return dualSim
-        }
-        if (getActiveCard(context) >= 2) {
-            var result = ""
-            if (showName) {
-                result = "(" + getSimDisplayName(context, slot) + ")"
-            }
-            dualSim = "SIM" + (slot + 1) + result +" "
-        }
-        return dualSim
-    }
 
     fun isPhoneNumber(str: String): Boolean {
         var i = str.length
@@ -154,40 +140,6 @@ object Other {
         val subscriptionManager =
             checkNotNull(context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager)
         return subscriptionManager.activeSubscriptionInfoCount
-    }
-
-
-    fun getSimDisplayName(context: Context, slot: Int): String {
-        val TAG = "get_sim_display_name"
-        var result = "Unknown"
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_PHONE_STATE
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            Log.d(TAG, "No permission.")
-            return result
-        }
-        val subscriptionManager =
-            checkNotNull(context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager)
-        var info = subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(slot)
-        if (info == null) {
-            Log.d(TAG, "The active card is in the second card slot.")
-            if (getActiveCard(context) == 1 && slot == 0) {
-                info = subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(1)
-            }
-            if (info == null) {
-                return result
-            }
-            return result
-        }
-        result = info.displayName.toString()
-        if (info.displayName.toString().contains("CARD") || info.displayName.toString()
-                .contains("SUB")
-        ) {
-            result = info.carrierName.toString()
-        }
-        return result
     }
 
 
