@@ -25,7 +25,7 @@ import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.USSD
 import com.qwe7002.telegram_sms.value.CcType
-import com.qwe7002.telegram_sms.value.constValue
+import com.qwe7002.telegram_sms.value.Const
 import io.paperdb.Paper
 import okhttp3.Call
 import okhttp3.Callback
@@ -34,8 +34,6 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 import java.util.Objects
 
@@ -212,7 +210,7 @@ class SMSReceiver : BroadcastReceiver() {
             requestBodyText,
             verificationCode
         )
-        val body: RequestBody = Gson().toJson(requestBody).toRequestBody(constValue.JSON)
+        val body: RequestBody = Gson().toJson(requestBody).toRequestBody(Const.JSON)
         val okhttpObj = Network.getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),
             Paper.book("system_config").read("proxy_config", proxy())

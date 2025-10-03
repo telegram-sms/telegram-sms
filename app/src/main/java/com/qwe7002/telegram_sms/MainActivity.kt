@@ -12,13 +12,11 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
-import android.telephony.TelephonyManager
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -47,13 +45,12 @@ import com.qwe7002.telegram_sms.data_structure.ScannerJson
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network.getOkhttpObj
 import com.qwe7002.telegram_sms.static_class.Network.getUrl
-import com.qwe7002.telegram_sms.static_class.Other.getActiveCard
 import com.qwe7002.telegram_sms.static_class.Other.parseStringToLong
 import com.qwe7002.telegram_sms.static_class.Service.isNotifyListener
 import com.qwe7002.telegram_sms.static_class.Service.startService
 import com.qwe7002.telegram_sms.static_class.Service.stopAllService
 import com.qwe7002.telegram_sms.static_class.Template
-import com.qwe7002.telegram_sms.value.constValue
+import com.qwe7002.telegram_sms.value.Const
 import io.paperdb.Paper
 import okhttp3.Call
 import okhttp3.Callback
@@ -253,7 +250,7 @@ class MainActivity : AppCompatActivity() {
                 .build()
             val requestBody = PollingBody()
             requestBody.timeout = 60
-            val body: RequestBody = RequestBody.create(constValue.JSON, Gson().toJson(requestBody))
+            val body: RequestBody = RequestBody.create(Const.JSON, Gson().toJson(requestBody))
             val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
             val call = okhttpClient.newCall(request)
             progressDialog.setOnKeyListener { _: DialogInterface?, _: Int, keyEvent: KeyEvent ->
@@ -439,7 +436,7 @@ class MainActivity : AppCompatActivity() {
             )
             val gson = Gson()
             val requestBodyRaw = gson.toJson(requestBody)
-            val body: RequestBody = RequestBody.create(constValue.JSON, requestBodyRaw)
+            val body: RequestBody = RequestBody.create(Const.JSON, requestBodyRaw)
             val okhttpObj = getOkhttpObj(
                 dohSwitch.isChecked,
                 Paper.book("system_config").read("proxy_config", proxy())
@@ -491,7 +488,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     Paper.book("resend").destroy()
                     Paper.book("system_config")
-                        .write("version", constValue.SYSTEM_CONFIG_VERSION)
+                        .write("version", Const.SYSTEM_CONFIG_VERSION)
                     checkVersionUpgrade(false)
                     val editor = sharedPreferences.edit().clear()
                     editor.putString("bot_token", newBotToken)
@@ -861,7 +858,7 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 1) {
-            if (resultCode == constValue.RESULT_CONFIG_JSON) {
+            if (resultCode == Const.RESULT_CONFIG_JSON) {
                 val gson = Gson()
                 val jsonConfig = gson.fromJson(
                     data!!.getStringExtra("config_json"),

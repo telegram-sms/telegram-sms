@@ -42,7 +42,7 @@ import com.qwe7002.telegram_sms.static_class.AES
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Template
-import com.qwe7002.telegram_sms.value.constValue
+import com.qwe7002.telegram_sms.value.Const
 import io.paperdb.Paper
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -441,7 +441,7 @@ class CcActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         Log.d("onActivityResult", "onActivityResult: $resultCode")
         if (requestCode == 1) {
-            if (resultCode == constValue.RESULT_CONFIG_JSON) {
+            if (resultCode == Const.RESULT_CONFIG_JSON) {
                 val gson = Gson()
                 val jsonConfig = gson.fromJson(
                     data!!.getStringExtra("config_json"),

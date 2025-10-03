@@ -30,7 +30,7 @@ import com.qwe7002.telegram_sms.data_structure.ScannerJson
 import com.qwe7002.telegram_sms.static_class.AES
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
-import com.qwe7002.telegram_sms.value.constValue
+import com.qwe7002.telegram_sms.value.Const
 import io.paperdb.Paper
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -205,7 +205,7 @@ class QrcodeActivity : AppCompatActivity() {
                             val decryptConfig =
                                 AES.decrypt(responseBody, AES.getKeyFromString(password))
                             val intent = Intent().putExtra("config_json", decryptConfig)
-                            setResult(constValue.RESULT_CONFIG_JSON, intent)
+                            setResult(Const.RESULT_CONFIG_JSON, intent)
                             finish()
                         } catch (e: Exception) {
                             Logs.writeLog(

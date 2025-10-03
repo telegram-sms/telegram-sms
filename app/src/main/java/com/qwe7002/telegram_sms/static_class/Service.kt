@@ -10,12 +10,12 @@ import androidx.core.app.NotificationManagerCompat
 import com.qwe7002.telegram_sms.BatteryService
 import com.qwe7002.telegram_sms.NotificationService
 import com.qwe7002.telegram_sms.ChatService
-import com.qwe7002.telegram_sms.value.constValue
+import com.qwe7002.telegram_sms.value.Const
 
 object Service {
     @JvmStatic
     fun stopAllService(context: Context) {
-        val intent = Intent(constValue.BROADCAST_STOP_SERVICE)
+        val intent = Intent(Const.BROADCAST_STOP_SERVICE)
         context.sendBroadcast(intent)
         try {
             Thread.sleep(1000)

@@ -23,8 +23,8 @@ import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.CcType
-import com.qwe7002.telegram_sms.value.constValue
-import com.qwe7002.telegram_sms.value.notifyId
+import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.Notify
 import io.paperdb.Paper
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -52,12 +52,12 @@ class BatteryService : Service() {
             )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(
-                notifyId.BATTERY,
+                Notify.BATTERY,
                 notification,
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
             )
         } else {
-            startForeground(notifyId.BATTERY, notification)
+            startForeground(Notify.BATTERY, notification)
         }
         return START_STICKY
     }
@@ -80,7 +80,7 @@ class BatteryService : Service() {
             filter.addAction(Intent.ACTION_POWER_CONNECTED)
             filter.addAction(Intent.ACTION_POWER_DISCONNECTED)
         }
-        filter.addAction(constValue.BROADCAST_STOP_SERVICE)
+        filter.addAction(Const.BROADCAST_STOP_SERVICE)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             registerReceiver(batteryReceiver, filter, RECEIVER_EXPORTED)
         } else {
@@ -126,7 +126,7 @@ class BatteryService : Service() {
             Paper.book("system_config").read("proxy_config", proxy())
         )
         val requestBodyRaw = Gson().toJson(requestMessage)
-        val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
+        val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpObj.newCall(request)
         val errorHead = "Send battery info failed:"
@@ -169,7 +169,7 @@ class BatteryService : Service() {
             val TAG = "battery_receiver"
             assert(intent.action != null)
             Log.d(TAG, "Receive action: " + intent.action)
-            if (intent.action == constValue.BROADCAST_STOP_SERVICE) {
+            if (intent.action == Const.BROADCAST_STOP_SERVICE) {
                 Log.i(TAG, "Received stop signal, quitting now...")
                 stopSelf()
                 Process.killProcess(Process.myPid())

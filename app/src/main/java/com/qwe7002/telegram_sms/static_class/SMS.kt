@@ -16,7 +16,7 @@ import com.qwe7002.telegram_sms.R
 import com.qwe7002.telegram_sms.SMSSendResultReceiver
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
-import com.qwe7002.telegram_sms.value.constValue
+import com.qwe7002.telegram_sms.value.Const
 import io.paperdb.Paper
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -80,7 +80,7 @@ object SMS {
         requestBody.messageId = messageId
         val gson = Gson()
         val requestBodyRaw = gson.toJson(requestBody)
-        val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
+        val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
         val okhttpClient = Network.getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),
             Paper.book("system_config").read("proxy_config", proxy())

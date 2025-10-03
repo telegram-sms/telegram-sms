@@ -21,7 +21,7 @@ import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.CcType
-import com.qwe7002.telegram_sms.value.constValue
+import com.qwe7002.telegram_sms.value.Const
 import io.paperdb.Paper
 import okhttp3.Call
 import okhttp3.Callback
@@ -94,7 +94,7 @@ class CallReceiver : BroadcastReceiver() {
                 requestBody.text = Template.render(context, "TPL_receiving_call", mapOf("SIM" to dualSim, "From" to actualIncomingNumber))
                 CcSendJob.startJob(context, CcType.CALL, context.getString(R.string.receiving_call_title), requestBody.text)
                 val requestBodyRaw = Gson().toJson(requestBody)
-                val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
+                val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
                 val okhttpObj = Network.getOkhttpObj(
                     sharedPreferences.getBoolean("doh_switch", true),
                     Paper.book("system_config").read("proxy_config", proxy())
@@ -151,7 +151,7 @@ class CallReceiver : BroadcastReceiver() {
                 requestBody.text = Template.render(context, "TPL_missed_call", mapOf("SIM" to dualSim, "From" to actualIncomingNumber))
                 CcSendJob.startJob(context, CcType.CALL, context.getString(R.string.missed_call_title), requestBody.text)
                 val requestBodyRaw = Gson().toJson(requestBody)
-                val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
+                val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
                 val okhttpObj = Network.getOkhttpObj(
                     sharedPreferences.getBoolean("doh_switch", true),
                     Paper.book("system_config").read("proxy_config", proxy())

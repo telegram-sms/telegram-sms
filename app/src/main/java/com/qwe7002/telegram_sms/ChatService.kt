@@ -47,8 +47,8 @@ import com.qwe7002.telegram_sms.static_class.Resend.addResendLoop
 import com.qwe7002.telegram_sms.static_class.SMS.send
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.USSD.sendUssd
-import com.qwe7002.telegram_sms.value.constValue
-import com.qwe7002.telegram_sms.value.notifyId
+import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.Notify
 import io.paperdb.Paper
 import okhttp3.Call
 import okhttp3.Callback
@@ -140,7 +140,7 @@ class ChatService : Service() {
                 requestBody.messageId = messageId
                 val gson = Gson()
                 val requestBodyRaw = gson.toJson(requestBody)
-                val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
+                val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
                 val okhttpObj = getOkhttpObj(
                     sharedPreferences.getBoolean("doh_switch", true),
                     Paper.book("system_config").read("proxy_config", proxy())
@@ -436,7 +436,7 @@ class ChatService : Service() {
         val requestUri = getUrl(
             botToken, "sendMessage"
         )
-        val body: RequestBody = Gson().toJson(requestBody).toRequestBody(constValue.JSON)
+        val body: RequestBody = Gson().toJson(requestBody).toRequestBody(Const.JSON)
         val sendRequest: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okHttpClient.newCall(sendRequest)
         val errorHead = "Send reply failed:"
@@ -467,12 +467,12 @@ class ChatService : Service() {
         )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(
-                notifyId.CHAT_COMMAND,
+                Notify.CHAT_COMMAND,
                 notification,
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
             )
         } else {
-            startForeground(notifyId.CHAT_COMMAND, notification)
+            startForeground(Notify.CHAT_COMMAND, notification)
         }
         return START_STICKY
     }
@@ -513,7 +513,7 @@ class ChatService : Service() {
         threadMain = Thread(ThreadMainRunnable())
         threadMain.start()
         val intentFilter = IntentFilter()
-        intentFilter.addAction(constValue.BROADCAST_STOP_SERVICE)
+        intentFilter.addAction(Const.BROADCAST_STOP_SERVICE)
         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION)
         killReceiver = StopReceiver()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -553,7 +553,7 @@ class ChatService : Service() {
                     this.offset = RequestOffset
                     this.timeout = if (firstRequest) 0 else timeout
                 }
-                val body = Gson().toJson(requestBody).toRequestBody(constValue.JSON)
+                val body = Gson().toJson(requestBody).toRequestBody(Const.JSON)
                 val request = Request.Builder().url(requestUri).post(body).build()
                 try {
                     val response = okhttpClientNew.newCall(request).execute()
@@ -599,7 +599,7 @@ class ChatService : Service() {
             Log.d(TAG, "onReceive: " + intent.action)
             checkNotNull(intent.action)
             when (intent.action) {
-                constValue.BROADCAST_STOP_SERVICE -> {
+                Const.BROADCAST_STOP_SERVICE -> {
                     Log.i(TAG, "Received stop signal, quitting now...")
                     stopSelf()
                     Process.killProcess(Process.myPid())

@@ -12,7 +12,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.Result
-import com.qwe7002.telegram_sms.value.constValue
+import com.qwe7002.telegram_sms.value.Const
 
 class ScannerActivity : Activity() {
     private lateinit var mCodeScanner: CodeScanner
@@ -43,7 +43,7 @@ class ScannerActivity : Activity() {
                     return@runOnUiThread
                 }
                 val intent = Intent().putExtra("config_json", result.text)
-                setResult(constValue.RESULT_CONFIG_JSON, intent)
+                setResult(Const.RESULT_CONFIG_JSON, intent)
                 finish()
             }
         }
