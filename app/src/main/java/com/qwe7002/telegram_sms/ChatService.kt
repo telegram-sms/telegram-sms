@@ -37,13 +37,12 @@ import com.qwe7002.telegram_sms.static_class.Network.checkNetworkStatus
 import com.qwe7002.telegram_sms.static_class.Network.getOkhttpObj
 import com.qwe7002.telegram_sms.static_class.Network.getUrl
 import com.qwe7002.telegram_sms.static_class.Other.getActiveCard
-import com.qwe7002.telegram_sms.static_class.Other.getDualSimCardDisplay
 import com.qwe7002.telegram_sms.static_class.Other.getMessageId
 import com.qwe7002.telegram_sms.static_class.Other.getNotificationObj
 import com.qwe7002.telegram_sms.static_class.Other.getSendPhoneNumber
 import com.qwe7002.telegram_sms.static_class.Other.getSubId
 import com.qwe7002.telegram_sms.static_class.Other.isPhoneNumber
-import com.qwe7002.telegram_sms.static_class.Other.parseStringToLong
+import com.qwe7002.telegram_sms.static_class.Phone
 import com.qwe7002.telegram_sms.static_class.Resend.addResendLoop
 import com.qwe7002.telegram_sms.static_class.SMS.send
 import com.qwe7002.telegram_sms.static_class.Template
@@ -128,10 +127,11 @@ class ChatService : Service() {
                 val requestUri = getUrl(
                     botToken, "editMessageText"
                 )
-                val dualSim = getDualSimCardDisplay(
+/*                val dualSim = getDualSimCardDisplay(
                     applicationContext,
                     slot
-                )
+                )*/
+                val dualSim = Phone.getSimDisplayName(applicationContext, slot)
                 requestBody.text = Template.render(
                     applicationContext,
                     "TPL_send_sms",

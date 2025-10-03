@@ -2,18 +2,21 @@
 
 package com.qwe7002.telegram_sms
 
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.telephony.PhoneStateListener
 import android.telephony.TelephonyManager
 import android.util.Log
+import androidx.annotation.RequiresPermission
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Other
+import com.qwe7002.telegram_sms.static_class.Phone
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.static_class.Template
@@ -60,6 +63,7 @@ class CallReceiver : BroadcastReceiver() {
 
         // Removed init block that used constructor's incomingNumber
 
+        @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
         @Deprecated("Deprecated in Java")
         override fun onCallStateChanged(nowState: Int, nowIncomingNumber: String) {
             // Use nowIncomingNumber from the callback parameter directly.
@@ -85,10 +89,7 @@ class CallReceiver : BroadcastReceiver() {
                 val requestBody = RequestMessage()
                 requestBody.chatId = chatId.toString()
                 requestBody.messageThreadId = messageThreadId.toString()
-                val dualSim = Other.getDualSimCardDisplay(
-                    context,
-                    slot
-                )
+                val dualSim = Phone.getSimDisplayName(context, slot)
                 // Use actualIncomingNumber from the callback
                 requestBody.text = Template.render(context, "TPL_receiving_call", mapOf("SIM" to dualSim, "From" to actualIncomingNumber))
                 CcSendJob.startJob(context, CcType.CALL, context.getString(R.string.receiving_call_title), requestBody.text)
@@ -145,10 +146,7 @@ class CallReceiver : BroadcastReceiver() {
                 val requestBody = RequestMessage()
                 requestBody.chatId = chatId.toString()
                 requestBody.messageThreadId = messageThreadId.toString()
-                val dualSim = Other.getDualSimCardDisplay(
-                    context,
-                    slot
-                )
+                val dualSim = Phone.getSimDisplayName(context, slot)
                 // Use actualIncomingNumber from the callback
                 requestBody.text = Template.render(context, "TPL_missed_call", mapOf("SIM" to dualSim, "From" to actualIncomingNumber))
                 CcSendJob.startJob(context, CcType.CALL, context.getString(R.string.missed_call_title), requestBody.text)
@@ -196,12 +194,10 @@ class CallReceiver : BroadcastReceiver() {
 
         companion object {
             private var lastReceiveStatus = TelephonyManager.CALL_STATE_IDLE
-            // Removed: private lateinit var incomingNumber: String
         }
     }
 
     companion object {
         private var slot = 0
-        // Removed: private lateinit var incomingNumber: String
     }
 }

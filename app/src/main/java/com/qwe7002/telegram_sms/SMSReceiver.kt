@@ -19,6 +19,7 @@ import com.qwe7002.telegram_sms.data_structure.RequestMessage
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Other
+import com.qwe7002.telegram_sms.static_class.Phone
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.static_class.Template
@@ -75,10 +76,11 @@ class SMSReceiver : BroadcastReceiver() {
             }
         }
         val slot = intentSlot
-        val dualSim = Other.getDualSimCardDisplay(
+       /* val dualSim = Other.getDualSimCardDisplay(
             context,
             intentSlot,
-        )
+        )*/
+        val dualSim = Phone.getSimDisplayName(context, slot)
 
         val pdus = (extras["pdus"] as Array<*>?)!!
         val messages = arrayOfNulls<SmsMessage>(
