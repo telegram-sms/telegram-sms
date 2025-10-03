@@ -42,7 +42,6 @@ class SMSSendResultReceiver : BroadcastReceiver() {
         val messageThreadId = sharedPreferences.getString("message_thread_id", "")
         val requestBody = RequestMessage()
         requestBody.chatId = chatId.toString()
-
         requestBody.messageThreadId = messageThreadId.toString()
         var requestUri = Network.getUrl(botToken.toString(), "sendMessage")
         val messageId = extras.getLong("message_id")

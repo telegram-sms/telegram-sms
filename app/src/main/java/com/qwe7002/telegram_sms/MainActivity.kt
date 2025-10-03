@@ -63,6 +63,7 @@ import okhttp3.Response
 import java.io.IOException
 import java.util.Objects
 import java.util.concurrent.TimeUnit
+import androidx.core.net.toUri
 
 @Suppress("deprecation")
 class MainActivity : AppCompatActivity() {
@@ -96,7 +97,6 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("BatteryLife")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "onCreate: " + R.string.TPL_received_sms)
         setContentView(R.layout.activity_main)
         context = applicationContext
         //load config
@@ -406,7 +406,7 @@ class MainActivity : AppCompatActivity() {
                 if (!hasIgnored) {
                     val intent =
                         Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).setData(
-                            Uri.parse("package:$packageName")
+                            "package:$packageName".toUri()
                         )
                     if (intent.resolveActivityInfo(
                             packageManager,
@@ -562,9 +562,7 @@ class MainActivity : AppCompatActivity() {
         }
         builder.setNegativeButton(R.string.decline, null)
         builder.setNeutralButton(R.string.visit_page) { _: DialogInterface?, _: Int ->
-            val uri = Uri.parse(
-                "https://telegram-sms.com$privacyPolice"
-            )
+            val uri = "https://telegram-sms.com$privacyPolice".toUri()
             val privacyBuilder = CustomTabsIntent.Builder()
             privacyBuilder.setToolbarColor(ContextCompat.getColor(context, R.color.colorPrimary))
             val customTabsIntent = privacyBuilder.build()
@@ -703,7 +701,7 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
-    @SuppressLint("NonConstantResourceId", "SetTextI18n")
+    @SuppressLint("NonConstantResourceId", "SetTextI18n", "UseKtx")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val inflater = this.layoutInflater
         var fileName: String? = null
@@ -837,7 +835,7 @@ class MainActivity : AppCompatActivity() {
             R.id.donate_menu_item -> fileName = "/donate"
         }
         checkNotNull(fileName)
-        val uri = Uri.parse("https://telegram-sms.com$fileName")
+        val uri = "https://telegram-sms.com$fileName".toUri()
         val builder = CustomTabsIntent.Builder()
         val params = CustomTabColorSchemeParams.Builder().setToolbarColor(
             ContextCompat.getColor(
@@ -929,7 +927,7 @@ class MainActivity : AppCompatActivity() {
 
         builder.setMessage(message)
             .setPositiveButton(R.string.update_dialog_ok) { _: DialogInterface?, _: Int ->
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fileURL))
+                val intent = Intent(Intent.ACTION_VIEW, fileURL.toUri())
                 startActivity(intent)
             }
             .setNegativeButton(

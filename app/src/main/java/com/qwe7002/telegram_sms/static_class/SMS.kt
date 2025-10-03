@@ -68,20 +68,15 @@ object SMS {
         } else {
             SmsManager.getSmsManagerForSubscriptionId(subId)
         }
-        val dualSim = Other.getDualSimCardDisplay(
-            context,
-            slot,
-            sharedPreferences.getBoolean("display_dual_sim_display_name", false)
-        )
-        /*        val sendContent = "[${dualSim}${context.getString(R.string.send_sms_head)}]\n${context.getString(R.string.to)}$sendTo\n${context.getString(R.string.content)}$content"
-                requestBody.text = "$sendContent\n${context.getString(R.string.status)}${context.getString(R.string.sending)}"*/
+        val dualSim = Phone.getSimDisplayName(context, slot)
         val values = mapOf(
             "SIM" to dualSim,
             "To" to sendTo,
             "Content" to content,
         )
         val sendContent = Template.render(context, "TPL_send_sms", values)
-        requestBody.text = "$sendContent\n${context.getString(R.string.status)}${context.getString(R.string.sending)}"
+        requestBody.text =
+            "$sendContent\n${context.getString(R.string.status)}${context.getString(R.string.sending)}"
         requestBody.messageId = messageId
         val gson = Gson()
         val requestBodyRaw = gson.toJson(requestBody)
