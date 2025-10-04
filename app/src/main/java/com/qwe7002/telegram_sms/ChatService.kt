@@ -543,16 +543,14 @@ class ChatService : Service() {
                     terminalThread = false
                     break
                 }
-                val timeout = 60
-                val httpTimeout = 65
                 val okhttpClientNew = okHttpClient.newBuilder()
-                    .readTimeout(httpTimeout.toLong(), TimeUnit.SECONDS)
-                    .writeTimeout(httpTimeout.toLong(), TimeUnit.SECONDS)
+                    .readTimeout(65, TimeUnit.SECONDS)
+                    .writeTimeout(65, TimeUnit.SECONDS)
                     .build()
                 val requestUri = getUrl(botToken, "getUpdates")
                 val requestBody = PollingBody().apply {
                     this.offset = RequestOffset
-                    this.timeout = if (firstRequest) 0 else timeout
+                    this.timeout = if (firstRequest) 0 else 60
                 }
                 val body = Gson().toJson(requestBody).toRequestBody(Const.JSON)
                 val request = Request.Builder().url(requestUri).post(body).build()
