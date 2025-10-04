@@ -80,7 +80,6 @@ class BatteryService : Service() {
             filter.addAction(Intent.ACTION_POWER_CONNECTED)
             filter.addAction(Intent.ACTION_POWER_DISCONNECTED)
         }
-        filter.addAction(Const.BROADCAST_STOP_SERVICE)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             registerReceiver(batteryReceiver, filter, RECEIVER_EXPORTED)
         } else {
@@ -169,12 +168,6 @@ class BatteryService : Service() {
             val TAG = "battery_receiver"
             assert(intent.action != null)
             Log.d(TAG, "Receive action: " + intent.action)
-            if (intent.action == Const.BROADCAST_STOP_SERVICE) {
-                Log.i(TAG, "Received stop signal, quitting now...")
-                stopSelf()
-                Process.killProcess(Process.myPid())
-                return
-            }
 
             val action = intent.action
             val batteryManager = context.getSystemService(BATTERY_SERVICE) as BatteryManager

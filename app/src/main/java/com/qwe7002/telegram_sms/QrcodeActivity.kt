@@ -65,7 +65,6 @@ class QrcodeActivity : AppCompatActivity() {
         } else {
             findViewById<View>(R.id.qr_layout).visibility = View.GONE
             getConfig()
-            //finish()
         }
     }
 

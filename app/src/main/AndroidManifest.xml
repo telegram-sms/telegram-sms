@@ -88,7 +88,6 @@
         <service
             android:name=".NotificationService"
             android:exported="true"
-            android:foregroundServiceType="specialUse"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
@@ -100,19 +99,14 @@
             android:enabled="true"
             android:exported="true"
             android:foregroundServiceType="specialUse"
-            android:permission="android.permission.INTERNET"
-            android:process=":command">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Used to monitor chat commands sent from the remote end" />
+            android:permission="android.permission.INTERNET">
         </service>
         <service
             android:name=".BatteryService"
             android:enabled="true"
             android:exported="true"
             android:foregroundServiceType="specialUse"
-            android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE"
-            android:process=":battery">
+            android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE">
             <intent-filter>
                 <action android:name="android.intent.action.RESPOND_VIA_MESSAGE" />
 

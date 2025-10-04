@@ -86,15 +86,18 @@ object Other {
     fun getNotificationObj(context: Context, notificationName: String): Notification {
         val notification: Notification.Builder
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                notificationName, notificationName,
-                NotificationManager.IMPORTANCE_MIN
-            )
             val manager =
                 checkNotNull(context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-            manager.createNotificationChannel(channel)
+            var channel = manager.getNotificationChannel(notificationName)
+            if (channel == null) {
+                channel = NotificationChannel(
+                    notificationName, notificationName,
+                    NotificationManager.IMPORTANCE_MIN
+                )
+                manager.createNotificationChannel(channel)
+            }
             notification = Notification.Builder(context, notificationName)
-        } else { //Notification generation method after O
+        } else { //Notification generation method for pre-O versions
             @Suppress("DEPRECATION")
             notification = Notification.Builder(context).setPriority(Notification.PRIORITY_MIN)
         }
@@ -103,7 +106,11 @@ object Other {
             .setOngoing(true)
             .setTicker(context.getString(R.string.app_name))
             .setContentTitle(context.getString(R.string.app_name))
-            .setContentText(notificationName + context.getString(R.string.service_is_running))
+            .setContentText(String.format(
+                "%s%s", 
+                notificationName, 
+                context.getString(R.string.service_is_running)
+            ))
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             notification.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
         }
@@ -123,7 +130,8 @@ object Other {
             }
             val subscriptionManager =
                 checkNotNull(context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager)
-            return subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(slot).subscriptionId
+            val subscriptionInfo = subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(slot)
+            return subscriptionInfo?.subscriptionId ?: -1
         }
         return -1
     }

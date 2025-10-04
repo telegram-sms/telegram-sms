@@ -15,11 +15,10 @@ import com.qwe7002.telegram_sms.value.Const
 object Service {
     @JvmStatic
     fun stopAllService(context: Context) {
-        val intent = Intent(Const.BROADCAST_STOP_SERVICE)
-        context.sendBroadcast(intent)
         try {
-            Thread.sleep(1000)
-        } catch (e: InterruptedException) {
+            context.stopService(Intent(context, ChatService::class.java))
+            context.stopService(Intent(context, BatteryService::class.java))
+        } catch (e: Exception) {
             e.printStackTrace()
         }
     }

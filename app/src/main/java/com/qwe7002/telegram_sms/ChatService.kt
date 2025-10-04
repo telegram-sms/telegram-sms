@@ -17,7 +17,6 @@ import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import android.os.PowerManager.WakeLock
-import android.os.Process
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
@@ -83,11 +82,12 @@ class ChatService : Service() {
     private lateinit var botToken: String
     private lateinit var messageThreadId: String
     private lateinit var okHttpClient: OkHttpClient
-    private lateinit var killReceiver: StopReceiver
+    private lateinit var stopReceiver: StopReceiver
     private lateinit var wakelock: WakeLock
     private lateinit var wifiLock: WifiLock
     private lateinit var botUsername: String
-    private val TAG = "chat_command_service"
+    private var terminalThread = false
+    private val TAG = "chat_command"
 
     private fun receiveHandle(resultObj: JsonObject, getIdOnly: Boolean) {
         val updateId = resultObj["update_id"].asLong
@@ -127,10 +127,6 @@ class ChatService : Service() {
                 val requestUri = getUrl(
                     botToken, "editMessageText"
                 )
-/*                val dualSim = getDualSimCardDisplay(
-                    applicationContext,
-                    slot
-                )*/
                 val dualSim = Phone.getSimDisplayName(applicationContext, slot)
                 requestBody.text = Template.render(
                     applicationContext,
@@ -513,13 +509,12 @@ class ChatService : Service() {
         threadMain = Thread(ThreadMainRunnable())
         threadMain.start()
         val intentFilter = IntentFilter()
-        intentFilter.addAction(Const.BROADCAST_STOP_SERVICE)
         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION)
-        killReceiver = StopReceiver()
+        stopReceiver = StopReceiver()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(killReceiver, intentFilter, RECEIVER_EXPORTED)
+            registerReceiver(stopReceiver, intentFilter, RECEIVER_EXPORTED)
         } else {
-            registerReceiver(killReceiver, intentFilter)
+            registerReceiver(stopReceiver, intentFilter)
         }
     }
 
@@ -533,7 +528,8 @@ class ChatService : Service() {
     override fun onDestroy() {
         wifiLock.release()
         wakelock.release()
-        unregisterReceiver(killReceiver)
+        terminalThread = true
+        unregisterReceiver(stopReceiver)
         stopForeground(true)
         super.onDestroy()
     }
@@ -542,6 +538,11 @@ class ChatService : Service() {
         override fun run() {
             Log.d(TAG, "run: thread main start")
             while (true) {
+                if (terminalThread) {
+                    Log.d(TAG, "run: thread Stop")
+                    terminalThread = false
+                    break
+                }
                 val timeout = 60
                 val httpTimeout = 65
                 val okhttpClientNew = okHttpClient.newBuilder()
@@ -599,12 +600,6 @@ class ChatService : Service() {
             Log.d(TAG, "onReceive: " + intent.action)
             checkNotNull(intent.action)
             when (intent.action) {
-                Const.BROADCAST_STOP_SERVICE -> {
-                    Log.i(TAG, "Received stop signal, quitting now...")
-                    stopSelf()
-                    Process.killProcess(Process.myPid())
-                }
-
                 ConnectivityManager.CONNECTIVITY_ACTION -> if (checkNetworkStatus(context)) {
                     if (!threadMain.isAlive) {
                         writeLog(context, "Network connections has been restored.")

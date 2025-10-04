@@ -23,6 +23,41 @@ import java.util.concurrent.TimeUnit
 
 class ReSendJob : JobService() {
     private lateinit var requestUri: String
+    private val gson = Gson()
+
+    private fun networkProgressHandle(
+        message: String,
+        chatId: String,
+        okhttpClient: OkHttpClient,
+        messageThreadId: String
+    ) {
+        val requestBody = RequestMessage()
+        requestBody.chatId = chatId
+        requestBody.text = message
+        requestBody.messageThreadId = messageThreadId
+        if (message.contains("<code>") && message.contains("</code>")) {
+            requestBody.parseMode = "html"
+        }
+        val requestBodyJson = gson.toJson(requestBody)
+        val body: RequestBody = requestBodyJson.toRequestBody(Const.JSON)
+        val requestObj: Request = Request.Builder().url(requestUri).method("POST", body).build()
+        val call = okhttpClient.newCall(requestObj)
+        try {
+            val response = call.execute()
+            if (response.isSuccessful) {
+                val resendListLocal = Paper.book("resend").read("list", ArrayList<String>())!!
+                resendListLocal.remove(message)
+                Paper.book("resend").write("list", resendListLocal)
+            }else{
+                Logs.writeLog(applicationContext, "An error occurred while resending: " + response.code + " " + response.body?.string())
+            }
+            response.close()
+        } catch (e: IOException) {
+            Logs.writeLog(applicationContext, "An error occurred while resending: " + e.message)
+            e.printStackTrace()
+        }
+    }
+
     override fun onStartJob(params: JobParameters?): Boolean {
         Log.d("ReSend", "startJob: Try resending the message.")
         Paper.init(applicationContext)
@@ -55,37 +90,6 @@ class ReSendJob : JobService() {
         return false
     }
 
-    private fun networkProgressHandle(
-        message: String,
-        chatId: String,
-        okhttpClient: OkHttpClient,
-        messageThreadId: String
-    ) {
-        val requestBody = RequestMessage()
-        requestBody.chatId = chatId
-        requestBody.text = message
-        requestBody.messageThreadId = messageThreadId
-        if (message.contains("<code>") && message.contains("</code>")) {
-            requestBody.parseMode = "html"
-        }
-        val requestBodyJson = Gson().toJson(requestBody)
-        val body: RequestBody = requestBodyJson.toRequestBody(Const.JSON)
-        val requestObj: Request = Request.Builder().url(requestUri).method("POST", body).build()
-        val call = okhttpClient.newCall(requestObj)
-        try {
-            val response = call.execute()
-            if (response.isSuccessful) {
-                val resendListLocal = Paper.book("resend").read("list", ArrayList<String>())!!
-                resendListLocal.remove(message)
-                Paper.book("resend").write("list", resendListLocal)
-            }else{
-                Logs.writeLog(applicationContext, "An error occurred while resending: " + response.code + " " + response.body.string())
-            }
-        } catch (e: IOException) {
-            Logs.writeLog(applicationContext, "An error occurred while resending: " + e.message)
-            e.printStackTrace()
-        }
-    }
     companion object {
         fun startJob(context: Context) {
 
