@@ -582,7 +582,7 @@ class ChatService : Service() {
                         break
                     }
                     writeLog(applicationContext, "Connection to the Telegram API service failed.")
-                    Thread.sleep(5000)
+                    Thread.sleep(1000)
                 }
             }
         }
