@@ -36,7 +36,9 @@ import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.IOException
+import android.text.TextWatcher
+import android.text.Editable
+import okio.IOException
 
 
 class QrcodeActivity : AppCompatActivity() {
@@ -209,13 +211,13 @@ class QrcodeActivity : AppCompatActivity() {
                         } catch (e: Exception) {
                             Logs.writeLog(
                                 applicationContext,
-                                "An error occurred while resending: " + e.message
+                                "An error occurred while decrypting configuration: " + e.message
                             )
                             runOnUiThread {
                                 AlertDialog.Builder(this)
                                     .setTitle(R.string.error_title)
                                     .setMessage(getString(R.string.an_error_occurred_while_decrypting_the_configuration))
-                                    .setPositiveButton("OK") { _, _ -> getConfig() }
+                                    .setPositiveButton(R.string.ok_button) { _, _ -> getConfig() }
                                     .show()
 
                             }
@@ -226,14 +228,15 @@ class QrcodeActivity : AppCompatActivity() {
                             AlertDialog.Builder(this)
                                 .setTitle(R.string.error_title)
                                 .setMessage(getString(R.string.an_error_occurred_while_getting_the_configuration) + response.code)
-                                .setPositiveButton("OK") { _, _ -> }
+                                .setPositiveButton(R.string.ok_button) { _, _ -> }
                                 .show()
                         }
                     }
+                    response.close()
                 } catch (e: IOException) {
                     Logs.writeLog(
                         applicationContext,
-                        "An error occurred while resending: " + e.message
+                        "An error occurred while getting configuration: " + e.message
                     )
                     e.printStackTrace()
                 } finally {
@@ -252,12 +255,11 @@ class QrcodeActivity : AppCompatActivity() {
         builder.setView(dialogView)
         dialogView.findViewById<View>(R.id.config_id_layout).visibility = View.GONE
         val passwordInput = dialogView.findViewById<EditText>(R.id.config_password_editview)
-        builder.setPositiveButton("OK") { dialog, _ ->
-            val userInput = passwordInput.text.toString()
-            callback(userInput)
-            dialog.dismiss()
+        val passwordLayout = dialogView.findViewById<TextInputLayout>(R.id.config_password_layout)
+        builder.setPositiveButton(R.string.ok_button) { _, _ ->
+            // This will be overridden in setOnShowListener
         }
-        builder.setNegativeButton("Cancel") { dialog, _ ->
+        builder.setNegativeButton(R.string.cancel_button) { dialog, _ ->
             dialog.cancel()
         }
         val dialog = builder.create()
@@ -266,9 +268,9 @@ class QrcodeActivity : AppCompatActivity() {
             button.setOnClickListener {
                 val password = passwordInput.text.toString()
                 if (password.isEmpty()) {
-                    dialogView.findViewById<TextInputLayout>(R.id.config_password_layout).error = getString(R.string.error_password_cannot_be_empty)
+                    passwordLayout.error = getString(R.string.error_password_cannot_be_empty)
                 } else if(password.length < 6){
-                    dialogView.findViewById<TextInputLayout>(R.id.config_password_layout).error = getString(R.string.error_password_must_be_6_characters)
+                    passwordLayout.error = getString(R.string.error_password_must_be_6_characters)
                 }else {
                     callback(password)
                     dialog.dismiss()
@@ -286,6 +288,7 @@ class QrcodeActivity : AppCompatActivity() {
         builder.setView(dialogView)
         val idInput = dialogView.findViewById<EditText>(R.id.config_id_editview)
         val passwordInput = dialogView.findViewById<EditText>(R.id.config_password_editview)
+        
         builder.setPositiveButton("OK", null)
         builder.setNegativeButton("Cancel") { dialog, _ ->
             if (!sharedPreferences.getBoolean("initialized", false)) {
@@ -302,17 +305,53 @@ class QrcodeActivity : AppCompatActivity() {
                 val passwordView = dialogView.findViewById<TextInputLayout>(R.id.config_password_layout)
                 val id = idInput.text.toString()
                 val password = passwordInput.text.toString()
+                
+                // Clear previous errors
+                idView.error = null
+                passwordView.error = null
+                
+                var isValid = true
+                
                 if (id.isEmpty()) {
                     idView.error = getString(R.string.error_id_cannot_be_empty)
-                } else if (password.isEmpty()) {
-                    passwordView.error = getString(R.string.error_password_cannot_be_empty)
+                    isValid = false
                 } else if (id.length != 9) {
                     idView.error = getString(R.string.error_id_must_be_9_characters)
-                } else {
+                    isValid = false
+                }
+                
+                if (password.isEmpty()) {
+                    passwordView.error = getString(R.string.error_password_cannot_be_empty)
+                    isValid = false
+                }
+                
+                if (isValid) {
+                    button.isEnabled = false // Prevent multiple clicks
                     callback(id, password)
                     dialog.dismiss()
                 }
             }
+            
+            // Clear errors when user starts typing
+            idInput.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    dialogView.findViewById<TextInputLayout>(R.id.config_id_layout).error = null
+                }
+                
+                override fun afterTextChanged(s: Editable?) {}
+            })
+            
+            passwordInput.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    dialogView.findViewById<TextInputLayout>(R.id.config_password_layout).error = null
+                }
+                
+                override fun afterTextChanged(s: Editable?) {}
+            })
         }
         dialog.show()
     }

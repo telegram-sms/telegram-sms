@@ -1,7 +1,7 @@
-package com.qwe7002.telegram_sms.data_structure
+package com.qwe7002.telegram_sms.data_structure.telegram
 
 import com.google.gson.annotations.SerializedName
-import com.qwe7002.telegram_sms.data_structure.ReplyMarkupKeyboard.KeyboardMarkup
+import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.KeyboardMarkup
 
 class RequestMessage {
     //Turn off page preview to avoid being tracked

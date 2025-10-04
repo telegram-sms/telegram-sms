@@ -23,10 +23,10 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.qwe7002.telegram_sms.config.proxy
-import com.qwe7002.telegram_sms.data_structure.PollingBody
-import com.qwe7002.telegram_sms.data_structure.ReplyMarkupKeyboard.KeyboardMarkup
-import com.qwe7002.telegram_sms.data_structure.ReplyMarkupKeyboard.getInlineKeyboardObj
-import com.qwe7002.telegram_sms.data_structure.RequestMessage
+import com.qwe7002.telegram_sms.data_structure.telegram.PollingBody
+import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.KeyboardMarkup
+import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.getInlineKeyboardObj
+import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.data_structure.SMSRequestInfo
 import com.qwe7002.telegram_sms.static_class.ChatCommand.getCommandList
 import com.qwe7002.telegram_sms.static_class.ChatCommand.getInfo

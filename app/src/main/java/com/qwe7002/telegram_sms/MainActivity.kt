@@ -38,8 +38,8 @@ import com.google.gson.Gson
 import com.google.gson.JsonParser
 import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.GitHubRelease
-import com.qwe7002.telegram_sms.data_structure.PollingBody
-import com.qwe7002.telegram_sms.data_structure.RequestMessage
+import com.qwe7002.telegram_sms.data_structure.telegram.PollingBody
+import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.data_structure.ScannerJson
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network.getOkhttpObj

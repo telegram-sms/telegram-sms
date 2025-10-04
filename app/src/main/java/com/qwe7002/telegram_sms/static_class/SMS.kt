@@ -15,7 +15,7 @@ import com.google.gson.Gson
 import com.qwe7002.telegram_sms.R
 import com.qwe7002.telegram_sms.SMSSendResultReceiver
 import com.qwe7002.telegram_sms.config.proxy
-import com.qwe7002.telegram_sms.data_structure.RequestMessage
+import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.value.Const
 import io.paperdb.Paper
 import okhttp3.Request
