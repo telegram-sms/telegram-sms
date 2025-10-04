@@ -103,8 +103,8 @@ class CcActivity : AppCompatActivity() {
                         getString(R.string.cc_service_disabled)
                     }
                     
-                    val log = item.har?.log
-                    if (log != null && log.entries.isNotEmpty()) {
+                    val log = item.har.log
+                    if (log.entries.isNotEmpty()) {
                         holder.subtitle.text = log.entries[0].request.url
                     } else {
                         holder.subtitle.text = getString(R.string.no_entries_available)

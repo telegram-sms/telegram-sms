@@ -12,7 +12,6 @@ import android.content.pm.ServiceInfo
 import android.os.BatteryManager
 import android.os.Build
 import android.os.IBinder
-import android.os.Process
 import android.util.Log
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.config.proxy

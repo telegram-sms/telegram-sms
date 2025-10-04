@@ -174,7 +174,7 @@ class QrcodeActivity : AppCompatActivity() {
     }
 
     fun copyKeyToClipboard(context: Context, key: String) {
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipboard = context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText("Key", key)
         clipboard.setPrimaryClip(clip)
         Toast.makeText(context, "Key copied to clipboard", Toast.LENGTH_SHORT).show()

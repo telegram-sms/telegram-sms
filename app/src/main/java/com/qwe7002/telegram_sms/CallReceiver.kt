@@ -68,12 +68,13 @@ class CallReceiver : BroadcastReceiver() {
         override fun onCallStateChanged(nowState: Int, nowIncomingNumber: String) {
             // Use nowIncomingNumber from the callback parameter directly.
             // It can be an empty string if the number is unknown.
-            val actualIncomingNumber = if (nowIncomingNumber.isNullOrEmpty()) {
-                Log.w("PhoneStatusListener", "Incoming number from callback is null or empty. Using 'Unknown'.")
+            val actualIncomingNumber = nowIncomingNumber.ifEmpty {
+                Log.w(
+                    "PhoneStatusListener",
+                    "Incoming number from callback is null or empty. Using 'Unknown'."
+                )
                 // Consider using a string resource: context.getString(R.string.unknown_caller_id)
                 "Unknown"
-            } else {
-                nowIncomingNumber
             }
 
             if (lastReceiveStatus == TelephonyManager.CALL_STATE_IDLE && nowState == TelephonyManager.CALL_STATE_RINGING) {
@@ -113,7 +114,7 @@ class CallReceiver : BroadcastReceiver() {
 
                     @Throws(IOException::class)
                     override fun onResponse(call: Call, response: Response) {
-                        val responseBodyStr = response.body?.string()
+                        val responseBodyStr = response.body.string()
                         if (!response.isSuccessful) {
                             val errorMessage = "$errorHead ${response.code} $responseBodyStr"
                             Logs.writeLog(context, errorMessage)
@@ -170,7 +171,7 @@ class CallReceiver : BroadcastReceiver() {
 
                     @Throws(IOException::class)
                     override fun onResponse(call: Call, response: Response) {
-                        val responseBodyStr = response.body?.string()
+                        val responseBodyStr = response.body.string()
                         if (!response.isSuccessful) {
                             val errorMessage = "$errorHead ${response.code} $responseBodyStr"
                             Logs.writeLog(context, errorMessage)

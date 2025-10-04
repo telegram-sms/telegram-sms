@@ -49,7 +49,7 @@ class ReSendJob : JobService() {
                 resendListLocal.remove(message)
                 Paper.book("resend").write("list", resendListLocal)
             }else{
-                Logs.writeLog(applicationContext, "An error occurred while resending: " + response.code + " " + response.body?.string())
+                Logs.writeLog(applicationContext, "An error occurred while resending: " + response.code + " " + response.body.string())
             }
             response.close()
         } catch (e: IOException) {
