@@ -139,4 +139,5 @@
     <string name="app_name_title">App Name:</string>
     <string name="title">Title:</string>
     <string name="system_message_head">[System Information]</string>
+    <string name="browser_not_found">Browser not found.</string>
 </resources>

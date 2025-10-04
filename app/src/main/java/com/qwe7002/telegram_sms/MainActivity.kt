@@ -14,7 +14,6 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
 import android.text.Editable
@@ -68,28 +67,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var privacyPolice: String
     private lateinit var context: Context
-
-    private fun checkVersionUpgrade(writeLog: Boolean) {
-        val versionCode =
-            Paper.book("system_config").read("version_code", 0)!!
-        val packageManager = context.packageManager
-        val packageInfo: PackageInfo
-        val currentVersionCode: Int
-        try {
-            packageInfo = packageManager.getPackageInfo(context.packageName, 0)
-            currentVersionCode = packageInfo.versionCode
-        } catch (e: PackageManager.NameNotFoundException) {
-            Log.d(TAG, "checkVersionUpgrade: $e")
-            return
-        }
-        if (versionCode != currentVersionCode) {
-            if (writeLog) {
-                Logs.resetLogFile(context)
-            }
-            Paper.book("system_config").write("version_code", currentVersionCode)
-        }
-    }
-
+    private val gson = Gson()
 
     @SuppressLint("BatteryLife")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -226,7 +204,7 @@ class MainActivity : AppCompatActivity() {
 
         getIdButton.setOnClickListener { v: View ->
             if (botTokenEditView.text.toString().isEmpty()) {
-                Snackbar.make(v, R.string.token_not_configure, Snackbar.LENGTH_LONG).show()
+                showErrorDialog(getString(R.string.token_not_configure))
                 return@setOnClickListener
             }
             Thread { stopAllService(context) }
@@ -250,7 +228,7 @@ class MainActivity : AppCompatActivity() {
                 .build()
             val requestBody = PollingBody()
             requestBody.timeout = 60
-            val body: RequestBody = RequestBody.create(Const.JSON, Gson().toJson(requestBody))
+            val body: RequestBody = RequestBody.create(Const.JSON, gson.toJson(requestBody))
             val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
             val call = okhttpClient.newCall(request)
             progressDialog.setOnKeyListener { _: DialogInterface?, _: Int, keyEvent: KeyEvent ->
@@ -266,9 +244,9 @@ class MainActivity : AppCompatActivity() {
                     progressDialog.cancel()
                     val message = errorHead + e.message
                     Logs.writeLog(context, message)
-                    Looper.prepare()
-                    Snackbar.make(v, message, Snackbar.LENGTH_LONG).show()
-                    Looper.loop()
+                    runOnUiThread {
+                        showErrorDialog(message)
+                    }
                 }
 
                 @Throws(IOException::class)
@@ -281,10 +259,7 @@ class MainActivity : AppCompatActivity() {
                         val resultObj = JsonParser.parseString(result).asJsonObject
                         val errorMessage = errorHead + resultObj["description"].asString
                         Logs.writeLog(context, errorMessage)
-
-                        Looper.prepare()
-                        Snackbar.make(v, errorMessage, Snackbar.LENGTH_LONG).show()
-                        Looper.loop()
+                        runOnUiThread { showErrorDialog(errorMessage) }
                         return
                     }
 
@@ -294,9 +269,7 @@ class MainActivity : AppCompatActivity() {
                     val resultObj = JsonParser.parseString(result).asJsonObject
                     val chatList = resultObj.getAsJsonArray("result")
                     if (chatList.isEmpty) {
-                        Looper.prepare()
-                        Snackbar.make(v, R.string.unable_get_recent, Snackbar.LENGTH_LONG).show()
-                        Looper.loop()
+                        runOnUiThread { showErrorDialog(getString(R.string.unable_get_recent)) }
                         return
                     }
                     val chatNameList = ArrayList<String>()
@@ -342,7 +315,7 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                     }
-                    this@MainActivity.runOnUiThread {
+                    runOnUiThread {
                         AlertDialog.Builder(v.context)
                             .setTitle(R.string.select_chat).setItems(
                                 chatNameList.toTypedArray<String>()
@@ -361,14 +334,16 @@ class MainActivity : AppCompatActivity() {
             if (botTokenEditView.text.toString().isEmpty() || chatIdEditView.text.toString()
                     .isEmpty()
             ) {
-                Snackbar.make(v!!, R.string.chat_id_or_token_not_config, Snackbar.LENGTH_LONG)
-                    .show()
+                /*                Snackbar.make(v!!, R.string.chat_id_or_token_not_config, Snackbar.LENGTH_LONG)
+                                    .show()*/
+                showErrorDialog(getString(R.string.chat_id_or_token_not_config))
                 return@setOnClickListener
             }
             if (fallbackSmsSwitch.isChecked && trustedPhoneNumberEditView.text.toString()
                     .isEmpty()
             ) {
-                Snackbar.make(v!!, R.string.trusted_phone_number_empty, Snackbar.LENGTH_LONG).show()
+                /*Snackbar.make(v!!, R.string.trusted_phone_number_empty, Snackbar.LENGTH_LONG).show()*/
+                showErrorDialog(getString(R.string.trusted_phone_number_empty))
                 return@setOnClickListener
             }
             if (!sharedPreferences.getBoolean("privacy_dialog_agree", false)) {
@@ -434,7 +409,6 @@ class MainActivity : AppCompatActivity() {
                 "TPL_system_message",
                 mapOf("Message" to getString(R.string.success_connect))
             )
-            val gson = Gson()
             val requestBodyRaw = gson.toJson(requestBody)
             val body: RequestBody = RequestBody.create(Const.JSON, requestBodyRaw)
             val okhttpObj = getOkhttpObj(
@@ -450,13 +424,9 @@ class MainActivity : AppCompatActivity() {
                     progressDialog.cancel()
                     val errorMessage = errorHead + e.message
                     Logs.writeLog(context, errorMessage)
-                    Looper.prepare()
-                    AlertDialog.Builder(v!!.context)
-                        .setTitle(R.string.error_title)
-                        .setMessage(errorMessage)
-                        .setPositiveButton(R.string.ok_button, null)
-                        .show()
-                    Looper.loop()
+                    runOnUiThread {
+                        showErrorDialog(errorMessage)
+                    }
                 }
 
                 @Throws(IOException::class)
@@ -470,13 +440,9 @@ class MainActivity : AppCompatActivity() {
                         val resultObj = JsonParser.parseString(result).asJsonObject
                         val errorMessage = errorHead + resultObj["description"]
                         Logs.writeLog(context, errorMessage)
-                        Looper.prepare()
-                        AlertDialog.Builder(v!!.context)
-                            .setTitle(R.string.error_title)
-                            .setMessage(errorMessage)
-                            .setPositiveButton(R.string.ok_button, null)
-                            .show()
-                        Looper.loop()
+                        runOnUiThread {
+                            showErrorDialog(errorMessage)
+                        }
                         return
                     }
                     if (newBotToken != botTokenSave) {
@@ -527,14 +493,36 @@ class MainActivity : AppCompatActivity() {
                         ReSendJob.startJob(context)
                         KeepAliveJob.startJob(context)
                     }.start()
-                    Looper.prepare()
-                    Snackbar.make(v!!, R.string.success, Snackbar.LENGTH_LONG)
-                        .show()
-                    Looper.loop()
+                    runOnUiThread {
+                        Snackbar.make(v!!, R.string.success, Snackbar.LENGTH_LONG)
+                            .show()
+                    }
                 }
             })
         }
     }
+
+    private fun checkVersionUpgrade(writeLog: Boolean) {
+        val versionCode =
+            Paper.book("system_config").read("version_code", 0)!!
+        val packageManager = context.packageManager
+        val packageInfo: PackageInfo
+        val currentVersionCode: Int
+        try {
+            packageInfo = packageManager.getPackageInfo(context.packageName, 0)
+            currentVersionCode = packageInfo.versionCode
+        } catch (e: PackageManager.NameNotFoundException) {
+            Log.d(TAG, "checkVersionUpgrade: $e")
+            return
+        }
+        if (versionCode != currentVersionCode) {
+            if (writeLog) {
+                Logs.resetLogFile(context)
+            }
+            Paper.book("system_config").write("version_code", currentVersionCode)
+        }
+    }
+
 
     private fun privacyModeCheckbox(
         chatId: String,
@@ -681,10 +669,13 @@ class MainActivity : AppCompatActivity() {
                 progressDialog.cancel()
                 val errorMessage = errorHead + e.message
                 Logs.writeLog(context, errorMessage)
-                Looper.prepare()
+                /*Looper.prepare()
                 Snackbar.make(findViewById(R.id.content), errorMessage, Snackbar.LENGTH_LONG)
                     .show()
-                Looper.loop()
+                Looper.loop()*/
+                runOnUiThread {
+                    showErrorDialog(errorMessage)
+                }
             }
         })
     }
@@ -845,11 +836,12 @@ class MainActivity : AppCompatActivity() {
             customTabsIntent.launchUrl(this, uri)
         } catch (e: ActivityNotFoundException) {
             Log.d(TAG, "onOptionsItemSelected: $e")
-            Snackbar.make(
-                findViewById(R.id.bot_token_editview),
-                "Browser not found.",
-                Snackbar.LENGTH_LONG
-            ).show()
+            /*            Snackbar.make(
+                            findViewById(R.id.bot_token_editview),
+                            "Browser not found.",
+                            Snackbar.LENGTH_LONG
+                        ).show()*/
+            showErrorDialog(getString(R.string.browser_not_found))
         }
         return true
     }
@@ -936,6 +928,13 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    fun showErrorDialog(message: String) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.error_title)
+            .setMessage(message)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
+    }
 
     companion object {
         private var setPermissionBack = false

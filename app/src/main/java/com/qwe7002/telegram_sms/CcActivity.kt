@@ -53,7 +53,9 @@ import java.io.IOException
 class CcActivity : AppCompatActivity() {
     private lateinit var listAdapter: ArrayAdapter<CcSendService>
     private lateinit var serviceList: ArrayList<CcSendService>
+    private val gson = Gson()
     private val url = "https://api.telegram-sms.com/cc-config".toHttpUrlOrNull()!!
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_cc)
@@ -68,7 +70,6 @@ class CcActivity : AppCompatActivity() {
 
         val serviceListJson =
             Paper.book("carbon_copy").read("CC_service_list", "[]").toString()
-        val gson = Gson()
         val type = object : TypeToken<ArrayList<CcSendService>>() {}.type
         serviceList = gson.fromJson(serviceListJson, type)
         listAdapter =
@@ -76,30 +77,46 @@ class CcActivity : AppCompatActivity() {
                 ArrayAdapter<CcSendService>(this, R.layout.list_item_with_subtitle, serviceList) {
                 @SuppressLint("SetTextI18n")
                 override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-                    val view = convertView ?: layoutInflater.inflate(
-                        R.layout.list_item_with_subtitle,
-                        parent,
-                        false
-                    )
-                    val item = getItem(position)!!
-                    val title = view.findViewById<TextView>(R.id.title)
-                    title.text =
-                        item.name + item.enabled.let {
-                            if (it) getString(R.string.cc_service_enabled) else getString(
-                                R.string.cc_service_disabled
-                            )
-                        }
-                    val subtitle = view.findViewById<TextView>(R.id.subtitle)
-                    val log = item.har.log
-                    @Suppress("SENSELESS_COMPARISON")
-                    if (log != null && log.entries.isNotEmpty()) {
-                        subtitle.text = log.entries[0].request.url
+                    val view: View
+                    val holder: ViewHolder
+                    
+                    if (convertView == null) {
+                        view = layoutInflater.inflate(
+                            R.layout.list_item_with_subtitle,
+                            parent,
+                            false
+                        )
+                        holder = ViewHolder(
+                            title = view.findViewById(R.id.title),
+                            subtitle = view.findViewById(R.id.subtitle)
+                        )
+                        view.tag = holder
                     } else {
-                        subtitle.text = getString(R.string.no_entries_available)
+                        view = convertView
+                        holder = view.tag as ViewHolder
+                    }
+                    
+                    val item = getItem(position)!!
+                    holder.title.text = item.name + if (item.enabled) {
+                        getString(R.string.cc_service_enabled)
+                    } else {
+                        getString(R.string.cc_service_disabled)
+                    }
+                    
+                    val log = item.har?.log
+                    if (log != null && log.entries.isNotEmpty()) {
+                        holder.subtitle.text = log.entries[0].request.url
+                    } else {
+                        holder.subtitle.text = getString(R.string.no_entries_available)
                     }
 
                     return view
                 }
+                
+                private inner class ViewHolder(
+                    val title: TextView,
+                    val subtitle: TextView
+                )
             }
         ccList.adapter = listAdapter
         ccList.onItemClickListener =
@@ -108,32 +125,9 @@ class CcActivity : AppCompatActivity() {
 
                 val har =
                     dialog.findViewById<EditText>(R.id.har_editview)
-                val prettyGson = Gson().newBuilder().setPrettyPrinting().create()
+                val prettyGson = gson.newBuilder().setPrettyPrinting().create()
                 har.setText(prettyGson.toJson(serviceList[position].har))
-                har.addTextChangedListener(object : TextWatcher {
-                    override fun beforeTextChanged(
-                        s: CharSequence?,
-                        start: Int,
-                        count: Int,
-                        after: Int
-                    ) {
-                    }
-
-                    override fun onTextChanged(
-                        s: CharSequence?,
-                        start: Int,
-                        before: Int,
-                        count: Int
-                    ) {
-                    }
-
-                    override fun afterTextChanged(s: Editable?) {
-                        val text = s.toString()
-                        if (!isValidHarJson(text)) {
-                            har.error = getString(R.string.invalid_json_structure)
-                        }
-                    }
-                })
+                har.addTextChangedListener(createJsonValidationTextWatcher(har))
                 val switch =
                     dialog.findViewById<SwitchMaterial>(R.id.cc_enable_switch)
                 switch.isChecked = serviceList[position].enabled
@@ -164,24 +158,7 @@ class CcActivity : AppCompatActivity() {
         fab.setOnClickListener {
             val dialog = inflater.inflate(R.layout.set_cc_layout, null)
             val webhook = dialog.findViewById<EditText>(R.id.har_editview)
-            webhook.addTextChangedListener(object : TextWatcher {
-                override fun beforeTextChanged(
-                    s: CharSequence?,
-                    start: Int,
-                    count: Int,
-                    after: Int
-                ) {
-                }
-
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
-                override fun afterTextChanged(s: Editable?) {
-                    val text = s.toString()
-                    if (!isValidHarJson(text)) {
-                        webhook.error = getString(R.string.invalid_json_structure)
-                    }
-                }
-            })
+            webhook.addTextChangedListener(createJsonValidationTextWatcher(webhook))
             val name = dialog.findViewById<EditText>(R.id.cc_service_name)
             AlertDialog.Builder(this).setTitle(getString(R.string.add_cc_service))
                 .setView(dialog)
@@ -198,9 +175,21 @@ class CcActivity : AppCompatActivity() {
         }
     }
 
+    private fun createJsonValidationTextWatcher(editText: EditText): TextWatcher {
+        return object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                val text = s.toString()
+                if (!isValidHarJson(text)) {
+                    editText.error = getString(R.string.invalid_json_structure)
+                }
+            }
+        }
+    }
+
     private fun isValidHarJson(json: String): Boolean {
         return try {
-            val gson = Gson()
             gson.fromJson(json, HAR::class.java)
             true
         } catch (ex: Exception) {
@@ -214,7 +203,7 @@ class CcActivity : AppCompatActivity() {
         listAdapter: ArrayAdapter<CcSendService>
     ) {
         Log.d("save_and_flush", serviceList.toString())
-        Paper.book("carbon_copy").write("CC_service_list", Gson().toJson(serviceList))
+        Paper.book("carbon_copy").write("CC_service_list", gson.toJson(serviceList))
         listAdapter.notifyDataSetChanged()
     }
 
@@ -252,7 +241,7 @@ class CcActivity : AppCompatActivity() {
                 )
                 Snackbar.make(
                     findViewById(R.id.send_test_menu_item),
-                    "Test message sent.",
+                    getString(R.string.success),
                     Snackbar.LENGTH_SHORT
                 ).show()
                 return true
@@ -273,7 +262,6 @@ class CcActivity : AppCompatActivity() {
                 val receiverBatterySwitch =
                     dialog.findViewById<SwitchMaterial>(R.id.cc_battery_switch)
                 val ccConfig = Paper.book("carbon_copy").read("cc_config", "{}").toString()
-                val gson = Gson()
                 val type = object : TypeToken<CcConfig>() {}.type
                 val config: CcConfig = gson.fromJson(ccConfig, type)
 
@@ -291,7 +279,7 @@ class CcActivity : AppCompatActivity() {
                             receiverNotificationSwitch.isChecked,
                             receiverBatterySwitch.isChecked
                         )
-                        Paper.book("carbon_copy").write("cc_config", Gson().toJson(ccConfig))
+                        Paper.book("carbon_copy").write("cc_config", gson.toJson(ccConfig))
                     }
                     .setNeutralButton(R.string.cancel_button, null)
                     .show()
@@ -332,7 +320,6 @@ class CcActivity : AppCompatActivity() {
                         try {
                             val decryptConfig =
                                 AES.decrypt(responseBody, AES.getKeyFromString(password))
-                            val gson = Gson()
                             val config = gson.fromJson(decryptConfig, CcSendService::class.java)
                             serviceList.add(config)
                             runOnUiThread {
@@ -442,7 +429,6 @@ class CcActivity : AppCompatActivity() {
         Log.d("onActivityResult", "onActivityResult: $resultCode")
         if (requestCode == 1) {
             if (resultCode == Const.RESULT_CONFIG_JSON) {
-                val gson = Gson()
                 val jsonConfig = gson.fromJson(
                     data!!.getStringExtra("config_json"),
                     CcSendService::class.java
