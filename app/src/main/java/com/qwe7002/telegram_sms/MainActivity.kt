@@ -397,8 +397,16 @@ class MainActivity : AppCompatActivity() {
             progressDialog.setCancelable(false)
             progressDialog.show()
 
+            if (sharedPreferences.contains("initialized") && sharedPreferences.getString(
+                    "api_address",
+                    "api.telegram.org"
+                ) != "api.telegram.org"
+            ) {
+                logout(sharedPreferences.getString("bot_token", "").toString())
+            }
+
             val requestUri = getUrl(
-                botTokenEditView.text.toString().trim { it <= ' ' }, "sendMessage"
+                applicationContext,botTokenEditView.text.toString().trim { it <= ' ' }, "sendMessage"
             )
             val requestBody = RequestMessage()
             requestBody.chatId = chatIdEditView.text.toString().trim { it <= ' ' }
