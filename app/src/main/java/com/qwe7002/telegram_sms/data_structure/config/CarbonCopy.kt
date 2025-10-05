@@ -1,4 +1,4 @@
-package com.qwe7002.telegram_sms.data_structure
+package com.qwe7002.telegram_sms.data_structure.config
 
 data class CcConfig (
     val receiveSMS: Boolean = true,
@@ -6,5 +6,3 @@ data class CcConfig (
     val receiveNotification: Boolean = true,
     val battery: Boolean = true
 )
-
-

@@ -5,6 +5,7 @@ import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.Keyb
 
 class RequestMessage {
     //Turn off page preview to avoid being tracked
+    @Suppress("unused")
     @SerializedName(value = "disable_web_page_preview")
     val disableWebPagePreview: Boolean = true
     @SerializedName(value = "message_id")
