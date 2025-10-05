@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="TPL_received_sms">[{{SIM}}收到短訊]\n發件人: {{From}}\n內容: {{Content}}</string>
-    <string name="TPL_send_sms">[{{SIM}}發送短訊]\n收件人: {{To}}\n內容: {{Content}}</string>
-    <string name="TPL_send_sms_chat">[{{SIM}}發送短訊]\n{{Content}}</string>
-    <string name="TPL_missed_call">[{{SIM}}未接來電]\n發件人: {{From}}</string>
-    <string name="TPL_notification">[收到通知]\n應用: {{APP}}\n標題: {{Title}}\n描述: {{Description}}</string>
-    <string name="TPL_send_USSD">[發送 USSD]\n請求: {{Request}}\n回應: {{Response}}</string>
-</resources>
