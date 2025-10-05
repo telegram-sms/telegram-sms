@@ -219,6 +219,7 @@ class MainActivity : AppCompatActivity() {
             progressDialog.setCancelable(false)
             progressDialog.show()
             val requestUri = getUrl(
+                applicationContext,
                 botTokenEditView.text.toString().trim { it <= ' ' }, "getUpdates"
             )
             var okhttpClient = getOkhttpObj(
@@ -438,6 +439,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
+                @SuppressLint("UseKtx")
                 @Throws(IOException::class)
                 override fun onResponse(call: Call, response: Response) {
                     progressDialog.cancel()

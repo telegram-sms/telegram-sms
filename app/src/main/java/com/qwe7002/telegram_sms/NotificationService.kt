@@ -68,18 +68,29 @@ class NotificationService : NotificationListenerService() {
             }
         }
 
-        val title = extras.getString(Notification.EXTRA_TITLE) ?: getString(R.string.unable_to_obtain_information)
-        val content = extras.getString(Notification.EXTRA_TEXT) ?: getString(R.string.unable_to_obtain_information)
+        val title = extras.getString(Notification.EXTRA_TITLE)
+            ?: getString(R.string.unable_to_obtain_information)
+        val content = extras.getString(Notification.EXTRA_TEXT)
+            ?: getString(R.string.unable_to_obtain_information)
 
         val botToken = sharedPreferences.getString("bot_token", "")
         val chatId = sharedPreferences.getString("chat_id", "")
         val messageThreadId = sharedPreferences.getString("message_thread_id", "")
-        val requestUri = Network.getUrl(botToken.toString(), "sendMessage")
+        val requestUri = Network.getUrl(applicationContext, botToken.toString(), "sendMessage")
         val requestBody = RequestMessage()
         requestBody.chatId = chatId.toString()
         requestBody.messageThreadId = messageThreadId.toString()
-        requestBody.text = Template.render( applicationContext, "TPL_notification", mapOf("APP" to appName, "Title" to title, "Description" to content))
-        CcSendJob.startJob(applicationContext,CcType.NOTIFICATION,applicationContext.getString(R.string.Notification_Listener_title), requestBody.text)
+        requestBody.text = Template.render(
+            applicationContext,
+            "TPL_notification",
+            mapOf("APP" to appName, "Title" to title, "Description" to content)
+        )
+        CcSendJob.startJob(
+            applicationContext,
+            CcType.NOTIFICATION,
+            applicationContext.getString(R.string.Notification_Listener_title),
+            requestBody.text
+        )
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(Const.JSON)
         val okhttpObj = Network.getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),

@@ -43,12 +43,12 @@ class SMSSendResultReceiver : BroadcastReceiver() {
         val requestBody = RequestMessage()
         requestBody.chatId = chatId.toString()
         requestBody.messageThreadId = messageThreadId.toString()
-        var requestUri = Network.getUrl(botToken.toString(), "sendMessage")
+        var requestUri = Network.getUrl(context, botToken.toString(), "sendMessage")
         val messageId = extras.getLong("message_id")
         if (messageId != -1L) {
             Log.d(TAG, "Find the message_id and switch to edit mode.")
             Log.d(TAG, "onReceive: $messageId")
-            requestUri = Network.getUrl(botToken.toString(), "editMessageText")
+            requestUri = Network.getUrl(context, botToken.toString(), "editMessageText")
             requestBody.messageId = messageId
         }
         var resultStatus = "Unknown"
@@ -63,7 +63,8 @@ class SMSSendResultReceiver : BroadcastReceiver() {
             SmsManager.RESULT_ERROR_NO_SERVICE -> resultStatus =
                 context.getString(R.string.no_network)
         }
-        requestBody.text = extras.getString("message_text")+"\n"+"""${context.getString(R.string.status)}$resultStatus""".trimIndent()
+        requestBody.text =
+            extras.getString("message_text") + "\n" + """${context.getString(R.string.status)}$resultStatus""".trimIndent()
         val requestBodyRaw = Gson().toJson(requestBody)
         val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
         val okhttpClient = Network.getOkhttpObj(
@@ -91,7 +92,7 @@ class SMSSendResultReceiver : BroadcastReceiver() {
                     )
                     Resend.addResendLoop(context, requestBody.text)
                 }
-                Log.d(TAG, "onResponse: "+response.body.string())
+                Log.d(TAG, "onResponse: " + response.body.string())
             }
         })
     }

@@ -125,7 +125,7 @@ class ChatService : Service() {
             if (callbackData != CALLBACK_DATA_VALUE.SEND) {
                 setSmsSendStatusStandby()
                 val requestUri = getUrl(
-                    botToken, "editMessageText"
+                    applicationContext, botToken, "editMessageText"
                 )
                 val dualSim = Phone.getSimDisplayName(applicationContext, slot)
                 requestBody.text = Template.render(
@@ -430,6 +430,7 @@ class ChatService : Service() {
         }
 
         val requestUri = getUrl(
+            applicationContext,
             botToken, "sendMessage"
         )
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(Const.JSON)
@@ -547,7 +548,7 @@ class ChatService : Service() {
                     .readTimeout(65, TimeUnit.SECONDS)
                     .writeTimeout(65, TimeUnit.SECONDS)
                     .build()
-                val requestUri = getUrl(botToken, "getUpdates")
+                val requestUri = getUrl(applicationContext, botToken, "getUpdates")
                 val requestBody = PollingBody().apply {
                     this.offset = RequestOffset
                     this.timeout = if (firstRequest) 0 else 60

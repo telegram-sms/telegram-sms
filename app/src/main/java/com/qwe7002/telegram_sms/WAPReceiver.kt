@@ -20,6 +20,5 @@ class WAPReceiver : BroadcastReceiver() {
                 context.sendBroadcast(mmsIntent)*/
             }
         }
-
     }
 }

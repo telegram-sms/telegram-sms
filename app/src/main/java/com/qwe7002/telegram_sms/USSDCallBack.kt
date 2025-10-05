@@ -41,11 +41,12 @@ class USSDCallBack(
         this.dohSwitch = sharedPreferences.getBoolean("doh_switch", true)
         this.requestBody = RequestMessage()
         requestBody.chatId = chatId.toString()
-        requestBody.messageThreadId = sharedPreferences.getString("message_thread_id", "").toString()
+        requestBody.messageThreadId =
+            sharedPreferences.getString("message_thread_id", "").toString()
         val botToken = sharedPreferences.getString("bot_token", "")
-        this.requestUri = Network.getUrl(botToken.toString(), "SendMessage")
+        this.requestUri = Network.getUrl(context, botToken.toString(), "SendMessage")
         if (messageId != -1L) {
-            this.requestUri = Network.getUrl(botToken.toString(), "editMessageText")
+            this.requestUri = Network.getUrl(context, botToken.toString(), "editMessageText")
             requestBody.messageId = messageId
         }
     }
@@ -56,7 +57,11 @@ class USSDCallBack(
         response: CharSequence
     ) {
         super.onReceiveUssdResponse(telephonyManager, request, response)
-        val message = Template.render(context,"TPL_send_USSD", mapOf("Request" to request, "Response" to response.toString()))
+        val message = Template.render(
+            context,
+            "TPL_send_USSD",
+            mapOf("Request" to request, "Response" to response.toString())
+        )
         networkProgressHandle(message)
     }
 
@@ -66,7 +71,11 @@ class USSDCallBack(
         failureCode: Int
     ) {
         super.onReceiveUssdResponseFailed(telephonyManager, request, failureCode)
-        val message = Template.render(context,"TPL_send_USSD", mapOf("Request" to request, "Response" to getErrorCodeString(failureCode)))
+        val message = Template.render(
+            context,
+            "TPL_send_USSD",
+            mapOf("Request" to request, "Response" to getErrorCodeString(failureCode))
+        )
         networkProgressHandle(message)
     }
 

@@ -58,7 +58,7 @@ class SMSReceiver : BroadcastReceiver() {
         val botToken = sharedPreferences.getString("bot_token", "")
         val chatId = sharedPreferences.getString("chat_id", "")
         val messageThreadId = sharedPreferences.getString("message_thread_id", "")
-        val requestUri = Network.getUrl(botToken.toString(), "sendMessage")
+        val requestUri = Network.getUrl(context, botToken.toString(), "sendMessage")
 
         var intentSlot = extras.getInt("slot", -1)
         val subId = extras.getInt("subscription", -1)
@@ -74,10 +74,10 @@ class SMSReceiver : BroadcastReceiver() {
             }
         }
         val slot = intentSlot
-       /* val dualSim = Other.getDualSimCardDisplay(
-            context,
-            intentSlot,
-        )*/
+        /* val dualSim = Other.getDualSimCardDisplay(
+             context,
+             intentSlot,
+         )*/
         val dualSim = Phone.getSimDisplayName(context, slot)
 
         val pdus = (extras["pdus"] as Array<*>?)!!

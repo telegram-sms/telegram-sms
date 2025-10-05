@@ -48,8 +48,11 @@ class ReSendJob : JobService() {
                 val resendListLocal = Paper.book("resend").read("list", ArrayList<String>())!!
                 resendListLocal.remove(message)
                 Paper.book("resend").write("list", resendListLocal)
-            }else{
-                Logs.writeLog(applicationContext, "An error occurred while resending: " + response.code + " " + response.body.string())
+            } else {
+                Logs.writeLog(
+                    applicationContext,
+                    "An error occurred while resending: " + response.code + " " + response.body.string()
+                )
             }
             response.close()
         } catch (e: IOException) {
@@ -62,13 +65,19 @@ class ReSendJob : JobService() {
         Log.d("ReSend", "startJob: Try resending the message.")
         Paper.init(applicationContext)
         val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
-        requestUri = Network.getUrl(sharedPreferences.getString("bot_token", "").toString(), "SendMessage")
+        requestUri = Network.getUrl(
+            applicationContext,
+            sharedPreferences.getString("bot_token", "").toString(),
+            "SendMessage"
+        )
         Thread {
             val sendList: java.util.ArrayList<String> =
                 Paper.book("resend").read("list", java.util.ArrayList())!!
             val okhttpClient =
-                Network.getOkhttpObj(sharedPreferences.getBoolean("doh_switch", true),
-                    Paper.book("system_config").read("proxy_config", proxy()))
+                Network.getOkhttpObj(
+                    sharedPreferences.getBoolean("doh_switch", true),
+                    Paper.book("system_config").read("proxy_config", proxy())
+                )
             for (item in sendList) {
                 networkProgressHandle(
                     item,
@@ -77,8 +86,11 @@ class ReSendJob : JobService() {
                     sharedPreferences.getString("message_thread_id", "").toString()
                 )
             }
-            if (sendList.isNotEmpty()){
-                Logs.writeLog(applicationContext, "startJob: Resend completed. ${sendList.size} messages have been resent.")
+            if (sendList.isNotEmpty()) {
+                Logs.writeLog(
+                    applicationContext,
+                    "startJob: Resend completed. ${sendList.size} messages have been resent."
+                )
             }
             jobFinished(params, false)
         }.start()
