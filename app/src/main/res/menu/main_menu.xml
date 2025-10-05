@@ -45,6 +45,10 @@
         android:title="@string/proxy_title"
         app:showAsAction="never" />
     <item
+        android:id="@+id/set_api_menu_item"
+        android:title="@string/set_api_title"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/config_qrcode_menu_item"
         android:title="@string/transfer_configuration"
         app:showAsAction="never" />

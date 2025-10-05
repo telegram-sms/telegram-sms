@@ -140,4 +140,5 @@
     <string name="title">Title:</string>
     <string name="system_message_head">[System Information]</string>
     <string name="browser_not_found">Browser not found.</string>
+    <string name="set_api_title">API Address</string>
 </resources>

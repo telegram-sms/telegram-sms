@@ -60,6 +60,7 @@ import java.io.IOException
 import java.util.Objects
 import java.util.concurrent.TimeUnit
 import androidx.core.net.toUri
+import kotlin.toString
 
 @Suppress("deprecation")
 class MainActivity : AppCompatActivity() {
@@ -68,6 +69,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var privacyPolice: String
     private lateinit var context: Context
     private val gson = Gson()
+    private var setPermissionBack = false
 
     @SuppressLint("BatteryLife")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -619,6 +621,7 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "onOptionsItemSelected: $e")
         }
         if (versionName == "unknown" || versionName == "Debug" || versionName.startsWith("nightly")) {
+            showErrorDialog("Debug version can not check update.")
             return
         }
         Paper.book("update").write("last_check", System.currentTimeMillis())
@@ -803,6 +806,39 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
 
+            R.id.set_api_address -> {
+                val apiDialogView = inflater.inflate(R.layout.set_api_layout, null)
+                val apiAddress = apiDialogView.findViewById<EditText>(R.id.api_address_editview)
+                apiAddress.setText(sharedPreferences.getString("api_address", "api.telegram.org"))
+                val apiDialog = AlertDialog.Builder(this)
+                apiDialog.setTitle("Set API Address")
+                apiDialog.setView(apiDialogView)
+                apiDialog.setPositiveButton("OK") { dialog, _ ->
+                    {
+                        val apiAddressText = apiAddress.text.toString()
+                        if (sharedPreferences.getString(
+                                "api_address",
+                                "api.telegram.org"
+                            ) == apiAddressText
+                        ) {
+                            return@setPositiveButton
+                        }
+                        if (apiAddressText.isEmpty()) {
+                            showErrorDialog("API address cannot be empty.")
+                            return@setPositiveButton
+                        }
+                        sharedPreferences.edit().putString("api_address", apiAddressText)
+                            .apply()
+                        if (sharedPreferences.contains("initialized") && apiAddressText != "api.telegram.org") {
+                            logout(sharedPreferences.getString("bot_token", "").toString())
+                        }
+                    }
+                }
+                apiDialog.setNegativeButton("Cancel", null)
+                apiDialog.show()
+                return true
+            }
+
             R.id.template_menu_item -> {
                 startActivity(Intent(this, TemplateActivity::class.java))
                 return true
@@ -933,8 +969,54 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    companion object {
-        private var setPermissionBack = false
+    fun logout(chatId: String) {
+        val progressDialog = ProgressDialog(this)
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
+        progressDialog.setTitle(getString(R.string.get_recent_chat_title))
+        progressDialog.setMessage(getString(R.string.get_recent_chat_message))
+        progressDialog.isIndeterminate = false
+        progressDialog.setCancelable(false)
+        progressDialog.show()
+        val requestUri = "https://api.telegram.org/bot$chatId/logout"
+        var okhttpClient = getOkhttpObj(
+            sharedPreferences.getBoolean("doh_switch", false),
+            Paper.book("system_config").read("proxy_config", proxy())
+        )
+        okhttpClient = okhttpClient.newBuilder().build()
+        val requestBody = PollingBody()
+        val body: RequestBody =
+            RequestBody.create(Const.JSON, Gson().toJson(requestBody))
+        val request: Request =
+            Request.Builder().url(requestUri).method("POST", body).build()
+        val call = okhttpClient.newCall(request)
+        call.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                progressDialog.cancel()
+                Log.e(TAG, "onFailure: ", e)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                progressDialog.cancel()
+                if (!response.isSuccessful) {
+                    showErrorDialog("Logout failed.")
+                } else {
+                    val body = response.body.string()
+                    val jsonObj = JsonParser.parseString(body).asJsonObject
+                    if (jsonObj.get("ok").asBoolean) {
+                        Snackbar.make(
+                            findViewById(R.id.set_api_address),
+                            "Set API address successful.",
+                            Snackbar.LENGTH_LONG
+                        ).show()
+                    } else {
+                        showErrorDialog("Set API address failed.")
+                    }
+
+                }
+
+            }
+        })
     }
+
 }
 
