@@ -406,7 +406,9 @@ class MainActivity : AppCompatActivity() {
             }
 
             val requestUri = getUrl(
-                applicationContext,botTokenEditView.text.toString().trim { it <= ' ' }, "sendMessage"
+                applicationContext,
+                botTokenEditView.text.toString().trim { it <= ' ' },
+                "sendMessage"
             )
             val requestBody = RequestMessage()
             requestBody.chatId = chatIdEditView.text.toString().trim { it <= ' ' }
@@ -635,8 +637,7 @@ class MainActivity : AppCompatActivity() {
         Paper.book("update").write("last_check", System.currentTimeMillis())
         val progressDialog = ProgressDialog(this@MainActivity)
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
-        //todo: use string resource
-        progressDialog.setTitle("Check update")
+        progressDialog.setTitle(R.string.check_update)
         progressDialog.setMessage(getString(R.string.connect_wait_message))
         progressDialog.isIndeterminate = false
         progressDialog.setCancelable(false)
@@ -814,7 +815,7 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
 
-            R.id.set_api_address -> {
+            R.id.set_api_menu_item -> {
                 val apiDialogView = inflater.inflate(R.layout.set_api_layout, null)
                 val apiAddress = apiDialogView.findViewById<EditText>(R.id.api_address_editview)
                 apiAddress.setText(sharedPreferences.getString("api_address", "api.telegram.org"))
@@ -1012,7 +1013,7 @@ class MainActivity : AppCompatActivity() {
                     val jsonObj = JsonParser.parseString(body).asJsonObject
                     if (jsonObj.get("ok").asBoolean) {
                         Snackbar.make(
-                            findViewById(R.id.set_api_address),
+                            findViewById(R.id.doh_switch),
                             "Set API address successful.",
                             Snackbar.LENGTH_LONG
                         ).show()
