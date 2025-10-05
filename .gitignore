@@ -74,5 +74,6 @@ app/.settings/
 play-service-key.json
 !/app/src/main/res/values/strings.xml
 strings.xml
-!/app/src/main/res/values/telegram_sms.xml
-telegram_sms.xml
+!/app/src/main/res/values/template.xml
+template.xml
+
