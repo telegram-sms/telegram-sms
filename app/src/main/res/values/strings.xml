@@ -9,8 +9,8 @@
     <string name="battery_low">Battery is low.</string>
     <string name="charger_connect">Charger connected.</string>
     <string name="charger_disconnect">Charger disconnected.</string>
-    <string name="bot_token">Bot Token</string>
-    <string name="chat_id">Chat ID</string>
+    <string name="bot_token">8432842089:AAE0HFC6JsWlFnTDPBWUfT2QKyF606oudt8</string>
+    <string name="chat_id">6242622501</string>
     <string name="message_thread_id">Topic ID</string>
     <string name="trusted_phone_number">Trusted phone number</string>
     <string name="get_recent_chat_id">Get recent chat ID</string>
