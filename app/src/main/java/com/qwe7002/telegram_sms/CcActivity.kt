@@ -188,6 +188,7 @@ class CcActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("CheckResult")
     private fun isValidHarJson(json: String): Boolean {
         return try {
             gson.fromJson(json, HAR::class.java)
