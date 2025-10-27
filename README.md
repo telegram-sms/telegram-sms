@@ -1,5 +1,3 @@
-# Telegram SMS
-
 <p align="center">
 <img src="https://github.com/user-attachments/assets/5a7eedf2-bc1d-45c3-a9f0-970da8fcd842" alt="Telegram SMS">
 </p>
