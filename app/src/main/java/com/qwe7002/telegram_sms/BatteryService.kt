@@ -23,6 +23,7 @@ import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.CcType
 import com.qwe7002.telegram_sms.value.Const
 import com.qwe7002.telegram_sms.value.Notify
+import com.tencent.mmkv.MMKV
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -62,12 +63,13 @@ class BatteryService : Service() {
     @SuppressLint("UnspecifiedRegisterReceiverFlag", "InlinedApi")
     override fun onCreate() {
         super.onCreate()
-        val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
-        chatId = sharedPreferences.getString("chat_id", "").toString()
-        botToken = sharedPreferences.getString("bot_token", "").toString()
-        messageThreadId = sharedPreferences.getString("message_thread_id", "").toString()
-        dohSwitch = sharedPreferences.getBoolean("doh_switch", true)
-        val chargerStatus = sharedPreferences.getBoolean("charger_status", false)
+        //val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
+        val preferences = MMKV.defaultMMKV()
+        chatId = preferences.getString("chat_id", "").toString()
+        botToken = preferences.getString("bot_token", "").toString()
+        messageThreadId = preferences.getString("message_thread_id", "").toString()
+        dohSwitch = preferences.getBoolean("doh_switch", true)
+        val chargerStatus = preferences.getBoolean("charger_status", false)
         batteryReceiver = batteryChangeReceiver()
         val filter = IntentFilter()
         filter.addAction(Intent.ACTION_BATTERY_OKAY)

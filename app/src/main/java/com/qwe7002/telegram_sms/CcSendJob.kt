@@ -35,7 +35,8 @@ class CcSendJob : JobService() {
     override fun onStartJob(params: JobParameters?): Boolean {
         Log.d("CCSend", "startJob: Trying to send message.")
         MMKV.initialize(applicationContext)
-        val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
+        //val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
+        val sharedPreferences = MMKV.defaultMMKV()
         val message: String = params?.extras?.getString("message", "") ?: ""
         var title: String = params?.extras?.getString("title", getString(R.string.app_name))
             ?: getString(R.string.app_name)

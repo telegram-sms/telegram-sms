@@ -43,17 +43,16 @@ import okio.IOException
 
 class QrcodeActivity : AppCompatActivity() {
     lateinit var okhttpObject: okhttp3.OkHttpClient
-    lateinit var sharedPreferences: android.content.SharedPreferences
+    lateinit var preferences: android.content.SharedPreferences
     val url = "https://api.telegram-sms.com/config"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_qrcode)
-        sharedPreferences =
-            applicationContext.getSharedPreferences("data", MODE_PRIVATE)
+        preferences = MMKV.defaultMMKV()
         okhttpObject = Network.getOkhttpObj(
-            sharedPreferences.getBoolean("doh_switch", true)
+            preferences.getBoolean("doh_switch", true)
         )
-        if (sharedPreferences.getBoolean("initialized", false)) {
+        if (preferences.getBoolean("initialized", false)) {
             val qrCodeImageview = findViewById<ImageView>(R.id.qr_imageview)
             qrCodeImageview.setImageBitmap(
                 AwesomeQrRenderer().genQRcodeBitmap(
@@ -99,18 +98,18 @@ class QrcodeActivity : AppCompatActivity() {
         val type = object : TypeToken<ArrayList<CcSendService>>() {}.type
         val sendList: ArrayList<CcSendService> = gson.fromJson(serviceListJson, type)
         val config = ScannerJson(
-            sharedPreferences.getString("bot_token", "")!!,
-            sharedPreferences.getString("chat_id", "")!!,
-            sharedPreferences.getString("trusted_phone_number", "")!!,
-            sharedPreferences.getBoolean("battery_monitoring_switch", false),
-            sharedPreferences.getBoolean("charger_status", false),
-            sharedPreferences.getBoolean("chat_command", false),
-            sharedPreferences.getBoolean("fallback_sms", false),
-            sharedPreferences.getBoolean("privacy_mode", false),
-            sharedPreferences.getBoolean("call_notify", false),
-            sharedPreferences.getBoolean("display_dual_sim_display_name", false),
-            sharedPreferences.getBoolean("verification_code", false),
-            sharedPreferences.getString("message_thread_id", "")!!,
+            preferences.getString("bot_token", "")!!,
+            preferences.getString("chat_id", "")!!,
+            preferences.getString("trusted_phone_number", "")!!,
+            preferences.getBoolean("battery_monitoring_switch", false),
+            preferences.getBoolean("charger_status", false),
+            preferences.getBoolean("chat_command", false),
+            preferences.getBoolean("fallback_sms", false),
+            preferences.getBoolean("privacy_mode", false),
+            preferences.getBoolean("call_notify", false),
+            preferences.getBoolean("display_dual_sim_display_name", false),
+            preferences.getBoolean("verification_code", false),
+            preferences.getString("message_thread_id", "")!!,
             sendList
         )
         return Gson().toJson(config)
@@ -292,7 +291,7 @@ class QrcodeActivity : AppCompatActivity() {
         
         builder.setPositiveButton("OK", null)
         builder.setNegativeButton("Cancel") { dialog, _ ->
-            if (!sharedPreferences.getBoolean("initialized", false)) {
+            if (!preferences.getBoolean("initialized", false)) {
                 finish()
             }
             dialog.cancel()

@@ -69,9 +69,10 @@ class ReSendJob : JobService() {
     override fun onStartJob(params: JobParameters?): Boolean {
         Log.d("ReSend", "startJob: Try resending the message.")
         MMKV.initialize(applicationContext)
-        val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
+        //val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
+        val preferences = MMKV.defaultMMKV()
         requestUri = Network.getUrl(
-            sharedPreferences.getString("bot_token", "").toString(),
+            preferences.getString("bot_token", "").toString(),
             "SendMessage"
         )
         Thread {
@@ -80,14 +81,14 @@ class ReSendJob : JobService() {
             val sendList = resendMMKV.decodeStringSet("resend_list", setOf())?.toMutableList() ?: mutableListOf()
             val okhttpClient =
                 Network.getOkhttpObj(
-                    sharedPreferences.getBoolean("doh_switch", true)
+                    preferences.getBoolean("doh_switch", true)
                 )
             for (item in sendList) {
                 networkProgressHandle(
                     item,
-                    sharedPreferences.getString("chat_id", "").toString(),
+                    preferences.getString("chat_id", "").toString(),
                     okhttpClient,
-                    sharedPreferences.getString("message_thread_id", "").toString()
+                    preferences.getString("message_thread_id", "").toString()
                 )
             }
             if (sendList.isNotEmpty()) {

@@ -44,8 +44,7 @@ class SMSReceiver : BroadcastReceiver() {
         Log.d(TAG, "Receive action: " + intent.action)
         val extras = intent.extras!!
         val preferences = MMKV.defaultMMKV()
-        val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
-        if (!sharedPreferences.getBoolean("initialized", false)) {
+        if (!preferences.getBoolean("initialized", false)) {
             Log.i(TAG, "Uninitialized, SMS receiver is deactivated.")
             return
         }
@@ -55,9 +54,9 @@ class SMSReceiver : BroadcastReceiver() {
             Log.i(TAG, "reject: android.provider.Telephony.SMS_RECEIVED.")
             return
         }
-        val botToken = sharedPreferences.getString("bot_token", "")
-        val chatId = sharedPreferences.getString("chat_id", "")
-        val messageThreadId = sharedPreferences.getString("message_thread_id", "")
+        val botToken = preferences.getString("bot_token", "")
+        val chatId = preferences.getString("chat_id", "")
+        val messageThreadId = preferences.getString("message_thread_id", "")
         val requestUri = Network.getUrl(botToken.toString(), "sendMessage")
 
         var intentSlot = extras.getInt("slot", -1)
@@ -104,7 +103,7 @@ class SMSReceiver : BroadcastReceiver() {
         val textContent = messageBodyBuilder.toString()
 
         val messageAddress = messages[0]!!.originatingAddress!!
-        val trustedPhoneNumber = sharedPreferences.getString("trusted_phone_number", null)
+        val trustedPhoneNumber = preferences.getString("trusted_phone_number", null)
         var isTrustedPhone = false
         if (!trustedPhoneNumber.isNullOrEmpty()) {
             isTrustedPhone = messageAddress.contains(trustedPhoneNumber)
@@ -116,7 +115,7 @@ class SMSReceiver : BroadcastReceiver() {
         var textContentHTML = textContent
         var isVerificationCode = false
         var verificationCode = ""
-        if (sharedPreferences.getBoolean("verification_code", false) && !isTrustedPhone) {
+        if (preferences.getBoolean("verification_code", false) && !isTrustedPhone) {
             val verification = CodeauxLibPortable.find(context, textContent)
             if (verification != null) {
                 requestBody.parseMode = "html"
@@ -213,7 +212,7 @@ class SMSReceiver : BroadcastReceiver() {
         )
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(Const.JSON)
         val okhttpObj = Network.getOkhttpObj(
-            sharedPreferences.getBoolean("doh_switch", true)
+            preferences.getBoolean("doh_switch", true)
         )
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpObj.newCall(request)

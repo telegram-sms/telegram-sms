@@ -13,8 +13,9 @@ class BootReceiver : BroadcastReceiver() {
         val TAG = "boot_receiver"
         Log.d(TAG, "Receive action: " + intent.action)
         MMKV.initialize(context)
-        val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
-        if (sharedPreferences.getBoolean("initialized", false)) {
+        //val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
+        val preferences = MMKV.defaultMMKV()
+        if (preferences.getBoolean("initialized", false)) {
             KeepAliveJob.startJob(context)
             ReSendJob.startJob(context)
             Logs.writeLog(
@@ -23,8 +24,8 @@ class BootReceiver : BroadcastReceiver() {
             )
             Service.startService(
                 context,
-                sharedPreferences.getBoolean("battery_monitoring_switch", false),
-                sharedPreferences.getBoolean("chat_command", false)
+                preferences.getBoolean("battery_monitoring_switch", false),
+                preferences.getBoolean("chat_command", false)
             )
         }
     }

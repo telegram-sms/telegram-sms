@@ -173,9 +173,10 @@ class NotifyActivity : AppCompatActivity() {
             viewHolderObject.appCheckbox.setOnClickListener {
                 val itemInfo = getItem(position) as applicationInfo
                 val packageName = itemInfo.packageName
-
-                val listenListTemp: MutableList<String> = MMKV.defaultMMKV()
-                    .getStringSet("notify_listen_list", setOf())?.toMutableList() ?: mutableListOf()
+                val notifyMMKV = MMKV.mmkvWithID(MMKVConst.NOTIFY_ID)
+                val notifyListStr = notifyMMKV.getString("listen_list", "[]")
+                val listenListTemp: MutableList<String> =
+                    Gson().fromJson(notifyListStr, Array<String>::class.java).toMutableList()
                 if (viewHolderObject.appCheckbox.isChecked) {
                     if (!listenListTemp.contains(packageName)) {
                         listenListTemp.add(packageName)
@@ -184,7 +185,7 @@ class NotifyActivity : AppCompatActivity() {
                     listenListTemp.remove(packageName)
                 }
                 Log.d(TAG, "notify_listen_list: $listenListTemp")
-                MMKV.defaultMMKV().encode("notify_listen_list", listenListTemp.toSet())
+                notifyMMKV.putString("listen_list", Gson().toJson(listenListTemp))
                 listenList = listenListTemp
             }
             return view

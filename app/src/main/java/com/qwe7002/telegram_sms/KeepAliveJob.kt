@@ -8,18 +8,20 @@ import android.content.ComponentName
 import android.content.Context
 import android.util.Log
 import com.qwe7002.telegram_sms.static_class.Service
+import com.tencent.mmkv.MMKV
 import java.util.concurrent.TimeUnit
 
 
 class KeepAliveJob : JobService() {
 
     override fun onStartJob(params: JobParameters?): Boolean {
-        val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
-        if (sharedPreferences.getBoolean("initialized", false)) {
+        //val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
+        val preferences = MMKV.defaultMMKV()
+        if (preferences.getBoolean("initialized", false)) {
             Service.startService(
                 applicationContext,
-                sharedPreferences.getBoolean("battery_monitoring_switch", false),
-                sharedPreferences.getBoolean("chat_command", false)
+                preferences.getBoolean("battery_monitoring_switch", false),
+                preferences.getBoolean("chat_command", false)
             )
         }
         Log.d("KeepAliveJob", "startJob: Try to pull up the service")

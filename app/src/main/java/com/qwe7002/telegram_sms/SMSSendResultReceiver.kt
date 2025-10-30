@@ -13,6 +13,7 @@ import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.value.Const
+import com.tencent.mmkv.MMKV
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
@@ -28,12 +29,12 @@ class SMSSendResultReceiver : BroadcastReceiver() {
         Log.d(TAG, "Receive action: " + intent.action)
         val extras = intent.extras!!
         val sub = extras.getInt("sub_id")
-        context.applicationContext.unregisterReceiver(this)
-        val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
+        val sharedPreferences = MMKV.defaultMMKV()
         if (!sharedPreferences.getBoolean("initialized", false)) {
             Log.i(TAG, "Uninitialized, SMS send receiver is deactivated.")
             return
         }
+        context.applicationContext.unregisterReceiver(this)
         val botToken = sharedPreferences.getString("bot_token", "")
         val chatId = sharedPreferences.getString("chat_id", "")
         val messageThreadId = sharedPreferences.getString("message_thread_id", "")

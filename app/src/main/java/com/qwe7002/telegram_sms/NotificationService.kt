@@ -29,19 +29,19 @@ import java.util.Objects
 
 class NotificationService : NotificationListenerService() {
     val TAG: String = "notification_receiver"
-    lateinit var sharedPreferences: SharedPreferences
+    lateinit var preferences: MMKV
 
     override fun onCreate() {
         super.onCreate()
         MMKV.initialize(applicationContext)
-        sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
+        preferences = MMKV.defaultMMKV()
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         val packageName = sbn.packageName
         Log.d(TAG, "onNotificationPosted: $packageName")
 
-        if (!sharedPreferences.getBoolean("initialized", false)) {
+        if (!preferences.getBoolean("initialized", false)) {
             Log.i(TAG, "Uninitialized, Notification receiver is deactivated.")
             return
         }
@@ -75,9 +75,9 @@ class NotificationService : NotificationListenerService() {
         val content = extras.getString(Notification.EXTRA_TEXT)
             ?: getString(R.string.unable_to_obtain_information)
 
-        val botToken = sharedPreferences.getString("bot_token", "")
-        val chatId = sharedPreferences.getString("chat_id", "")
-        val messageThreadId = sharedPreferences.getString("message_thread_id", "")
+        val botToken = preferences.getString("bot_token", "")
+        val chatId = preferences.getString("chat_id", "")
+        val messageThreadId = preferences.getString("message_thread_id", "")
         val requestUri = Network.getUrl(botToken.toString(), "sendMessage")
         val requestBody = RequestMessage()
         requestBody.chatId = chatId.toString()
@@ -95,7 +95,7 @@ class NotificationService : NotificationListenerService() {
         )
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(Const.JSON)
         val okhttpObj = Network.getOkhttpObj(
-            sharedPreferences.getBoolean("doh_switch", true)
+            preferences.getBoolean("doh_switch", true)
         )
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpObj.newCall(request)

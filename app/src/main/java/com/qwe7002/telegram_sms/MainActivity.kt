@@ -9,7 +9,6 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
@@ -31,15 +30,17 @@ import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.JsonParser
+import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.qwe7002.telegram_sms.data_structure.GitHubRelease
+import com.qwe7002.telegram_sms.data_structure.ScannerJson
 import com.qwe7002.telegram_sms.data_structure.telegram.PollingBody
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
-import com.qwe7002.telegram_sms.data_structure.ScannerJson
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network.getOkhttpObj
 import com.qwe7002.telegram_sms.static_class.Network.getUrl
@@ -49,6 +50,7 @@ import com.qwe7002.telegram_sms.static_class.Service.startService
 import com.qwe7002.telegram_sms.static_class.Service.stopAllService
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.Const
+import com.tencent.mmkv.MMKV
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
@@ -57,28 +59,26 @@ import okhttp3.Response
 import java.io.IOException
 import java.util.Objects
 import java.util.concurrent.TimeUnit
-import androidx.core.net.toUri
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
-import com.tencent.mmkv.MMKV
-import kotlin.toString
 
 @Suppress("deprecation")
 class MainActivity : AppCompatActivity() {
     private val TAG = "main_activity"
-    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var preferences: MMKV
     private lateinit var privacyPolice: String
-    private lateinit var context: Context
     private val gson = Gson()
     private var setPermissionBack = false
 
-    @SuppressLint("BatteryLife")
+    @SuppressLint("BatteryLife", "UseKtx")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        context = applicationContext
         //load config
         MMKV.initialize(this)
-        sharedPreferences = getSharedPreferences("data", MODE_PRIVATE)
+        val oldsharedPreferences = getSharedPreferences("data", MODE_PRIVATE)
+        if (oldsharedPreferences.getBoolean("initialized", false)) {
+            preferences.importFromSharedPreferences(oldsharedPreferences)
+            oldsharedPreferences.edit().clear().apply()
+        }
         privacyPolice = "/privacy-policy"
 
         val chatIdEditView = findViewById<EditText>(R.id.chat_id_editview)
@@ -97,13 +97,13 @@ class MainActivity : AppCompatActivity() {
         val getIdButton = findViewById<Button>(R.id.get_id_button)
 
 
-        if (!sharedPreferences.getBoolean("privacy_dialog_agree", false)) {
+        if (!preferences.getBoolean("privacy_dialog_agree", false)) {
             showPrivacyDialog()
         }
 
-        val botTokenSave = sharedPreferences.getString("bot_token", "")!!
-        val chatIdSave = sharedPreferences.getString("chat_id", "")!!
-        val messageThreadIdSave = sharedPreferences.getString("message_thread_id", "")!!
+        val botTokenSave = preferences.getString("bot_token", "")!!
+        val chatIdSave = preferences.getString("chat_id", "")!!
+        val messageThreadIdSave = preferences.getString("message_thread_id", "")!!
 
         if (parseStringToLong(chatIdSave) < 0) {
             messageThreadIdView.visibility = View.VISIBLE
@@ -111,23 +111,23 @@ class MainActivity : AppCompatActivity() {
             messageThreadIdView.visibility = View.GONE
         }
 
-        if (sharedPreferences.getBoolean("initialized", false)) {
+        if (preferences.getBoolean("initialized", false)) {
             checkVersionUpgrade(true)
             startService(
-                context,
-                sharedPreferences.getBoolean("battery_monitoring_switch", false),
-                sharedPreferences.getBoolean("chat_command", false)
+                applicationContext,
+                preferences.getBoolean("battery_monitoring_switch", false),
+                preferences.getBoolean("chat_command", false)
             )
-            ReSendJob.startJob(context)
-            KeepAliveJob.startJob(context)
+            ReSendJob.startJob(applicationContext)
+            KeepAliveJob.startJob(applicationContext)
         }
         botTokenEditView.setText(botTokenSave)
         chatIdEditView.setText(chatIdSave)
         messageThreadIdEditView.setText(messageThreadIdSave)
-        trustedPhoneNumberEditView.setText(sharedPreferences.getString("trusted_phone_number", ""))
+        trustedPhoneNumberEditView.setText(preferences.getString("trusted_phone_number", ""))
         batteryMonitoringSwitch.isChecked =
-            sharedPreferences.getBoolean("battery_monitoring_switch", false)
-        chargerStatusSwitch.isChecked = sharedPreferences.getBoolean("charger_status", false)
+            preferences.getBoolean("battery_monitoring_switch", false)
+        chargerStatusSwitch.isChecked = preferences.getBoolean("charger_status", false)
 
         if (!batteryMonitoringSwitch.isChecked) {
             chargerStatusSwitch.isChecked = false
@@ -143,9 +143,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        callNotifySwitch.isChecked = sharedPreferences.getBoolean("call_notify", false)
+        callNotifySwitch.isChecked = preferences.getBoolean("call_notify", false)
 
-        fallbackSmsSwitch.isChecked = sharedPreferences.getBoolean("fallback_sms", false)
+        fallbackSmsSwitch.isChecked = preferences.getBoolean("fallback_sms", false)
         if (trustedPhoneNumberEditView.length() == 0) {
             fallbackSmsSwitch.visibility = View.GONE
             fallbackSmsSwitch.isChecked = false
@@ -170,16 +170,16 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        chatCommandSwitch.isChecked = sharedPreferences.getBoolean("chat_command", false)
+        chatCommandSwitch.isChecked = preferences.getBoolean("chat_command", false)
         chatCommandSwitch.setOnClickListener {
             privacyModeCheckbox(
                 chatIdEditView.text.toString(),
                 messageThreadIdView
             )
         }
-        verificationCodeSwitch.isChecked = sharedPreferences.getBoolean("verification_code", false)
+        verificationCodeSwitch.isChecked = preferences.getBoolean("verification_code", false)
 
-        dohSwitch.isChecked = sharedPreferences.getBoolean("doh_switch", true)
+        dohSwitch.isChecked = preferences.getBoolean("doh_switch", true)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             val proxyMMKV = MMKV.mmkvWithID("proxy")
             dohSwitch.isEnabled = proxyMMKV.getBoolean("enable", false)
@@ -211,7 +211,7 @@ class MainActivity : AppCompatActivity() {
                 showErrorDialog(getString(R.string.token_not_configure))
                 return@setOnClickListener
             }
-            Thread { stopAllService(context) }
+            Thread { stopAllService(applicationContext) }
                 .start()
             val progressDialog = ProgressDialog(this@MainActivity)
             progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
@@ -246,7 +246,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "onFailure: $e")
                     progressDialog.cancel()
                     val message = errorHead + e.message
-                    Logs.writeLog(context, message)
+                    Logs.writeLog(applicationContext, message)
                     runOnUiThread {
                         showErrorDialog(message)
                     }
@@ -261,7 +261,7 @@ class MainActivity : AppCompatActivity() {
                             Objects.requireNonNull(response.body).string()
                         val resultObj = JsonParser.parseString(result).asJsonObject
                         val errorMessage = errorHead + resultObj["description"].asString
-                        Logs.writeLog(context, errorMessage)
+                        Logs.writeLog(applicationContext, errorMessage)
                         runOnUiThread { showErrorDialog(errorMessage) }
                         return
                     }
@@ -327,7 +327,7 @@ class MainActivity : AppCompatActivity() {
                                     chatIdList[i]
                                 )
                                 messageThreadIdEditView.setText(chatTopicIdList[i])
-                            }.setPositiveButton(context.getString(R.string.cancel_button), null)
+                            }.setPositiveButton(applicationContext.getString(R.string.cancel_button), null)
                             .show()
                     }
                 }
@@ -346,7 +346,7 @@ class MainActivity : AppCompatActivity() {
                 showErrorDialog(getString(R.string.trusted_phone_number_empty))
                 return@setOnClickListener
             }
-            if (!sharedPreferences.getBoolean("privacy_dialog_agree", false)) {
+            if (!preferences.getBoolean("privacy_dialog_agree", false)) {
                 showPrivacyDialog()
                 return@setOnClickListener
             }
@@ -398,12 +398,12 @@ class MainActivity : AppCompatActivity() {
             progressDialog.setCancelable(false)
             progressDialog.show()
 
-            if (sharedPreferences.contains("initialized") && sharedPreferences.getString(
+            if (preferences.contains("initialized") && preferences.getString(
                     "api_address",
                     "api.telegram.org"
                 ) != "api.telegram.org"
             ) {
-                logout(sharedPreferences.getString("bot_token", "").toString())
+                logout(preferences.getString("bot_token", "").toString())
             }
 
             val requestUri = getUrl(
@@ -414,7 +414,7 @@ class MainActivity : AppCompatActivity() {
             requestBody.chatId = chatIdEditView.text.toString().trim { it <= ' ' }
             requestBody.messageThreadId = messageThreadIdEditView.text.toString().trim { it <= ' ' }
             requestBody.text = Template.render(
-                context,
+                applicationContext,
                 "TPL_system_message",
                 mapOf("Message" to getString(R.string.success_connect))
             )
@@ -431,7 +431,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "onFailure: $e")
                     progressDialog.cancel()
                     val errorMessage = errorHead + e.message
-                    Logs.writeLog(context, errorMessage)
+                    Logs.writeLog(applicationContext, errorMessage)
                     runOnUiThread {
                         showErrorDialog(errorMessage)
                     }
@@ -448,7 +448,7 @@ class MainActivity : AppCompatActivity() {
                             Objects.requireNonNull(response.body).string()
                         val resultObj = JsonParser.parseString(result).asJsonObject
                         val errorMessage = errorHead + resultObj["description"]
-                        Logs.writeLog(context, errorMessage)
+                        Logs.writeLog(applicationContext, errorMessage)
                         runOnUiThread {
                             showErrorDialog(errorMessage)
                         }
@@ -467,42 +467,42 @@ class MainActivity : AppCompatActivity() {
                     Paper.book("system_config")
                         .write("version", Const.SYSTEM_CONFIG_VERSION)*/
                     checkVersionUpgrade(false)
-                    val editor = sharedPreferences.edit().clear()
-                    editor.putString("bot_token", newBotToken)
-                    editor.putString("chat_id", chatIdEditView.text.toString().trim { it <= ' ' })
-                    editor.putString(
+                    //val editor = sharedPreferences.edit().clear()
+                    preferences.clearAll()
+                    preferences.putString("bot_token", newBotToken)
+                    preferences.putString("chat_id", chatIdEditView.text.toString().trim { it <= ' ' })
+                    preferences.putString(
                         "message_thread_id",
                         messageThreadIdEditView.text.toString().trim { it <= ' ' })
                     if (trustedPhoneNumberEditView.text.toString().trim { it <= ' ' }
                             .isNotEmpty()) {
-                        editor.putString(
+                        preferences.putString(
                             "trusted_phone_number",
                             trustedPhoneNumberEditView.text.toString().trim { it <= ' ' })
                     }
-                    editor.putBoolean("fallback_sms", fallbackSmsSwitch.isChecked)
-                    editor.putBoolean("chat_command", chatCommandSwitch.isChecked)
-                    editor.putBoolean(
+                    preferences.putBoolean("fallback_sms", fallbackSmsSwitch.isChecked)
+                    preferences.putBoolean("chat_command", chatCommandSwitch.isChecked)
+                    preferences.putBoolean(
                         "battery_monitoring_switch",
                         batteryMonitoringSwitch.isChecked
                     )
-                    editor.putBoolean("charger_status", chargerStatusSwitch.isChecked)
-                    editor.putBoolean("verification_code", verificationCodeSwitch.isChecked)
-                    editor.putBoolean("doh_switch", dohSwitch.isChecked)
-                    editor.putBoolean("initialized", true)
-                    editor.putBoolean("privacy_dialog_agree", true)
-                    editor.putBoolean("call_notify", callNotifySwitch.isChecked)
-                    editor.apply()
+                    preferences.putBoolean("charger_status", chargerStatusSwitch.isChecked)
+                    preferences.putBoolean("verification_code", verificationCodeSwitch.isChecked)
+                    preferences.putBoolean("doh_switch", dohSwitch.isChecked)
+                    preferences.putBoolean("initialized", true)
+                    preferences.putBoolean("privacy_dialog_agree", true)
+                    preferences.putBoolean("call_notify", callNotifySwitch.isChecked)
                     Thread {
-                        ReSendJob.stopJob(context)
-                        KeepAliveJob.stopJob(context)
-                        stopAllService(context)
+                        ReSendJob.stopJob(applicationContext)
+                        KeepAliveJob.stopJob(applicationContext)
+                        stopAllService(applicationContext)
                         startService(
-                            context,
+                            applicationContext,
                             batteryMonitoringSwitch.isChecked,
                             chatCommandSwitch.isChecked
                         )
-                        ReSendJob.startJob(context)
-                        KeepAliveJob.startJob(context)
+                        ReSendJob.startJob(applicationContext)
+                        KeepAliveJob.startJob(applicationContext)
                     }.start()
                     runOnUiThread {
                         Snackbar.make(v!!, R.string.success, Snackbar.LENGTH_LONG)
@@ -514,15 +514,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkVersionUpgrade(writeLog: Boolean) {
-        //todo
-        val versionCode = sharedPreferences.getInt("version_code", 0)
+        val versionCode = preferences.getInt("version_code", 0)
         /*        val versionCode =
                     Paper.book("system_config").read("version_code", 0)!!*/
-        val packageManager = context.packageManager
+        val packageManager = applicationContext.packageManager
         val packageInfo: PackageInfo
         val currentVersionCode: Int
         try {
-            packageInfo = packageManager.getPackageInfo(context.packageName, 0)
+            packageInfo = packageManager.getPackageInfo(applicationContext.packageName, 0)
             currentVersionCode = packageInfo.versionCode
         } catch (e: PackageManager.NameNotFoundException) {
             Log.d(TAG, "checkVersionUpgrade: $e")
@@ -530,10 +529,9 @@ class MainActivity : AppCompatActivity() {
         }
         if (versionCode != currentVersionCode) {
             if (writeLog) {
-                Logs.resetLogFile(context)
+                Logs.resetLogFile(applicationContext)
             }
-            //Paper.book("system_config").write("version_code", currentVersionCode)
-            sharedPreferences.edit().putInt("version_code", currentVersionCode)
+            preferences.putInt("version_code", currentVersionCode)
         }
     }
 
@@ -557,17 +555,17 @@ class MainActivity : AppCompatActivity() {
         builder.setPositiveButton(
             R.string.agree
         ) { _: DialogInterface?, _: Int ->
-            sharedPreferences.edit().putBoolean("privacy_dialog_agree", true).apply()
+            preferences.putBoolean("privacy_dialog_agree", true)
         }
         builder.setNegativeButton(R.string.decline, null)
         builder.setNeutralButton(R.string.visit_page) { _: DialogInterface?, _: Int ->
             val uri = "https://telegram-sms.com$privacyPolice".toUri()
             val privacyBuilder = CustomTabsIntent.Builder()
-            privacyBuilder.setToolbarColor(ContextCompat.getColor(context, R.color.colorPrimary))
+            privacyBuilder.setToolbarColor(ContextCompat.getColor(applicationContext, R.color.colorPrimary))
             val customTabsIntent = privacyBuilder.build()
-            customTabsIntent.intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            customTabsIntent.intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             try {
-                customTabsIntent.launchUrl(context, uri)
+                customTabsIntent.launchUrl(applicationContext, uri)
             } catch (e: ActivityNotFoundException) {
                 Log.d(TAG, "showPrivacyDialog: $e")
                 Snackbar.make(
@@ -589,7 +587,7 @@ class MainActivity : AppCompatActivity() {
         val backStatus = setPermissionBack
         setPermissionBack = false
         if (backStatus) {
-            if (isNotifyListener(context)) {
+            if (isNotifyListener(applicationContext)) {
                 startActivity(Intent(this@MainActivity, NotifyActivity::class.java))
             }
         }
@@ -620,7 +618,7 @@ class MainActivity : AppCompatActivity() {
                     ).show()
                     return
                 }
-                val intent = Intent(context, ScannerActivity::class.java)
+                val intent = Intent(applicationContext, ScannerActivity::class.java)
                 startActivityForResult(intent, 1)
             }
         }
@@ -628,10 +626,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkUpdate() {
         var versionName = "unknown"
-        val packageManager = context.packageManager
+        val packageManager = applicationContext.packageManager
         val packageInfo: PackageInfo
         try {
-            packageInfo = packageManager.getPackageInfo(context.packageName, 0)
+            packageInfo = packageManager.getPackageInfo(applicationContext.packageName, 0)
             versionName = packageInfo.versionName.toString()
         } catch (e: PackageManager.NameNotFoundException) {
             Log.d(TAG, "onOptionsItemSelected: $e")
@@ -654,7 +652,7 @@ class MainActivity : AppCompatActivity() {
         val okhttpObj = getOkhttpObj(false)
         val requestUri = String.format(
             "https://api.github.com/repos/telegram-sms/%s/releases/latest",
-            context.getString(R.string.app_identifier)
+            applicationContext.getString(R.string.app_identifier)
         )
         val request: Request = Request.Builder().url(requestUri).build()
         val call = okhttpObj.newCall(request)
@@ -665,7 +663,7 @@ class MainActivity : AppCompatActivity() {
                 progressDialog.cancel()
                 if (!response.isSuccessful) {
                     val errorMessage = errorHead + response.code
-                    Logs.writeLog(context, errorMessage)
+                    Logs.writeLog(applicationContext, errorMessage)
                 }
                 val jsonString = response.body.string()
                 Log.d(TAG, "onResponse: $jsonString")
@@ -686,7 +684,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "onFailure: $e")
                 progressDialog.cancel()
                 val errorMessage = errorHead + e.message
-                Logs.writeLog(context, errorMessage)
+                Logs.writeLog(applicationContext, errorMessage)
                 runOnUiThread {
                     showErrorDialog(errorMessage)
                 }
@@ -698,7 +696,7 @@ class MainActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.main_menu, menu)
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
             val setProxyItem = menu.findItem(R.id.set_proxy_menu_item)
-            setProxyItem.setVisible(false)
+            setProxyItem.isVisible = false
         }
         return true
     }
@@ -714,11 +712,11 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.about_menu_item -> {
-                val packageManager = context.packageManager
+                val packageManager = applicationContext.packageManager
                 val packageInfo: PackageInfo
                 var versionName: String? = "unknown"
                 try {
-                    packageInfo = packageManager.getPackageInfo(context.packageName, 0)
+                    packageInfo = packageManager.getPackageInfo(applicationContext.packageName, 0)
                     versionName = packageInfo.versionName
                 } catch (e: PackageManager.NameNotFoundException) {
                     Log.d(TAG, "onOptionsItemSelected: $e")
@@ -744,13 +742,13 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.config_qrcode_menu_item -> {
-                val intent = Intent(context, QrcodeActivity::class.java)
+                val intent = Intent(this, QrcodeActivity::class.java)
                 startActivityForResult(intent, 1)
                 return true
             }
 
             R.id.set_notify_menu_item -> {
-                if (!isNotifyListener(context)) {
+                if (!isNotifyListener(applicationContext)) {
                     val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     startActivity(intent)
@@ -792,28 +790,21 @@ class MainActivity : AppCompatActivity() {
                             dohSwitch.isChecked = true
                         }
                         dohSwitch.isEnabled = !proxyEnable.isChecked
-                        /*                        proxyItem.enable = proxyEnable.isChecked
-                                                proxyItem.dns_over_socks5 = proxyDohSocks5.isChecked
-                                                proxyItem.host = proxyHost.text.toString()
-                                                proxyItem.port = proxyPort.text.toString().toInt()
-                                                proxyItem.username = proxyUsername.text.toString()
-                                                proxyItem.password = proxyPassword.text.toString()
-                                                Paper.book("system_config").write("proxy_config", proxyItem)*/
                         proxyMMKV.putBoolean("enable", proxyEnable.isChecked)
                         proxyMMKV.putString("host", proxyHost.text.toString())
                         proxyMMKV.putInt("port", proxyPort.text.toString().toInt())
                         proxyMMKV.putString("username", proxyUsername.text.toString())
                         proxyMMKV.putString("password", proxyPassword.text.toString())
                         Thread {
-                            stopAllService(context)
-                            if (sharedPreferences.getBoolean("initialized", false)) {
+                            stopAllService(applicationContext)
+                            if (preferences.getBoolean("initialized", false)) {
                                 startService(
-                                    context,
-                                    sharedPreferences.getBoolean(
+                                    applicationContext,
+                                    preferences.getBoolean(
                                         "battery_monitoring_switch",
                                         false
                                     ),
-                                    sharedPreferences.getBoolean("chat_command", false)
+                                    preferences.getBoolean("chat_command", false)
                                 )
                             }
                         }.start()
@@ -825,14 +816,14 @@ class MainActivity : AppCompatActivity() {
             R.id.set_api_menu_item -> {
                 val apiDialogView = inflater.inflate(R.layout.set_api_layout, null)
                 val apiAddress = apiDialogView.findViewById<EditText>(R.id.api_address_editview)
-                apiAddress.setText(sharedPreferences.getString("api_address", "api.telegram.org"))
+                apiAddress.setText(preferences.getString("api_address", "api.telegram.org"))
                 val apiDialog = AlertDialog.Builder(this)
                 apiDialog.setTitle("Set API Address")
                 apiDialog.setView(apiDialogView)
                 apiDialog.setPositiveButton("OK") { dialog, _ ->
                     {
                         val apiAddressText = apiAddress.text.toString()
-                        if (sharedPreferences.getString(
+                        if (preferences.getString(
                                 "api_address",
                                 "api.telegram.org"
                             ) == apiAddressText
@@ -843,10 +834,10 @@ class MainActivity : AppCompatActivity() {
                             showErrorDialog("API address cannot be empty.")
                             return@setPositiveButton
                         }
-                        sharedPreferences.edit().putString("api_address", apiAddressText)
+                        preferences.putString("api_address", apiAddressText)
                             .apply()
-                        if (sharedPreferences.contains("initialized") && apiAddressText != "api.telegram.org") {
-                            logout(sharedPreferences.getString("bot_token", "").toString())
+                        if (preferences.contains("initialized") && apiAddressText != "api.telegram.org") {
+                            logout(preferences.getString("bot_token", "").toString())
                         }
                     }
                 }
@@ -861,12 +852,10 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.user_manual_menu_item -> fileName =
-//                "/guide/" + context.getString(R.string.Lang) + "/user-manual"
                 "/user-manual"
 
             R.id.privacy_policy_menu_item -> fileName = privacyPolice
             R.id.question_and_answer_menu_item -> fileName =
-//                "/guide/" + context.getString(R.string.Lang) + "/Q&A"
                 "/Q&A"
 
             R.id.donate_menu_item -> fileName = "/donate"
@@ -876,7 +865,7 @@ class MainActivity : AppCompatActivity() {
         val builder = CustomTabsIntent.Builder()
         val params = CustomTabColorSchemeParams.Builder().setToolbarColor(
             ContextCompat.getColor(
-                context, R.color.colorPrimary
+                applicationContext, R.color.colorPrimary
             )
         ).build()
         builder.setDefaultColorSchemeParams(params)
@@ -949,8 +938,6 @@ class MainActivity : AppCompatActivity() {
                 if (jsonConfig.ccService != null) {
                     val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
                     carbonCopyMMKV.putString("service", gson.toJson(jsonConfig.ccService))
-                    /*                    Paper.book("system_config")
-                                            .write("CC_service_list", Gson().toJson(jsonConfig.ccService))*/
                 }
             }
         }
@@ -997,7 +984,7 @@ class MainActivity : AppCompatActivity() {
         progressDialog.show()
         val requestUri = "https://api.telegram.org/bot$chatId/logout"
         var okhttpClient = getOkhttpObj(
-            sharedPreferences.getBoolean("doh_switch", false)
+            preferences.getBoolean("doh_switch", false)
         )
         okhttpClient = okhttpClient.newBuilder().build()
         val requestBody = PollingBody()

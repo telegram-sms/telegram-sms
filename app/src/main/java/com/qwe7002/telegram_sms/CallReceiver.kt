@@ -78,17 +78,17 @@ class CallReceiver : BroadcastReceiver() {
             }
 
             if (lastReceiveStatus == TelephonyManager.CALL_STATE_IDLE && nowState == TelephonyManager.CALL_STATE_RINGING) {
-                val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
-                if (!sharedPreferences.getBoolean("call_notify", true)) {
+                val preferences = MMKV.defaultMMKV()
+                if (!preferences.getBoolean("call_notify", true)) {
                     Log.i(
                         "call_status_listener",
                         "Call notifications are disabled by user setting."
                     )
                     return
                 }
-                val botToken = sharedPreferences.getString("bot_token", "")
-                val chatId = sharedPreferences.getString("chat_id", "")
-                val messageThreadId = sharedPreferences.getString("message_thread_id", "")
+                val botToken = preferences.getString("bot_token", "")
+                val chatId = preferences.getString("chat_id", "")
+                val messageThreadId = preferences.getString("message_thread_id", "")
                 val requestUri = Network.getUrl(botToken.toString(), "sendMessage")
                 val requestBody = RequestMessage()
                 requestBody.chatId = chatId.toString()
@@ -109,7 +109,7 @@ class CallReceiver : BroadcastReceiver() {
                 val requestBodyRaw = Gson().toJson(requestBody)
                 val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
                 val okhttpObj = Network.getOkhttpObj(
-                    sharedPreferences.getBoolean("doh_switch", true)
+                    preferences.getBoolean("doh_switch", true)
                 )
                 val request: Request =
                     Request.Builder().url(requestUri).method("POST", body).build()
@@ -149,15 +149,15 @@ class CallReceiver : BroadcastReceiver() {
                 })
             }
             if (lastReceiveStatus == TelephonyManager.CALL_STATE_RINGING && nowState == TelephonyManager.CALL_STATE_IDLE) {
-                val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
-                if (!sharedPreferences.getBoolean("initialized", false)) {
+                val preferences = MMKV.defaultMMKV()
+                if (!preferences.getBoolean("initialized", false)) {
                     Log.i("call_status_listener", "Uninitialized, Phone receiver is deactivated.")
                     return
                 }
 
-                val botToken = sharedPreferences.getString("bot_token", "")
-                val chatId = sharedPreferences.getString("chat_id", "")
-                val messageThreadId = sharedPreferences.getString("message_thread_id", "")
+                val botToken = preferences.getString("bot_token", "")
+                val chatId = preferences.getString("chat_id", "")
+                val messageThreadId = preferences.getString("message_thread_id", "")
                 val requestUri = Network.getUrl(botToken.toString(), "sendMessage")
                 val requestBody = RequestMessage()
                 requestBody.chatId = chatId.toString()
@@ -178,7 +178,7 @@ class CallReceiver : BroadcastReceiver() {
                 val requestBodyRaw = Gson().toJson(requestBody)
                 val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
                 val okhttpObj = Network.getOkhttpObj(
-                    sharedPreferences.getBoolean("doh_switch", true)
+                    preferences.getBoolean("doh_switch", true)
                 )
                 val request: Request =
                     Request.Builder().url(requestUri).method("POST", body).build()

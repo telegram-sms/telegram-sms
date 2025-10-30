@@ -308,10 +308,11 @@ class CcActivity : AppCompatActivity() {
             progressDialog.setCancelable(false)
             progressDialog.show()
             Thread {
-                val sharedPreferences =
-                    applicationContext.getSharedPreferences("data", MODE_PRIVATE)
+               /* val sharedPreferences =
+                    applicationContext.getSharedPreferences("data", MODE_PRIVATE)*/
+                val preferences = MMKV.defaultMMKV()
                 val okhttpObject = Network.getOkhttpObj(
-                    sharedPreferences.getBoolean("doh_switch", true)
+                    preferences.getBoolean("doh_switch", true)
                 )
                 val httpUrlBuilder: HttpUrl.Builder = url.newBuilder()
                 httpUrlBuilder.addQueryParameter("key", id)
