@@ -524,7 +524,7 @@ class MainActivity : AppCompatActivity() {
         }
         if (versionCode != currentVersionCode) {
             if (writeLog) {
-                Logs.resetLogFile(applicationContext)
+                Logs.resetLogFile()
             }
             preferences.putInt("version_code", currentVersionCode)
         }

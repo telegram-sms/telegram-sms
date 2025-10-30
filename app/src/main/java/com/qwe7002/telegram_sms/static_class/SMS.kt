@@ -52,7 +52,7 @@ object SMS {
         val messageThreadId = preferences.getString("message_thread_id", "")!!
         var requestUri = Network.getUrl(botToken, "sendMessage")
         if (messageId != -1L) {
-            Log.d("send_sms", "Find the message_id and switch to edit mode.")
+            Log.d(this::class.simpleName, "Find the message_id and switch to edit mode.")
             requestUri = Network.getUrl(botToken, "editMessageText")
         }
         val requestBody = RequestMessage()
@@ -102,7 +102,7 @@ object SMS {
         } else {
             context.registerReceiver(receiver, filter)
         }
-        Log.d("onSend", "onReceive: $messageId")
+        Log.d(context::class.simpleName, "onReceive: $messageId")
         val intent = Intent("send_sms")
         intent.putExtra("message_id", messageId)
         intent.putExtra("message_text", sendContent)
@@ -129,16 +129,14 @@ object SMS {
 
     @RequiresPermission(Manifest.permission.SEND_SMS)
     fun fallbackSMS(content: String?, subId: Int) {
-        val TAG = "send_fallback_sms"
-        //val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
         val preferences = MMKV.defaultMMKV()
         val trustNumber = preferences.getString("trusted_phone_number", null)
         if (trustNumber == null) {
-            Log.i(TAG, "The trusted number is empty.")
+            Log.i(this::class.simpleName, "The trusted number is empty.")
             return
         }
         if (!preferences.getBoolean("fallback_sms", false)) {
-            Log.i(TAG, "SMS fallback is not turned on.")
+            Log.i(this::class.simpleName, "SMS fallback is not turned on.")
             return
         }
         val smsManager = if (subId == -1) {

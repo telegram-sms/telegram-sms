@@ -40,13 +40,13 @@ object Other {
     }
 
     fun parseStringToLong(value: String?): Long {
-        if (value.isNullOrBlank()) { // 或者 value.isNullOrEmpty()
-            return 0L // 或者其他合适的默认值，或者抛出自定义异常
+        if (value.isNullOrBlank()) {
+            return 0L
         }
         return try {
             value.toLong()
         } catch (_: NumberFormatException) {
-            0L // 或者记录错误，然后返回默认值
+            0L
         }
     }
 
@@ -68,7 +68,7 @@ object Other {
         while (--i >= 0) {
             val c = str[i]
             if (c == '+') {
-                Log.d("is_phone_number", "is_phone_number: found +.")
+                Log.d(this::class.simpleName, "is_phone_number: found +.")
                 continue
             }
             if (!Character.isDigit(c)) {
@@ -148,7 +148,7 @@ object Other {
                 Manifest.permission.READ_PHONE_STATE
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            Log.d("get_active_card", "No permission.")
+            Log.d(this::class.simpleName, "No permission.")
             return -1
         }
         val subscriptionManager =
@@ -165,6 +165,6 @@ object Other {
         val itemString = gson.toJson(item)
         val chatInfoMMKV = MMKV.mmkvWithID(MMKVConst.CHAT_INFO_ID)
         chatInfoMMKV.putString(messageId.toString(), itemString)
-        Log.d("add_message_list", "add_message_list: $messageId")
+        Log.d(this::class.simpleName, "add_message_list: $messageId")
     }
 }

@@ -29,9 +29,7 @@ object Template {
     }
 
     @JvmStatic
-    fun save(context: Context, template: String, inputText: String) {
-        /*        Paper.init(context)
-                Paper.book("Template").write(template, inputText)*/
+    fun save(template: String, inputText: String) {
         val templateMMKV = MMKV.mmkvWithID(MMKVConst.TEMPLATE_ID)
         templateMMKV.encode(template, inputText)
     }

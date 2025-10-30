@@ -55,7 +55,7 @@ object Logs {
         return logLines.takeLast(line).joinToString("\n")
     }
 
-    fun resetLogFile(context: Context) {
+    fun resetLogFile() {
         MMKV.mmkvWithID(MMKVConst.LOG_ID).clearAll()
     }
 

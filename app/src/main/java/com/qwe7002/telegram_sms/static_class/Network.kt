@@ -110,7 +110,7 @@ object Network {
         try {
             return InetAddress.getByName(host)
         } catch (e: UnknownHostException) {
-            Log.e("get_by_ip: ", "get_by_ip: ", e.fillInStackTrace())
+            Log.e(this::class.simpleName, "get_by_ip: ", e.fillInStackTrace())
             throw RuntimeException(e)
         }
     }

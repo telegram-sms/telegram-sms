@@ -18,19 +18,18 @@ object Phone {
     @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
     @JvmStatic
     fun getSimDisplayName(context: Context, slot: Int): String {
-        val TAG = "get_sim_display_name"
         val telephonyManager =
             context.getSystemService(TELEPHONY_SERVICE) as TelephonyManager
         val subscriptionManager =
             checkNotNull(context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager)
         var info = subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(slot)
         if (info == null) {
-            Log.d(TAG, "The active card is in the second card slot.")
+            Log.d(this::class.simpleName, "The active card is in the second card slot.")
             if (getActiveCard(context) == 1 && slot == 0) {
                 info = subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(1)
             }
             if (info == null) {
-                Log.d(TAG, "The active card is not found.")
+                Log.d(this::class.simpleName, "The active card is not found.")
                 return "Unknown"
             }
         }
@@ -40,7 +39,6 @@ object Phone {
             if (tm.simOperatorName == info.displayName) {
                 tm.simOperatorName + " (" + info.number + ")"
             } else {
-                //todo alias
                 info.displayName.toString() + " (" + info.number + ")"
             }
         } else {

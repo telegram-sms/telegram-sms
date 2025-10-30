@@ -26,7 +26,7 @@ class TemplateActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        MMKV.initialize( this)
+        MMKV.initialize(this)
         setContentView(R.layout.activity_template)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -108,14 +108,17 @@ class TemplateActivity : AppCompatActivity() {
                 val editText = dialogView.findViewById<EditText>(R.id.template_editview)
                 val templateMMKV = MMKV.mmkvWithID(MMKVConst.TEMPLATE_ID)
                 val result =
-                    templateMMKV.decodeString(message.template, getStringByName(context, message.template))
+                    templateMMKV.decodeString(
+                        message.template,
+                        getStringByName(context, message.template)
+                    )
                 editText.setText(result)
                 AlertDialog.Builder(context)
                     .setTitle(message.title)
                     .setView(dialogView as View)
                     .setPositiveButton(R.string.ok_button) { _: DialogInterface, _: Int ->
                         val inputText = editText.text.toString()
-                        Template.save(context, message.template, inputText)
+                        Template.save(message.template, inputText)
                         notifyDataSetChanged()
                     }
                     .setNegativeButton(R.string.cancel_button, null)

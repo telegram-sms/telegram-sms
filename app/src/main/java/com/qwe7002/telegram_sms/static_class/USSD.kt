@@ -26,7 +26,6 @@ object USSD {
     @JvmStatic
     @RequiresApi(api = Build.VERSION_CODES.O)
     fun sendUssd(context: Context, ussdRaw: String, subId: Int) {
-        val TAG = "send_ussd"
         val ussd = Other.getNineKeyMapConvert(ussdRaw)
         var tm =
             checkNotNull(context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager)
@@ -39,7 +38,7 @@ object USSD {
                 Manifest.permission.CALL_PHONE
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            Log.i(TAG, "send_ussd: No permission.")
+            Log.i(context::class.simpleName, "send_ussd: No permission.")
         }
 
         val botToken = preferences.getString("bot_token", "")!!

@@ -74,7 +74,7 @@ object ChatCommand {
         var batteryLevel = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
         if (batteryLevel > 100) {
             Log.i(
-                "getBatteryInfo",
+                this::class.simpleName,
                 "The previous battery is over 100%, and the correction is 100%."
             )
             batteryLevel = 100
@@ -119,9 +119,8 @@ object ChatCommand {
             when {
                 networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> return "WIFI"
                 networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
-/*                    if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_IMS)) continue*/
                     if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-                        Log.d("get_network_type", "No permission.")
+                        Log.d(this::class.simpleName, "No permission.")
                         continue
                     }
                     return checkCellularNetworkType(telephonyManager.dataNetworkType)
@@ -144,7 +143,7 @@ object ChatCommand {
 
     @SuppressLint("LongLogTag")
     private fun checkCellularNetworkType(type: Int): String {
-        Log.d("checkCellularNetworkType", "checkCellularNetworkType: $type")
+        Log.d(this::class.simpleName, "checkCellularNetworkType: $type")
         return when (type) {
             TelephonyManager.NETWORK_TYPE_NR -> "NR"
             TelephonyManager.NETWORK_TYPE_LTE -> "LTE"

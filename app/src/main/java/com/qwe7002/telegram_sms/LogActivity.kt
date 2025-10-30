@@ -42,7 +42,7 @@ class LogActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        Logs.resetLogFile(applicationContext)
+        Logs.resetLogFile()
         return true
     }
 
