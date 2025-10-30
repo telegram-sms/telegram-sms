@@ -7,7 +7,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.net.ConnectivityManager
@@ -22,7 +21,6 @@ import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.telegram.PollingBody
 import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.KeyboardMarkup
 import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.getInlineKeyboardObj
@@ -48,7 +46,7 @@ import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.USSD.sendUssd
 import com.qwe7002.telegram_sms.value.Const
 import com.qwe7002.telegram_sms.value.Notify
-import io.paperdb.Paper
+import com.tencent.mmkv.MMKV
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
@@ -480,10 +478,11 @@ class ChatService : Service() {
         super.onCreate()
         Paper.init(applicationContext)
         setSmsSendStatusStandby()
-        sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
-        chatId = sharedPreferences.getString("chat_id", "").toString()
-        botToken = sharedPreferences.getString("bot_token", "").toString()
-        messageThreadId = sharedPreferences.getString("message_thread_id", "").toString()
+        MMKV.initialize(applicationContext)
+        sharedPreferences = MMKV.mmkvWithID("data")
+        chatId = sharedPreferences.getString("chat_id", "")!!
+        botToken = sharedPreferences.getString("bot_token", "")!!
+        messageThreadId = sharedPreferences.getString("message_thread_id", "")!!
         okHttpClient = getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true),
             Paper.book("system_config").read("proxy_config", proxy())
@@ -612,7 +611,7 @@ class ChatService : Service() {
 
     companion object {
         private var RequestOffset: Long = 0
-        private lateinit var sharedPreferences: SharedPreferences
+        private lateinit var sharedPreferences: MMKV
         private var sendSmsNextStatus = SEND_SMS_STATUS.STANDBY_STATUS
         private lateinit var threadMain: Thread
         private var firstRequest = true
@@ -627,4 +626,3 @@ class ChatService : Service() {
         }
     }
 }
-

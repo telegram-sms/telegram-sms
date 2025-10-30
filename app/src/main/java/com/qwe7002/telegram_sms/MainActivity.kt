@@ -36,7 +36,6 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.JsonParser
-import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.GitHubRelease
 import com.qwe7002.telegram_sms.data_structure.telegram.PollingBody
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
@@ -50,7 +49,6 @@ import com.qwe7002.telegram_sms.static_class.Service.startService
 import com.qwe7002.telegram_sms.static_class.Service.stopAllService
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.Const
-import io.paperdb.Paper
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
@@ -60,6 +58,8 @@ import java.io.IOException
 import java.util.Objects
 import java.util.concurrent.TimeUnit
 import androidx.core.net.toUri
+import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.tencent.mmkv.MMKV
 import kotlin.toString
 
 @Suppress("deprecation")
@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         context = applicationContext
         //load config
-        Paper.init(context)
+        MMKV.initialize(this)
         sharedPreferences = getSharedPreferences("data", MODE_PRIVATE)
         privacyPolice = "/privacy-policy"
 
@@ -181,8 +181,10 @@ class MainActivity : AppCompatActivity() {
 
         dohSwitch.isChecked = sharedPreferences.getBoolean("doh_switch", true)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            dohSwitch.isEnabled =
-                !Paper.book("system_config").read("proxy_config", proxy())!!.enable
+            val proxyMMKV = MMKV.mmkvWithID("proxy")
+            dohSwitch.isEnabled = proxyMMKV.getBoolean("enable", false)
+            /*            dohSwitch.isEnabled =
+                            !Paper.book("system_config").read("proxy_config", proxy())!!.enable*/
         }
 
 
@@ -223,8 +225,7 @@ class MainActivity : AppCompatActivity() {
                 botTokenEditView.text.toString().trim { it <= ' ' }, "getUpdates"
             )
             var okhttpClient = getOkhttpObj(
-                dohSwitch.isChecked,
-                Paper.book("system_config").read("proxy_config", proxy())
+                dohSwitch.isChecked
             )
             okhttpClient = okhttpClient.newBuilder()
                 .readTimeout(60, TimeUnit.SECONDS)
@@ -422,8 +423,7 @@ class MainActivity : AppCompatActivity() {
             val requestBodyRaw = gson.toJson(requestBody)
             val body: RequestBody = RequestBody.create(Const.JSON, requestBodyRaw)
             val okhttpObj = getOkhttpObj(
-                dohSwitch.isChecked,
-                Paper.book("system_config").read("proxy_config", proxy())
+                dohSwitch.isChecked
             )
             val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
             val call = okhttpObj.newCall(request)
@@ -461,11 +461,13 @@ class MainActivity : AppCompatActivity() {
                             TAG,
                             "onResponse: The current bot token does not match the saved bot token, clearing the message database."
                         )
-                        Paper.book().destroy()
+                        /*Paper.book().destroy()*/
+                        MMKV.mmkvWithID(MMKVConst.CHAT_ID).clearAll()
                     }
-                    Paper.book("resend").destroy()
+                    MMKV.mmkvWithID(MMKVConst.RESEND_ID).clearAll()
+                    /*Paper.book("resend").destroy()
                     Paper.book("system_config")
-                        .write("version", Const.SYSTEM_CONFIG_VERSION)
+                        .write("version", Const.SYSTEM_CONFIG_VERSION)*/
                     checkVersionUpgrade(false)
                     val editor = sharedPreferences.edit().clear()
                     editor.putString("bot_token", newBotToken)
@@ -514,8 +516,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkVersionUpgrade(writeLog: Boolean) {
-        val versionCode =
-            Paper.book("system_config").read("version_code", 0)!!
+        //todo
+        /*        val versionCode =
+                    Paper.book("system_config").read("version_code", 0)!!*/
         val packageManager = context.packageManager
         val packageInfo: PackageInfo
         val currentVersionCode: Int
@@ -526,12 +529,12 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "checkVersionUpgrade: $e")
             return
         }
-        if (versionCode != currentVersionCode) {
+        /*if (versionCode != currentVersionCode) {
             if (writeLog) {
                 Logs.resetLogFile(context)
             }
             Paper.book("system_config").write("version_code", currentVersionCode)
-        }
+        }*/
     }
 
 
@@ -590,9 +593,10 @@ class MainActivity : AppCompatActivity() {
                 startActivity(Intent(this@MainActivity, NotifyActivity::class.java))
             }
         }
-        val lastCheck = checkNotNull(Paper.book("update").read("last_check", 0L))
+        val updateMMKV = MMKV.mmkvWithID(MMKVConst.UPDATE_ID)
+        val lastCheck = updateMMKV.getLong("last_check", 0)
         if (lastCheck == 0L) {
-            Paper.book("update").write("last_check", System.currentTimeMillis())
+            updateMMKV.putLong("last_check", System.currentTimeMillis())
         }
         if (lastCheck + TimeUnit.DAYS.toMillis(15) < System.currentTimeMillis()) {
             checkUpdate()
@@ -636,7 +640,10 @@ class MainActivity : AppCompatActivity() {
             showErrorDialog("Debug version can not check update.")
             return
         }
-        Paper.book("update").write("last_check", System.currentTimeMillis())
+        /*Paper.book("update").write("last_check", System.currentTimeMillis())*/
+        val updateMMKV = MMKV.mmkvWithID(MMKVConst.UPDATE_ID)
+        updateMMKV.putLong("last_check", System.currentTimeMillis())
+
         val progressDialog = ProgressDialog(this@MainActivity)
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
         progressDialog.setTitle(R.string.check_update)
@@ -644,7 +651,7 @@ class MainActivity : AppCompatActivity() {
         progressDialog.isIndeterminate = false
         progressDialog.setCancelable(false)
         progressDialog.show()
-        val okhttpObj = getOkhttpObj(false, proxy())
+        val okhttpObj = getOkhttpObj(false)
         val requestUri = String.format(
             "https://api.github.com/repos/telegram-sms/%s/releases/latest",
             context.getString(R.string.app_identifier)
@@ -680,10 +687,6 @@ class MainActivity : AppCompatActivity() {
                 progressDialog.cancel()
                 val errorMessage = errorHead + e.message
                 Logs.writeLog(context, errorMessage)
-                /*Looper.prepare()
-                Snackbar.make(findViewById(R.id.content), errorMessage, Snackbar.LENGTH_LONG)
-                    .show()
-                Looper.loop()*/
                 runOnUiThread {
                     showErrorDialog(errorMessage)
                 }
@@ -777,14 +780,13 @@ class MainActivity : AppCompatActivity() {
                 val proxyPort = view.findViewById<EditText>(R.id.proxy_port_editview)
                 val proxyUsername = view.findViewById<EditText>(R.id.proxy_username_editview)
                 val proxyPassword = view.findViewById<EditText>(R.id.proxy_password_editview)
-                val proxyItem = Paper.book("system_config").read("proxy_config", proxy())
-                checkNotNull(proxyItem)
-                proxyEnable.isChecked = proxyItem.enable
-                proxyDohSocks5.isChecked = proxyItem.dns_over_socks5
-                proxyHost.setText(proxyItem.host)
-                proxyPort.setText(proxyItem.port.toString())
-                proxyUsername.setText(proxyItem.username)
-                proxyPassword.setText(proxyItem.password)
+                /*                val proxyItem = Paper.book("system_config").read("proxy_config", proxy())*/
+                val proxyMMKV = MMKV.mmkvWithID(MMKVConst.PROXY_ID)
+                proxyEnable.isChecked = proxyMMKV.getBoolean("proxy_enable", false)
+                proxyHost.setText(proxyMMKV.getString("host", ""))
+                proxyPort.setText(proxyMMKV.getInt("port", 0).toString())
+                proxyUsername.setText(proxyMMKV.getString("username", ""))
+                proxyPassword.setText(proxyMMKV.getString("password", ""))
                 AlertDialog.Builder(this).setTitle(R.string.proxy_dialog_title)
                     .setView(view)
                     .setPositiveButton(R.string.ok_button) { _: DialogInterface?, _: Int ->
@@ -792,13 +794,18 @@ class MainActivity : AppCompatActivity() {
                             dohSwitch.isChecked = true
                         }
                         dohSwitch.isEnabled = !proxyEnable.isChecked
-                        proxyItem.enable = proxyEnable.isChecked
-                        proxyItem.dns_over_socks5 = proxyDohSocks5.isChecked
-                        proxyItem.host = proxyHost.text.toString()
-                        proxyItem.port = proxyPort.text.toString().toInt()
-                        proxyItem.username = proxyUsername.text.toString()
-                        proxyItem.password = proxyPassword.text.toString()
-                        Paper.book("system_config").write("proxy_config", proxyItem)
+                        /*                        proxyItem.enable = proxyEnable.isChecked
+                                                proxyItem.dns_over_socks5 = proxyDohSocks5.isChecked
+                                                proxyItem.host = proxyHost.text.toString()
+                                                proxyItem.port = proxyPort.text.toString().toInt()
+                                                proxyItem.username = proxyUsername.text.toString()
+                                                proxyItem.password = proxyPassword.text.toString()
+                                                Paper.book("system_config").write("proxy_config", proxyItem)*/
+                        proxyMMKV.putBoolean("enable", proxyEnable.isChecked)
+                        proxyMMKV.putString("host", proxyHost.text.toString())
+                        proxyMMKV.putInt("port", proxyPort.text.toString().toInt())
+                        proxyMMKV.putString("username", proxyUsername.text.toString())
+                        proxyMMKV.putString("password", proxyPassword.text.toString())
                         Thread {
                             stopAllService(context)
                             if (sharedPreferences.getBoolean("initialized", false)) {
@@ -942,8 +949,10 @@ class MainActivity : AppCompatActivity() {
                 val topicIdView = findViewById<EditText>(R.id.message_thread_id_editview)
                 topicIdView.setText(jsonConfig.topicID)
                 if (jsonConfig.ccService != null) {
-                    Paper.book("system_config")
-                        .write("CC_service_list", Gson().toJson(jsonConfig.ccService))
+                    val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+                    carbonCopyMMKV.putString("service", gson.toJson(jsonConfig.ccService))
+                    /*                    Paper.book("system_config")
+                                            .write("CC_service_list", Gson().toJson(jsonConfig.ccService))*/
                 }
             }
         }
@@ -990,8 +999,7 @@ class MainActivity : AppCompatActivity() {
         progressDialog.show()
         val requestUri = "https://api.telegram.org/bot$chatId/logout"
         var okhttpClient = getOkhttpObj(
-            sharedPreferences.getBoolean("doh_switch", false),
-            Paper.book("system_config").read("proxy_config", proxy())
+            sharedPreferences.getBoolean("doh_switch", false)
         )
         okhttpClient = okhttpClient.newBuilder().build()
         val requestBody = PollingBody()

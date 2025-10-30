@@ -7,14 +7,12 @@ import android.content.Intent
 import android.telephony.SmsManager
 import android.util.Log
 import com.google.gson.Gson
-import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.value.Const
-import io.paperdb.Paper
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
@@ -26,7 +24,6 @@ import java.util.Objects
 
 class SMSSendResultReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        Paper.init(context)
         val TAG = "sms_send_receiver"
         Log.d(TAG, "Receive action: " + intent.action)
         val extras = intent.extras!!
@@ -68,8 +65,7 @@ class SMSSendResultReceiver : BroadcastReceiver() {
         val requestBodyRaw = Gson().toJson(requestBody)
         val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
         val okhttpClient = Network.getOkhttpObj(
-            sharedPreferences.getBoolean("doh_switch", true),
-            Paper.book("system_config").read("proxy_config", proxy())
+            sharedPreferences.getBoolean("doh_switch", true)
         )
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpClient.newCall(request)

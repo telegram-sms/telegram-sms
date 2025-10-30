@@ -12,7 +12,7 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import com.google.gson.reflect.TypeToken
-import com.qwe7002.telegram_sms.config.proxy
+import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.qwe7002.telegram_sms.data_structure.config.CcConfig
 import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.static_class.CcSend
@@ -20,7 +20,7 @@ import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.SnowFlake
 import com.qwe7002.telegram_sms.value.CcType
-import io.paperdb.Paper
+import com.tencent.mmkv.MMKV
 import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -34,7 +34,7 @@ class CcSendJob : JobService() {
     @Suppress("NAME_SHADOWING")
     override fun onStartJob(params: JobParameters?): Boolean {
         Log.d("CCSend", "startJob: Trying to send message.")
-        Paper.init(applicationContext)
+        MMKV.initialize(applicationContext)
         val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
         val message: String = params?.extras?.getString("message", "") ?: ""
         var title: String = params?.extras?.getString("title", getString(R.string.app_name))
@@ -46,15 +46,16 @@ class CcSendJob : JobService() {
             title += getString(R.string.verification_code)
         }
         Thread {
-            val serviceListJson =
-                Paper.book("carbon_copy").read("CC_service_list", "[]").toString()
+            val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+            val serviceListJson = carbonCopyMMKV.getString("service", "[]")
+            /*            val serviceListJson =
+                            Paper.book("carbon_copy").read("CC_service_list", "[]").toString()*/
             val gson = Gson()
             val type = object : TypeToken<ArrayList<CcSendService>>() {}.type
             val sendList: ArrayList<CcSendService> = gson.fromJson(serviceListJson, type)
             val okhttpClient =
                 Network.getOkhttpObj(
-                    sharedPreferences.getBoolean("doh_switch", true),
-                    Paper.book("system_config").read("proxy_config", proxy())
+                    sharedPreferences.getBoolean("doh_switch", true)
                 )
             for (item in sendList) {
                 if (item.enabled.not()) continue
@@ -138,9 +139,11 @@ class CcSendJob : JobService() {
                             "POST" -> {
                                 FormBody.Builder().build()
                             }
+
                             "PUT" -> {
                                 FormBody.Builder().build()
                             }
+
                             else -> {
                                 Logs.writeLog(
                                     applicationContext,
@@ -248,7 +251,9 @@ class CcSendJob : JobService() {
 
         private fun checkType(type: Int): Boolean {
             Log.d("checkType", "checkType: $type")
-            val ccConfig = Paper.book("carbon_copy").read("cc_config", "{}").toString()
+            //val ccConfig = Paper.book("carbon_copy").read("cc_config", "{}").toString()
+            val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+            val ccConfig = carbonCopyMMKV.getString("config", "{}")
             val gson = Gson()
             val configType = object : TypeToken<CcConfig>() {}.type
             val config: CcConfig = gson.fromJson(ccConfig, configType)

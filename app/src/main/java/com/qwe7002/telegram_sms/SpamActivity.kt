@@ -12,19 +12,23 @@ import android.widget.ListView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import io.paperdb.Paper
+import com.tencent.mmkv.MMKV
 
 class SpamActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_spam_list)
-
+        MMKV.initialize(this)
         val inflater = this.layoutInflater
         val fab = findViewById<FloatingActionButton>(R.id.spam_list_fab)
         val spamList = findViewById<ListView>(R.id.spam_list)
 
+        /* val blockKeywordList =
+             Paper.book("system_config").read("block_keyword_list", ArrayList<String>())!!*/
+        val preferences = MMKV.defaultMMKV()
         val blockKeywordList =
-            Paper.book("system_config").read("block_keyword_list", ArrayList<String>())!!
+            preferences.getStringSet("block_keyword_list", setOf())?.toMutableList()
+                ?: mutableListOf()
         val spamListAdapter = ArrayAdapter(
             this, android.R.layout.simple_list_item_1,
             blockKeywordList
@@ -68,9 +72,20 @@ class SpamActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveAndFlush(blackKeywordList: ArrayList<String>, listAdapter: ArrayAdapter<String>) {
+    /*    private fun saveAndFlush(
+            blackKeywordList: ArrayList<String>,
+            listAdapter: ArrayAdapter<String>
+        ) {
+            Log.d("save_and_flush", blackKeywordList.toString())
+            Paper.book("system_config").write("block_keyword_list", blackKeywordList)
+            listAdapter.notifyDataSetChanged()
+        }*/
+    private fun saveAndFlush(
+        blackKeywordList: MutableList<String>,
+        listAdapter: ArrayAdapter<String>
+    ) {
         Log.d("save_and_flush", blackKeywordList.toString())
-        Paper.book("system_config").write("block_keyword_list", blackKeywordList)
+        MMKV.defaultMMKV().encode("block_keyword_list", blackKeywordList.toSet())
         listAdapter.notifyDataSetChanged()
     }
 }

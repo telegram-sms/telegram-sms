@@ -34,7 +34,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.qwe7002.telegram_sms.config.proxy
+import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.qwe7002.telegram_sms.data_structure.config.CcConfig
 import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.data_structure.HAR
@@ -43,7 +43,7 @@ import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.Const
-import io.paperdb.Paper
+import com.tencent.mmkv.MMKV
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Request
@@ -55,7 +55,7 @@ class CcActivity : AppCompatActivity() {
     private lateinit var serviceList: ArrayList<CcSendService>
     private val gson = Gson()
     private val url = "https://api.telegram-sms.com/cc-config".toHttpUrlOrNull()!!
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_cc)
@@ -68,8 +68,10 @@ class CcActivity : AppCompatActivity() {
         val fab = findViewById<FloatingActionButton>(R.id.cc_fab)
         val ccList = findViewById<ListView>(R.id.cc_list)
 
-        val serviceListJson =
-            Paper.book("carbon_copy").read("CC_service_list", "[]").toString()
+        /*        val serviceListJson =
+                    Paper.book("carbon_copy").read("CC_service_list", "[]").toString()*/
+        val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+        val serviceListJson = carbonCopyMMKV.getString("service", "[]")
         val type = object : TypeToken<ArrayList<CcSendService>>() {}.type
         serviceList = gson.fromJson(serviceListJson, type)
         listAdapter =
@@ -79,7 +81,7 @@ class CcActivity : AppCompatActivity() {
                 override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                     val view: View
                     val holder: ViewHolder
-                    
+
                     if (convertView == null) {
                         view = layoutInflater.inflate(
                             R.layout.list_item_with_subtitle,
@@ -95,14 +97,14 @@ class CcActivity : AppCompatActivity() {
                         view = convertView
                         holder = view.tag as ViewHolder
                     }
-                    
+
                     val item = getItem(position)!!
                     holder.title.text = item.name + if (item.enabled) {
                         getString(R.string.cc_service_enabled)
                     } else {
                         getString(R.string.cc_service_disabled)
                     }
-                    
+
                     val log = item.har.log
                     if (log.entries.isNotEmpty()) {
                         holder.subtitle.text = log.entries[0].request.url
@@ -112,7 +114,7 @@ class CcActivity : AppCompatActivity() {
 
                     return view
                 }
-                
+
                 private inner class ViewHolder(
                     val title: TextView,
                     val subtitle: TextView
@@ -204,7 +206,9 @@ class CcActivity : AppCompatActivity() {
         listAdapter: ArrayAdapter<CcSendService>
     ) {
         Log.d("save_and_flush", serviceList.toString())
-        Paper.book("carbon_copy").write("CC_service_list", gson.toJson(serviceList))
+        //Paper.book("carbon_copy").write("CC_service_list", gson.toJson(serviceList))
+        val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+        carbonCopyMMKV.putString("service", gson.toJson(serviceList))
         listAdapter.notifyDataSetChanged()
     }
 
@@ -215,6 +219,7 @@ class CcActivity : AppCompatActivity() {
 
     @SuppressLint("NonConstantResourceId", "SetTextI18n")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
         return when (item.itemId) {
             R.id.scan_menu_item -> {
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 0)
@@ -262,7 +267,8 @@ class CcActivity : AppCompatActivity() {
                     dialog.findViewById<SwitchMaterial>(R.id.cc_notify_switch)
                 val receiverBatterySwitch =
                     dialog.findViewById<SwitchMaterial>(R.id.cc_battery_switch)
-                val ccConfig = Paper.book("carbon_copy").read("cc_config", "{}").toString()
+                //val ccConfig = Paper.book("carbon_copy").read("cc_config", "{}").toString()
+                val ccConfig = carbonCopyMMKV.getString("config", "{}").toString()
                 val type = object : TypeToken<CcConfig>() {}.type
                 val config: CcConfig = gson.fromJson(ccConfig, type)
 
@@ -280,7 +286,8 @@ class CcActivity : AppCompatActivity() {
                             receiverNotificationSwitch.isChecked,
                             receiverBatterySwitch.isChecked
                         )
-                        Paper.book("carbon_copy").write("cc_config", gson.toJson(ccConfig))
+                        //Paper.book("carbon_copy").write("cc_config", gson.toJson(ccConfig))
+                        carbonCopyMMKV.putString("config", gson.toJson(ccConfig))
                     }
                     .setNeutralButton(R.string.cancel_button, null)
                     .show()
@@ -305,8 +312,7 @@ class CcActivity : AppCompatActivity() {
                 val sharedPreferences =
                     applicationContext.getSharedPreferences("data", MODE_PRIVATE)
                 val okhttpObject = Network.getOkhttpObj(
-                    sharedPreferences.getBoolean("doh_switch", true),
-                    Paper.book("system_config").read("proxy_config", proxy())
+                    sharedPreferences.getBoolean("doh_switch", true)
                 )
                 val httpUrlBuilder: HttpUrl.Builder = url.newBuilder()
                 httpUrlBuilder.addQueryParameter("key", id)

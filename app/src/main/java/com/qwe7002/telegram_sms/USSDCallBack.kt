@@ -7,7 +7,6 @@ import android.telephony.TelephonyManager
 import android.telephony.TelephonyManager.UssdResponseCallback
 import androidx.annotation.RequiresApi
 import com.google.gson.Gson
-import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
@@ -15,7 +14,6 @@ import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.Const
-import io.paperdb.Paper
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
@@ -36,7 +34,6 @@ class USSDCallBack(
     private val requestBody: RequestMessage
 
     init {
-        Paper.init(context)
         val chatId = sharedPreferences.getString("chat_id", "")
         this.dohSwitch = sharedPreferences.getBoolean("doh_switch", true)
         this.requestBody = RequestMessage()
@@ -84,8 +81,7 @@ class USSDCallBack(
         val requestBodyJson = Gson().toJson(requestBody)
         val body: RequestBody = requestBodyJson.toRequestBody(Const.JSON)
         val okhttpClient = Network.getOkhttpObj(
-            dohSwitch,
-            Paper.book("system_config").read("proxy_config", proxy())
+            dohSwitch
         )
         val requestObj: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpClient.newCall(requestObj)

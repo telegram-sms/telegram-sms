@@ -11,7 +11,6 @@ import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import com.google.gson.Gson
-import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
@@ -22,7 +21,7 @@ import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.CcType
 import com.qwe7002.telegram_sms.value.Const
-import io.paperdb.Paper
+import com.tencent.mmkv.MMKV
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
@@ -35,7 +34,7 @@ import java.io.IOException
 class CallReceiver : BroadcastReceiver() {
     @Suppress("DEPRECATION")
     override fun onReceive(context: Context, intent: Intent) {
-        Paper.init(context)
+        MMKV.initialize(context)
         Log.d("call_receiver", "Receive action: " + intent.action)
         // Removed local lateinit var incomingNumber
 
@@ -97,8 +96,7 @@ class CallReceiver : BroadcastReceiver() {
                 val requestBodyRaw = Gson().toJson(requestBody)
                 val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
                 val okhttpObj = Network.getOkhttpObj(
-                    sharedPreferences.getBoolean("doh_switch", true),
-                    Paper.book("system_config").read("proxy_config", proxy())
+                    sharedPreferences.getBoolean("doh_switch", true)
                 )
                 val request: Request =
                     Request.Builder().url(requestUri).method("POST", body).build()
@@ -128,7 +126,7 @@ class CallReceiver : BroadcastReceiver() {
                                 )
                                 return
                             }
-                            Other.addMessageList(Other.getMessageId(responseBodyStr ?: ""), actualIncomingNumber, slot)
+                            Other.addMessageList(Other.getMessageId(responseBodyStr), actualIncomingNumber, slot)
                         }
                     }
                 })
@@ -154,8 +152,7 @@ class CallReceiver : BroadcastReceiver() {
                 val requestBodyRaw = Gson().toJson(requestBody)
                 val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
                 val okhttpObj = Network.getOkhttpObj(
-                    sharedPreferences.getBoolean("doh_switch", true),
-                    Paper.book("system_config").read("proxy_config", proxy())
+                    sharedPreferences.getBoolean("doh_switch", true)
                 )
                 val request: Request =
                     Request.Builder().url(requestUri).method("POST", body).build()
@@ -185,7 +182,7 @@ class CallReceiver : BroadcastReceiver() {
                                 )
                                 return
                             }
-                            Other.addMessageList(Other.getMessageId(responseBodyStr ?: ""), actualIncomingNumber, slot)
+                            Other.addMessageList(Other.getMessageId(responseBodyStr), actualIncomingNumber, slot)
                         }
                     }
                 })

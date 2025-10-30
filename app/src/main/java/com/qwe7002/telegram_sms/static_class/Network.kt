@@ -8,7 +8,8 @@ import android.os.Build
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import android.util.Log
-import com.qwe7002.telegram_sms.config.proxy
+import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.tencent.mmkv.MMKV
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.dnsoverhttps.DnsOverHttps
@@ -50,26 +51,31 @@ object Network {
     }
 
     @JvmStatic
-    fun getOkhttpObj(dohSwitch: Boolean, proxyItem: proxy?): OkHttpClient {
+    fun getOkhttpObj(dohSwitch: Boolean): OkHttpClient {
+        val proxyMMKV = MMKV.mmkvWithID(MMKVConst.PROXY_ID)
         val okhttp = OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
             .writeTimeout(15, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && proxyItem?.enable == true) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && proxyMMKV.getBoolean("enable",false)) {
             val policy = ThreadPolicy.Builder().permitAll().build()
             StrictMode.setThreadPolicy(policy)
-            val proxyAddr = InetSocketAddress(proxyItem.host, proxyItem.port)
+            val host = proxyMMKV.getString("host", "")
+            val port = proxyMMKV.getInt("port", 0)
+            val username = proxyMMKV.getString("username", "")
+            val password = proxyMMKV.getString("password", "")
+            val proxyAddr = InetSocketAddress(host, port)
             val proxy = Proxy(Proxy.Type.SOCKS, proxyAddr)
             Authenticator.setDefault(object : Authenticator() {
                 override fun getPasswordAuthentication(): PasswordAuthentication? {
                     return if (requestingHost.equals(
-                            proxyItem.host,
+                            host,
                             ignoreCase = true
-                        ) && proxyItem.port == requestingPort
+                        ) && port == requestingPort
                     ) {
-                        PasswordAuthentication(proxyItem.username, proxyItem.password.toCharArray())
+                        PasswordAuthentication(username, password?.toCharArray())
                     } else {
                         null
                     }

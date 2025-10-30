@@ -8,12 +8,12 @@ import android.content.ComponentName
 import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
-import com.qwe7002.telegram_sms.config.proxy
+import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.value.Const
-import io.paperdb.Paper
+import com.tencent.mmkv.MMKV
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit
 class ReSendJob : JobService() {
     private lateinit var requestUri: String
     private val gson = Gson()
+    private lateinit var resendMMKV: MMKV
 
     private fun networkProgressHandle(
         message: String,
@@ -31,6 +32,7 @@ class ReSendJob : JobService() {
         okhttpClient: OkHttpClient,
         messageThreadId: String
     ) {
+        resendMMKV = MMKV.mmkvWithID(MMKVConst.RESEND_ID)
         val requestBody = RequestMessage()
         requestBody.chatId = chatId
         requestBody.text = message
@@ -45,9 +47,12 @@ class ReSendJob : JobService() {
         try {
             val response = call.execute()
             if (response.isSuccessful) {
-                val resendListLocal = Paper.book("resend").read("list", ArrayList<String>())!!
+/*                val resendListLocal = Paper.book("resend").read("list", ArrayList<String>())!!
                 resendListLocal.remove(message)
-                Paper.book("resend").write("list", resendListLocal)
+                Paper.book("resend").write("list", resendListLocal)*/
+                val resendListLocal = resendMMKV.decodeStringSet("resend_list", setOf())?.toMutableList() ?: mutableListOf()
+                resendListLocal.remove(message)
+                resendMMKV.encode("resend_list", resendListLocal.toSet())
             } else {
                 Logs.writeLog(
                     applicationContext,
@@ -63,7 +68,7 @@ class ReSendJob : JobService() {
 
     override fun onStartJob(params: JobParameters?): Boolean {
         Log.d("ReSend", "startJob: Try resending the message.")
-        Paper.init(applicationContext)
+        MMKV.initialize(applicationContext)
         val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
         requestUri = Network.getUrl(
             applicationContext,
@@ -71,12 +76,12 @@ class ReSendJob : JobService() {
             "SendMessage"
         )
         Thread {
-            val sendList: java.util.ArrayList<String> =
-                Paper.book("resend").read("list", java.util.ArrayList())!!
+            /*val sendList: java.util.ArrayList<String> =
+                Paper.book("resend").read("list", java.util.ArrayList())!!*/
+            val sendList = resendMMKV.decodeStringSet("resend_list", setOf())?.toMutableList() ?: mutableListOf()
             val okhttpClient =
                 Network.getOkhttpObj(
-                    sharedPreferences.getBoolean("doh_switch", true),
-                    Paper.book("system_config").read("proxy_config", proxy())
+                    sharedPreferences.getBoolean("doh_switch", true)
                 )
             for (item in sendList) {
                 networkProgressHandle(

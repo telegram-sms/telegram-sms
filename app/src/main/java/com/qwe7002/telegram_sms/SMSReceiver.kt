@@ -14,7 +14,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.github.sumimakito.codeauxlib.CodeauxLibPortable
 import com.google.gson.Gson
-import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
@@ -26,7 +25,7 @@ import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.USSD
 import com.qwe7002.telegram_sms.value.CcType
 import com.qwe7002.telegram_sms.value.Const
-import io.paperdb.Paper
+import com.tencent.mmkv.MMKV
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
@@ -40,10 +39,11 @@ import java.util.Objects
 class SMSReceiver : BroadcastReceiver() {
     @Suppress("DEPRECATION")
     override fun onReceive(context: Context, intent: Intent) {
-        Paper.init(context)
+        MMKV.initialize(context)
         val TAG = "sms_receiver"
         Log.d(TAG, "Receive action: " + intent.action)
         val extras = intent.extras!!
+        val preferences = MMKV.defaultMMKV()
         val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
         if (!sharedPreferences.getBoolean("initialized", false)) {
             Log.i(TAG, "Uninitialized, SMS receiver is deactivated.")
@@ -188,7 +188,10 @@ class SMSReceiver : BroadcastReceiver() {
 
         if (!isVerificationCode && !isTrustedPhone) {
             val blackListArray =
-                Paper.book("system_config").read("block_keyword_list", ArrayList<String>())!!
+                preferences.getStringSet("block_keyword_list", setOf())?.toMutableList()
+                    ?: mutableListOf()
+/*            val blackListArray =
+                Paper.book("system_config").read("block_keyword_list", ArrayList<String>())!!*/
             for (blackListItem in blackListArray) {
                 if (textContent.contains(blackListItem)) {
                     Log.i(TAG, "Detected message contains blacklist keywords")
@@ -212,8 +215,7 @@ class SMSReceiver : BroadcastReceiver() {
         )
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(Const.JSON)
         val okhttpObj = Network.getOkhttpObj(
-            sharedPreferences.getBoolean("doh_switch", true),
-            Paper.book("system_config").read("proxy_config", proxy())
+            sharedPreferences.getBoolean("doh_switch", true)
         )
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpObj.newCall(request)

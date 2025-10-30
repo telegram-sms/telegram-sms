@@ -9,7 +9,7 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import com.google.gson.Gson
-import com.qwe7002.telegram_sms.config.proxy
+import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
@@ -17,7 +17,7 @@ import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.CcType
 import com.qwe7002.telegram_sms.value.Const
-import io.paperdb.Paper
+import com.tencent.mmkv.MMKV
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
@@ -33,7 +33,7 @@ class NotificationService : NotificationListenerService() {
 
     override fun onCreate() {
         super.onCreate()
-        Paper.init(applicationContext)
+        MMKV.initialize(applicationContext)
         sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
     }
 
@@ -45,9 +45,11 @@ class NotificationService : NotificationListenerService() {
             Log.i(TAG, "Uninitialized, Notification receiver is deactivated.")
             return
         }
-
+        val notifyMMKV = MMKV.mmkvWithID(MMKVConst.NOTIFY_ID)
+        val notifyListStr = notifyMMKV.getString("listen_list","[]")
         val listenList: List<String> =
-            Paper.book("system_config").read("notify_listen_list", ArrayList())!!
+            Gson().fromJson(notifyListStr, Array<String>::class.java).toList()
+
         if (!listenList.contains(packageName)) {
             Log.i(TAG, "[$packageName] Not in the list of listening packages.")
             return
@@ -93,8 +95,7 @@ class NotificationService : NotificationListenerService() {
         )
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(Const.JSON)
         val okhttpObj = Network.getOkhttpObj(
-            sharedPreferences.getBoolean("doh_switch", true),
-            Paper.book("system_config").read("proxy_config", proxy())
+            sharedPreferences.getBoolean("doh_switch", true)
         )
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpObj.newCall(request)

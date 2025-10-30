@@ -24,20 +24,20 @@ import com.google.gson.Gson
 import com.google.gson.JsonParser
 import com.google.gson.reflect.TypeToken
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
-import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.data_structure.ScannerJson
 import com.qwe7002.telegram_sms.static_class.AES
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.value.Const
-import io.paperdb.Paper
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import android.text.TextWatcher
 import android.text.Editable
+import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.tencent.mmkv.MMKV
 import okio.IOException
 
 
@@ -51,8 +51,7 @@ class QrcodeActivity : AppCompatActivity() {
         sharedPreferences =
             applicationContext.getSharedPreferences("data", MODE_PRIVATE)
         okhttpObject = Network.getOkhttpObj(
-            sharedPreferences.getBoolean("doh_switch", true),
-            Paper.book("system_config").read("proxy_config", proxy())
+            sharedPreferences.getBoolean("doh_switch", true)
         )
         if (sharedPreferences.getBoolean("initialized", false)) {
             val qrCodeImageview = findViewById<ImageView>(R.id.qr_imageview)
@@ -92,8 +91,10 @@ class QrcodeActivity : AppCompatActivity() {
     }
 
     private fun getConfigJson(): String {
-        val serviceListJson =
-            Paper.book("system_config").read("CC_service_list", "[]").toString()
+/*        val serviceListJson =
+            Paper.book("system_config").read("CC_service_list", "[]").toString()*/
+        val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+        val serviceListJson = carbonCopyMMKV.getString("CC_service_list", "[]")
         val gson = Gson()
         val type = object : TypeToken<ArrayList<CcSendService>>() {}.type
         val sendList: ArrayList<CcSendService> = gson.fromJson(serviceListJson, type)

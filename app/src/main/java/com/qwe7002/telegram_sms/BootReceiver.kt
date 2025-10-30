@@ -6,15 +6,15 @@ import android.content.Intent
 import android.util.Log
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Service
-import io.paperdb.Paper
+import com.tencent.mmkv.MMKV
 
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val TAG = "boot_receiver"
         Log.d(TAG, "Receive action: " + intent.action)
+        MMKV.initialize(context)
         val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
         if (sharedPreferences.getBoolean("initialized", false)) {
-            Paper.init(context)
             KeepAliveJob.startJob(context)
             ReSendJob.startJob(context)
             Logs.writeLog(

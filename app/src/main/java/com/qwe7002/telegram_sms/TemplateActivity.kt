@@ -15,9 +15,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.Template.getStringByName
-import io.paperdb.Paper
+import com.tencent.mmkv.MMKV
 
 
 class TemplateActivity : AppCompatActivity() {
@@ -27,7 +28,7 @@ class TemplateActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Paper.init(applicationContext)
+        MMKV.initialize( this)
         context = applicationContext
         setContentView(R.layout.activity_template)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -108,8 +109,11 @@ class TemplateActivity : AppCompatActivity() {
                 val dialogView = inflater.inflate(R.layout.set_template, null)
 
                 val editText = dialogView.findViewById<EditText>(R.id.template_editview)
-                val result = Paper.book("Template")
-                    .read(message.template, getStringByName(context, message.template)).toString()
+                /*val result = Paper.book("Template")
+                    .read(message.template, getStringByName(context, message.template)).toString()*/
+                val templateMMKV = MMKV.mmkvWithID(MMKVConst.TEMPLATE_ID)
+                val result =
+                    templateMMKV.decodeString(message.template, getStringByName(context, message.template))
                 editText.setText(result)
                 AlertDialog.Builder(context)
                     .setTitle(message.title)
@@ -121,7 +125,7 @@ class TemplateActivity : AppCompatActivity() {
                     }
                     .setNegativeButton(R.string.cancel_button, null)
                     .setNeutralButton(R.string.reset_button) { _: DialogInterface, _: Int ->
-                        Paper.book("Template").delete(message.template)
+                        templateMMKV.removeValueForKey(message.template)
                         notifyDataSetChanged()
                     }
                     .show()

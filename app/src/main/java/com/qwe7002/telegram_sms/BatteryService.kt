@@ -14,7 +14,6 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import com.google.gson.Gson
-import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
@@ -24,7 +23,6 @@ import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.CcType
 import com.qwe7002.telegram_sms.value.Const
 import com.qwe7002.telegram_sms.value.Notify
-import io.paperdb.Paper
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -64,7 +62,6 @@ class BatteryService : Service() {
     @SuppressLint("UnspecifiedRegisterReceiverFlag", "InlinedApi")
     override fun onCreate() {
         super.onCreate()
-        Paper.init(applicationContext)
         val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
         chatId = sharedPreferences.getString("chat_id", "").toString()
         botToken = sharedPreferences.getString("bot_token", "").toString()
@@ -119,10 +116,7 @@ class BatteryService : Service() {
             Log.d(TAG, "onReceive: edit_mode")
         }
         lastReceiveTime = System.currentTimeMillis()
-        val okhttpObj = Network.getOkhttpObj(
-            dohSwitch,
-            Paper.book("system_config").read("proxy_config", proxy())
-        )
+        val okhttpObj = Network.getOkhttpObj(dohSwitch)
         val requestBodyRaw = Gson().toJson(requestMessage)
         val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
