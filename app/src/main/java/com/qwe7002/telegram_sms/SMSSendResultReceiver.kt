@@ -40,12 +40,12 @@ class SMSSendResultReceiver : BroadcastReceiver() {
         val requestBody = RequestMessage()
         requestBody.chatId = chatId.toString()
         requestBody.messageThreadId = messageThreadId.toString()
-        var requestUri = Network.getUrl(context, botToken.toString(), "sendMessage")
+        var requestUri = Network.getUrl(botToken.toString(), "sendMessage")
         val messageId = extras.getLong("message_id")
         if (messageId != -1L) {
             Log.d(TAG, "Find the message_id and switch to edit mode.")
             Log.d(TAG, "onReceive: $messageId")
-            requestUri = Network.getUrl(context, botToken.toString(), "editMessageText")
+            requestUri = Network.getUrl(botToken.toString(), "editMessageText")
             requestBody.messageId = messageId
         }
         var resultStatus = "Unknown"

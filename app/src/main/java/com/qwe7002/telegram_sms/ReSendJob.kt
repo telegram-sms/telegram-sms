@@ -71,7 +71,6 @@ class ReSendJob : JobService() {
         MMKV.initialize(applicationContext)
         val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
         requestUri = Network.getUrl(
-            applicationContext,
             sharedPreferences.getString("bot_token", "").toString(),
             "SendMessage"
         )

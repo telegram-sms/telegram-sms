@@ -89,6 +89,7 @@ class ChatService : Service() {
     private val TAG = "chat_command"
 
     private val chatMMKV = MMKV.mmkvWithID(MMKVConst.CHAT_ID)
+    private val chatInfoMMKV = MMKV.mmkvWithID(MMKVConst.CHAT_INFO_ID)
 
     private fun receiveHandle(resultObj: JsonObject, getIdOnly: Boolean) {
         val updateId = resultObj["update_id"].asLong
@@ -119,10 +120,10 @@ class ChatService : Service() {
         }
         if (messageType == "callback_query" && sendSmsNextStatus != SEND_SMS_STATUS.STANDBY_STATUS) {
             //var slot = Paper.book("send_temp").read("slot", -1)!!
-/*            val messageId =
-                Paper.book("send_temp").read("message_id", -1L)!!
-            val to = Paper.book("send_temp").read("to", "").toString()
-            val content = Paper.book("send_temp").read("content", "").toString()*/
+            /*            val messageId =
+                            Paper.book("send_temp").read("message_id", -1L)!!
+                        val to = Paper.book("send_temp").read("to", "").toString()
+                        val content = Paper.book("send_temp").read("content", "").toString()*/
             var slot = chatMMKV.getInt("slot", -1)
             val messageId = chatMMKV.getLong("message_id", -1L)
             val to = chatMMKV.getString("to", "").toString()
@@ -130,7 +131,7 @@ class ChatService : Service() {
             if (callbackData != CALLBACK_DATA_VALUE.SEND) {
                 setSmsSendStatusStandby()
                 val requestUri = getUrl(
-                    applicationContext, botToken, "editMessageText"
+                    botToken, "editMessageText"
                 )
                 val dualSim = Phone.getSimDisplayName(applicationContext, slot)
                 requestBody.text = Template.render(
@@ -204,22 +205,20 @@ class ChatService : Service() {
             requestMsg = jsonObject["text"].asString
         }
         if (jsonObject.has("reply_to_message")) {
-/*            val saveItem = Paper.book().read<SMSRequestInfo>(
-                jsonObject["reply_to_message"].asJsonObject["message_id"].asString,
-                null
-            )*/
-            val saveItemString = chatMMKV.getString(
+            /*            val saveItem = Paper.book().read<SMSRequestInfo>(
+                            jsonObject["reply_to_message"].asJsonObject["message_id"].asString,
+                            null
+                        )*/
+            val saveItemString = chatInfoMMKV.getString(
                 jsonObject["reply_to_message"].asJsonObject["message_id"].asString,
                 null
             )
-            val saveItem =
-                Gson().fromJson(saveItemString, SMSRequestInfo::class.java)
-            if (saveItem != null && requestMsg.isNotEmpty()) {
+            if (saveItemString != null && requestMsg.isNotEmpty()) {
+                val saveItem =
+                    Gson().fromJson(saveItemString, SMSRequestInfo::class.java)
                 val phoneNumber = saveItem.phone
                 val cardSlot = saveItem.card
                 sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
-/*                Paper.book("send_temp").write("slot", cardSlot).write("to", phoneNumber)
-                    .write("content", requestMsg)*/
                 chatMMKV.putInt("slot", cardSlot)
                 chatMMKV.putString("to", phoneNumber)
                 chatMMKV.putString("content", requestMsg)
@@ -434,11 +433,11 @@ class ChatService : Service() {
                         )
                     }
                     requestBody.replyMarkup = keyboardMarkup
-                   /* val values = mapOf(
-                        "SIM" to dualSim,
-                        "To" to Paper.book("send_temp").read("to", "").toString(),
-                        "Content" to Paper.book("send_temp").read("content", "").toString()
-                    )*/
+                    /* val values = mapOf(
+                         "SIM" to dualSim,
+                         "To" to Paper.book("send_temp").read("to", "").toString(),
+                         "Content" to Paper.book("send_temp").read("content", "").toString()
+                     )*/
                     val values = mapOf(
                         "SIM" to dualSim,
                         "To" to chatMMKV.getString("to", "").toString(),
@@ -454,7 +453,6 @@ class ChatService : Service() {
         }
 
         val requestUri = getUrl(
-            applicationContext,
             botToken, "sendMessage"
         )
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(Const.JSON)
@@ -577,7 +575,7 @@ class ChatService : Service() {
                     .readTimeout(65, TimeUnit.SECONDS)
                     .writeTimeout(65, TimeUnit.SECONDS)
                     .build()
-                val requestUri = getUrl(applicationContext, botToken, "getUpdates")
+                val requestUri = getUrl(botToken, "getUpdates")
                 val requestBody = PollingBody().apply {
                     this.offset = RequestOffset
                     this.timeout = if (firstRequest) 0 else 60

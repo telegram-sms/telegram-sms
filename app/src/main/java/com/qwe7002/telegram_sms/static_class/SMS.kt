@@ -14,10 +14,8 @@ import androidx.core.content.PermissionChecker
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.R
 import com.qwe7002.telegram_sms.SMSSendResultReceiver
-import com.qwe7002.telegram_sms.config.proxy
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.value.Const
-import io.paperdb.Paper
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -82,8 +80,7 @@ object SMS {
         val requestBodyRaw = gson.toJson(requestBody)
         val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
         val okhttpClient = Network.getOkhttpObj(
-            sharedPreferences.getBoolean("doh_switch", true),
-            Paper.book("system_config").read("proxy_config", proxy())
+            sharedPreferences.getBoolean("doh_switch", true)
         )
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpClient.newCall(request)

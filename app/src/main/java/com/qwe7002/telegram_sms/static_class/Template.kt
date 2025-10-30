@@ -2,13 +2,15 @@ package com.qwe7002.telegram_sms.static_class
 
 import android.annotation.SuppressLint
 import android.content.Context
-import io.paperdb.Paper
+import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.tencent.mmkv.MMKV
 
 object Template {
     @JvmStatic
     fun render(context: Context, template: String, values: Map<String, String>): String {
-        Paper.init(context)
-        var result = Paper.book("Template").read(template, getStringByName(context,template)).toString()
+        val templateMMKV = MMKV.mmkvWithID(MMKVConst.TEMPLATE_ID)
+        var result = templateMMKV.decodeString(template, getStringByName(context, template))
+            ?: getStringByName(context, template)
         for ((key, value) in values) {
             result = result.replace("{{${key}}}", value)
         }
@@ -25,9 +27,12 @@ object Template {
             "String resource not found"
         }
     }
+
     @JvmStatic
     fun save(context: Context, template: String, inputText: String) {
-        Paper.init(context)
-        Paper.book("Template").write(template, inputText)
+        /*        Paper.init(context)
+                Paper.book("Template").write(template, inputText)*/
+        val templateMMKV = MMKV.mmkvWithID(MMKVConst.TEMPLATE_ID)
+        templateMMKV.encode(template, inputText)
     }
 }

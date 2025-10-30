@@ -3,7 +3,6 @@ package com.qwe7002.telegram_sms.static_class
 import android.content.Context
 import android.util.Log
 import com.qwe7002.telegram_sms.R
-import io.paperdb.Paper
 import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -55,7 +54,6 @@ object Logs {
     }
 
     fun resetLogFile(context: Context) {
-        Paper.book("system_config").delete("log_count")
         writeLogFile(context, "", Context.MODE_PRIVATE)
     }
 

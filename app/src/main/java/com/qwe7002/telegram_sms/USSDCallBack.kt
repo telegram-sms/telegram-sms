@@ -41,9 +41,9 @@ class USSDCallBack(
         requestBody.messageThreadId =
             sharedPreferences.getString("message_thread_id", "").toString()
         val botToken = sharedPreferences.getString("bot_token", "")
-        this.requestUri = Network.getUrl(context, botToken.toString(), "SendMessage")
+        this.requestUri = Network.getUrl(botToken.toString(), "SendMessage")
         if (messageId != -1L) {
-            this.requestUri = Network.getUrl(context, botToken.toString(), "editMessageText")
+            this.requestUri = Network.getUrl(botToken.toString(), "editMessageText")
             requestBody.messageId = messageId
         }
     }

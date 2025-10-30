@@ -58,7 +58,7 @@ class SMSReceiver : BroadcastReceiver() {
         val botToken = sharedPreferences.getString("bot_token", "")
         val chatId = sharedPreferences.getString("chat_id", "")
         val messageThreadId = sharedPreferences.getString("message_thread_id", "")
-        val requestUri = Network.getUrl(context, botToken.toString(), "sendMessage")
+        val requestUri = Network.getUrl(botToken.toString(), "sendMessage")
 
         var intentSlot = extras.getInt("slot", -1)
         val subId = extras.getInt("subscription", -1)

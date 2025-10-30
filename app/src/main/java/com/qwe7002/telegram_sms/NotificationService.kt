@@ -46,7 +46,7 @@ class NotificationService : NotificationListenerService() {
             return
         }
         val notifyMMKV = MMKV.mmkvWithID(MMKVConst.NOTIFY_ID)
-        val notifyListStr = notifyMMKV.getString("listen_list","[]")
+        val notifyListStr = notifyMMKV.getString("listen_list", "[]")
         val listenList: List<String> =
             Gson().fromJson(notifyListStr, Array<String>::class.java).toList()
 
@@ -78,7 +78,7 @@ class NotificationService : NotificationListenerService() {
         val botToken = sharedPreferences.getString("bot_token", "")
         val chatId = sharedPreferences.getString("chat_id", "")
         val messageThreadId = sharedPreferences.getString("message_thread_id", "")
-        val requestUri = Network.getUrl(applicationContext, botToken.toString(), "sendMessage")
+        val requestUri = Network.getUrl(botToken.toString(), "sendMessage")
         val requestBody = RequestMessage()
         requestBody.chatId = chatId.toString()
         requestBody.messageThreadId = messageThreadId.toString()

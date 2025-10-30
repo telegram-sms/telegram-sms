@@ -1,7 +1,6 @@
 package com.qwe7002.telegram_sms.static_class
 
 import android.content.Context
-import android.content.Context.MODE_PRIVATE
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -41,9 +40,9 @@ object Network {
     }
 
     @JvmStatic
-    fun getUrl(context: Context, token: String, func: String): String {
-        val sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE)
-        val telegramAPIAddress = sharedPreferences.getString(
+    fun getUrl( token: String, func: String): String {
+        val preferences = MMKV.defaultMMKV()
+        val telegramAPIAddress = preferences.getString(
             "api_address",
             "api.telegram.org"
         )
@@ -59,7 +58,11 @@ object Network {
             .writeTimeout(15, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && proxyMMKV.getBoolean("enable",false)) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && proxyMMKV.getBoolean(
+                "enable",
+                false
+            )
+        ) {
             val policy = ThreadPolicy.Builder().permitAll().build()
             StrictMode.setThreadPolicy(policy)
             val host = proxyMMKV.getString("host", "")

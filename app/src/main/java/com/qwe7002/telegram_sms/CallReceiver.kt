@@ -49,6 +49,7 @@ class CallReceiver : BroadcastReceiver() {
                 val customPhoneListener = PhoneStatusListener(context, slot)
                 telephony.listen(customPhoneListener, PhoneStateListener.LISTEN_CALL_STATE)
             }
+
             "android.intent.action.SUBSCRIPTION_PHONE_STATE" -> slot =
                 intent.getIntExtra("slot", -1)
         }
@@ -79,20 +80,32 @@ class CallReceiver : BroadcastReceiver() {
             if (lastReceiveStatus == TelephonyManager.CALL_STATE_IDLE && nowState == TelephonyManager.CALL_STATE_RINGING) {
                 val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
                 if (!sharedPreferences.getBoolean("call_notify", true)) {
-                    Log.i("call_status_listener", "Call notifications are disabled by user setting.")
+                    Log.i(
+                        "call_status_listener",
+                        "Call notifications are disabled by user setting."
+                    )
                     return
                 }
                 val botToken = sharedPreferences.getString("bot_token", "")
                 val chatId = sharedPreferences.getString("chat_id", "")
                 val messageThreadId = sharedPreferences.getString("message_thread_id", "")
-                val requestUri = Network.getUrl(context,botToken.toString(), "sendMessage")
+                val requestUri = Network.getUrl(botToken.toString(), "sendMessage")
                 val requestBody = RequestMessage()
                 requestBody.chatId = chatId.toString()
                 requestBody.messageThreadId = messageThreadId.toString()
                 val dualSim = Phone.getSimDisplayName(context, slot)
                 // Use actualIncomingNumber from the callback
-                requestBody.text = Template.render(context, "TPL_receiving_call", mapOf("SIM" to dualSim, "From" to actualIncomingNumber))
-                CcSendJob.startJob(context, CcType.CALL, context.getString(R.string.receiving_call_title), requestBody.text)
+                requestBody.text = Template.render(
+                    context,
+                    "TPL_receiving_call",
+                    mapOf("SIM" to dualSim, "From" to actualIncomingNumber)
+                )
+                CcSendJob.startJob(
+                    context,
+                    CcType.CALL,
+                    context.getString(R.string.receiving_call_title),
+                    requestBody.text
+                )
                 val requestBodyRaw = Gson().toJson(requestBody)
                 val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
                 val okhttpObj = Network.getOkhttpObj(
@@ -126,7 +139,11 @@ class CallReceiver : BroadcastReceiver() {
                                 )
                                 return
                             }
-                            Other.addMessageList(Other.getMessageId(responseBodyStr), actualIncomingNumber, slot)
+                            Other.addMessageList(
+                                Other.getMessageId(responseBodyStr),
+                                actualIncomingNumber,
+                                slot
+                            )
                         }
                     }
                 })
@@ -141,14 +158,23 @@ class CallReceiver : BroadcastReceiver() {
                 val botToken = sharedPreferences.getString("bot_token", "")
                 val chatId = sharedPreferences.getString("chat_id", "")
                 val messageThreadId = sharedPreferences.getString("message_thread_id", "")
-                val requestUri = Network.getUrl(context,botToken.toString(), "sendMessage")
+                val requestUri = Network.getUrl(botToken.toString(), "sendMessage")
                 val requestBody = RequestMessage()
                 requestBody.chatId = chatId.toString()
                 requestBody.messageThreadId = messageThreadId.toString()
                 val dualSim = Phone.getSimDisplayName(context, slot)
                 // Use actualIncomingNumber from the callback
-                requestBody.text = Template.render(context, "TPL_missed_call", mapOf("SIM" to dualSim, "From" to actualIncomingNumber))
-                CcSendJob.startJob(context, CcType.CALL, context.getString(R.string.missed_call_title), requestBody.text)
+                requestBody.text = Template.render(
+                    context,
+                    "TPL_missed_call",
+                    mapOf("SIM" to dualSim, "From" to actualIncomingNumber)
+                )
+                CcSendJob.startJob(
+                    context,
+                    CcType.CALL,
+                    context.getString(R.string.missed_call_title),
+                    requestBody.text
+                )
                 val requestBodyRaw = Gson().toJson(requestBody)
                 val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
                 val okhttpObj = Network.getOkhttpObj(
@@ -182,7 +208,11 @@ class CallReceiver : BroadcastReceiver() {
                                 )
                                 return
                             }
-                            Other.addMessageList(Other.getMessageId(responseBodyStr), actualIncomingNumber, slot)
+                            Other.addMessageList(
+                                Other.getMessageId(responseBodyStr),
+                                actualIncomingNumber,
+                                slot
+                            )
                         }
                     }
                 })

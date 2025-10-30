@@ -221,7 +221,6 @@ class MainActivity : AppCompatActivity() {
             progressDialog.setCancelable(false)
             progressDialog.show()
             val requestUri = getUrl(
-                applicationContext,
                 botTokenEditView.text.toString().trim { it <= ' ' }, "getUpdates"
             )
             var okhttpClient = getOkhttpObj(
@@ -408,7 +407,6 @@ class MainActivity : AppCompatActivity() {
             }
 
             val requestUri = getUrl(
-                applicationContext,
                 botTokenEditView.text.toString().trim { it <= ' ' },
                 "sendMessage"
             )

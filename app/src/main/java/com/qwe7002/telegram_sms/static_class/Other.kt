@@ -10,10 +10,12 @@ import android.os.Build
 import android.telephony.SubscriptionManager
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import com.google.gson.Gson
 import com.google.gson.JsonParser
+import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.qwe7002.telegram_sms.R
 import com.qwe7002.telegram_sms.data_structure.SMSRequestInfo
-import io.paperdb.Paper
+import com.tencent.mmkv.MMKV
 import java.util.Locale
 
 object Other {
@@ -106,11 +108,13 @@ object Other {
             .setOngoing(true)
             .setTicker(context.getString(R.string.app_name))
             .setContentTitle(context.getString(R.string.app_name))
-            .setContentText(String.format(
-                "%s%s", 
-                notificationName, 
-                context.getString(R.string.service_is_running)
-            ))
+            .setContentText(
+                String.format(
+                    "%s%s",
+                    notificationName,
+                    context.getString(R.string.service_is_running)
+                )
+            )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             notification.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
         }
@@ -130,7 +134,8 @@ object Other {
             }
             val subscriptionManager =
                 checkNotNull(context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager)
-            val subscriptionInfo = subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(slot)
+            val subscriptionInfo =
+                subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(slot)
             return subscriptionInfo?.subscriptionId ?: -1
         }
         return -1
@@ -156,7 +161,10 @@ object Other {
         val item = SMSRequestInfo()
         item.phone = phone!!
         item.card = slot
-        Paper.book().write(messageId.toString(), item)
+        val gson = Gson()
+        val itemString = gson.toJson(item)
+        val chatInfoMMKV = MMKV.mmkvWithID(MMKVConst.CHAT_INFO_ID)
+        chatInfoMMKV.putString(messageId.toString(), itemString)
         Log.d("add_message_list", "add_message_list: $messageId")
     }
 }

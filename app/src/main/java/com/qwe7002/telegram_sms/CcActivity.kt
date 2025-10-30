@@ -206,7 +206,6 @@ class CcActivity : AppCompatActivity() {
         listAdapter: ArrayAdapter<CcSendService>
     ) {
         Log.d("save_and_flush", serviceList.toString())
-        //Paper.book("carbon_copy").write("CC_service_list", gson.toJson(serviceList))
         val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
         carbonCopyMMKV.putString("service", gson.toJson(serviceList))
         listAdapter.notifyDataSetChanged()

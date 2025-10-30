@@ -109,9 +109,9 @@ class BatteryService : Service() {
         requestMessage.chatId = chatId
         requestMessage.text = obj.content
         requestMessage.messageThreadId = messageThreadId
-        var requestUri = Network.getUrl(applicationContext, botToken, "sendMessage")
+        var requestUri = Network.getUrl(botToken, "sendMessage")
         if ((System.currentTimeMillis() - lastReceiveTime) <= 5000L && lastReceiveMessageId != -1L) {
-            requestUri = Network.getUrl(applicationContext, botToken, "editMessageText")
+            requestUri = Network.getUrl(botToken, "editMessageText")
             requestMessage.messageId = lastReceiveMessageId
             Log.d(TAG, "onReceive: edit_mode")
         }
