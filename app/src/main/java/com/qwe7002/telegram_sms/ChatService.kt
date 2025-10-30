@@ -21,6 +21,7 @@ import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.qwe7002.telegram_sms.data_structure.telegram.PollingBody
 import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.KeyboardMarkup
 import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.getInlineKeyboardObj
@@ -87,6 +88,8 @@ class ChatService : Service() {
     private var terminalThread = false
     private val TAG = "chat_command"
 
+    private val chatMMKV = MMKV.mmkvWithID(MMKVConst.CHAT_ID)
+
     private fun receiveHandle(resultObj: JsonObject, getIdOnly: Boolean) {
         val updateId = resultObj["update_id"].asLong
         RequestOffset = updateId + 1
@@ -115,11 +118,15 @@ class ChatService : Service() {
             callbackData = callbackQuery["data"].asString
         }
         if (messageType == "callback_query" && sendSmsNextStatus != SEND_SMS_STATUS.STANDBY_STATUS) {
-            var slot = Paper.book("send_temp").read("slot", -1)!!
-            val messageId =
+            //var slot = Paper.book("send_temp").read("slot", -1)!!
+/*            val messageId =
                 Paper.book("send_temp").read("message_id", -1L)!!
             val to = Paper.book("send_temp").read("to", "").toString()
-            val content = Paper.book("send_temp").read("content", "").toString()
+            val content = Paper.book("send_temp").read("content", "").toString()*/
+            var slot = chatMMKV.getInt("slot", -1)
+            val messageId = chatMMKV.getLong("message_id", -1L)
+            val to = chatMMKV.getString("to", "").toString()
+            val content = chatMMKV.getString("content", "").toString()
             if (callbackData != CALLBACK_DATA_VALUE.SEND) {
                 setSmsSendStatusStandby()
                 val requestUri = getUrl(
@@ -136,8 +143,7 @@ class ChatService : Service() {
                 val requestBodyRaw = gson.toJson(requestBody)
                 val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
                 val okhttpObj = getOkhttpObj(
-                    sharedPreferences.getBoolean("doh_switch", true),
-                    Paper.book("system_config").read("proxy_config", proxy())
+                    sharedPreferences.getBoolean("doh_switch", true)
                 )
                 val request: Request =
                     Request.Builder().url(requestUri).method("POST", body).build()
@@ -198,16 +204,25 @@ class ChatService : Service() {
             requestMsg = jsonObject["text"].asString
         }
         if (jsonObject.has("reply_to_message")) {
-            val saveItem = Paper.book().read<SMSRequestInfo>(
+/*            val saveItem = Paper.book().read<SMSRequestInfo>(
+                jsonObject["reply_to_message"].asJsonObject["message_id"].asString,
+                null
+            )*/
+            val saveItemString = chatMMKV.getString(
                 jsonObject["reply_to_message"].asJsonObject["message_id"].asString,
                 null
             )
+            val saveItem =
+                Gson().fromJson(saveItemString, SMSRequestInfo::class.java)
             if (saveItem != null && requestMsg.isNotEmpty()) {
                 val phoneNumber = saveItem.phone
                 val cardSlot = saveItem.card
                 sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
-                Paper.book("send_temp").write("slot", cardSlot).write("to", phoneNumber)
-                    .write("content", requestMsg)
+/*                Paper.book("send_temp").write("slot", cardSlot).write("to", phoneNumber)
+                    .write("content", requestMsg)*/
+                chatMMKV.putInt("slot", cardSlot)
+                chatMMKV.putString("to", phoneNumber)
+                chatMMKV.putString("content", requestMsg)
             }
         }
         if (jsonObject.has("entities")) {
@@ -299,7 +314,8 @@ class ChatService : Service() {
                         sendSlot = 1
                     }
                 }
-                Paper.book("send_temp").write("slot", sendSlot)
+                //Paper.book("send_temp").write("slot", sendSlot)
+                chatMMKV.putInt("slot", sendSlot)
                 val msgSendList =
                     requestMsg.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                 Log.i(TAG, "msgSendList: " + msgSendList.size)
@@ -309,9 +325,11 @@ class ChatService : Service() {
                         msgSendList[1]
                     )
                     if (isPhoneNumber(msgSendTo)) {
-                        Paper.book("send_temp").write("to", msgSendTo)
+                        //Paper.book("send_temp").write("to", msgSendTo)
+                        chatMMKV.putString("to", msgSendTo)
                         val sendContent = msgSendList.drop(2).joinToString("\n")
-                        Paper.book("send_temp").write("content", sendContent)
+                        //Paper.book("send_temp").write("content", sendContent)
+                        chatMMKV.putString("content", sendContent)
                     } else {
                         setSmsSendStatusStandby()
                         requestBody.text = Template.render(
@@ -354,7 +372,8 @@ class ChatService : Service() {
         }
         if (!hasCommand && sendSmsNextStatus != -1) {
             Log.i(TAG, "receive_handle: Enter the interactive SMS sending mode.")
-            val sendSlotTemp = Paper.book("send_temp").read("slot", -1)!!
+            //val sendSlotTemp = Paper.book("send_temp").read("slot", -1)!!
+            val sendSlotTemp = chatMMKV.getInt("slot", -1)
             val dualSim = if (sendSlotTemp != -1) "SIM${sendSlotTemp + 1} " else ""
 
             var resultSend = Template.render(
@@ -376,7 +395,8 @@ class ChatService : Service() {
                 SEND_SMS_STATUS.MESSAGE_INPUT_STATUS -> {
                     val tempTo = getSendPhoneNumber(requestMsg)
                     if (isPhoneNumber(tempTo)) {
-                        Paper.book("send_temp").write("to", tempTo)
+                        //Paper.book("send_temp").write("to", tempTo)
+                        chatMMKV.putString("to", tempTo)
                         sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
                         Template.render(
                             applicationContext,
@@ -398,7 +418,8 @@ class ChatService : Service() {
 
                 SEND_SMS_STATUS.WAITING_TO_SEND_STATUS, SEND_SMS_STATUS.READY_TO_SEND_STATUS -> {
                     if (sendSmsNextStatus == SEND_SMS_STATUS.WAITING_TO_SEND_STATUS) {
-                        Paper.book("send_temp").write("content", requestMsg)
+                        //Paper.book("send_temp").write("content", requestMsg)
+                        chatMMKV.putString("content", requestMsg)
                     }
                     val keyboardMarkup = KeyboardMarkup().apply {
                         inlineKeyboard = arrayListOf(
@@ -413,10 +434,15 @@ class ChatService : Service() {
                         )
                     }
                     requestBody.replyMarkup = keyboardMarkup
-                    val values = mapOf(
+                   /* val values = mapOf(
                         "SIM" to dualSim,
                         "To" to Paper.book("send_temp").read("to", "").toString(),
                         "Content" to Paper.book("send_temp").read("content", "").toString()
+                    )*/
+                    val values = mapOf(
+                        "SIM" to dualSim,
+                        "To" to chatMMKV.getString("to", "").toString(),
+                        "Content" to chatMMKV.getString("content", "").toString()
                     )
                     sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS
                     Template.render(applicationContext, "TPL_send_sms", values)
@@ -450,7 +476,8 @@ class ChatService : Service() {
                     addResendLoop(applicationContext, requestBody.text)
                 }
                 if (sendSmsNextStatus == SEND_SMS_STATUS.SEND_STATUS) {
-                    Paper.book("send_temp").write("message_id", getMessageId(responseString))
+                    //Paper.book("send_temp").write("message_id", getMessageId(responseString))
+                    chatMMKV.putLong("message_id", getMessageId(responseString))
                 }
             }
         })
@@ -476,7 +503,7 @@ class ChatService : Service() {
     @SuppressLint("InvalidWakeLockTag", "WakelockTimeout", "UnspecifiedRegisterReceiverFlag")
     override fun onCreate() {
         super.onCreate()
-        Paper.init(applicationContext)
+        MMKV.initialize(applicationContext)
         setSmsSendStatusStandby()
         MMKV.initialize(applicationContext)
         sharedPreferences = MMKV.mmkvWithID("data")
@@ -484,8 +511,7 @@ class ChatService : Service() {
         botToken = sharedPreferences.getString("bot_token", "")!!
         messageThreadId = sharedPreferences.getString("message_thread_id", "")!!
         okHttpClient = getOkhttpObj(
-            sharedPreferences.getBoolean("doh_switch", true),
-            Paper.book("system_config").read("proxy_config", proxy())
+            sharedPreferences.getBoolean("doh_switch", true)
         )
         wifiLock = (Objects.requireNonNull(
             applicationContext.getSystemService(
@@ -521,7 +547,11 @@ class ChatService : Service() {
 
     private fun setSmsSendStatusStandby() {
         sendSmsNextStatus = SEND_SMS_STATUS.STANDBY_STATUS
-        Paper.book("send_temp").destroy()
+        //Paper.book("send_temp").destroy()
+        chatMMKV.remove("slot")
+        chatMMKV.remove("to")
+        chatMMKV.remove("content")
+        chatMMKV.remove("message_id")
     }
 
     @Suppress("DEPRECATION")
