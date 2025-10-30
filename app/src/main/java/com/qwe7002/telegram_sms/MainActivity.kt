@@ -71,7 +71,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        //load config
         MMKV.initialize(this)
         val oldSharedPreferences = getSharedPreferences("data", MODE_PRIVATE)
         if (oldSharedPreferences.getBoolean("initialized", false)) {
