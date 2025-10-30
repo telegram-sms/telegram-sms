@@ -517,6 +517,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkVersionUpgrade(writeLog: Boolean) {
         //todo
+        val versionCode = sharedPreferences.getInt("version_code", 0)
         /*        val versionCode =
                     Paper.book("system_config").read("version_code", 0)!!*/
         val packageManager = context.packageManager
@@ -529,12 +530,13 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "checkVersionUpgrade: $e")
             return
         }
-        /*if (versionCode != currentVersionCode) {
+        if (versionCode != currentVersionCode) {
             if (writeLog) {
                 Logs.resetLogFile(context)
             }
-            Paper.book("system_config").write("version_code", currentVersionCode)
-        }*/
+            //Paper.book("system_config").write("version_code", currentVersionCode)
+            sharedPreferences.edit().putInt("version_code", currentVersionCode)
+        }
     }
 
 
@@ -775,12 +777,10 @@ class MainActivity : AppCompatActivity() {
                 val view = inflater.inflate(R.layout.set_proxy_layout, null)
                 val dohSwitch = findViewById<SwitchMaterial>(R.id.doh_switch)
                 val proxyEnable = view.findViewById<SwitchMaterial>(R.id.proxy_enable_switch)
-                val proxyDohSocks5 = view.findViewById<SwitchMaterial>(R.id.doh_over_socks5_switch)
                 val proxyHost = view.findViewById<EditText>(R.id.proxy_host_editview)
                 val proxyPort = view.findViewById<EditText>(R.id.proxy_port_editview)
                 val proxyUsername = view.findViewById<EditText>(R.id.proxy_username_editview)
                 val proxyPassword = view.findViewById<EditText>(R.id.proxy_password_editview)
-                /*                val proxyItem = Paper.book("system_config").read("proxy_config", proxy())*/
                 val proxyMMKV = MMKV.mmkvWithID(MMKVConst.PROXY_ID)
                 proxyEnable.isChecked = proxyMMKV.getBoolean("proxy_enable", false)
                 proxyHost.setText(proxyMMKV.getString("host", ""))

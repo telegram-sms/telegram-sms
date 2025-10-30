@@ -15,7 +15,6 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import com.qwe7002.telegram_sms.R
-import io.paperdb.Paper
 
 @Suppress("DEPRECATION")
 object ChatCommand {
@@ -65,12 +64,7 @@ object ChatCommand {
                 cardInfo = "\nSIM1: " + Phone.getSimDisplayName(context, 0) + "\nSIM2: " + Phone.getSimDisplayName(context, 1)
             }
         }
-        var spamCount = ""
-        val spamSmsList = checkNotNull(Paper.book().read("spam_sms_list", ArrayList<String>()))
-        if (spamSmsList.isNotEmpty()) {
-            spamCount = "\n" + context.getString(R.string.spam_count_title) + spamSmsList.size
-        }
-        return  Template.render(context,"TPL_system_message", mapOf("Message" to context.getString(R.string.current_battery_level) + batteryInfo(context) + "\n" + context.getString(R.string.current_network_connection_status) + getNetworkType(context) + spamCount + cardInfo))
+        return  Template.render(context,"TPL_system_message", mapOf("Message" to context.getString(R.string.current_battery_level) + batteryInfo(context) + "\n" + context.getString(R.string.current_network_connection_status) + getNetworkType(context) + cardInfo))
 
     }
 

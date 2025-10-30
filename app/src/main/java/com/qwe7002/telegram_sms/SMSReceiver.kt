@@ -190,8 +190,6 @@ class SMSReceiver : BroadcastReceiver() {
             val blackListArray =
                 preferences.getStringSet("block_keyword_list", setOf())?.toMutableList()
                     ?: mutableListOf()
-/*            val blackListArray =
-                Paper.book("system_config").read("block_keyword_list", ArrayList<String>())!!*/
             for (blackListItem in blackListArray) {
                 if (textContent.contains(blackListItem)) {
                     Log.i(TAG, "Detected message contains blacklist keywords")
