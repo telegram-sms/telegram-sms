@@ -23,7 +23,7 @@ build_nightly:
     - git config --global user.email "ci-bot@telegram-sms.com"
     - git config --global user.name "GitLab CI Bot"
     - git submodule update --init --recursive
-    - export RELEASE_TAG="${CI_COMMIT_REF_NAME}-$(date +%Y%m%d%H%M)-${CI_COMMIT_SHORT_SHA}"
+    - export RELEASE_TAG="$(date +%Y%m%d%H%M)-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}"
     - export VERSION_CODE=${CI_PIPELINE_ID}
     - export VERSION_NAME=${RELEASE_TAG}
     - export GRADLE_USER_HOME=$(pwd)/.gradle && mkdir -p ${GRADLE_USER_HOME}
