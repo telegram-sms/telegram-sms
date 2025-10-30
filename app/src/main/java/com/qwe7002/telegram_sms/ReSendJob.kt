@@ -47,9 +47,6 @@ class ReSendJob : JobService() {
         try {
             val response = call.execute()
             if (response.isSuccessful) {
-/*                val resendListLocal = Paper.book("resend").read("list", ArrayList<String>())!!
-                resendListLocal.remove(message)
-                Paper.book("resend").write("list", resendListLocal)*/
                 val resendListLocal = resendMMKV.decodeStringSet("resend_list", setOf())?.toMutableList() ?: mutableListOf()
                 resendListLocal.remove(message)
                 resendMMKV.encode("resend_list", resendListLocal.toSet())
