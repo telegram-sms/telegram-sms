@@ -6,7 +6,6 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.ProgressDialog
 import android.content.ActivityNotFoundException
-import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageInfo
@@ -74,10 +73,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         //load config
         MMKV.initialize(this)
-        val oldsharedPreferences = getSharedPreferences("data", MODE_PRIVATE)
-        if (oldsharedPreferences.getBoolean("initialized", false)) {
-            preferences.importFromSharedPreferences(oldsharedPreferences)
-            oldsharedPreferences.edit().clear().apply()
+        val oldSharedPreferences = getSharedPreferences("data", MODE_PRIVATE)
+        if (oldSharedPreferences.getBoolean("initialized", false)) {
+            preferences.importFromSharedPreferences(oldSharedPreferences)
+            oldSharedPreferences.edit().clear().apply()
         }
         privacyPolice = "/privacy-policy"
 

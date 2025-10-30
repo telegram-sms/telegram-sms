@@ -16,6 +16,7 @@ import com.qwe7002.telegram_sms.R
 import com.qwe7002.telegram_sms.SMSSendResultReceiver
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.value.Const
+import com.tencent.mmkv.MMKV
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -51,9 +52,11 @@ object SMS {
             Logs.writeLog(context, "[$sendTo] is an illegal phone number")
             return
         }
-        val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
-        val botToken = sharedPreferences.getString("bot_token", "")!!
-        val chatId = sharedPreferences.getString("chat_id", "")!!
+       // val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
+        val preferences = MMKV.defaultMMKV()
+        val botToken = preferences.getString("bot_token", "")!!
+        val chatId = preferences.getString("chat_id", "")!!
+        val messageThreadId = preferences.getString("message_thread_id", "")!!
         var requestUri = Network.getUrl(botToken, "sendMessage")
         if (messageId != -1L) {
             Log.d("send_sms", "Find the message_id and switch to edit mode.")
@@ -76,11 +79,12 @@ object SMS {
         requestBody.text =
             "$sendContent\n${context.getString(R.string.status)}${context.getString(R.string.sending)}"
         requestBody.messageId = messageId
+        requestBody.messageThreadId = messageThreadId
         val gson = Gson()
         val requestBodyRaw = gson.toJson(requestBody)
         val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
         val okhttpClient = Network.getOkhttpObj(
-            sharedPreferences.getBoolean("doh_switch", true)
+            preferences.getBoolean("doh_switch", true)
         )
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpClient.newCall(request)
