@@ -33,7 +33,7 @@ build_nightly:
     - wget https://github.com/tcnksm/ghr/releases/download/v0.17.0/ghr_v0.17.0_linux_amd64.tar.gz
     - tar -zxvf  ghr_v0.17.0_linux_amd64.tar.gz
     - git push --set-upstream https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
-    - ./ghr_v0.17.0_linux_amd64/ghr -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -c nightly -b "$(cat .reall/changelog.txt)" --prerelease "${RELEASE_TAG}" "./app/build/outputs/apk/release/"
+    - ./ghr_v0.17.0_linux_amd64/ghr --latest -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -c nightly -b "$(cat .reall/changelog.txt)" --prerelease "${RELEASE_TAG}" "./app/build/outputs/apk/release/"
   artifacts:
     paths:
       - app/build/outputs/apk/release/*.apk
@@ -51,8 +51,6 @@ build_release:
     - git config --global user.email "ci-bot@telegram-sms.com"
     - git config --global user.name "GitLab CI Bot"
     - git submodule update --init --recursive
-    # 对于 master 分支，我们可以用一个更干净的 tag，比如 v1.2.3
-    # 这里我们先用 pipeline IID 作为版本号
     - export RELEASE_TAG="$(date +%Y%m%d%H%M)-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}"
     - export VERSION_CODE=${CI_PIPELINE_ID}
     - export VERSION_NAME=${RELEASE_TAG}
@@ -64,7 +62,7 @@ build_release:
     - git push --set-upstream https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
     - wget https://github.com/tcnksm/ghr/releases/download/v0.17.0/ghr_v0.17.0_linux_amd64.tar.gz
     - tar -zxvf  ghr_v0.17.0_linux_amd64.tar.gz
-    - ./ghr_v0.17.0_linux_amd64/ghr -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -b "$(cat .reall/changelog.txt)" "${RELEASE_TAG}" "./app/build/outputs/apk/release/"
+    - ./ghr_v0.17.0_linux_amd64/ghr --latest -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -b "$(cat .reall/changelog.txt)" "${RELEASE_TAG}" "./app/build/outputs/apk/release/"
   artifacts:
     paths:
       - app/build/outputs/apk/release/*.apk
