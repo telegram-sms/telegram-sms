@@ -33,7 +33,7 @@ build_nightly:
     - wget https://github.com/tcnksm/ghr/releases/download/v0.17.0/ghr_v0.17.0_linux_amd64.tar.gz
     - tar -zxvf  ghr_v0.17.0_linux_amd64.tar.gz
     - git push --set-upstream https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git HEAD:refs/heads/${CI_COMMIT_REF_NAME}
-    - ./ghr_v0.17.0_linux_amd64/ghr --latest -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -c nightly -b "$(cat .reall/changelog.txt)" --prerelease "${RELEASE_TAG}" "./app/build/outputs/apk/release/"
+    - ./ghr_v0.17.0_linux_amd64/ghr --latest -t "${GITHUB_ACCESS_KEY}" -u "${OWNER}" -r "${REPO}" -c nightly --generatenotes --prerelease "${RELEASE_TAG}" "./app/build/outputs/apk/release/"
   artifacts:
     paths:
       - app/build/outputs/apk/release/*.apk
