@@ -68,8 +68,6 @@ class CcActivity : AppCompatActivity() {
         val fab = findViewById<FloatingActionButton>(R.id.cc_fab)
         val ccList = findViewById<ListView>(R.id.cc_list)
 
-        /*        val serviceListJson =
-                    Paper.book("carbon_copy").read("CC_service_list", "[]").toString()*/
         val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
         val serviceListJson = carbonCopyMMKV.getString("service", "[]")
         val type = object : TypeToken<ArrayList<CcSendService>>() {}.type

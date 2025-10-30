@@ -37,7 +37,7 @@ class CallReceiver : BroadcastReceiver() {
     @Suppress("DEPRECATION")
     override fun onReceive(context: Context, intent: Intent) {
         MMKV.initialize(context)
-        Log.d("call_receiver", "Receive action: " + intent.action)
+        Log.d(this::class.simpleName, "Receive action: " + intent.action)
         // Removed local lateinit var incomingNumber
 
         when (intent.action) {

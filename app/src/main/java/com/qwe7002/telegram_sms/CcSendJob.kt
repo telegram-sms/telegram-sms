@@ -48,8 +48,6 @@ class CcSendJob : JobService() {
         Thread {
             val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
             val serviceListJson = carbonCopyMMKV.getString("service", "[]")
-            /*            val serviceListJson =
-                            Paper.book("carbon_copy").read("CC_service_list", "[]").toString()*/
             val gson = Gson()
             val type = object : TypeToken<ArrayList<CcSendService>>() {}.type
             val sendList: ArrayList<CcSendService> = gson.fromJson(serviceListJson, type)

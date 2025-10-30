@@ -81,7 +81,6 @@ class ChatService : Service() {
     private lateinit var botToken: String
     private lateinit var messageThreadId: String
     private lateinit var okHttpClient: OkHttpClient
-    private lateinit var stopReceiver: StopReceiver
     private lateinit var wakelock: WakeLock
     private lateinit var wifiLock: WifiLock
     private lateinit var botUsername: String
@@ -539,18 +538,11 @@ class ChatService : Service() {
         threadMain.start()
         val intentFilter = IntentFilter()
         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION)
-        stopReceiver = StopReceiver()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(stopReceiver, intentFilter, RECEIVER_EXPORTED)
-        } else {
-            registerReceiver(stopReceiver, intentFilter)
-        }
     }
 
 
     private fun setSmsSendStatusStandby() {
         sendSmsNextStatus = SEND_SMS_STATUS.STANDBY_STATUS
-        //Paper.book("send_temp").destroy()
         chatMMKV.remove("slot")
         chatMMKV.remove("to")
         chatMMKV.remove("content")
@@ -562,7 +554,6 @@ class ChatService : Service() {
         wifiLock.release()
         wakelock.release()
         terminalThread = true
-        unregisterReceiver(stopReceiver)
         stopForeground(true)
         super.onDestroy()
     }
@@ -622,24 +613,6 @@ class ChatService : Service() {
 
     override fun onBind(intent: Intent): IBinder? {
         return null
-    }
-
-
-    private inner class StopReceiver : BroadcastReceiver() {
-        @Suppress("DEPRECATION")
-        override fun onReceive(context: Context, intent: Intent) {
-            Log.d(this::class.simpleName, "onReceive: " + intent.action)
-            checkNotNull(intent.action)
-            when (intent.action) {
-                ConnectivityManager.CONNECTIVITY_ACTION -> if (checkNetworkStatus(context)) {
-                    if (!threadMain.isAlive) {
-                        writeLog(context, "Network connections has been restored.")
-                        threadMain = Thread(ThreadMainRunnable())
-                        threadMain.start()
-                    }
-                }
-            }
-        }
     }
 
     companion object {
