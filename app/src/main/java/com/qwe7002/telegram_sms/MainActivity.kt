@@ -61,7 +61,6 @@ import java.util.concurrent.TimeUnit
 
 @Suppress("deprecation")
 class MainActivity : AppCompatActivity() {
-    private val TAG = "main_activity"
     private lateinit var preferences: MMKV
     private lateinit var privacyPolice: String
     private val gson = Gson()
@@ -241,7 +240,7 @@ class MainActivity : AppCompatActivity() {
             val errorHead = "Get chat ID failed: "
             call.enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    Log.d(TAG, "onFailure: $e")
+                    Log.d(this::class.simpleName, "onFailure: $e")
                     progressDialog.cancel()
                     val message = errorHead + e.message
                     Logs.writeLog(applicationContext, message)
@@ -266,7 +265,7 @@ class MainActivity : AppCompatActivity() {
 
                     val result =
                         Objects.requireNonNull(response.body).string()
-                    Log.d(TAG, "onResponse: $result")
+                    Log.d(this::class.simpleName, "onResponse: $result")
                     val resultObj = JsonParser.parseString(result).asJsonObject
                     val chatList = resultObj.getAsJsonArray("result")
                     if (chatList.isEmpty) {
@@ -426,7 +425,7 @@ class MainActivity : AppCompatActivity() {
             val errorHead = "Send message failed: "
             call.enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    Log.d(TAG, "onFailure: $e")
+                    Log.d(this::class.simpleName, "onFailure: $e")
                     progressDialog.cancel()
                     val errorMessage = errorHead + e.message
                     Logs.writeLog(applicationContext, errorMessage)
@@ -454,7 +453,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     if (newBotToken != botTokenSave) {
                         Log.i(
-                            TAG,
+                            this::class.simpleName,
                             "onResponse: The current bot token does not match the saved bot token, clearing the message database."
                         )
                         /*Paper.book().destroy()*/
@@ -513,8 +512,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkVersionUpgrade(writeLog: Boolean) {
         val versionCode = preferences.getInt("version_code", 0)
-        /*        val versionCode =
-                    Paper.book("system_config").read("version_code", 0)!!*/
         val packageManager = applicationContext.packageManager
         val packageInfo: PackageInfo
         val currentVersionCode: Int
@@ -522,7 +519,7 @@ class MainActivity : AppCompatActivity() {
             packageInfo = packageManager.getPackageInfo(applicationContext.packageName, 0)
             currentVersionCode = packageInfo.versionCode
         } catch (e: PackageManager.NameNotFoundException) {
-            Log.d(TAG, "checkVersionUpgrade: $e")
+            Log.d(this::class.simpleName, "checkVersionUpgrade: $e")
             return
         }
         if (versionCode != currentVersionCode) {
@@ -565,7 +562,7 @@ class MainActivity : AppCompatActivity() {
             try {
                 customTabsIntent.launchUrl(applicationContext, uri)
             } catch (e: ActivityNotFoundException) {
-                Log.d(TAG, "showPrivacyDialog: $e")
+                Log.d(this::class.simpleName, "showPrivacyDialog: $e")
                 Snackbar.make(
                     findViewById(R.id.bot_token_editview),
                     "Browser not found.",
@@ -608,7 +605,7 @@ class MainActivity : AppCompatActivity() {
         when (requestCode) {
             0 -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                    Log.d(TAG, "onRequestPermissionsResult: No camera permissions.")
+                    Log.d(this::class.simpleName, "onRequestPermissionsResult: No camera permissions.")
                     Snackbar.make(
                         findViewById(R.id.bot_token_editview),
                         R.string.no_camera_permission,
@@ -630,7 +627,7 @@ class MainActivity : AppCompatActivity() {
             packageInfo = packageManager.getPackageInfo(applicationContext.packageName, 0)
             versionName = packageInfo.versionName.toString()
         } catch (e: PackageManager.NameNotFoundException) {
-            Log.d(TAG, "onOptionsItemSelected: $e")
+            Log.d(this::class.simpleName, "onOptionsItemSelected: $e")
         }
         if (versionName == "unknown" || versionName == "Debug" || versionName.startsWith("nightly")) {
             showErrorDialog("Debug version can not check update.")
@@ -664,7 +661,7 @@ class MainActivity : AppCompatActivity() {
                     Logs.writeLog(applicationContext, errorMessage)
                 }
                 val jsonString = response.body.string()
-                Log.d(TAG, "onResponse: $jsonString")
+                Log.d(this::class.simpleName, "onResponse: $jsonString")
                 val gson = Gson()
                 val release = gson.fromJson(jsonString, GitHubRelease::class.java)
                 if (release.tagName != versionName) {
@@ -679,7 +676,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call, e: IOException) {
-                Log.d(TAG, "onFailure: $e")
+                Log.d(this::class.simpleName, "onFailure: $e")
                 progressDialog.cancel()
                 val errorMessage = errorHead + e.message
                 Logs.writeLog(applicationContext, errorMessage)
@@ -717,7 +714,7 @@ class MainActivity : AppCompatActivity() {
                     packageInfo = packageManager.getPackageInfo(applicationContext.packageName, 0)
                     versionName = packageInfo.versionName
                 } catch (e: PackageManager.NameNotFoundException) {
-                    Log.d(TAG, "onOptionsItemSelected: $e")
+                    Log.d(this::class.simpleName, "onOptionsItemSelected: $e")
                 }
                 val builder = AlertDialog.Builder(this)
                 builder.setTitle(R.string.about_title)
@@ -871,12 +868,7 @@ class MainActivity : AppCompatActivity() {
         try {
             customTabsIntent.launchUrl(this, uri)
         } catch (e: ActivityNotFoundException) {
-            Log.d(TAG, "onOptionsItemSelected: $e")
-            /*            Snackbar.make(
-                            findViewById(R.id.bot_token_editview),
-                            "Browser not found.",
-                            Snackbar.LENGTH_LONG
-                        ).show()*/
+            Log.d(this::class.simpleName, "onOptionsItemSelected: $e")
             showErrorDialog(getString(R.string.browser_not_found))
         }
         return true
@@ -994,7 +986,7 @@ class MainActivity : AppCompatActivity() {
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 progressDialog.cancel()
-                Log.e(TAG, "onFailure: ", e)
+                Log.e(this::class.simpleName, "onFailure: ", e)
             }
 
             override fun onResponse(call: Call, response: Response) {

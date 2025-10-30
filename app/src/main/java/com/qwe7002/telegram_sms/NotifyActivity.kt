@@ -83,7 +83,6 @@ class NotifyActivity : AppCompatActivity() {
     }
 
     internal class AppAdapter(private val context: Context?) : BaseAdapter(), Filterable {
-        val TAG: String = "notify_activity"
         private var listenList: List<String>
         var appInfoList: List<applicationInfo> = ArrayList()
         var viewAppInfoList: List<applicationInfo> = ArrayList()
@@ -184,7 +183,6 @@ class NotifyActivity : AppCompatActivity() {
                 } else {
                     listenListTemp.remove(packageName)
                 }
-                Log.d(TAG, "notify_listen_list: $listenListTemp")
                 notifyMMKV.putString("listen_list", Gson().toJson(listenListTemp))
                 listenList = listenListTemp
             }

@@ -86,7 +86,6 @@ class ChatService : Service() {
     private lateinit var wifiLock: WifiLock
     private lateinit var botUsername: String
     private var terminalThread = false
-    private val TAG = "chat_command"
 
     private val chatMMKV = MMKV.mmkvWithID(MMKVConst.CHAT_ID)
     private val chatInfoMMKV = MMKV.mmkvWithID(MMKVConst.CHAT_INFO_ID)
@@ -95,7 +94,7 @@ class ChatService : Service() {
         val updateId = resultObj["update_id"].asLong
         RequestOffset = updateId + 1
         if (getIdOnly) {
-            Log.d(TAG, "receive_handle: get_id_only")
+            Log.d(this::class.simpleName, "receive_handle: get_id_only")
             return
         }
         var messageType = ""
@@ -182,7 +181,7 @@ class ChatService : Service() {
         if (jsonObject.has("from")) {
             fromObj = jsonObject["from"].asJsonObject
             if (!isPrivate && fromObj["is_bot"].asBoolean) {
-                Log.i(TAG, "receive_handle: receive from bot.")
+                Log.i(this::class.simpleName, "receive_handle: receive from bot.")
                 return
             }
         }
@@ -197,12 +196,12 @@ class ChatService : Service() {
                 fromTopicId = jsonObject["message_thread_id"].asString
             }
             if (messageThreadId != fromTopicId) {
-                Log.i(TAG, "Topic ID[$fromTopicId] not allow.")
+                Log.i(this::class.simpleName, "Topic ID[$fromTopicId] not allow.")
                 return
             }
         }
         if (chatId != fromId) {
-            Log.i(TAG, "Chat ID[$fromId] not allow.")
+            Log.i(this::class.simpleName, "Chat ID[$fromId] not allow.")
             return
         }
         var command = ""
@@ -251,10 +250,10 @@ class ChatService : Service() {
             }
         }
         if (!isPrivate && currentBotUsername != botUsername) {
-            Log.i(TAG, "receive_handle: Privacy mode, no username found.")
+            Log.i(this::class.simpleName, "receive_handle: Privacy mode, no username found.")
             return
         }
-        Log.d(TAG, "receive_handle: $command")
+        Log.d(this::class.simpleName, "receive_handle: $command")
         var hasCommand = false
         when (command) {
             "/help", "/start", "/commandlist" -> {
@@ -320,11 +319,10 @@ class ChatService : Service() {
                         sendSlot = 1
                     }
                 }
-                //Paper.book("send_temp").write("slot", sendSlot)
                 chatMMKV.putInt("slot", sendSlot)
                 val msgSendList =
                     requestMsg.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                Log.i(TAG, "msgSendList: " + msgSendList.size)
+                Log.i(this::class.simpleName, "msgSendList: " + msgSendList.size)
                 if (msgSendList.size > 1) {
                     sendSmsNextStatus = SEND_SMS_STATUS.READY_TO_SEND_STATUS
                     val msgSendTo = getSendPhoneNumber(
@@ -349,8 +347,8 @@ class ChatService : Service() {
                     }
 
                 } else {
-                    Log.i(TAG, "Enter the interactive SMS sending mode")
-                    Log.i(TAG, "receiveHandle: $messageType")
+                    Log.i(this::class.simpleName, "Enter the interactive SMS sending mode")
+                    Log.i(this::class.simpleName, "receiveHandle: $messageType")
                     sendSmsNextStatus = SEND_SMS_STATUS.PHONE_INPUT_STATUS
                 }
             }
@@ -359,7 +357,7 @@ class ChatService : Service() {
                 if (!isPrivate && sendSmsNextStatus == -1) {
                     if (messageType != "supergroup" || messageThreadId.isEmpty()) {
                         Log.i(
-                            TAG,
+                            this::class.simpleName,
                             "receive_handle: The conversation is not Private and does not prompt an error."
                         )
                         return
@@ -373,11 +371,11 @@ class ChatService : Service() {
         }
 
         if (hasCommand) {
-            Log.i(TAG, "receiveHandle: Enter the state of standby.")
+            Log.i(this::class.simpleName, "receiveHandle: Enter the state of standby.")
             setSmsSendStatusStandby()
         }
         if (!hasCommand && sendSmsNextStatus != -1) {
-            Log.i(TAG, "receive_handle: Enter the interactive SMS sending mode.")
+            Log.i(this::class.simpleName, "receive_handle: Enter the interactive SMS sending mode.")
             //val sendSlotTemp = Paper.book("send_temp").read("slot", -1)!!
             val sendSlotTemp = chatMMKV.getInt("slot", -1)
             val dualSim = if (sendSlotTemp != -1) "SIM${sendSlotTemp + 1} " else ""
@@ -387,7 +385,7 @@ class ChatService : Service() {
                 "TPL_send_sms_chat",
                 mapOf("SIM" to dualSim, "Content" to getString(R.string.failed_to_get_information))
             )
-            Log.d(TAG, "Sending mode status: $sendSmsNextStatus")
+            Log.d(this::class.simpleName, "Sending mode status: $sendSmsNextStatus")
             resultSend = when (sendSmsNextStatus) {
                 SEND_SMS_STATUS.PHONE_INPUT_STATUS -> {
                     sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
@@ -571,10 +569,10 @@ class ChatService : Service() {
 
     private inner class ThreadMainRunnable : Runnable {
         override fun run() {
-            Log.d(TAG, "run: thread main start")
+            Log.d(this::class.simpleName, "run: thread main start")
             while (true) {
                 if (terminalThread) {
-                    Log.d(TAG, "run: thread Stop")
+                    Log.d(this::class.simpleName, "run: thread Stop")
                     terminalThread = false
                     break
                 }
@@ -611,7 +609,7 @@ class ChatService : Service() {
                             applicationContext,
                             "No network connections available, Wait for the network to recover."
                         )
-                        Log.d(TAG, "run: break loop.")
+                        Log.d(this::class.simpleName, "run: break loop.")
                         break
                     }
                     writeLog(applicationContext, "Connection to the Telegram API service failed.")
@@ -630,7 +628,7 @@ class ChatService : Service() {
     private inner class StopReceiver : BroadcastReceiver() {
         @Suppress("DEPRECATION")
         override fun onReceive(context: Context, intent: Intent) {
-            Log.d(TAG, "onReceive: " + intent.action)
+            Log.d(this::class.simpleName, "onReceive: " + intent.action)
             checkNotNull(intent.action)
             when (intent.action) {
                 ConnectivityManager.CONNECTIVITY_ACTION -> if (checkNetworkStatus(context)) {

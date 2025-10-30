@@ -28,9 +28,8 @@ class ScannerActivity : Activity() {
         }
         mCodeScanner.decodeCallback = DecodeCallback { result: Result ->
             runOnUiThread {
-                val TAG = "activity_scanner"
                 Log.d(
-                    TAG,
+                    this::class.simpleName,
                     "format: " + result.barcodeFormat.toString() + " content: " + result.text
                 )
                 if (!jsonValidate(result.text)) {

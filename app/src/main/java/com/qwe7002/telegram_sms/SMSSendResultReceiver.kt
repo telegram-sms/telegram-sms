@@ -28,13 +28,12 @@ import java.util.Objects
 
 class SMSSendResultReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val TAG = "sms_send_receiver"
-        Log.d(TAG, "Receive action: " + intent.action)
+        Log.d(this::class.simpleName, "Receive action: " + intent.action)
         val extras = intent.extras!!
         val sub = extras.getInt("sub_id")
         val sharedPreferences = MMKV.defaultMMKV()
         if (!sharedPreferences.getBoolean("initialized", false)) {
-            Log.i(TAG, "Uninitialized, SMS send receiver is deactivated.")
+            Log.i(this::class.simpleName, "Uninitialized, SMS send receiver is deactivated.")
             return
         }
         context.applicationContext.unregisterReceiver(this)
@@ -47,8 +46,8 @@ class SMSSendResultReceiver : BroadcastReceiver() {
         var requestUri = Network.getUrl(botToken.toString(), "sendMessage")
         val messageId = extras.getLong("message_id")
         if (messageId != -1L) {
-            Log.d(TAG, "Find the message_id and switch to edit mode.")
-            Log.d(TAG, "onReceive: $messageId")
+            Log.d(this::class.simpleName, "Find the message_id and switch to edit mode.")
+            Log.d(this::class.simpleName, "onReceive: $messageId")
             requestUri = Network.getUrl(botToken.toString(), "editMessageText")
             requestBody.messageId = messageId
         }
@@ -99,7 +98,7 @@ class SMSSendResultReceiver : BroadcastReceiver() {
                     )
                     Resend.addResendLoop(context, requestBody.text)
                 }
-                Log.d(TAG, "onResponse: " + response.body.string())
+                Log.d(this::class.simpleName, "onResponse: " + response.body.string())
             }
         })
     }

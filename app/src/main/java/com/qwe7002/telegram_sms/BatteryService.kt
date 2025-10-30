@@ -66,7 +66,6 @@ class BatteryService : Service() {
     @SuppressLint("UnspecifiedRegisterReceiverFlag", "InlinedApi")
     override fun onCreate() {
         super.onCreate()
-        //val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
         val preferences = MMKV.defaultMMKV()
         chatId = preferences.getString("chat_id", "").toString()
         botToken = preferences.getString("bot_token", "").toString()
@@ -109,7 +108,6 @@ class BatteryService : Service() {
     }
 
     private fun networkHandle(obj: sendObj) {
-        val TAG = "network_handle"
         val requestMessage = RequestMessage()
         requestMessage.chatId = chatId
         requestMessage.text = obj.content
@@ -118,7 +116,7 @@ class BatteryService : Service() {
         if ((System.currentTimeMillis() - lastReceiveTime) <= 5000L && lastReceiveMessageId != -1L) {
             requestUri = Network.getUrl(botToken, "editMessageText")
             requestMessage.messageId = lastReceiveMessageId
-            Log.d(TAG, "onReceive: edit_mode")
+            Log.d(this::class.java.simpleName, "onReceive: edit_mode")
         }
         lastReceiveTime = System.currentTimeMillis()
         val okhttpObj = Network.getOkhttpObj(dohSwitch)
@@ -146,8 +144,8 @@ class BatteryService : Service() {
                 }
             }
         } catch (e: IOException) {
-            Log.i(TAG, "networkHandle: $e")
-            Logs.writeLog(applicationContext, errorHead + e.message)
+            Log.i(this::class.java.simpleName, "networkHandle: $e")
+            Logs.writeLog(this, errorHead + e.message)
             if (obj.action == Intent.ACTION_BATTERY_LOW) {
                 if (ActivityCompat.checkSelfPermission(
                         this,

@@ -63,8 +63,6 @@ class CallReceiver : BroadcastReceiver() {
         // Removed constructor parameter: incomingNumber: String?
     ) : PhoneStateListener() {
 
-        // Removed init block that used constructor's incomingNumber
-
         @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
         @Deprecated("Deprecated in Java")
         override fun onCallStateChanged(nowState: Int, nowIncomingNumber: String) {
@@ -72,7 +70,7 @@ class CallReceiver : BroadcastReceiver() {
             // It can be an empty string if the number is unknown.
             val actualIncomingNumber = nowIncomingNumber.ifEmpty {
                 Log.w(
-                    "PhoneStatusListener",
+                    context::class.simpleName,
                     "Incoming number from callback is null or empty. Using 'Unknown'."
                 )
                 // Consider using a string resource: context.getString(R.string.unknown_caller_id)
@@ -83,7 +81,7 @@ class CallReceiver : BroadcastReceiver() {
                 val preferences = MMKV.defaultMMKV()
                 if (!preferences.getBoolean("call_notify", true)) {
                     Log.i(
-                        "call_status_listener",
+                        context::class.simpleName,
                         "Call notifications are disabled by user setting."
                     )
                     return

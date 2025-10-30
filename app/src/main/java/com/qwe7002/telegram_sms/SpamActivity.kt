@@ -23,8 +23,6 @@ class SpamActivity : AppCompatActivity() {
         val fab = findViewById<FloatingActionButton>(R.id.spam_list_fab)
         val spamList = findViewById<ListView>(R.id.spam_list)
 
-        /* val blockKeywordList =
-             Paper.book("system_config").read("block_keyword_list", ArrayList<String>())!!*/
         val preferences = MMKV.defaultMMKV()
         val blockKeywordList =
             preferences.getStringSet("block_keyword_list", setOf())?.toMutableList()
@@ -72,14 +70,6 @@ class SpamActivity : AppCompatActivity() {
         }
     }
 
-    /*    private fun saveAndFlush(
-            blackKeywordList: ArrayList<String>,
-            listAdapter: ArrayAdapter<String>
-        ) {
-            Log.d("save_and_flush", blackKeywordList.toString())
-            Paper.book("system_config").write("block_keyword_list", blackKeywordList)
-            listAdapter.notifyDataSetChanged()
-        }*/
     private fun saveAndFlush(
         blackKeywordList: MutableList<String>,
         listAdapter: ArrayAdapter<String>

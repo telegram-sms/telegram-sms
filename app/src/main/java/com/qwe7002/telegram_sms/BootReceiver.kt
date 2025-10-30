@@ -10,8 +10,7 @@ import com.tencent.mmkv.MMKV
 
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val TAG = "boot_receiver"
-        Log.d(TAG, "Receive action: " + intent.action)
+        Log.d(context::class.simpleName, "Receive action: " + intent.action)
         MMKV.initialize(context)
         val preferences = MMKV.defaultMMKV()
         if (preferences.getBoolean("initialized", false)) {

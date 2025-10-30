@@ -40,18 +40,17 @@ class SMSReceiver : BroadcastReceiver() {
     @Suppress("DEPRECATION")
     override fun onReceive(context: Context, intent: Intent) {
         MMKV.initialize(context)
-        val TAG = "sms_receiver"
-        Log.d(TAG, "Receive action: " + intent.action)
+        Log.d(this::class.simpleName, "Receive action: " + intent.action)
         val extras = intent.extras!!
         val preferences = MMKV.defaultMMKV()
         if (!preferences.getBoolean("initialized", false)) {
-            Log.i(TAG, "Uninitialized, SMS receiver is deactivated.")
+            Log.i(this::class.simpleName, "Uninitialized, SMS receiver is deactivated.")
             return
         }
         val isDefaultSmsApp = Telephony.Sms.getDefaultSmsPackage(context) == context.packageName
         if (intent.action == "android.provider.Telephony.SMS_RECEIVED" && isDefaultSmsApp) {
             //When it is the default application, it will receive two broadcasts.
-            Log.i(TAG, "reject: android.provider.Telephony.SMS_RECEIVED.")
+            Log.i(this::class.simpleName, "reject: android.provider.Telephony.SMS_RECEIVED.")
             return
         }
         val botToken = preferences.getString("bot_token", "")
@@ -176,7 +175,7 @@ class SMSReceiver : BroadcastReceiver() {
                                 return
                             }
                         } else {
-                            Log.i(TAG, "send_ussd: No permission.")
+                            Log.i(this::class.simpleName, "send_ussd: No permission.")
                             return
                         }
                     }
@@ -191,7 +190,7 @@ class SMSReceiver : BroadcastReceiver() {
                     ?: mutableListOf()
             for (blackListItem in blackListArray) {
                 if (textContent.contains(blackListItem)) {
-                    Log.i(TAG, "Detected message contains blacklist keywords")
+                    Log.i(this::class.simpleName, "Detected message contains blacklist keywords")
                     requestBody.disableNotification = true
                 }
             }

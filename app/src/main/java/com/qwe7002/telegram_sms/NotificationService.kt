@@ -28,7 +28,6 @@ import java.io.IOException
 import java.util.Objects
 
 class NotificationService : NotificationListenerService() {
-    val TAG: String = "notification_receiver"
     lateinit var preferences: MMKV
 
     override fun onCreate() {
@@ -39,10 +38,10 @@ class NotificationService : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         val packageName = sbn.packageName
-        Log.d(TAG, "onNotificationPosted: $packageName")
+        Log.d(this::class.simpleName, "onNotificationPosted: $packageName")
 
         if (!preferences.getBoolean("initialized", false)) {
-            Log.i(TAG, "Uninitialized, Notification receiver is deactivated.")
+            Log.i(this::class.simpleName, "Uninitialized, Notification receiver is deactivated.")
             return
         }
         val notifyMMKV = MMKV.mmkvWithID(MMKVConst.NOTIFY_ID)
@@ -51,12 +50,12 @@ class NotificationService : NotificationListenerService() {
             Gson().fromJson(notifyListStr, Array<String>::class.java).toList()
 
         if (!listenList.contains(packageName)) {
-            Log.i(TAG, "[$packageName] Not in the list of listening packages.")
+            Log.i(this::class.simpleName, "[$packageName] Not in the list of listening packages.")
             return
         }
         val extras = sbn.notification.extras!!
         var appName = "unknown"
-        Log.d(TAG, "onNotificationPosted: $appNameList")
+        Log.d(this::class.simpleName, "onNotificationPosted: $appNameList")
         if (appNameList.containsKey(packageName)) {
             appName = appNameList[packageName].toString()
         } else {
@@ -66,7 +65,7 @@ class NotificationService : NotificationListenerService() {
                 appName = pm.getApplicationLabel(applicationInfo) as String
                 appNameList[packageName] = appName
             } catch (e: PackageManager.NameNotFoundException) {
-                Log.e(TAG, "onNotificationPosted: ", e)
+                Log.e(this::class.simpleName, "onNotificationPosted: ", e)
             }
         }
 
@@ -102,7 +101,7 @@ class NotificationService : NotificationListenerService() {
         val errorHead = "Send notification failed:"
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.e(TAG, "onFailure: ", e)
+                Log.e(this::class.simpleName, "onFailure: ", e)
                 Logs.writeLog(applicationContext, errorHead + e.message)
                 Resend.addResendLoop(applicationContext, requestBody.text)
             }

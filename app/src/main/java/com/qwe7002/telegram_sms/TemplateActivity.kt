@@ -22,14 +22,11 @@ import com.tencent.mmkv.MMKV
 
 
 class TemplateActivity : AppCompatActivity() {
-    lateinit var context: Context
-
     data class Message(val title: String, val template: String, val content: Map<String, String>)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         MMKV.initialize( this)
-        context = applicationContext
         setContentView(R.layout.activity_template)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -68,7 +65,7 @@ class TemplateActivity : AppCompatActivity() {
                 getString(R.string.battery_title),
                 "TPL_battery",
                 mapOf(
-                    "Message" to context.getString(R.string.battery_low),
+                    "Message" to applicationContext.getString(R.string.battery_low),
                     "BatteryLevel" to "10"
                 )
             ),
@@ -109,8 +106,6 @@ class TemplateActivity : AppCompatActivity() {
                 val dialogView = inflater.inflate(R.layout.set_template, null)
 
                 val editText = dialogView.findViewById<EditText>(R.id.template_editview)
-                /*val result = Paper.book("Template")
-                    .read(message.template, getStringByName(context, message.template)).toString()*/
                 val templateMMKV = MMKV.mmkvWithID(MMKVConst.TEMPLATE_ID)
                 val result =
                     templateMMKV.decodeString(message.template, getStringByName(context, message.template))
