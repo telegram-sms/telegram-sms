@@ -53,7 +53,7 @@ build_release:
     - git submodule update --init --recursive
     # 对于 master 分支，我们可以用一个更干净的 tag，比如 v1.2.3
     # 这里我们先用 pipeline IID 作为版本号
-    - export RELEASE_TAG="v${CI_PIPELINE_IID}"
+    - export RELEASE_TAG="$(date +%Y%m%d%H%M)-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}"
     - export VERSION_CODE=${CI_PIPELINE_ID}
     - export VERSION_NAME=${RELEASE_TAG}
     - export GRADLE_USER_HOME=$(pwd)/.gradle && mkdir -p ${GRADLE_USER_HOME}
