@@ -13,7 +13,6 @@ class BootReceiver : BroadcastReceiver() {
         val TAG = "boot_receiver"
         Log.d(TAG, "Receive action: " + intent.action)
         MMKV.initialize(context)
-        //val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
         val preferences = MMKV.defaultMMKV()
         if (preferences.getBoolean("initialized", false)) {
             KeepAliveJob.startJob(context)

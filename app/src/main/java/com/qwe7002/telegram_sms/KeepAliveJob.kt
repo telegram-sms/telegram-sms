@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit
 class KeepAliveJob : JobService() {
 
     override fun onStartJob(params: JobParameters?): Boolean {
-        //val sharedPreferences = applicationContext.getSharedPreferences("data", MODE_PRIVATE)
         val preferences = MMKV.defaultMMKV()
         if (preferences.getBoolean("initialized", false)) {
             Service.startService(

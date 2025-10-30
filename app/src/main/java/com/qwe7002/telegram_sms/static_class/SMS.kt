@@ -10,7 +10,7 @@ import android.content.IntentFilter
 import android.os.Build
 import android.telephony.SmsManager
 import android.util.Log
-import androidx.core.content.PermissionChecker
+import androidx.annotation.RequiresPermission
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.R
 import com.qwe7002.telegram_sms.SMSSendResultReceiver
@@ -25,12 +25,14 @@ import java.util.Objects
 
 object SMS {
     @JvmStatic
+    @RequiresPermission(allOf = [Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE])
     fun sendSms(context: Context, sendTo: String, content: String, slot: Int, subId: Int) {
         send(context, sendTo, content, slot, subId, -1)
     }
 
     @JvmStatic
     @SuppressLint("UnspecifiedImmutableFlag", "UnspecifiedRegisterReceiverFlag")
+    @RequiresPermission(allOf = [Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE])
     fun send(
         context: Context,
         sendTo: String,
@@ -40,19 +42,10 @@ object SMS {
         contextId: Long
     ) {
         var messageId = contextId
-        if (PermissionChecker.checkSelfPermission(
-                context,
-                Manifest.permission.SEND_SMS
-            ) != PermissionChecker.PERMISSION_GRANTED
-        ) {
-            Log.d("send_sms", "No permission.")
-            return
-        }
         if (!Other.isPhoneNumber(sendTo)) {
             Logs.writeLog(context, "[$sendTo] is an illegal phone number")
             return
         }
-       // val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
         val preferences = MMKV.defaultMMKV()
         val botToken = preferences.getString("bot_token", "")!!
         val chatId = preferences.getString("chat_id", "")!!
@@ -134,32 +127,26 @@ object SMS {
         )
     }
 
-    fun fallbackSMS(context: Context, content: String?, sub_id: Int) {
+    @RequiresPermission(Manifest.permission.SEND_SMS)
+    fun fallbackSMS(content: String?, subId: Int) {
         val TAG = "send_fallback_sms"
-        if (PermissionChecker.checkSelfPermission(
-                context,
-                Manifest.permission.SEND_SMS
-            ) != PermissionChecker.PERMISSION_GRANTED
-        ) {
-            Log.d(TAG, "No permission.")
-            return
-        }
-        val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
-        val trustNumber = sharedPreferences.getString("trusted_phone_number", null)
+        //val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
+        val preferences = MMKV.defaultMMKV()
+        val trustNumber = preferences.getString("trusted_phone_number", null)
         if (trustNumber == null) {
             Log.i(TAG, "The trusted number is empty.")
             return
         }
-        if (!sharedPreferences.getBoolean("fallback_sms", false)) {
+        if (!preferences.getBoolean("fallback_sms", false)) {
             Log.i(TAG, "SMS fallback is not turned on.")
             return
         }
-        val smsManager = if (sub_id == -1) {
+        val smsManager = if (subId == -1) {
             @Suppress("DEPRECATION")
             SmsManager.getSmsManagerForSubscriptionId(SmsManager.getDefaultSmsSubscriptionId())
         } else {
             @Suppress("DEPRECATION")
-            SmsManager.getSmsManagerForSubscriptionId(sub_id)
+            SmsManager.getSmsManagerForSubscriptionId(subId)
         }
         val divideContents = smsManager.divideMessage(content)
         smsManager.sendMultipartTextMessage(trustNumber, null, divideContents, null, null)

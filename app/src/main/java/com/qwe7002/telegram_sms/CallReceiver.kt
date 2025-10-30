@@ -6,10 +6,12 @@ import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.telephony.PhoneStateListener
 import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.annotation.RequiresPermission
+import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.Logs
@@ -119,7 +121,14 @@ class CallReceiver : BroadcastReceiver() {
                     override fun onFailure(call: Call, e: IOException) {
                         e.printStackTrace()
                         Logs.writeLog(context, "$errorHead ${e.message}")
-                        SMS.fallbackSMS(context, requestBody.text, Other.getSubId(context, slot))
+                        if (ActivityCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.SEND_SMS
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            SMS.fallbackSMS(requestBody.text, Other.getSubId(context, slot))
+                        }
+
                         Resend.addResendLoop(context, requestBody.text)
                     }
 
@@ -188,7 +197,13 @@ class CallReceiver : BroadcastReceiver() {
                     override fun onFailure(call: Call, e: IOException) {
                         e.printStackTrace()
                         Logs.writeLog(context, "$errorHead ${e.message}")
-                        SMS.fallbackSMS(context, requestBody.text, Other.getSubId(context, slot))
+                        if (ActivityCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.SEND_SMS
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            SMS.fallbackSMS(requestBody.text, Other.getSubId(context, slot))
+                        }
                         Resend.addResendLoop(context, requestBody.text)
                     }
 

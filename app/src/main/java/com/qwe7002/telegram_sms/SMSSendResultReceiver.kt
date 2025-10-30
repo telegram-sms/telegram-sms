@@ -1,11 +1,14 @@
 package com.qwe7002.telegram_sms
 
+import android.Manifest
 import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.telephony.SmsManager
 import android.util.Log
+import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.Logs
@@ -75,7 +78,14 @@ class SMSSendResultReceiver : BroadcastReceiver() {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
                 Logs.writeLog(context, errorHead + e.message)
-                SMS.fallbackSMS(context, requestBody.text, sub)
+                if (ActivityCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.SEND_SMS
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    SMS.fallbackSMS(requestBody.text, sub)
+                }
+
                 Resend.addResendLoop(context, requestBody.text)
             }
 

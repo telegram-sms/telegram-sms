@@ -166,7 +166,14 @@ class ChatService : Service() {
             } else {
                 subId = getSubId(applicationContext, slot)
             }
-            send(applicationContext, to, content, slot, subId, messageId)
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.SEND_SMS
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                send( applicationContext,to, content, slot, subId, messageId)
+            }
+
             setSmsSendStatusStandby()
             return
         }

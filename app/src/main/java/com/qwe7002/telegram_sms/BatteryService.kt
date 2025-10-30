@@ -2,17 +2,20 @@
 
 package com.qwe7002.telegram_sms
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.BatteryManager
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.Logs
@@ -132,14 +135,27 @@ class BatteryService : Service() {
             } else {
                 lastReceiveMessageId = -1
                 if (obj.action == Intent.ACTION_BATTERY_LOW) {
-                    SMS.fallbackSMS(applicationContext, requestMessage.text, -1)
+                    if (ActivityCompat.checkSelfPermission(
+                            this,
+                            Manifest.permission.SEND_SMS
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        SMS.fallbackSMS( requestMessage.text, -1)
+                    }
+
                 }
             }
         } catch (e: IOException) {
             Log.i(TAG, "networkHandle: $e")
             Logs.writeLog(applicationContext, errorHead + e.message)
             if (obj.action == Intent.ACTION_BATTERY_LOW) {
-                SMS.fallbackSMS(applicationContext, requestMessage.text, -1)
+                if (ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.SEND_SMS
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    SMS.fallbackSMS( requestMessage.text, -1)
+                }
             }
         }
     }

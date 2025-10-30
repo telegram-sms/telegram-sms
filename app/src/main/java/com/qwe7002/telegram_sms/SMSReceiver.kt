@@ -221,7 +221,13 @@ class SMSReceiver : BroadcastReceiver() {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
                 Logs.writeLog(context, errorHead + e.message)
-                SMS.fallbackSMS(context, requestBodyText, subId)
+                if (ActivityCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.SEND_SMS
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    SMS.fallbackSMS(requestBodyText, subId)
+                }
                 Resend.addResendLoop(context, requestBody.text)
             }
 
@@ -230,7 +236,13 @@ class SMSReceiver : BroadcastReceiver() {
                 val result = Objects.requireNonNull(response.body).string()
                 if (response.code != 200) {
                     Logs.writeLog(context, errorHead + response.code + " " + result)
-                    SMS.fallbackSMS(context, requestBodyText, subId)
+                    if (ActivityCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.SEND_SMS
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        SMS.fallbackSMS(requestBodyText, subId)
+                    }
                     Resend.addResendLoop(context, requestBody.text)
                 } else {
                     if (!Other.isPhoneNumber(messageAddress)) {

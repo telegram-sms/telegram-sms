@@ -15,6 +15,7 @@ import com.qwe7002.telegram_sms.R
 import com.qwe7002.telegram_sms.USSDCallBack
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.value.Const
+import com.tencent.mmkv.MMKV
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -32,7 +33,7 @@ object USSD {
         if (subId != -1) {
             tm = tm.createForSubscriptionId(subId)
         }
-        val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
+        val preferences = MMKV.defaultMMKV()
         if (ActivityCompat.checkSelfPermission(
                 context,
                 Manifest.permission.CALL_PHONE
@@ -41,11 +42,13 @@ object USSD {
             Log.i(TAG, "send_ussd: No permission.")
         }
 
-        val botToken = sharedPreferences.getString("bot_token", "")!!
-        val chatId = sharedPreferences.getString("chat_id", "")!!
+        val botToken = preferences.getString("bot_token", "")!!
+        val chatId = preferences.getString("chat_id", "")!!
+        val messsageThreadId = preferences.getString("message_thread_id", "")!!
         val requestUri = Network.getUrl(botToken, "sendMessage")
         val requestBody = RequestMessage()
         requestBody.chatId = chatId
+        requestBody.messageThreadId = messsageThreadId
         requestBody.text = Template.render(
             context,
             "TPL_send_USSD",
@@ -54,7 +57,7 @@ object USSD {
         val requestBodyRaw = Gson().toJson(requestBody)
         val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
         val okhttpClient = Network.getOkhttpObj(
-            sharedPreferences.getBoolean("doh_switch", true)
+            preferences.getBoolean("doh_switch", true)
         )
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpClient.newCall(request)
@@ -78,7 +81,7 @@ object USSD {
                 val handler = Handler(Looper.getMainLooper())
                 tm.sendUssdRequest(
                     ussd,
-                    USSDCallBack(context, sharedPreferences, messageId),
+                    USSDCallBack(context, messageId),
                     handler
                 )
                 Looper.loop()

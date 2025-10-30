@@ -1,11 +1,13 @@
 package com.qwe7002.telegram_sms
 
+import android.Manifest
 import android.content.Context
-import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.os.Build
 import android.telephony.TelephonyManager
 import android.telephony.TelephonyManager.UssdResponseCallback
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.Logs
@@ -14,6 +16,7 @@ import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.Const
+import com.tencent.mmkv.MMKV
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
@@ -26,7 +29,6 @@ import java.util.Objects
 @RequiresApi(api = Build.VERSION_CODES.O)
 class USSDCallBack(
     private val context: Context,
-    sharedPreferences: SharedPreferences,
     messageId: Long
 ) : UssdResponseCallback() {
     private val dohSwitch: Boolean
@@ -34,13 +36,14 @@ class USSDCallBack(
     private val requestBody: RequestMessage
 
     init {
-        val chatId = sharedPreferences.getString("chat_id", "")
-        this.dohSwitch = sharedPreferences.getBoolean("doh_switch", true)
+        val preferences = MMKV.defaultMMKV()
+        val chatId = preferences.getString("chat_id", "")
+        this.dohSwitch = preferences.getBoolean("doh_switch", true)
         this.requestBody = RequestMessage()
         requestBody.chatId = chatId.toString()
         requestBody.messageThreadId =
-            sharedPreferences.getString("message_thread_id", "").toString()
-        val botToken = sharedPreferences.getString("bot_token", "")
+            preferences.getString("message_thread_id", "").toString()
+        val botToken = preferences.getString("bot_token", "")
         this.requestUri = Network.getUrl(botToken.toString(), "SendMessage")
         if (messageId != -1L) {
             this.requestUri = Network.getUrl(botToken.toString(), "editMessageText")
@@ -90,7 +93,14 @@ class USSDCallBack(
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
                 Logs.writeLog(context, errorHead + e.message)
-                SMS.fallbackSMS(context, requestBody.text, -1)
+                if (ActivityCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.SEND_SMS
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    SMS.fallbackSMS( requestBody.text, -1)
+                }
+
                 Resend.addResendLoop(context, requestBody.text)
             }
 
@@ -102,7 +112,13 @@ class USSDCallBack(
                         errorHead + response.code + " " + Objects.requireNonNull(response.body)
                             .string()
                     )
-                    SMS.fallbackSMS(context, requestBody.text, -1)
+                    if (ActivityCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.SEND_SMS
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        SMS.fallbackSMS( requestBody.text, -1)
+                    }
                     Resend.addResendLoop(context, requestBody.text)
                 }
             }
