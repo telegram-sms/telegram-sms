@@ -252,80 +252,93 @@ class MainActivity : AppCompatActivity() {
                 @Throws(IOException::class)
                 override fun onResponse(call: Call, response: Response) {
                     progressDialog.cancel()
-                    checkNotNull(response.body)
                     if (response.code != 200) {
-                        val result =
-                            Objects.requireNonNull(response.body).string()
-                        val resultObj = JsonParser.parseString(result).asJsonObject
-                        val errorMessage = errorHead + resultObj["description"].asString
-                        Logs.writeLog(applicationContext, errorMessage)
-                        runOnUiThread { showErrorDialog(errorMessage) }
+                        val result = response.body.string()
+                        try {
+                            val resultObj = JsonParser.parseString(result).asJsonObject
+                            val errorMessage = errorHead + resultObj["description"].asString
+                            Logs.writeLog(applicationContext, errorMessage)
+                            runOnUiThread { showErrorDialog(errorMessage) }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            val errorMessage = errorHead + "Failed to parse error response"
+                            Logs.writeLog(applicationContext, errorMessage)
+                            runOnUiThread { showErrorDialog(errorMessage) }
+                        }
                         return
                     }
 
-                    val result =
-                        Objects.requireNonNull(response.body).string()
+                    val result = response.body.string()
                     Log.d(this::class.simpleName, "onResponse: $result")
-                    val resultObj = JsonParser.parseString(result).asJsonObject
-                    val chatList = resultObj.getAsJsonArray("result")
-                    if (chatList.isEmpty) {
-                        runOnUiThread { showErrorDialog(getString(R.string.unable_get_recent)) }
-                        return
-                    }
-                    val chatNameList = ArrayList<String>()
-                    val chatIdList = ArrayList<String>()
-                    val chatTopicIdList = ArrayList<String>()
-                    for (item in chatList) {
-                        val itemObj = item.asJsonObject
-                        if (itemObj.has("message")) {
-                            val messageObj = itemObj["message"].asJsonObject
-                            val chatObj = messageObj["chat"].asJsonObject
-                            if (!chatIdList.contains(chatObj["id"].asString)) {
-                                var username = ""
-                                if (chatObj.has("username")) {
-                                    username = chatObj["username"].asString
-                                }
-                                if (chatObj.has("title")) {
-                                    username = chatObj["title"].asString
-                                }
-                                if (username.isEmpty() && !chatObj.has("username")) {
-                                    if (chatObj.has("first_name")) {
-                                        username = chatObj["first_name"].asString
+                    try {
+                        val resultObj = JsonParser.parseString(result).asJsonObject
+                        val chatList = resultObj.getAsJsonArray("result")
+                        if (chatList.isEmpty) {
+                            runOnUiThread { showErrorDialog(getString(R.string.unable_get_recent)) }
+                            return
+                        }
+                        val chatNameList = ArrayList<String>()
+                        val chatIdList = ArrayList<String>()
+                        val chatTopicIdList = ArrayList<String>()
+                        for (item in chatList) {
+                            val itemObj = item.asJsonObject
+                            if (itemObj.has("message")) {
+                                val messageObj = itemObj["message"].asJsonObject
+                                val chatObj = messageObj["chat"].asJsonObject
+                                if (!chatIdList.contains(chatObj["id"].asString)) {
+                                    var username = ""
+                                    if (chatObj.has("username")) {
+                                        username = chatObj["username"].asString
                                     }
-                                    if (chatObj.has("last_name")) {
-                                        username += " " + chatObj["last_name"].asString
+                                    if (chatObj.has("title")) {
+                                        username = chatObj["title"].asString
                                     }
+                                    if (username.isEmpty() && !chatObj.has("username")) {
+                                        if (chatObj.has("first_name")) {
+                                            username = chatObj["first_name"].asString
+                                        }
+                                        if (chatObj.has("last_name")) {
+                                            username += " " + chatObj["last_name"].asString
+                                        }
+                                    }
+                                    val type = chatObj["type"].asString
+                                    chatNameList.add("$username($type)")
+                                    chatIdList.add(chatObj["id"].asString)
+                                    var threadId = ""
+                                    if (type == "supergroup" && messageObj.has("is_topic_message")) {
+                                        threadId = messageObj["message_thread_id"].asString
+                                    }
+                                    chatTopicIdList.add(threadId)
                                 }
-                                val type = chatObj["type"].asString
-                                chatNameList.add("$username($type)")
-                                chatIdList.add(chatObj["id"].asString)
-                                var threadId = ""
-                                if (type == "supergroup" && messageObj.has("is_topic_message")) {
-                                    threadId = messageObj["message_thread_id"].asString
+                            }
+                            if (itemObj.has("channel_post")) {
+                                val messageObj = itemObj["channel_post"].asJsonObject
+                                val chatObj = messageObj["chat"].asJsonObject
+                                if (!chatIdList.contains(chatObj["id"].asString)) {
+                                    chatNameList.add(chatObj["title"].asString + "(Channel)")
+                                    chatIdList.add(chatObj["id"].asString)
                                 }
-                                chatTopicIdList.add(threadId)
                             }
                         }
-                        if (itemObj.has("channel_post")) {
-                            val messageObj = itemObj["channel_post"].asJsonObject
-                            val chatObj = messageObj["chat"].asJsonObject
-                            if (!chatIdList.contains(chatObj["id"].asString)) {
-                                chatNameList.add(chatObj["title"].asString + "(Channel)")
-                                chatIdList.add(chatObj["id"].asString)
-                            }
-                        }
-                    }
-                    runOnUiThread {
-                        AlertDialog.Builder(v.context)
-                            .setTitle(R.string.select_chat).setItems(
-                                chatNameList.toTypedArray<String>()
-                            ) { _: DialogInterface?, i: Int ->
-                                chatIdEditView.setText(
-                                    chatIdList[i]
+                        runOnUiThread {
+                            AlertDialog.Builder(v.context)
+                                .setTitle(R.string.select_chat).setItems(
+                                    chatNameList.toTypedArray<String>()
+                                ) { _: DialogInterface?, i: Int ->
+                                    chatIdEditView.setText(
+                                        chatIdList[i]
+                                    )
+                                    messageThreadIdEditView.setText(chatTopicIdList[i])
+                                }.setPositiveButton(
+                                    applicationContext.getString(R.string.cancel_button),
+                                    null
                                 )
-                                messageThreadIdEditView.setText(chatTopicIdList[i])
-                            }.setPositiveButton(applicationContext.getString(R.string.cancel_button), null)
-                            .show()
+                                .show()
+                        }
+                    } catch (e: Exception) {
+                        val errorMessage = errorHead + "Failed to parse response: ${e.message}"
+                        Logs.writeLog(applicationContext, errorMessage)
+                        runOnUiThread { showErrorDialog(errorMessage) }
                     }
                 }
             })
@@ -440,14 +453,19 @@ class MainActivity : AppCompatActivity() {
                     progressDialog.cancel()
                     val newBotToken = botTokenEditView.text.toString().trim { it <= ' ' }
                     if (response.code != 200) {
-                        checkNotNull(response.body)
-                        val result =
-                            Objects.requireNonNull(response.body).string()
-                        val resultObj = JsonParser.parseString(result).asJsonObject
-                        val errorMessage = errorHead + resultObj["description"]
-                        Logs.writeLog(applicationContext, errorMessage)
-                        runOnUiThread {
-                            showErrorDialog(errorMessage)
+                        val result = response.body.string()
+                        try {
+                            val resultObj = JsonParser.parseString(result).asJsonObject
+                            val errorMessage = errorHead + resultObj["description"]
+                            Logs.writeLog(applicationContext, errorMessage)
+                            runOnUiThread {
+                                showErrorDialog(errorMessage)
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            val errorMessage = errorHead + "Failed to parse error response"
+                            Logs.writeLog(applicationContext, errorMessage)
+                            runOnUiThread { showErrorDialog(errorMessage) }
                         }
                         return
                     }
@@ -456,18 +474,15 @@ class MainActivity : AppCompatActivity() {
                             this::class.simpleName,
                             "onResponse: The current bot token does not match the saved bot token, clearing the message database."
                         )
-                        /*Paper.book().destroy()*/
                         MMKV.mmkvWithID(MMKVConst.CHAT_ID).clearAll()
                     }
                     MMKV.mmkvWithID(MMKVConst.RESEND_ID).clearAll()
-                    /*Paper.book("resend").destroy()
-                    Paper.book("system_config")
-                        .write("version", Const.SYSTEM_CONFIG_VERSION)*/
                     checkVersionUpgrade(false)
-                    //val editor = sharedPreferences.edit().clear()
                     preferences.clearAll()
                     preferences.putString("bot_token", newBotToken)
-                    preferences.putString("chat_id", chatIdEditView.text.toString().trim { it <= ' ' })
+                    preferences.putString(
+                        "chat_id",
+                        chatIdEditView.text.toString().trim { it <= ' ' })
                     preferences.putString(
                         "message_thread_id",
                         messageThreadIdEditView.text.toString().trim { it <= ' ' })
@@ -556,7 +571,12 @@ class MainActivity : AppCompatActivity() {
         builder.setNeutralButton(R.string.visit_page) { _: DialogInterface?, _: Int ->
             val uri = "https://telegram-sms.com$privacyPolice".toUri()
             val privacyBuilder = CustomTabsIntent.Builder()
-            privacyBuilder.setToolbarColor(ContextCompat.getColor(applicationContext, R.color.colorPrimary))
+            privacyBuilder.setToolbarColor(
+                ContextCompat.getColor(
+                    applicationContext,
+                    R.color.colorPrimary
+                )
+            )
             val customTabsIntent = privacyBuilder.build()
             customTabsIntent.intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             try {
@@ -605,7 +625,10 @@ class MainActivity : AppCompatActivity() {
         when (requestCode) {
             0 -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                    Log.d(this::class.simpleName, "onRequestPermissionsResult: No camera permissions.")
+                    Log.d(
+                        this::class.simpleName,
+                        "onRequestPermissionsResult: No camera permissions."
+                    )
                     Snackbar.make(
                         findViewById(R.id.bot_token_editview),
                         R.string.no_camera_permission,
