@@ -105,6 +105,7 @@ class SMSReceiver : BroadcastReceiver() {
         val textContent = messageBodyBuilder.toString()
 
         val messageAddress = messages[0]!!.originatingAddress!!
+        val fromID = messageAddress.removePrefix("+")
         val trustedPhoneNumber = sharedPreferences.getString("trusted_phone_number", null)
         var isTrustedPhone = false
         if (!trustedPhoneNumber.isNullOrEmpty()) {
@@ -216,9 +217,9 @@ class SMSReceiver : BroadcastReceiver() {
         }
 
         val values =
-            mapOf("SIM" to dualSim, "From" to messageAddress, "Content" to textContentHTML)
+            mapOf("SIM" to dualSim, "From" to messageAddress, "FromID" to fromID, "Content" to textContentHTML)
         val rawValues =
-            mapOf("SIM" to dualSim, "From" to messageAddress, "Content" to textContent)
+            mapOf("SIM" to dualSim, "From" to messageAddress, "FromID" to fromID, "Content" to textContent)
         requestBody.text = Template.render(context, "TPL_received_sms", values)
         val requestBodyText = Template.render(context, "TPL_received_sms", rawValues)
         CcSendJob.startJob(

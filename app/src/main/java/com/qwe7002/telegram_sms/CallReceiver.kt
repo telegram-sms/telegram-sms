@@ -72,6 +72,7 @@ class CallReceiver : BroadcastReceiver() {
             } else {
                 nowIncomingNumber
             }
+            val fromID = actualIncomingNumber.removePrefix("+")
 
             if (lastReceiveStatus == TelephonyManager.CALL_STATE_IDLE && nowState == TelephonyManager.CALL_STATE_RINGING) {
                 val sharedPreferences = context.getSharedPreferences("data", Context.MODE_PRIVATE)
@@ -92,7 +93,7 @@ class CallReceiver : BroadcastReceiver() {
                     sharedPreferences.getBoolean("display_dual_sim_display_name", false)
                 )
                 // Use actualIncomingNumber from the callback
-                requestBody.text = Template.render(context, "TPL_receiving_call", mapOf("SIM" to dualSim, "From" to actualIncomingNumber))
+                requestBody.text = Template.render(context, "TPL_receiving_call", mapOf("SIM" to dualSim, "From" to actualIncomingNumber, "FromID" to fromID))
                 CcSendJob.startJob(context, CcType.CALL, context.getString(R.string.receiving_call_title), requestBody.text)
                 val requestBodyRaw = Gson().toJson(requestBody)
                 val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
@@ -153,7 +154,7 @@ class CallReceiver : BroadcastReceiver() {
                     sharedPreferences.getBoolean("display_dual_sim_display_name", false)
                 )
                 // Use actualIncomingNumber from the callback
-                requestBody.text = Template.render(context, "TPL_missed_call", mapOf("SIM" to dualSim, "From" to actualIncomingNumber))
+                requestBody.text = Template.render(context, "TPL_missed_call", mapOf("SIM" to dualSim, "From" to actualIncomingNumber, "FromID" to fromID))
                 CcSendJob.startJob(context, CcType.CALL, context.getString(R.string.missed_call_title), requestBody.text)
                 val requestBodyRaw = Gson().toJson(requestBody)
                 val body: RequestBody = requestBodyRaw.toRequestBody(constValue.JSON)
