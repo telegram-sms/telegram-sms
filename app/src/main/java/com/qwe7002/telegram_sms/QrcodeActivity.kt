@@ -26,7 +26,7 @@ import com.google.gson.reflect.TypeToken
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.data_structure.ScannerJson
-import com.qwe7002.telegram_sms.static_class.AES
+import com.qwe7002.telegram_sms.static_class.Crypto
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.value.Const
@@ -126,7 +126,7 @@ class QrcodeActivity : AppCompatActivity() {
             progressDialog.setCancelable(false)
             progressDialog.show()
             Thread {
-                val encryptConfig = AES.encrypt(getConfigJson(), AES.getKeyFromString(userInput))
+                val encryptConfig = Crypto.encrypt(getConfigJson(), Crypto.getKeyFromString(userInput))
                 val requestBody = Gson().toJson(mapOf("encrypt" to encryptConfig)).toRequestBody()
                 val requestObj =
                     Request.Builder().url(url)
@@ -204,7 +204,7 @@ class QrcodeActivity : AppCompatActivity() {
                         val responseBody = response.body.string()
                         try {
                             val decryptConfig =
-                                AES.decrypt(responseBody, AES.getKeyFromString(password))
+                                Crypto.decrypt(responseBody, Crypto.getKeyFromString(password))
                             val intent = Intent().putExtra("config_json", decryptConfig)
                             setResult(Const.RESULT_CONFIG_JSON, intent)
                             finish()

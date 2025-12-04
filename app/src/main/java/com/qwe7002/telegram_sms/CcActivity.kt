@@ -38,7 +38,7 @@ import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.qwe7002.telegram_sms.data_structure.config.CcConfig
 import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.data_structure.HAR
-import com.qwe7002.telegram_sms.static_class.AES
+import com.qwe7002.telegram_sms.static_class.Crypto
 import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Template
@@ -324,7 +324,7 @@ class CcActivity : AppCompatActivity() {
                         val responseBody = response.body.string()
                         try {
                             val decryptConfig =
-                                AES.decrypt(responseBody, AES.getKeyFromString(password))
+                                Crypto.decrypt(responseBody, Crypto.getKeyFromString(password))
                             val config = gson.fromJson(decryptConfig, CcSendService::class.java)
                             serviceList.add(config)
                             runOnUiThread {
