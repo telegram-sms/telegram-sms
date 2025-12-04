@@ -1,0 +1,306 @@
+# GitLab CI/CD Configuration for Telegram SMS
+
+stages:
+  - build
+  - deploy
+
+# ------------------------------------------------------------------------------
+# Global Configuration
+# ------------------------------------------------------------------------------
+default:
+  image: alvrme/alpine-android:android-35-jdk17
+  timeout: 30m
+  interruptible: true
+
+variables:
+  OWNER: telegram-sms
+  REPO: telegram-sms
+  GIT_DEPTH: 0
+  GIT_SUBMODULE_STRATEGY: recursive
+  GHR_VERSION: "0.17.0"
+  # Gradle settings
+  GRADLE_USER_HOME: "${CI_PROJECT_DIR}/.gradle"
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
+
+# Cache configuration for faster builds
+cache:
+  key:
+    files:
+      - gradle/wrapper/gradle-wrapper.properties
+      - app/build.gradle
+    prefix: ${CI_PROJECT_ID}
+  paths:
+    - .gradle/caches/
+    - .gradle/wrapper/
+  policy: pull-push
+
+# ------------------------------------------------------------------------------
+# Job Templates (Hidden jobs for reuse)
+# ------------------------------------------------------------------------------
+.setup_environment: &setup_environment
+  before_script:
+    - |
+      set -euo pipefail
+      echo "==> Installing dependencies..."
+      apk --update --no-cache add git openssl bash curl wget ca-certificates
+    - |
+      echo "==> Setting up keystore..."
+      if [ -z "${KEYSTORE:-}" ]; then
+        echo "ERROR: KEYSTORE variable is not set"
+        exit 1
+      fi
+      echo -n "${KEYSTORE}" | base64 -d > app/keys.jks
+      if [ ! -s app/keys.jks ]; then
+        echo "ERROR: Failed to decode keystore"
+        exit 1
+      fi
+    - |
+      echo "==> Configuring git..."
+      git config --global user.email "ci-bot@telegram-sms.com"
+      git config --global user.name "GitLab CI Bot"
+      git config --global http.postBuffer 524288000
+    - |
+      echo "==> Setting up Gradle..."
+      mkdir -p "${GRADLE_USER_HOME}"
+      cat >> "${GRADLE_USER_HOME}/gradle.properties" << EOF
+      org.gradle.jvmargs=-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError
+      org.gradle.parallel=true
+      org.gradle.caching=true
+      org.gradle.configureondemand=true
+      EOF
+      chmod +x ./gradlew
+    - |
+      echo "==> Generating release tag..."
+      export RELEASE_TAG="$(date +%Y%m%d%H%M)-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}"
+      export VERSION_CODE="${CI_PIPELINE_ID}"
+      export VERSION_NAME="${RELEASE_TAG}"
+      echo "Release Tag: ${RELEASE_TAG}"
+      echo "Version Code: ${VERSION_CODE}"
+
+.build_apk: &build_apk
+  script:
+    - |
+      echo "==> Building APK..."
+      ./gradlew clean assembleRelease --stacktrace --no-daemon
+    - |
+      echo "==> Verifying APK..."
+      APK_COUNT=$(find ./app/build/outputs/apk/release/ -name "*.apk" | wc -l)
+      if [ "${APK_COUNT}" -eq 0 ]; then
+        echo "ERROR: No APK files found after build"
+        exit 1
+      fi
+      echo "Found ${APK_COUNT} APK file(s)"
+      ls -la ./app/build/outputs/apk/release/
+
+.deploy_to_github: &deploy_to_github
+  script:
+    - |
+      echo "==> Validating GitHub credentials..."
+      if [ -z "${GITHUB_ACCESS_KEY:-}" ]; then
+        echo "ERROR: GITHUB_ACCESS_KEY is not set"
+        exit 1
+      fi
+    - |
+      echo "==> Downloading ghr..."
+      GHR_URL="https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz"
+      wget -q --retry-connrefused --waitretry=5 --timeout=30 -t 3 "${GHR_URL}" -O ghr.tar.gz
+      tar -xzf ghr.tar.gz
+      GHR_BIN="./ghr_v${GHR_VERSION}_linux_amd64/ghr"
+      chmod +x "${GHR_BIN}"
+    - |
+      echo "==> Syncing to GitHub..."
+      git push --set-upstream "https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git" \
+        "HEAD:refs/heads/${CI_COMMIT_REF_NAME}" || {
+          echo "WARNING: Failed to push to GitHub, continuing with release..."
+        }
+
+# ------------------------------------------------------------------------------
+# Nightly Build Job
+# ------------------------------------------------------------------------------
+build_nightly:
+  stage: build
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+      - script_failure
+  rules:
+    - if: $CI_COMMIT_BRANCH == "nightly"
+  <<: *setup_environment
+  script:
+    - !reference [.build_apk, script]
+    - !reference [.deploy_to_github, script]
+    - |
+      echo "==> Creating GitHub pre-release..."
+      "${GHR_BIN}" \
+        -t "${GITHUB_ACCESS_KEY}" \
+        -u "${OWNER}" \
+        -r "${REPO}" \
+        -c "nightly" \
+        -n "Nightly Build ${RELEASE_TAG}" \
+        -generatenotes \
+        -prerelease \
+        -replace \
+        "${RELEASE_TAG}" \
+        "./app/build/outputs/apk/release/"
+  artifacts:
+    name: "telegram-sms-nightly-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - app/build/outputs/apk/release/*.apk
+    expire_in: 1 week
+    when: on_success
+
+# ------------------------------------------------------------------------------
+# Release Build Job
+# ------------------------------------------------------------------------------
+build_release:
+  stage: build
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+  <<: *setup_environment
+  script:
+    - |
+      echo "==> Copying language pack..."
+      ./gradlew app:copy_language_pack --no-daemon
+    - !reference [.build_apk, script]
+    - !reference [.deploy_to_github, script]
+    - |
+      echo "==> Generating changelog with Gemini API..."
+      CHANGELOG_FILE=".reallsys/changelog.txt"
+      
+      # Install jq for JSON parsing
+      apk add --no-cache jq
+      
+      # Get git log for changelog generation
+      LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+      if [ -n "${LAST_TAG}" ]; then
+        GIT_LOG=$(git log "${LAST_TAG}"..HEAD --pretty=format:"- %s (%h)" --no-merges)
+      else
+        GIT_LOG=$(git log -20 --pretty=format:"- %s (%h)" --no-merges)
+      fi
+      
+      # Check if GEMINI_API_KEY is set
+      if [ -z "${GEMINI_API_KEY:-}" ]; then
+        echo "WARNING: GEMINI_API_KEY is not set, using git log as changelog"
+        CHANGELOG_CONTENT="${GIT_LOG}"
+      else
+        # Build prompt for Gemini API
+        PROMPT="Based on the following git commit log, generate a concise and user-friendly changelog in English. Group changes by category (Features, Bug Fixes, Improvements, etc.). Keep it brief and professional. Do not include commit hashes in the output.
+
+      Git commits:
+      ${GIT_LOG}
+
+      Output format:
+      ## What's New
+      - Feature or change description
+
+      ## Bug Fixes
+      - Bug fix description (if any)
+
+      ## Improvements
+      - Improvement description (if any)"
+
+        # Build JSON payload using jq for proper escaping
+        JSON_PAYLOAD=$(jq -n \
+          --arg prompt "$PROMPT" \
+          '{
+            contents: [{
+              parts: [{
+                text: $prompt
+              }]
+            }],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 1024
+            }
+          }')
+        
+        # Call Gemini REST API
+        GEMINI_API_URL="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}"
+        
+        API_RESPONSE=$(curl -s -X POST "${GEMINI_API_URL}" \
+          -H "Content-Type: application/json" \
+          -d "${JSON_PAYLOAD}" \
+          --max-time 60 \
+          --retry 3 \
+          --retry-delay 5) || {
+            echo "WARNING: Gemini API request failed, using git log as changelog"
+            CHANGELOG_CONTENT="${GIT_LOG}"
+            API_RESPONSE=""
+          }
+        
+        if [ -n "${API_RESPONSE}" ]; then
+          # Check for API error
+          if echo "${API_RESPONSE}" | jq -e '.error' > /dev/null 2>&1; then
+            echo "WARNING: Gemini API returned error:"
+            echo "${API_RESPONSE}" | jq '.error'
+            CHANGELOG_CONTENT="${GIT_LOG}"
+          else
+            # Extract text from response
+            CHANGELOG_CONTENT=$(echo "${API_RESPONSE}" | jq -r '.candidates[0].content.parts[0].text // empty')
+            
+            if [ -z "${CHANGELOG_CONTENT}" ]; then
+              echo "WARNING: Failed to extract changelog from API response"
+              CHANGELOG_CONTENT="${GIT_LOG}"
+            fi
+          fi
+        fi
+      fi
+      
+      # Fallback if changelog is empty
+      if [ -z "${CHANGELOG_CONTENT}" ]; then
+        echo "WARNING: Generated changelog is empty, using default message"
+        CHANGELOG_CONTENT="Release ${RELEASE_TAG}"
+      fi
+      
+      # Save changelog for artifacts
+      echo "${CHANGELOG_CONTENT}" > "${CHANGELOG_FILE}"
+      echo "==> Generated changelog:"
+      cat "${CHANGELOG_FILE}"
+    - |
+      echo "==> Creating GitHub release..."
+      CHANGELOG_CONTENT=$(cat ".reallsys/changelog.txt")
+      "${GHR_BIN}" \
+        -t "${GITHUB_ACCESS_KEY}" \
+        -u "${OWNER}" \
+        -r "${REPO}" \
+        -n "Release ${RELEASE_TAG}" \
+        -b "${CHANGELOG_CONTENT}" \
+        -replace \
+        "${RELEASE_TAG}" \
+        "./app/build/outputs/apk/release/"
+  artifacts:
+    name: "telegram-sms-release-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - app/build/outputs/apk/release/*.apk
+      - .reallsys/changelog.txt
+    expire_in: 4 weeks
+    when: on_success
+
+# ------------------------------------------------------------------------------
+# Manual Debug Build (for testing)
+# ------------------------------------------------------------------------------
+build_debug:
+  stage: build
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "web"
+      when: manual
+  <<: *setup_environment
+  script:
+    - |
+      echo "==> Building Debug APK..."
+      ./gradlew assembleDebug --stacktrace --no-daemon
+  artifacts:
+    name: "telegram-sms-debug-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - app/build/outputs/apk/debug/*.apk
+    expire_in: 3 days
+    when: on_success
+  cache:
+    policy: pull

@@ -691,7 +691,6 @@ class MainActivity : AppCompatActivity() {
                     runOnUiThread {
                         showUpdateDialog(
                             release.tagName,
-                            release.body,
                             release.assets[0].browserDownloadUrl
                         )
                     }
@@ -956,13 +955,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showUpdateDialog(newVersion: String, updateContent: String, fileURL: String) {
+    private fun showUpdateDialog(newVersion: String, fileURL: String) {
         val builder = AlertDialog.Builder(this)
         builder.setTitle(R.string.update_dialog_title)
         val message = String.format(
             getString(R.string.update_dialog_body),
-            newVersion,
-            updateContent
+            newVersion
         )
 
         builder.setMessage(message)
