@@ -8,4 +8,19 @@ object CcSend {
         }
         return result
     }
+
+    fun renderForJson(template: String, values: Map<String, String>): String {
+        var result = template
+        for ((key, value) in values) {
+            // 為 JSON 字符串轉義特殊字符
+            val escapedValue = value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t")
+            result = result.replace("{{${key}}}", escapedValue)
+        }
+        return result
+    }
 }

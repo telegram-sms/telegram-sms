@@ -111,7 +111,7 @@ class CcSendJob : JobService() {
                             }
 
                             "application/json".toMediaTypeOrNull() -> {
-                                val value = CcSend.render(
+                                val value = CcSend.renderForJson(
                                     request.postData.text ?: "",
                                     mapper
                                 )
