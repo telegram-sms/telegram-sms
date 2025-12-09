@@ -3,8 +3,6 @@ package com.qwe7002.telegram_sms
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Service
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
@@ -22,15 +20,13 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.data_structure.SMSRequestInfo
 import com.qwe7002.telegram_sms.data_structure.telegram.PollingBody
 import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.KeyboardMarkup
 import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.getInlineKeyboardObj
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
-import com.qwe7002.telegram_sms.data_structure.SMSRequestInfo
 import com.qwe7002.telegram_sms.static_class.ChatCommand.getCommandList
 import com.qwe7002.telegram_sms.static_class.ChatCommand.getInfo
-import com.qwe7002.telegram_sms.utils.logAuto
-import com.qwe7002.telegram_sms.utils.readLogcat
 import com.qwe7002.telegram_sms.static_class.Network.checkNetworkStatus
 import com.qwe7002.telegram_sms.static_class.Network.getOkhttpObj
 import com.qwe7002.telegram_sms.static_class.Network.getUrl
@@ -62,6 +58,45 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 class ChatService : Service() {
+    companion object {
+        private const val TAG = "ChatService"
+        private var RequestOffset: Long = 0
+        private lateinit var sharedPreferences: MMKV
+        private var sendSmsNextStatus = SEND_SMS_STATUS.STANDBY_STATUS
+        private lateinit var threadMain: Thread
+        private var firstRequest = true
+
+        private fun isNumeric(str: String): Boolean {
+            for (element in str) {
+                if (!Character.isDigit(element)) {
+                    return false
+                }
+            }
+            return true
+        }
+
+        private fun readLogcat(lines: Int): String {
+            return try {
+                val pid = android.os.Process.myPid()
+                val process = Runtime.getRuntime().exec(
+                    arrayOf("logcat", "-v", "time", "--pid=$pid", "-t", lines.toString())
+                )
+                val reader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
+                val logBuilder = StringBuilder()
+                var line: String?
+                while (reader.readLine().also { line = it } != null) {
+                    logBuilder.append(line).append("\n")
+                }
+                reader.close()
+                process.destroy()
+                logBuilder.toString().trim().ifEmpty { "No logs available" }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to read logcat: ${e.message}", e)
+                "Failed to read logs: ${e.message}"
+            }
+        }
+    }
+
     @Suppress("ClassName")
     private object CALLBACK_DATA_VALUE {
         const val SEND: String = "send"
@@ -95,7 +130,7 @@ class ChatService : Service() {
         val updateId = resultObj["update_id"].asLong
         RequestOffset = updateId + 1
         if (getIdOnly) {
-            Log.d(this::class.simpleName, "receive_handle: get_id_only")
+            Log.d(TAG, "Receive handle: Get ID only mode, update_id=$updateId")
             return
         }
         var messageType = ""
@@ -155,8 +190,7 @@ class ChatService : Service() {
                         throw IOException(response.code.toString())
                     }
                 } catch (e: IOException) {
-                    e.printStackTrace()
-                    applicationContext.logAuto("failed to send message:" + e.message)
+                    Log.e(TAG, "Failed to edit message: ${e.message}", e)
                 }
                 return
             }
@@ -182,7 +216,7 @@ class ChatService : Service() {
         if (jsonObject.has("from")) {
             fromObj = jsonObject["from"].asJsonObject
             if (!isPrivate && fromObj["is_bot"].asBoolean) {
-                Log.i(this::class.simpleName, "receive_handle: receive from bot.")
+                Log.d(TAG, "Message from bot ignored")
                 return
             }
         }
@@ -197,12 +231,12 @@ class ChatService : Service() {
                 fromTopicId = jsonObject["message_thread_id"].asString
             }
             if (messageThreadId != fromTopicId) {
-                Log.i(this::class.simpleName, "Topic ID[$fromTopicId] not allow.")
+                Log.w(TAG, "Topic ID mismatch: expected=$messageThreadId, actual=$fromTopicId")
                 return
             }
         }
         if (chatId != fromId) {
-            Log.i(this::class.simpleName, "Chat ID[$fromId] not allow.")
+            Log.w(TAG, "Chat ID not authorized: $fromId")
             return
         }
         var command = ""
@@ -251,10 +285,10 @@ class ChatService : Service() {
             }
         }
         if (!isPrivate && currentBotUsername != botUsername) {
-            Log.i(this::class.simpleName, "receive_handle: Privacy mode, no username found.")
+            Log.d(TAG, "Privacy mode: Bot username not matched, ignoring message")
             return
         }
-        Log.d(this::class.simpleName, "receive_handle: $command")
+        Log.d(TAG, "Command received: $command")
         var hasCommand = false
         when (command) {
             "/help", "/start", "/commandlist" -> {
@@ -275,11 +309,8 @@ class ChatService : Service() {
                     requestMsg.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                 var line = 10
                 if (commands.size == 2 && isNumeric(commands[1])) {
-                    var getLine = Integer.getInteger(commands[1])!!
-                    if (getLine > 50) {
-                        getLine = 50
-                    }
-                    line = getLine
+                    val parsedLine = commands[1].toIntOrNull() ?: 10
+                    line = parsedLine.coerceAtMost(50)
                 }
                 requestBody.text = Template.render(
                     applicationContext, "TPL_system_message",
@@ -323,17 +354,15 @@ class ChatService : Service() {
                 chatMMKV.putInt("slot", sendSlot)
                 val msgSendList =
                     requestMsg.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                Log.i(this::class.simpleName, "msgSendList: " + msgSendList.size)
+                Log.d(TAG, "SMS send list size: ${msgSendList.size}")
                 if (msgSendList.size > 1) {
                     sendSmsNextStatus = SEND_SMS_STATUS.READY_TO_SEND_STATUS
                     val msgSendTo = getSendPhoneNumber(
                         msgSendList[1]
                     )
                     if (isPhoneNumber(msgSendTo)) {
-                        //Paper.book("send_temp").write("to", msgSendTo)
                         chatMMKV.putString("to", msgSendTo)
                         val sendContent = msgSendList.drop(2).joinToString("\n")
-                        //Paper.book("send_temp").write("content", sendContent)
                         chatMMKV.putString("content", sendContent)
                     } else {
                         setSmsSendStatusStandby()
@@ -348,8 +377,7 @@ class ChatService : Service() {
                     }
 
                 } else {
-                    Log.i(this::class.simpleName, "Enter the interactive SMS sending mode")
-                    Log.i(this::class.simpleName, "receiveHandle: $messageType")
+                    Log.d(TAG, "Entering interactive SMS sending mode")
                     sendSmsNextStatus = SEND_SMS_STATUS.PHONE_INPUT_STATUS
                 }
             }
@@ -357,10 +385,7 @@ class ChatService : Service() {
             else -> {
                 if (!isPrivate && sendSmsNextStatus == -1) {
                     if (messageType != "supergroup" || messageThreadId.isEmpty()) {
-                        Log.i(
-                            this::class.simpleName,
-                            "receive_handle: The conversation is not Private and does not prompt an error."
-                        )
+                        Log.d(TAG, "Non-private conversation without topic, ignoring message")
                         return
                     }
                 }
@@ -372,11 +397,11 @@ class ChatService : Service() {
         }
 
         if (hasCommand) {
-            Log.i(this::class.simpleName, "receiveHandle: Enter the state of standby.")
+            Log.d(TAG, "Command processed, entering standby state")
             setSmsSendStatusStandby()
         }
         if (!hasCommand && sendSmsNextStatus != -1) {
-            Log.i(this::class.simpleName, "receive_handle: Enter the interactive SMS sending mode.")
+            Log.d(TAG, "Entering interactive SMS sending mode, status=$sendSmsNextStatus")
             //val sendSlotTemp = Paper.book("send_temp").read("slot", -1)!!
             val sendSlotTemp = chatMMKV.getInt("slot", -1)
             val dualSim = if (sendSlotTemp != -1) "SIM${sendSlotTemp + 1} " else ""
@@ -386,7 +411,7 @@ class ChatService : Service() {
                 "TPL_send_sms_chat",
                 mapOf("SIM" to dualSim, "Content" to getString(R.string.failed_to_get_information))
             )
-            Log.d(this::class.simpleName, "Sending mode status: $sendSmsNextStatus")
+            Log.d(TAG, "Sending mode status: $sendSmsNextStatus")
             resultSend = when (sendSmsNextStatus) {
                 SEND_SMS_STATUS.PHONE_INPUT_STATUS -> {
                     sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
@@ -467,8 +492,7 @@ class ChatService : Service() {
         val errorHead = "Send reply failed:"
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-                applicationContext.logAuto(errorHead + e.message)
+                Log.e(TAG, "$errorHead ${e.message}", e)
                 addResendLoop(applicationContext, requestBody.text)
             }
 
@@ -476,11 +500,10 @@ class ChatService : Service() {
             override fun onResponse(call: Call, response: Response) {
                 val responseString = Objects.requireNonNull(response.body).string()
                 if (response.code != 200) {
-                    applicationContext.logAuto(errorHead + response.code + " " + responseString)
+                    Log.e(TAG, "$errorHead ${response.code} $responseString")
                     addResendLoop(applicationContext, requestBody.text)
                 }
                 if (sendSmsNextStatus == SEND_SMS_STATUS.SEND_STATUS) {
-                    //Paper.book("send_temp").write("message_id", getMessageId(responseString))
                     chatMMKV.putLong("message_id", getMessageId(responseString))
                 }
             }
@@ -572,7 +595,7 @@ class ChatService : Service() {
         private val NETWORK_CHECK_INTERVAL_MS = 5000L
 
         override fun run() {
-            Log.d(this::class.simpleName, "run: thread main start")
+            Log.d(TAG, "Polling thread started")
             var retryDelayMs = MIN_RETRY_DELAY_MS
 
             while (isRunning.get()) {
@@ -604,34 +627,31 @@ class ChatService : Service() {
                             // Reset retry delay on success
                             retryDelayMs = MIN_RETRY_DELAY_MS
                         } else {
-                            applicationContext.logAuto("Chat command response code: ${response.code}")
+                            Log.w(TAG, "Polling response error: ${response.code}")
                             sleepWithCheck(retryDelayMs)
                             retryDelayMs = (retryDelayMs * 2).coerceAtMost(MAX_RETRY_DELAY_MS)
                         }
                     }
                 } catch (e: IOException) {
                     if (!isRunning.get()) {
-                        Log.d(this::class.simpleName, "run: thread interrupted, exiting")
+                        Log.d(TAG, "Polling thread interrupted, exiting")
                         break
                     }
-                    Log.e(this::class.simpleName, "Polling error: ${e.message}")
-                    applicationContext.logAuto("Connection to the Telegram API service failed: ${e.message}")
+                    Log.e(TAG, "Polling error: ${e.message}", e)
                     sleepWithCheck(retryDelayMs)
                     retryDelayMs = (retryDelayMs * 2).coerceAtMost(MAX_RETRY_DELAY_MS)
                 } catch (e: Exception) {
-                    Log.e(this::class.simpleName, "Unexpected error in polling loop", e)
-                    applicationContext.logAuto("Unexpected error: ${e.message}")
+                    Log.e(TAG, "Unexpected error in polling loop", e)
                     sleepWithCheck(retryDelayMs)
                     retryDelayMs = (retryDelayMs * 2).coerceAtMost(MAX_RETRY_DELAY_MS)
                 }
             }
-            Log.d(this::class.simpleName, "run: thread stopped")
+            Log.d(TAG, "Polling thread stopped")
         }
 
         private fun waitForNetwork(): Boolean {
             while (isRunning.get() && !checkNetworkStatus(applicationContext)) {
-                applicationContext.logAuto("No network connections available, waiting for recovery...")
-                Log.d(this::class.simpleName, "Waiting for network...")
+                Log.w(TAG, "No network available, waiting for recovery...")
                 sleepWithCheck(NETWORK_CHECK_INTERVAL_MS)
             }
             return isRunning.get()
@@ -640,9 +660,9 @@ class ChatService : Service() {
         private fun sleepWithCheck(delayMs: Long) {
             try {
                 Thread.sleep(delayMs)
-            } catch (e: InterruptedException) {
+            } catch (_: InterruptedException) {
                 Thread.currentThread().interrupt()
-                Log.d(this::class.simpleName, "Sleep interrupted")
+                Log.d(TAG, "Thread sleep interrupted")
             }
         }
     }
@@ -650,22 +670,5 @@ class ChatService : Service() {
 
     override fun onBind(intent: Intent): IBinder? {
         return null
-    }
-
-    companion object {
-        private var RequestOffset: Long = 0
-        private lateinit var sharedPreferences: MMKV
-        private var sendSmsNextStatus = SEND_SMS_STATUS.STANDBY_STATUS
-        private lateinit var threadMain: Thread
-        private var firstRequest = true
-
-        private fun isNumeric(str: String): Boolean {
-            for (element in str) {
-                if (!Character.isDigit(element)) {
-                    return false
-                }
-            }
-            return true
-        }
     }
 }
