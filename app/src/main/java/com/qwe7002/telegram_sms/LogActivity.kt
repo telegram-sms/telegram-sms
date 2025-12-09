@@ -7,12 +7,16 @@ import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.ScrollView
+import android.view.View
+import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
@@ -22,8 +26,8 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 class LogActivity : AppCompatActivity() {
-    private lateinit var logcatTextview: TextView
-    private lateinit var scrollView: ScrollView
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var logAdapter: LogAdapter
     private var logcatProcess: Process? = null
     private var logcatJob: Job? = null
     private val maxLines = 500
@@ -32,8 +36,12 @@ class LogActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_logcat)
-        logcatTextview = findViewById(R.id.logcat_textview)
-        scrollView = findViewById(R.id.logcat_scroll)
+
+        recyclerView = findViewById(R.id.log_recycler_view)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        logAdapter = LogAdapter(logBuffer)
+        recyclerView.adapter = logAdapter
+
         this.setTitle(R.string.logcat)
     }
 
@@ -76,15 +84,26 @@ class LogActivity : AppCompatActivity() {
                 while (isActive) {
                     val line = reader.readLine() ?: break
                     if (line.isNotEmpty()) {
+                        val shouldRemoveFirst: Boolean
+                        val currentSize: Int
+
                         synchronized(logBuffer) {
                             logBuffer.add(line)
-                            if (logBuffer.size > maxLines) {
+                            shouldRemoveFirst = logBuffer.size > maxLines
+                            if (shouldRemoveFirst) {
                                 logBuffer.removeAt(0)
                             }
+                            currentSize = logBuffer.size
                         }
 
                         withContext(Dispatchers.Main) {
-                            updateLogDisplay()
+                            if (shouldRemoveFirst) {
+                                logAdapter.notifyItemRemoved(0)
+                                logAdapter.notifyItemInserted(currentSize - 1)
+                            } else {
+                                logAdapter.notifyItemInserted(currentSize - 1)
+                            }
+                            recyclerView.scrollToPosition(currentSize - 1)
                         }
                     }
                 }
@@ -100,24 +119,45 @@ class LogActivity : AppCompatActivity() {
         logcatProcess = null
     }
 
-    private fun updateLogDisplay() {
-        val spannableBuilder = SpannableStringBuilder()
-
-        synchronized(logBuffer) {
-            logBuffer.forEach { line ->
-                val formattedLine = formatLogLine(line)
-                spannableBuilder.append(formattedLine)
-                spannableBuilder.append("\n")
-            }
-        }
-
-        logcatTextview.text = spannableBuilder
-
-        // Auto-scroll to bottom
-        scrollView.post {
-            scrollView.fullScroll(ScrollView.FOCUS_DOWN)
+    private fun clearLogcat() {
+        try {
+            Runtime.getRuntime().exec("logcat -c")
+            val size = logBuffer.size
+            logBuffer.clear()
+            logAdapter.notifyItemRangeRemoved(0, size)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopLogcat()
+    }
+}
+
+class LogAdapter(private val logBuffer: MutableList<String>) :
+    RecyclerView.Adapter<LogAdapter.LogViewHolder>() {
+
+    class LogViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val textView: TextView = itemView.findViewById(android.R.id.text1)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LogViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(android.R.layout.simple_list_item_1, parent, false)
+        val textView = view.findViewById<TextView>(android.R.id.text1)
+        textView.typeface = Typeface.MONOSPACE
+        textView.textSize = 12f
+        return LogViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: LogViewHolder, position: Int) {
+        val line = logBuffer[position]
+        holder.textView.text = formatLogLine(line)
+    }
+
+    override fun getItemCount(): Int = logBuffer.size
 
     private fun formatLogLine(line: String): SpannableStringBuilder {
         val spannable = SpannableStringBuilder(line)
@@ -172,21 +212,6 @@ class LogActivity : AppCompatActivity() {
         }
 
         return spannable
-    }
-
-    private fun clearLogcat() {
-        try {
-            Runtime.getRuntime().exec("logcat -c")
-            logBuffer.clear()
-            logcatTextview.text = ""
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        stopLogcat()
     }
 }
 

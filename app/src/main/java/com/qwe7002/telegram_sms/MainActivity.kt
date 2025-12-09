@@ -40,7 +40,6 @@ import com.qwe7002.telegram_sms.data_structure.GitHubRelease
 import com.qwe7002.telegram_sms.data_structure.ScannerJson
 import com.qwe7002.telegram_sms.data_structure.telegram.PollingBody
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
-import com.qwe7002.telegram_sms.utils.clearLogcat
 import com.qwe7002.telegram_sms.static_class.Network.getOkhttpObj
 import com.qwe7002.telegram_sms.static_class.Network.getUrl
 import com.qwe7002.telegram_sms.static_class.Other.parseStringToLong
@@ -48,6 +47,7 @@ import com.qwe7002.telegram_sms.static_class.Service.isNotifyListener
 import com.qwe7002.telegram_sms.static_class.Service.startService
 import com.qwe7002.telegram_sms.static_class.Service.stopAllService
 import com.qwe7002.telegram_sms.static_class.Template
+import com.qwe7002.telegram_sms.utils.clearLogcat
 import com.qwe7002.telegram_sms.value.Const
 import com.tencent.mmkv.MMKV
 import okhttp3.Call
@@ -56,7 +56,6 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
 import java.io.IOException
-import java.util.Objects
 import java.util.concurrent.TimeUnit
 
 @Suppress("deprecation")
