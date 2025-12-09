@@ -151,11 +151,6 @@ class WAPReceiver : BroadcastReceiver() {
         dualSim: String,
         subId: Int
     ) {
-        val preferences = MMKV.defaultMMKV()
-        val botToken = preferences.getString("bot_token", "") ?: ""
-        val chatId = preferences.getString("chat_id", "") ?: ""
-        val messageThreadId = preferences.getString("message_thread_id", "") ?: ""
-
         // Try to get MMS from content provider
         val mmsData = getMmsFromContentProvider(context, mmsInfo)
 
