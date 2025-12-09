@@ -21,12 +21,29 @@ import com.qwe7002.telegram_sms.value.CcType
 import com.qwe7002.telegram_sms.value.Notify
 import com.tencent.mmkv.MMKV
 import java.util.Objects
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 
 class BatteryService : Service() {
     private lateinit var batteryReceiver: batteryChangeReceiver
-    private lateinit var sendLoopList: ArrayList<sendObj>
+
+    // Thread-safe map to store pending actions (key: action type, value: sendObj)
+    // This automatically deduplicates - only the latest message for each action type is kept
+    private val pendingActions = ConcurrentHashMap<String, sendObj>()
+
+    // Scheduled executor for rate-limited message sending
+    private lateinit var scheduler: ScheduledExecutorService
+
+    // Minimum interval between sends (in milliseconds)
+    private val sendIntervalMs = 3000L
+
     private var lastReceiveTime: Long = 0
     private var lastReceiveMessageId: Long = -1
+
+    @Volatile
+    private var isProcessing = false
 
 
     @SuppressLint("InlinedApi")
@@ -66,26 +83,38 @@ class BatteryService : Service() {
         } else {
             registerReceiver(batteryReceiver, filter)
         }
-        sendLoopList = ArrayList()
-        Thread {
-            val needRemove = ArrayList<sendObj>()
-            while (true) {
-                for (item in sendLoopList) {
-                    networkHandle(item)
-                    needRemove.add(item)
-                }
-                sendLoopList.removeAll(needRemove.toSet())
-                needRemove.clear()
-                if (sendLoopList.isEmpty()) {
-                    //Only enter sleep mode when there are no messages
-                    try {
-                        Thread.sleep(1000)
-                    } catch (e: InterruptedException) {
-                        Log.i("BatteryService", "onCreate: $e")
-                    }
+
+        // Initialize scheduled executor for rate-limited message sending
+        scheduler = Executors.newSingleThreadScheduledExecutor()
+        scheduler.scheduleWithFixedDelay(
+            { processNextMessage() },
+            0,
+            sendIntervalMs,
+            TimeUnit.MILLISECONDS
+        )
+    }
+
+    private fun processNextMessage() {
+        if (isProcessing || pendingActions.isEmpty()) {
+            return
+        }
+
+        isProcessing = true
+        try {
+            // Get the first pending action and remove it from the map
+            val iterator = pendingActions.keys.iterator()
+            if (iterator.hasNext()) {
+                val actionKey = iterator.next()
+                val obj = pendingActions.remove(actionKey)
+                if (obj != null) {
+                    networkHandle(obj)
                 }
             }
-        }.start()
+        } catch (e: Exception) {
+            Log.e("BatteryService", "Error processing message: $e")
+        } finally {
+            isProcessing = false
+        }
     }
 
     private fun networkHandle(obj: sendObj) {
@@ -121,6 +150,15 @@ class BatteryService : Service() {
 
     override fun onDestroy() {
         unregisterReceiver(batteryReceiver)
+        // Shutdown scheduler gracefully
+        scheduler.shutdown()
+        try {
+            if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                scheduler.shutdownNow()
+            }
+        } catch (_: InterruptedException) {
+            scheduler.shutdownNow()
+        }
         super.onDestroy()
     }
 
@@ -171,7 +209,8 @@ class BatteryService : Service() {
             val obj = sendObj()
             obj.action = action!!
             obj.content = result
-            sendLoopList.add(obj)
+            // Using action as key automatically deduplicates - only keeps the latest message for each action type
+            pendingActions[action] = obj
         }
     }
 
