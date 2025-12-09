@@ -104,7 +104,7 @@ class WAPReceiver : BroadcastReceiver() {
         var intentSlot = extras.getInt("slot", -1)
         val subId = extras.getInt("subscription", -1)
         if (Other.getActiveCard(context) >= 2 && intentSlot == -1) {
-            val manager = SubscriptionManager.from(context)
+            @Suppress("DEPRECATION") val manager = SubscriptionManager.from(context)
             if (ActivityCompat.checkSelfPermission(
                     context,
                     Manifest.permission.READ_PHONE_STATE
