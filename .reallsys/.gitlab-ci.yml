@@ -275,7 +275,6 @@ build_release:
     - !reference [.deploy_to_github, script]
     - |
       echo "==> Generating changelog with Gemini API..."
-      CHANGELOG_FILE=".reallsys/changelog.txt"
       
       # Install jq for JSON parsing
       apk add --no-cache jq
@@ -291,7 +290,7 @@ build_release:
       # Check if GEMINI_API_KEY is set
       if [ -z "${GEMINI_API_KEY:-}" ]; then
         echo "WARNING: GEMINI_API_KEY is not set, using git log as changelog"
-        CHANGELOG_CONTENT="${GIT_LOG}"
+        export RELEASE_CHANGELOG="${GIT_LOG}"
       else
         # Build prompt for Gemini API
         PROMPT="Based on the following git commit log, generate a concise and user-friendly changelog in English. Group changes by category (Features, Bug Fixes, Improvements, etc.). Keep it brief and professional. Do not include commit hashes in the output.
@@ -334,7 +333,7 @@ build_release:
           --retry 3 \
           --retry-delay 5) || {
             echo "WARNING: Gemini API request failed, using git log as changelog"
-            CHANGELOG_CONTENT="${GIT_LOG}"
+            export RELEASE_CHANGELOG="${GIT_LOG}"
             API_RESPONSE=""
           }
         
@@ -343,38 +342,37 @@ build_release:
           if echo "${API_RESPONSE}" | jq -e '.error' > /dev/null 2>&1; then
             echo "WARNING: Gemini API returned error:"
             echo "${API_RESPONSE}" | jq '.error'
-            CHANGELOG_CONTENT="${GIT_LOG}"
+            export RELEASE_CHANGELOG="${GIT_LOG}"
           else
             # Extract text from response
             CHANGELOG_CONTENT=$(echo "${API_RESPONSE}" | jq -r '.candidates[0].content.parts[0].text // empty')
             
             if [ -z "${CHANGELOG_CONTENT}" ]; then
               echo "WARNING: Failed to extract changelog from API response"
-              CHANGELOG_CONTENT="${GIT_LOG}"
+              export RELEASE_CHANGELOG="${GIT_LOG}"
+            else
+              export RELEASE_CHANGELOG="${CHANGELOG_CONTENT}"
             fi
           fi
         fi
       fi
       
       # Fallback if changelog is empty
-      if [ -z "${CHANGELOG_CONTENT}" ]; then
+      if [ -z "${RELEASE_CHANGELOG}" ]; then
         echo "WARNING: Generated changelog is empty, using default message"
-        CHANGELOG_CONTENT="Release ${RELEASE_TAG}"
+        export RELEASE_CHANGELOG="Release ${RELEASE_TAG}"
       fi
       
-      # Save changelog for artifacts
-      echo "${CHANGELOG_CONTENT}" > "${CHANGELOG_FILE}"
       echo "==> Generated changelog:"
-      cat "${CHANGELOG_FILE}"
+      echo "${RELEASE_CHANGELOG}"
     - |
       echo "==> Creating GitHub release..."
-      CHANGELOG_CONTENT=$(cat ".reallsys/changelog.txt")
       "${GHR_BIN}" \
         -t "${GITHUB_ACCESS_KEY}" \
         -u "${OWNER}" \
         -r "${REPO}" \
         -n "Release ${RELEASE_TAG}" \
-        -b "${CHANGELOG_CONTENT}" \
+        -b "${RELEASE_CHANGELOG}" \
         -replace \
         "${RELEASE_TAG}" \
         "./app/build/outputs/apk/release/"
@@ -382,7 +380,6 @@ build_release:
     name: "telegram-sms-release-${CI_COMMIT_SHORT_SHA}"
     paths:
       - app/build/outputs/apk/release/*.apk
-      - .reallsys/changelog.txt
     expire_in: 4 weeks
     when: on_success
 

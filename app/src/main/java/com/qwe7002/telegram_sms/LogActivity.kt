@@ -40,6 +40,7 @@ class LogActivity : AppCompatActivity() {
         recyclerView = findViewById(R.id.log_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
         logAdapter = LogAdapter()
+        logAdapter.setHasStableIds(true)
         recyclerView.adapter = logAdapter
 
         this.setTitle(R.string.logcat)
@@ -81,10 +82,14 @@ class LogActivity : AppCompatActivity() {
     }
 
     private fun updateAdapter() {
-        val newList = logBuffer.toList()
+        // Create a new immutable list to avoid concurrent modification
+        val newList = ArrayList(logBuffer)
         logAdapter.submitList(newList) {
+            // Scroll after the list has been updated
             if (newList.isNotEmpty()) {
-                recyclerView.scrollToPosition(newList.size - 1)
+                recyclerView.post {
+                    recyclerView.scrollToPosition(newList.size - 1)
+                }
             }
         }
     }
@@ -177,10 +182,19 @@ data class LogEntry(
 
 class LogAdapter : ListAdapter<LogEntry, LogAdapter.LogViewHolder>(LogDiffCallback()) {
 
+    init {
+        setHasStableIds(true)
+    }
+
+    override fun getItemId(position: Int): Long {
+        return getItem(position).id
+    }
+
     class LogViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tagView: TextView = itemView.findViewById(R.id.log_tag)
         val timestampView: TextView = itemView.findViewById(R.id.log_timestamp)
         val messageView: TextView = itemView.findViewById(R.id.log_message)
+        val levelView: TextView = itemView.findViewById(R.id.log_level)
     }
 
     class LogDiffCallback : DiffUtil.ItemCallback<LogEntry>() {
@@ -202,19 +216,17 @@ class LogAdapter : ListAdapter<LogEntry, LogAdapter.LogViewHolder>(LogDiffCallba
     override fun onBindViewHolder(holder: LogViewHolder, position: Int) {
         val entry = getItem(position)
 
-        // Set tag with level indicator
-        val tagText = if (entry.tag.isNotEmpty()) {
-            "${getLevelString(entry.level)} ${entry.tag}"
-        } else {
-            getLevelString(entry.level)
-        }
-        holder.tagView.text = tagText
+        // Set level emoji
+        holder.levelView.text = getLevelString(entry.level)
+
+        // Set tag (without emoji, but with level color)
+        holder.tagView.text = entry.tag.ifEmpty { "Unknown" }
         holder.tagView.setTextColor(getLevelColor(entry.level))
 
         // Set timestamp
         holder.timestampView.text = entry.timestamp
 
-        // Set message (use default text color from XML)
+        // Set message (keep default text color from XML)
         holder.messageView.text = entry.message
     }
 
@@ -233,8 +245,8 @@ class LogAdapter : ListAdapter<LogEntry, LogAdapter.LogViewHolder>(LogDiffCallba
         return when (level) {
             'E' -> Color.RED
             'W' -> Color.rgb(255, 165, 0)  // Orange
-            'I' -> Color.rgb(0, 200, 0)     // Green
-            'D' -> Color.rgb(100, 149, 237) // Cornflower Blue
+            'I' -> Color.rgb(100, 149, 237) // Cornflower Blue
+            'D' -> Color.rgb(0, 200, 0)     // Green
             'V' -> Color.GRAY
             else -> Color.WHITE
         }
