@@ -59,6 +59,7 @@ import java.io.IOException
 import java.util.Locale
 import java.util.Objects
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 class ChatService : Service() {
     @Suppress("ClassName")
@@ -81,10 +82,11 @@ class ChatService : Service() {
     private lateinit var botToken: String
     private lateinit var messageThreadId: String
     private lateinit var okHttpClient: OkHttpClient
+    private lateinit var pollingHttpClient: OkHttpClient
     private lateinit var wakelock: WakeLock
     private lateinit var wifiLock: WifiLock
     private lateinit var botUsername: String
-    private var terminalThread = false
+    private val isRunning = AtomicBoolean(false)
 
     private val chatMMKV = MMKV.mmkvWithID(MMKVConst.CHAT_ID)
     private val chatInfoMMKV = MMKV.mmkvWithID(MMKVConst.CHAT_INFO_ID)
@@ -515,6 +517,10 @@ class ChatService : Service() {
         okHttpClient = getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true)
         )
+        pollingHttpClient = okHttpClient.newBuilder()
+            .readTimeout(65, TimeUnit.SECONDS)
+            .writeTimeout(65, TimeUnit.SECONDS)
+            .build()
         wifiLock = (Objects.requireNonNull(
             applicationContext.getSystemService(
                 WIFI_SERVICE
@@ -534,6 +540,7 @@ class ChatService : Service() {
             wakelock.acquire()
         }
 
+        isRunning.set(true)
         threadMain = Thread(ThreadMainRunnable())
         threadMain.start()
         val intentFilter = IntentFilter()
@@ -551,26 +558,29 @@ class ChatService : Service() {
 
     @Suppress("DEPRECATION")
     override fun onDestroy() {
+        isRunning.set(false)
+        threadMain.interrupt()
         wifiLock.release()
         wakelock.release()
-        terminalThread = true
         stopForeground(true)
         super.onDestroy()
     }
 
     private inner class ThreadMainRunnable : Runnable {
+        private val MIN_RETRY_DELAY_MS = 1000L
+        private val MAX_RETRY_DELAY_MS = 30000L
+        private val NETWORK_CHECK_INTERVAL_MS = 5000L
+
         override fun run() {
             Log.d(this::class.simpleName, "run: thread main start")
-            while (true) {
-                if (terminalThread) {
-                    Log.d(this::class.simpleName, "run: thread Stop")
-                    terminalThread = false
-                    break
+            var retryDelayMs = MIN_RETRY_DELAY_MS
+
+            while (isRunning.get()) {
+                // Wait for network availability
+                if (!waitForNetwork()) {
+                    continue
                 }
-                val okhttpClientNew = okHttpClient.newBuilder()
-                    .readTimeout(65, TimeUnit.SECONDS)
-                    .writeTimeout(65, TimeUnit.SECONDS)
-                    .build()
+
                 val requestUri = getUrl(botToken, "getUpdates")
                 val requestBody = PollingBody().apply {
                     this.offset = RequestOffset
@@ -578,33 +588,61 @@ class ChatService : Service() {
                 }
                 val body = Gson().toJson(requestBody).toRequestBody(Const.JSON)
                 val request = Request.Builder().url(requestUri).post(body).build()
+
                 try {
-                    val response = okhttpClientNew.newCall(request).execute()
-                    if (response.isSuccessful) {
-                        val result = response.body.string()
-                        val resultObj = JsonParser.parseString(result).asJsonObject
-                        if (resultObj["ok"].asBoolean) {
-                            val resultArray = resultObj["result"].asJsonArray
-                            for (item in resultArray) {
-                                receiveHandle(item.asJsonObject, firstRequest)
+                    pollingHttpClient.newCall(request).execute().use { response ->
+                        if (response.isSuccessful) {
+                            val result = response.body.string()
+                            val resultObj = JsonParser.parseString(result).asJsonObject
+                            if (resultObj["ok"].asBoolean) {
+                                val resultArray = resultObj["result"].asJsonArray
+                                for (item in resultArray) {
+                                    receiveHandle(item.asJsonObject, firstRequest)
+                                }
+                                firstRequest = false
                             }
-                            firstRequest = false
+                            // Reset retry delay on success
+                            retryDelayMs = MIN_RETRY_DELAY_MS
+                        } else {
+                            applicationContext.logAuto("Chat command response code: ${response.code}")
+                            sleepWithCheck(retryDelayMs)
+                            retryDelayMs = (retryDelayMs * 2).coerceAtMost(MAX_RETRY_DELAY_MS)
                         }
-                    } else {
-                        applicationContext.logAuto("Chat command response code: ${response.code}")
                     }
                 } catch (e: IOException) {
-                    e.printStackTrace()
-                    if (!checkNetworkStatus(applicationContext)) {
-                        applicationContext.logAuto(
-                            "No network connections available, Wait for the network to recover."
-                        )
-                        Log.d(this::class.simpleName, "run: break loop.")
+                    if (!isRunning.get()) {
+                        Log.d(this::class.simpleName, "run: thread interrupted, exiting")
                         break
                     }
-                    applicationContext.logAuto("Connection to the Telegram API service failed.")
-                    Thread.sleep(1000)
+                    Log.e(this::class.simpleName, "Polling error: ${e.message}")
+                    applicationContext.logAuto("Connection to the Telegram API service failed: ${e.message}")
+                    sleepWithCheck(retryDelayMs)
+                    retryDelayMs = (retryDelayMs * 2).coerceAtMost(MAX_RETRY_DELAY_MS)
+                } catch (e: Exception) {
+                    Log.e(this::class.simpleName, "Unexpected error in polling loop", e)
+                    applicationContext.logAuto("Unexpected error: ${e.message}")
+                    sleepWithCheck(retryDelayMs)
+                    retryDelayMs = (retryDelayMs * 2).coerceAtMost(MAX_RETRY_DELAY_MS)
                 }
+            }
+            Log.d(this::class.simpleName, "run: thread stopped")
+        }
+
+        private fun waitForNetwork(): Boolean {
+            while (isRunning.get() && !checkNetworkStatus(applicationContext)) {
+                applicationContext.logAuto("No network connections available, waiting for recovery...")
+                Log.d(this::class.simpleName, "Waiting for network...")
+                sleepWithCheck(NETWORK_CHECK_INTERVAL_MS)
+            }
+            return isRunning.get()
+        }
+
+        private fun sleepWithCheck(delayMs: Long) {
+            try {
+                Thread.sleep(delayMs)
+            } catch (e: InterruptedException) {
+                Thread.currentThread().interrupt()
+                Log.d(this::class.simpleName, "Sleep interrupted")
             }
         }
     }
