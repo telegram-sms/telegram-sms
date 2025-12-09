@@ -189,25 +189,25 @@ class WAPReceiver : BroadcastReceiver() {
 
             // Send images with caption
             if (mmsData.images.isNotEmpty()) {
-                sendImagesToTelegram(context, botToken, chatId, messageThreadId, messageText, mmsData.images, subId)
+                sendImagesToTelegram(context, messageText, mmsData.images, subId)
                 captionSent = true
             }
 
             // Send audio files
             if (mmsData.audios.isNotEmpty()) {
                 val audioCaption = if (captionSent) "" else messageText
-                sendAudiosToTelegram(context, botToken, chatId, messageThreadId, audioCaption, mmsData.audios, subId)
+                sendAudiosToTelegram(context, audioCaption, mmsData.audios, subId)
                 captionSent = true
             }
 
             // Send video files
             if (mmsData.videos.isNotEmpty()) {
                 val videoCaption = if (captionSent) "" else messageText
-                sendVideosToTelegram(context, botToken, chatId, messageThreadId, videoCaption, mmsData.videos, subId)
+                sendVideosToTelegram(context, videoCaption, mmsData.videos, subId)
             }
         } else {
             // No media, send text message only
-            sendTextMessage(context, botToken, chatId, messageThreadId, messageText, subId)
+            sendTextMessage(context, messageText, subId)
         }
     }
 
@@ -496,12 +496,8 @@ class WAPReceiver : BroadcastReceiver() {
     /**
      * Send images to Telegram using sendPhoto API
      */
-    @Suppress("unused")
     private fun sendImagesToTelegram(
         context: Context,
-        botToken: String,
-        chatId: String,
-        messageThreadId: String,
         caption: String,
         images: List<MmsMedia>,
         subId: Int
@@ -537,11 +533,9 @@ class WAPReceiver : BroadcastReceiver() {
     /**
      * Send audio files to Telegram using sendAudio API
      */
+    @Suppress("unused")
     private fun sendAudiosToTelegram(
         context: Context,
-        botToken: String,
-        chatId: String,
-        messageThreadId: String,
         caption: String,
         audios: List<MmsMedia>,
         subId: Int
@@ -579,9 +573,6 @@ class WAPReceiver : BroadcastReceiver() {
      */
     private fun sendVideosToTelegram(
         context: Context,
-        botToken: String,
-        chatId: String,
-        messageThreadId: String,
         caption: String,
         videos: List<MmsMedia>,
         subId: Int
@@ -619,15 +610,10 @@ class WAPReceiver : BroadcastReceiver() {
      */
     private fun sendTextMessage(
         context: Context,
-        botToken: String,
-        chatId: String,
-        messageThreadId: String,
         text: String,
         subId: Int
     ) {
         val requestBody = RequestMessage()
-        requestBody.chatId = chatId
-        requestBody.messageThreadId = messageThreadId
         requestBody.text = text
 
         TelegramApi.sendMessage(
