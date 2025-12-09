@@ -109,7 +109,7 @@ object TelegramApi {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                val result = response.body?.string() ?: ""
+                val result = response.body.string()
                 if (response.code != 200) {
                     Log.e(errorTag, "Request error: ${response.code} $result")
                     handleFailure(context, requestBody.text, fallbackSubId, enableResend)
@@ -170,7 +170,7 @@ object TelegramApi {
 
         return try {
             val response = okhttpClient.newCall(request).execute()
-            val result = response.body?.string() ?: ""
+            val result = response.body.string()
             if (response.code == 200) {
                 result
             } else {
@@ -261,7 +261,7 @@ object TelegramApi {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                val result = response.body?.string() ?: ""
+                val result = response.body.string()
                 if (response.code != 200) {
                     Log.e(errorTag, "Media upload error: ${response.code} $result")
                     if (caption.isNotEmpty()) {

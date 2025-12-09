@@ -496,6 +496,7 @@ class WAPReceiver : BroadcastReceiver() {
     /**
      * Send images to Telegram using sendPhoto API
      */
+    @Suppress("unused")
     private fun sendImagesToTelegram(
         context: Context,
         botToken: String,
