@@ -13,27 +13,16 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.github.sumimakito.codeauxlib.CodeauxLibPortable
-import com.google.gson.Gson
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
-import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Phone
-import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
+import com.qwe7002.telegram_sms.static_class.TelegramApi
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.USSD
 import com.qwe7002.telegram_sms.value.CcType
-import com.qwe7002.telegram_sms.value.Const
 import com.tencent.mmkv.MMKV
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.Request
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
-import java.io.IOException
 import java.util.Locale
-import java.util.Objects
 
 class SMSReceiver : BroadcastReceiver() {
     @Suppress("DEPRECATION")
@@ -52,10 +41,6 @@ class SMSReceiver : BroadcastReceiver() {
             Log.i(this::class.simpleName, "reject: android.provider.Telephony.SMS_RECEIVED.")
             return
         }
-        val botToken = preferences.getString("bot_token", "")
-        val chatId = preferences.getString("chat_id", "")
-        val messageThreadId = preferences.getString("message_thread_id", "")
-        val requestUri = Network.getUrl(botToken.toString(), "sendMessage")
 
         var intentSlot = extras.getInt("slot", -1)
         val subId = extras.getInt("subscription", -1)
@@ -107,8 +92,6 @@ class SMSReceiver : BroadcastReceiver() {
             isTrustedPhone = messageAddress.contains(trustedPhoneNumber)
         }
         val requestBody = RequestMessage()
-        requestBody.chatId = chatId.toString()
-        requestBody.messageThreadId = messageThreadId.toString()
 
         var textContentHTML = textContent
         var isVerificationCode = false
@@ -208,49 +191,19 @@ class SMSReceiver : BroadcastReceiver() {
             requestBodyText,
             verificationCode
         )
-        val body: RequestBody = Gson().toJson(requestBody).toRequestBody(Const.JSON)
-        val okhttpObj = Network.getOkhttpObj(
-            preferences.getBoolean("doh_switch", true)
-        )
-        val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
-        val call = okhttpObj.newCall(request)
-        val errorHead = "Send SMS forward failed:"
-        call.enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-                Log.e("SMSReceiver", errorHead + e.message)
-                if (ActivityCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.SEND_SMS
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
-                    SMS.fallbackSMS(requestBodyText, subId)
-                }
-                Resend.addResendLoop(context, requestBody.text)
-            }
 
-            @Throws(IOException::class)
-            override fun onResponse(call: Call, response: Response) {
-                val result = Objects.requireNonNull(response.body).string()
-                if (response.code != 200) {
-                    Log.e("SMSReceiver", errorHead + response.code + " " + result)
-                    if (ActivityCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.SEND_SMS
-                        ) == PackageManager.PERMISSION_GRANTED
-                    ) {
-                        SMS.fallbackSMS(requestBodyText, subId)
-                    }
-                    Resend.addResendLoop(context, requestBody.text)
-                } else {
-                    if (!Other.isPhoneNumber(messageAddress)) {
-                        Log.w("SMSReceiver", "[$messageAddress] Not a regular phone number.")
-                        return
-                    }
-                    Other.addMessageList(Other.getMessageId(result), messageAddress, slot)
-                }
+        TelegramApi.sendMessage(
+            context = context,
+            requestBody = requestBody,
+            errorTag = "SMSReceiver",
+            fallbackSubId = subId
+        ) { result ->
+            if (Other.isPhoneNumber(messageAddress)) {
+                Other.addMessageList(Other.getMessageId(result), messageAddress, slot)
+            } else {
+                Log.w("SMSReceiver", "[$messageAddress] Not a regular phone number.")
             }
-        })
+        }
     }
 
 }

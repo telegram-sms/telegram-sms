@@ -12,28 +12,14 @@ import android.telephony.SubscriptionManager
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.net.toUri
-import com.google.gson.Gson
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
-import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Phone
-import com.qwe7002.telegram_sms.static_class.Resend
-import com.qwe7002.telegram_sms.static_class.SMS
+import com.qwe7002.telegram_sms.static_class.TelegramApi
 import com.qwe7002.telegram_sms.static_class.Template
-import com.qwe7002.telegram_sms.value.Const
 import com.tencent.mmkv.MMKV
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.Request
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
 import java.io.ByteArrayOutputStream
-import java.io.IOException
 import java.io.InputStream
-import java.util.Objects
 import java.util.concurrent.Executors
 
 
@@ -519,13 +505,10 @@ class WAPReceiver : BroadcastReceiver() {
         images: List<MmsMedia>,
         subId: Int
     ) {
-        val preferences = MMKV.defaultMMKV()
-        val okhttpObj = Network.getOkhttpObj(preferences.getBoolean("doh_switch", true))
-
         // Send first image with caption, rest without
         images.forEachIndexed { index, image ->
             val imageCaption = if (index == 0) caption else ""
-            sendSingleImage(context, botToken, chatId, messageThreadId, imageCaption, image, okhttpObj, subId)
+            sendSingleImage(context, imageCaption, image, subId)
         }
     }
 
@@ -534,69 +517,20 @@ class WAPReceiver : BroadcastReceiver() {
      */
     private fun sendSingleImage(
         context: Context,
-        botToken: String,
-        chatId: String,
-        messageThreadId: String,
         caption: String,
         image: MmsMedia,
-        okhttpObj: okhttp3.OkHttpClient,
         subId: Int
     ) {
-        val requestUri = Network.getUrl(botToken, "sendPhoto")
-
-        val multipartBuilder = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart("chat_id", chatId)
-            .addFormDataPart("photo", image.fileName,
-                image.data.toRequestBody(image.contentType.toMediaType()))
-
-        if (caption.isNotEmpty()) {
-            multipartBuilder.addFormDataPart("caption", caption)
+        TelegramApi.sendMedia(
+            context = context,
+            mediaType = "photo",
+            media = TelegramApi.MediaData(image.fileName, image.contentType, image.data),
+            caption = caption,
+            errorTag = TAG,
+            fallbackSubId = if (caption.isNotEmpty()) subId else -1
+        ) {
+            Log.i(TAG, "MMS image sent successfully")
         }
-
-        if (messageThreadId.isNotEmpty()) {
-            multipartBuilder.addFormDataPart("message_thread_id", messageThreadId)
-        }
-
-        val requestBody = multipartBuilder.build()
-        val request = Request.Builder()
-            .url(requestUri)
-            .post(requestBody)
-            .build()
-
-        val call = okhttpObj.newCall(request)
-        val errorHead = "Send MMS image failed:"
-
-        call.enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-                Log.e(TAG, errorHead + e.message)
-                // Fallback to text message
-                if (caption.isNotEmpty()) {
-                    if (ActivityCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.SEND_SMS
-                        ) == PackageManager.PERMISSION_GRANTED
-                    ) {
-                        SMS.fallbackSMS(caption, subId)
-                    }
-                    Resend.addResendLoop(context, caption)
-                }
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                val result = Objects.requireNonNull(response.body).string()
-                if (response.code != 200) {
-                    Log.e(TAG, errorHead + response.code + " " + result)
-                    // Fallback to text message on error
-                    if (caption.isNotEmpty()) {
-                        sendTextMessage(context, botToken, chatId, messageThreadId, caption, subId)
-                    }
-                } else {
-                    Log.i(TAG, "MMS image sent successfully")
-                }
-            }
-        })
     }
 
     /**
@@ -611,13 +545,10 @@ class WAPReceiver : BroadcastReceiver() {
         audios: List<MmsMedia>,
         subId: Int
     ) {
-        val preferences = MMKV.defaultMMKV()
-        val okhttpObj = Network.getOkhttpObj(preferences.getBoolean("doh_switch", true))
-
         // Send first audio with caption, rest without
         audios.forEachIndexed { index, audio ->
             val audioCaption = if (index == 0) caption else ""
-            sendSingleAudio(context, botToken, chatId, messageThreadId, audioCaption, audio, okhttpObj, subId)
+            sendSingleAudio(context, audioCaption, audio, subId)
         }
     }
 
@@ -626,62 +557,20 @@ class WAPReceiver : BroadcastReceiver() {
      */
     private fun sendSingleAudio(
         context: Context,
-        botToken: String,
-        chatId: String,
-        messageThreadId: String,
         caption: String,
         audio: MmsMedia,
-        okhttpObj: okhttp3.OkHttpClient,
         subId: Int
     ) {
-        val requestUri = Network.getUrl(botToken, "sendAudio")
-
-        val multipartBuilder = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart("chat_id", chatId)
-            .addFormDataPart("audio", audio.fileName,
-                audio.data.toRequestBody(audio.contentType.toMediaType()))
-
-        if (caption.isNotEmpty()) {
-            multipartBuilder.addFormDataPart("caption", caption)
+        TelegramApi.sendMedia(
+            context = context,
+            mediaType = "audio",
+            media = TelegramApi.MediaData(audio.fileName, audio.contentType, audio.data),
+            caption = caption,
+            errorTag = TAG,
+            fallbackSubId = if (caption.isNotEmpty()) subId else -1
+        ) {
+            Log.i(TAG, "MMS audio sent successfully")
         }
-
-        if (messageThreadId.isNotEmpty()) {
-            multipartBuilder.addFormDataPart("message_thread_id", messageThreadId)
-        }
-
-        val requestBody = multipartBuilder.build()
-        val request = Request.Builder()
-            .url(requestUri)
-            .post(requestBody)
-            .build()
-
-        val call = okhttpObj.newCall(request)
-        val errorHead = "Send MMS audio failed:"
-
-        call.enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-                Log.e(TAG, errorHead + e.message)
-                // Fallback to text message
-                if (caption.isNotEmpty()) {
-                    Resend.addResendLoop(context, caption)
-                }
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                val result = Objects.requireNonNull(response.body).string()
-                if (response.code != 200) {
-                    Log.e(TAG, errorHead + response.code + " " + result)
-                    // Fallback to text message on error
-                    if (caption.isNotEmpty()) {
-                        sendTextMessage(context, botToken, chatId, messageThreadId, caption, subId)
-                    }
-                } else {
-                    Log.i(TAG, "MMS audio sent successfully")
-                }
-            }
-        })
     }
 
     /**
@@ -696,13 +585,10 @@ class WAPReceiver : BroadcastReceiver() {
         videos: List<MmsMedia>,
         subId: Int
     ) {
-        val preferences = MMKV.defaultMMKV()
-        val okhttpObj = Network.getOkhttpObj(preferences.getBoolean("doh_switch", true))
-
         // Send first video with caption, rest without
         videos.forEachIndexed { index, video ->
             val videoCaption = if (index == 0) caption else ""
-            sendSingleVideo(context, botToken, chatId, messageThreadId, videoCaption, video, okhttpObj, subId)
+            sendSingleVideo(context, videoCaption, video, subId)
         }
     }
 
@@ -711,62 +597,20 @@ class WAPReceiver : BroadcastReceiver() {
      */
     private fun sendSingleVideo(
         context: Context,
-        botToken: String,
-        chatId: String,
-        messageThreadId: String,
         caption: String,
         video: MmsMedia,
-        okhttpObj: okhttp3.OkHttpClient,
         subId: Int
     ) {
-        val requestUri = Network.getUrl(botToken, "sendVideo")
-
-        val multipartBuilder = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart("chat_id", chatId)
-            .addFormDataPart("video", video.fileName,
-                video.data.toRequestBody(video.contentType.toMediaType()))
-
-        if (caption.isNotEmpty()) {
-            multipartBuilder.addFormDataPart("caption", caption)
+        TelegramApi.sendMedia(
+            context = context,
+            mediaType = "video",
+            media = TelegramApi.MediaData(video.fileName, video.contentType, video.data),
+            caption = caption,
+            errorTag = TAG,
+            fallbackSubId = if (caption.isNotEmpty()) subId else -1
+        ) {
+            Log.i(TAG, "MMS video sent successfully")
         }
-
-        if (messageThreadId.isNotEmpty()) {
-            multipartBuilder.addFormDataPart("message_thread_id", messageThreadId)
-        }
-
-        val requestBody = multipartBuilder.build()
-        val request = Request.Builder()
-            .url(requestUri)
-            .post(requestBody)
-            .build()
-
-        val call = okhttpObj.newCall(request)
-        val errorHead = "Send MMS video failed:"
-
-        call.enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-                Log.e(TAG, errorHead + e.message)
-                // Fallback to text message
-                if (caption.isNotEmpty()) {
-                    Resend.addResendLoop(context, caption)
-                }
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                val result = Objects.requireNonNull(response.body).string()
-                if (response.code != 200) {
-                    Log.e(TAG, errorHead + response.code + " " + result)
-                    // Fallback to text message on error
-                    if (caption.isNotEmpty()) {
-                        sendTextMessage(context, botToken, chatId, messageThreadId, caption, subId)
-                    }
-                } else {
-                    Log.i(TAG, "MMS video sent successfully")
-                }
-            }
-        })
     }
 
     /**
@@ -780,51 +624,19 @@ class WAPReceiver : BroadcastReceiver() {
         text: String,
         subId: Int
     ) {
-        val preferences = MMKV.defaultMMKV()
-        val requestUri = Network.getUrl(botToken, "sendMessage")
-
         val requestBody = RequestMessage()
         requestBody.chatId = chatId
         requestBody.messageThreadId = messageThreadId
         requestBody.text = text
 
-        val body: RequestBody = Gson().toJson(requestBody).toRequestBody(Const.JSON)
-        val okhttpObj = Network.getOkhttpObj(preferences.getBoolean("doh_switch", true))
-        val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
-        val call = okhttpObj.newCall(request)
-        val errorHead = "Send MMS forward failed:"
-
-        call.enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-                Log.e(TAG, errorHead + e.message)
-                if (ActivityCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.SEND_SMS
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
-                    SMS.fallbackSMS(text, subId)
-                }
-                Resend.addResendLoop(context, text)
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                val result = Objects.requireNonNull(response.body).string()
-                if (response.code != 200) {
-                    Log.e(TAG, errorHead + response.code + " " + result)
-                    if (ActivityCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.SEND_SMS
-                        ) == PackageManager.PERMISSION_GRANTED
-                    ) {
-                        SMS.fallbackSMS(text, subId)
-                    }
-                    Resend.addResendLoop(context, text)
-                } else {
-                    Log.i(TAG, "MMS text message forwarded successfully")
-                }
-            }
-        })
+        TelegramApi.sendMessage(
+            context = context,
+            requestBody = requestBody,
+            errorTag = TAG,
+            fallbackSubId = subId
+        ) {
+            Log.i(TAG, "MMS text message forwarded successfully")
+        }
     }
 
     /**

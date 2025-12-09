@@ -7,82 +7,50 @@ import android.app.job.JobService
 import android.content.ComponentName
 import android.content.Context
 import android.util.Log
-import com.google.gson.Gson
 import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
-import com.qwe7002.telegram_sms.static_class.Network
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.static_class.TelegramApi
 import com.tencent.mmkv.MMKV
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 class ReSendJob : JobService() {
-    private lateinit var requestUri: String
-    private val gson = Gson()
     private lateinit var resendMMKV: MMKV
 
-    private fun networkProgressHandle(
-        message: String,
-        chatId: String,
-        okhttpClient: OkHttpClient,
-        messageThreadId: String
-    ) {
+    private fun networkProgressHandle(message: String) {
         resendMMKV = MMKV.mmkvWithID(MMKVConst.RESEND_ID)
         val requestBody = RequestMessage()
-        requestBody.chatId = chatId
         requestBody.text = message
-        requestBody.messageThreadId = messageThreadId
         if (message.contains("<code>") && message.contains("</code>")) {
             requestBody.parseMode = "html"
         }
-        val requestBodyJson = gson.toJson(requestBody)
-        val body: RequestBody = requestBodyJson.toRequestBody(Const.JSON)
-        val requestObj: Request = Request.Builder().url(requestUri).method("POST", body).build()
-        val call = okhttpClient.newCall(requestObj)
-        try {
-            val response = call.execute()
-            if (response.isSuccessful) {
-                val resendListLocal = resendMMKV.decodeStringSet("resend_list", setOf())?.toMutableList() ?: mutableListOf()
-                resendListLocal.remove(message)
-                resendMMKV.encode("resend_list", resendListLocal.toSet())
-            } else {
-                Log.e(
-                    "ReSendJob",
-                    "An error occurred while resending: " + response.code + " " + response.body.string()
-                )
-            }
-            response.close()
-        } catch (e: IOException) {
-            Log.e("ReSendJob", "An error occurred while resending: " + e.message)
-            e.printStackTrace()
+
+        val result = TelegramApi.sendMessageSync(
+            context = this,
+            requestBody = requestBody,
+            errorTag = "ReSendJob",
+            fallbackSubId = -1,  // No SMS fallback for resend
+            enableResend = false  // Don't add back to resend loop
+        )
+
+        if (result != null) {
+            // Successfully sent, remove from resend list
+            val resendListLocal = resendMMKV.decodeStringSet("resend_list", setOf())?.toMutableList() ?: mutableListOf()
+            resendListLocal.remove(message)
+            resendMMKV.encode("resend_list", resendListLocal.toSet())
+        } else {
+            Log.e("ReSendJob", "Failed to resend message, will retry later")
         }
     }
 
     override fun onStartJob(params: JobParameters?): Boolean {
         Log.d("ReSend", "startJob: Try resending the message.")
         MMKV.initialize(applicationContext)
-        val preferences = MMKV.defaultMMKV()
-        requestUri = Network.getUrl(
-            preferences.getString("bot_token", "").toString(),
-            "SendMessage"
-        )
+        resendMMKV = MMKV.mmkvWithID(MMKVConst.RESEND_ID)
+
         Thread {
             val sendList = resendMMKV.decodeStringSet("resend_list", setOf())?.toMutableList() ?: mutableListOf()
-            val okhttpClient =
-                Network.getOkhttpObj(
-                    preferences.getBoolean("doh_switch", true)
-                )
             for (item in sendList) {
-                networkProgressHandle(
-                    item,
-                    preferences.getString("chat_id", "").toString(),
-                    okhttpClient,
-                    preferences.getString("message_thread_id", "").toString()
-                )
+                networkProgressHandle(item)
             }
             if (sendList.isNotEmpty()) {
                 Log.i(

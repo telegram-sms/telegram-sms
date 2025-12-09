@@ -2,43 +2,29 @@
 
 package com.qwe7002.telegram_sms
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.BatteryManager
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import androidx.core.app.ActivityCompat
-import com.google.gson.Gson
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
-import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Other
-import com.qwe7002.telegram_sms.static_class.SMS
+import com.qwe7002.telegram_sms.static_class.TelegramApi
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.CcType
-import com.qwe7002.telegram_sms.value.Const
 import com.qwe7002.telegram_sms.value.Notify
 import com.tencent.mmkv.MMKV
-import okhttp3.Request
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.IOException
 import java.util.Objects
 
 class BatteryService : Service() {
     private lateinit var batteryReceiver: batteryChangeReceiver
-    private lateinit var botToken: String
-    private lateinit var chatId: String
-    private lateinit var messageThreadId: String
     private lateinit var sendLoopList: ArrayList<sendObj>
-    private var dohSwitch: Boolean = false
     private var lastReceiveTime: Long = 0
     private var lastReceiveMessageId: Long = -1
 
@@ -66,10 +52,6 @@ class BatteryService : Service() {
     override fun onCreate() {
         super.onCreate()
         val preferences = MMKV.defaultMMKV()
-        chatId = preferences.getString("chat_id", "").toString()
-        botToken = preferences.getString("bot_token", "").toString()
-        messageThreadId = preferences.getString("message_thread_id", "").toString()
-        dohSwitch = preferences.getBoolean("doh_switch", true)
         val chargerStatus = preferences.getBoolean("charger_status", false)
         batteryReceiver = batteryChangeReceiver()
         val filter = IntentFilter()
@@ -108,52 +90,32 @@ class BatteryService : Service() {
 
     private fun networkHandle(obj: sendObj) {
         val requestMessage = RequestMessage()
-        requestMessage.chatId = chatId
         requestMessage.text = obj.content
-        requestMessage.messageThreadId = messageThreadId
-        var requestUri = Network.getUrl(botToken, "sendMessage")
+
+        var method = "sendMessage"
         if ((System.currentTimeMillis() - lastReceiveTime) <= 5000L && lastReceiveMessageId != -1L) {
-            requestUri = Network.getUrl(botToken, "editMessageText")
+            method = "editMessageText"
             requestMessage.messageId = lastReceiveMessageId
             Log.d(this::class.java.simpleName, "onReceive: edit_mode")
         }
         lastReceiveTime = System.currentTimeMillis()
-        val okhttpObj = Network.getOkhttpObj(dohSwitch)
-        val requestBodyRaw = Gson().toJson(requestMessage)
-        val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
-        val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
-        val call = okhttpObj.newCall(request)
-        val errorHead = "Send battery info failed:"
-        try {
-            val response = call.execute()
-            if (response.code == 200) {
-                lastReceiveMessageId =
-                    Other.getMessageId(Objects.requireNonNull(response.body).string())
-            } else {
-                lastReceiveMessageId = -1
-                if (obj.action == Intent.ACTION_BATTERY_LOW) {
-                    if (ActivityCompat.checkSelfPermission(
-                            this,
-                            Manifest.permission.SEND_SMS
-                        ) == PackageManager.PERMISSION_GRANTED
-                    ) {
-                        SMS.fallbackSMS( requestMessage.text, -1)
-                    }
 
-                }
-            }
-        } catch (e: IOException) {
-            Log.i(this::class.java.simpleName, "networkHandle: $e")
-            Log.e(this::class.java.simpleName, errorHead + e.message)
-            if (obj.action == Intent.ACTION_BATTERY_LOW) {
-                if (ActivityCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.SEND_SMS
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
-                    SMS.fallbackSMS( requestMessage.text, -1)
-                }
-            }
+        // Only enable SMS fallback for low battery notifications
+        val enableFallback = obj.action == Intent.ACTION_BATTERY_LOW
+
+        val result = TelegramApi.sendMessageSync(
+            context = this,
+            requestBody = requestMessage,
+            method = method,
+            errorTag = "BatteryService",
+            fallbackSubId = if (enableFallback) 0 else -1,  // Use default sub for fallback
+            enableResend = false  // Battery service handles its own retry logic
+        )
+
+        if (result != null) {
+            lastReceiveMessageId = Other.getMessageId(result)
+        } else {
+            lastReceiveMessageId = -1
         }
     }
 
