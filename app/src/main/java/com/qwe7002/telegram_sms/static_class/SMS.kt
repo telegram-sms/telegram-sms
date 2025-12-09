@@ -43,7 +43,7 @@ object SMS {
     ) {
         var messageId = contextId
         if (!Other.isPhoneNumber(sendTo)) {
-            Logs.writeLog(context, "[$sendTo] is an illegal phone number")
+            Log.w("SMS", "[$sendTo] is an illegal phone number")
             return
         }
         val preferences = MMKV.defaultMMKV()
@@ -91,7 +91,7 @@ object SMS {
             }
         } catch (e: IOException) {
             e.printStackTrace()
-            Logs.writeLog(context, "failed to send message:" + e.message)
+            Log.e("SMS", "failed to send message:" + e.message)
         }
         val divideContents = smsManager.divideMessage(content)
         val sendReceiverList = ArrayList<PendingIntent>()

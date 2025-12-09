@@ -14,7 +14,6 @@ import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
-import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Phone
@@ -118,7 +117,7 @@ class CallReceiver : BroadcastReceiver() {
                 call.enqueue(object : Callback {
                     override fun onFailure(call: Call, e: IOException) {
                         e.printStackTrace()
-                        Logs.writeLog(context, "$errorHead ${e.message}")
+                        Log.e("CallReceiver", "$errorHead ${e.message}")
                         if (ActivityCompat.checkSelfPermission(
                                 context,
                                 Manifest.permission.SEND_SMS
@@ -135,13 +134,13 @@ class CallReceiver : BroadcastReceiver() {
                         val responseBodyStr = response.body.string()
                         if (!response.isSuccessful) {
                             val errorMessage = "$errorHead ${response.code} $responseBodyStr"
-                            Logs.writeLog(context, errorMessage)
+                            Log.e("CallReceiver", errorMessage)
                             Resend.addResendLoop(context, requestBody.text)
                         } else {
                             // Use actualIncomingNumber from the callback
                             if (!Other.isPhoneNumber(actualIncomingNumber) && actualIncomingNumber != "Unknown") {
-                                Logs.writeLog(
-                                    context,
+                                Log.w(
+                                    "CallReceiver",
                                     "[$actualIncomingNumber] Not a regular phone number."
                                 )
                                 return
@@ -194,7 +193,7 @@ class CallReceiver : BroadcastReceiver() {
                 call.enqueue(object : Callback {
                     override fun onFailure(call: Call, e: IOException) {
                         e.printStackTrace()
-                        Logs.writeLog(context, "$errorHead ${e.message}")
+                        Log.e("CallReceiver", "$errorHead ${e.message}")
                         if (ActivityCompat.checkSelfPermission(
                                 context,
                                 Manifest.permission.SEND_SMS
@@ -210,13 +209,13 @@ class CallReceiver : BroadcastReceiver() {
                         val responseBodyStr = response.body.string()
                         if (!response.isSuccessful) {
                             val errorMessage = "$errorHead ${response.code} $responseBodyStr"
-                            Logs.writeLog(context, errorMessage)
+                            Log.e("CallReceiver", errorMessage)
                             Resend.addResendLoop(context, requestBody.text)
                         } else {
                             // Use actualIncomingNumber from the callback
                             if (!Other.isPhoneNumber(actualIncomingNumber) && actualIncomingNumber != "Unknown") {
-                                Logs.writeLog(
-                                    context,
+                                Log.w(
+                                    "CallReceiver",
                                     "[$actualIncomingNumber] Not a regular phone number."
                                 )
                                 return

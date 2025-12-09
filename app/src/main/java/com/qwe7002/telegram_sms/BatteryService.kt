@@ -18,7 +18,6 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
-import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.SMS
@@ -145,7 +144,7 @@ class BatteryService : Service() {
             }
         } catch (e: IOException) {
             Log.i(this::class.java.simpleName, "networkHandle: $e")
-            Logs.writeLog(this, errorHead + e.message)
+            Log.e(this::class.java.simpleName, errorHead + e.message)
             if (obj.action == Intent.ACTION_BATTERY_LOW) {
                 if (ActivityCompat.checkSelfPermission(
                         this,

@@ -27,7 +27,6 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.data_structure.ScannerJson
 import com.qwe7002.telegram_sms.static_class.Crypto
-import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.value.Const
 import okhttp3.HttpUrl
@@ -163,8 +162,8 @@ class QrcodeActivity : AppCompatActivity() {
                         }
                     }
                 } catch (e: IOException) {
-                    Logs.writeLog(
-                        applicationContext,
+                    Log.e(
+                        "QrcodeActivity",
                         "An error occurred while resending: " + e.message
                     )
                     e.printStackTrace()
@@ -209,8 +208,8 @@ class QrcodeActivity : AppCompatActivity() {
                             setResult(Const.RESULT_CONFIG_JSON, intent)
                             finish()
                         } catch (e: Exception) {
-                            Logs.writeLog(
-                                applicationContext,
+                            Log.e(
+                                "QrcodeActivity",
                                 "An error occurred while decrypting configuration: " + e.message
                             )
                             runOnUiThread {
@@ -234,8 +233,8 @@ class QrcodeActivity : AppCompatActivity() {
                     }
                     response.close()
                 } catch (e: IOException) {
-                    Logs.writeLog(
-                        applicationContext,
+                    Log.e(
+                        "QrcodeActivity",
                         "An error occurred while getting configuration: " + e.message
                     )
                     e.printStackTrace()

@@ -40,7 +40,7 @@ import com.qwe7002.telegram_sms.data_structure.GitHubRelease
 import com.qwe7002.telegram_sms.data_structure.ScannerJson
 import com.qwe7002.telegram_sms.data_structure.telegram.PollingBody
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
-import com.qwe7002.telegram_sms.static_class.Logs
+import com.qwe7002.telegram_sms.utils.clearLogcat
 import com.qwe7002.telegram_sms.static_class.Network.getOkhttpObj
 import com.qwe7002.telegram_sms.static_class.Network.getUrl
 import com.qwe7002.telegram_sms.static_class.Other.parseStringToLong
@@ -243,7 +243,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d(this::class.simpleName, "onFailure: $e")
                     progressDialog.cancel()
                     val message = errorHead + e.message
-                    Logs.writeLog(applicationContext, message)
+                    Log.e("MainActivity", message)
                     runOnUiThread {
                         showErrorDialog(message)
                     }
@@ -257,12 +257,12 @@ class MainActivity : AppCompatActivity() {
                         try {
                             val resultObj = JsonParser.parseString(result).asJsonObject
                             val errorMessage = errorHead + resultObj["description"].asString
-                            Logs.writeLog(applicationContext, errorMessage)
+                            Log.e("MainActivity", errorMessage)
                             runOnUiThread { showErrorDialog(errorMessage) }
                         } catch (e: Exception) {
                             e.printStackTrace()
                             val errorMessage = errorHead + "Failed to parse error response"
-                            Logs.writeLog(applicationContext, errorMessage)
+                            Log.e("MainActivity", errorMessage)
                             runOnUiThread { showErrorDialog(errorMessage) }
                         }
                         return
@@ -337,7 +337,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     } catch (e: Exception) {
                         val errorMessage = errorHead + "Failed to parse response: ${e.message}"
-                        Logs.writeLog(applicationContext, errorMessage)
+                        Log.e("MainActivity", errorMessage)
                         runOnUiThread { showErrorDialog(errorMessage) }
                     }
                 }
@@ -441,7 +441,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d(this::class.simpleName, "onFailure: $e")
                     progressDialog.cancel()
                     val errorMessage = errorHead + e.message
-                    Logs.writeLog(applicationContext, errorMessage)
+                    Log.e("MainActivity", errorMessage)
                     runOnUiThread {
                         showErrorDialog(errorMessage)
                     }
@@ -457,14 +457,14 @@ class MainActivity : AppCompatActivity() {
                         try {
                             val resultObj = JsonParser.parseString(result).asJsonObject
                             val errorMessage = errorHead + resultObj["description"]
-                            Logs.writeLog(applicationContext, errorMessage)
+                            Log.e("MainActivity", errorMessage)
                             runOnUiThread {
                                 showErrorDialog(errorMessage)
                             }
                         } catch (e: Exception) {
                             e.printStackTrace()
                             val errorMessage = errorHead + "Failed to parse error response"
-                            Logs.writeLog(applicationContext, errorMessage)
+                            Log.e("MainActivity", errorMessage)
                             runOnUiThread { showErrorDialog(errorMessage) }
                         }
                         return
@@ -539,7 +539,7 @@ class MainActivity : AppCompatActivity() {
         }
         if (versionCode != currentVersionCode) {
             if (writeLog) {
-                Logs.resetLogFile()
+                clearLogcat()
             }
             preferences.putInt("version_code", currentVersionCode)
         }
@@ -681,7 +681,7 @@ class MainActivity : AppCompatActivity() {
                 progressDialog.cancel()
                 if (!response.isSuccessful) {
                     val errorMessage = errorHead + response.code
-                    Logs.writeLog(applicationContext, errorMessage)
+                    Log.e("MainActivity", errorMessage)
                 }
                 val jsonString = response.body.string()
                 Log.d(this::class.simpleName, "onResponse: $jsonString")
@@ -701,7 +701,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d(this::class.simpleName, "onFailure: $e")
                 progressDialog.cancel()
                 val errorMessage = errorHead + e.message
-                Logs.writeLog(applicationContext, errorMessage)
+                Log.e("MainActivity", errorMessage)
                 runOnUiThread {
                     showErrorDialog(errorMessage)
                 }

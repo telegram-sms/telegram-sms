@@ -39,7 +39,6 @@ import com.qwe7002.telegram_sms.data_structure.config.CcConfig
 import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.data_structure.HAR
 import com.qwe7002.telegram_sms.static_class.Crypto
-import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.Const
@@ -331,8 +330,8 @@ class CcActivity : AppCompatActivity() {
                                 saveAndFlush(serviceList, listAdapter)
                             }
                         } catch (e: Exception) {
-                            Logs.writeLog(
-                                applicationContext,
+                            Log.e(
+                                "CcActivity",
                                 "An error occurred while resending: " + e.message
                             )
                             runOnUiThread {
@@ -355,8 +354,8 @@ class CcActivity : AppCompatActivity() {
                         }
                     }
                 } catch (e: IOException) {
-                    Logs.writeLog(
-                        applicationContext,
+                    Log.e(
+                        "CcActivity",
                         "An error occurred while resending: " + e.message
                     )
                     e.printStackTrace()

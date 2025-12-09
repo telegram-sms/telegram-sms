@@ -10,7 +10,6 @@ import android.util.Log
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
-import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.value.Const
 import com.tencent.mmkv.MMKV
@@ -51,14 +50,14 @@ class ReSendJob : JobService() {
                 resendListLocal.remove(message)
                 resendMMKV.encode("resend_list", resendListLocal.toSet())
             } else {
-                Logs.writeLog(
-                    applicationContext,
+                Log.e(
+                    "ReSendJob",
                     "An error occurred while resending: " + response.code + " " + response.body.string()
                 )
             }
             response.close()
         } catch (e: IOException) {
-            Logs.writeLog(applicationContext, "An error occurred while resending: " + e.message)
+            Log.e("ReSendJob", "An error occurred while resending: " + e.message)
             e.printStackTrace()
         }
     }
@@ -86,8 +85,8 @@ class ReSendJob : JobService() {
                 )
             }
             if (sendList.isNotEmpty()) {
-                Logs.writeLog(
-                    applicationContext,
+                Log.i(
+                    "ReSendJob",
                     "startJob: Resend completed. ${sendList.size} messages have been resent."
                 )
             }

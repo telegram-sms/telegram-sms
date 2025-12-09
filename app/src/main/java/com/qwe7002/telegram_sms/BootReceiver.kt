@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Service
 import com.tencent.mmkv.MMKV
 
@@ -16,8 +15,8 @@ class BootReceiver : BroadcastReceiver() {
         if (preferences.getBoolean("initialized", false)) {
             KeepAliveJob.startJob(context)
             ReSendJob.startJob(context)
-            Logs.writeLog(
-                context,
+            Log.i(
+                "BootReceiver",
                 "Received [" + intent.action + "] broadcast, starting background service."
             )
             Service.startService(

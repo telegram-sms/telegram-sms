@@ -15,7 +15,6 @@ import androidx.core.content.ContextCompat
 import com.github.sumimakito.codeauxlib.CodeauxLibPortable
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
-import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Phone
@@ -91,7 +90,7 @@ class SMSReceiver : BroadcastReceiver() {
             }
         }
         if (messages.isEmpty()) {
-            Logs.writeLog(context, "Message length is equal to 0.")
+            Log.w("SMSReceiver", "Message length is equal to 0.")
             return
         }
 
@@ -128,7 +127,7 @@ class SMSReceiver : BroadcastReceiver() {
             }
         }
         if (isTrustedPhone) {
-            Logs.writeLog(context, "SMS from trusted mobile phone detected")
+            Log.i("SMSReceiver", "SMS from trusted mobile phone detected")
             val messageCommand =
                 textContent.lowercase(Locale.getDefault()).replace("_", "").replace("-", "")
             val commandList = messageCommand.split("\n").filter { it.isNotEmpty() }.toTypedArray()
@@ -219,7 +218,7 @@ class SMSReceiver : BroadcastReceiver() {
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
-                Logs.writeLog(context, errorHead + e.message)
+                Log.e("SMSReceiver", errorHead + e.message)
                 if (ActivityCompat.checkSelfPermission(
                         context,
                         Manifest.permission.SEND_SMS
@@ -234,7 +233,7 @@ class SMSReceiver : BroadcastReceiver() {
             override fun onResponse(call: Call, response: Response) {
                 val result = Objects.requireNonNull(response.body).string()
                 if (response.code != 200) {
-                    Logs.writeLog(context, errorHead + response.code + " " + result)
+                    Log.e("SMSReceiver", errorHead + response.code + " " + result)
                     if (ActivityCompat.checkSelfPermission(
                             context,
                             Manifest.permission.SEND_SMS
@@ -245,7 +244,7 @@ class SMSReceiver : BroadcastReceiver() {
                     Resend.addResendLoop(context, requestBody.text)
                 } else {
                     if (!Other.isPhoneNumber(messageAddress)) {
-                        Logs.writeLog(context, "[$messageAddress] Not a regular phone number.")
+                        Log.w("SMSReceiver", "[$messageAddress] Not a regular phone number.")
                         return
                     }
                     Other.addMessageList(Other.getMessageId(result), messageAddress, slot)

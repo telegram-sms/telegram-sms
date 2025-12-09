@@ -6,11 +6,11 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.telephony.TelephonyManager
 import android.telephony.TelephonyManager.UssdResponseCallback
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
-import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
@@ -92,7 +92,7 @@ class USSDCallBack(
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
-                Logs.writeLog(context, errorHead + e.message)
+                Log.e("USSDCallBack", errorHead + e.message)
                 if (ActivityCompat.checkSelfPermission(
                         context,
                         Manifest.permission.SEND_SMS
@@ -107,8 +107,8 @@ class USSDCallBack(
             @Throws(IOException::class)
             override fun onResponse(call: Call, response: Response) {
                 if (response.code != 200) {
-                    Logs.writeLog(
-                        context,
+                    Log.e(
+                        "USSDCallBack",
                         errorHead + response.code + " " + Objects.requireNonNull(response.body)
                             .string()
                     )

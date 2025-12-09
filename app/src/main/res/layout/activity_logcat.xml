@@ -15,6 +15,7 @@
         tools:ignore="ContentDescription" />
 
     <ScrollView
+        android:id="@+id/logcat_scroll"
         android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:paddingLeft="@dimen/activity_horizontal_margin"

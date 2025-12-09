@@ -11,7 +11,6 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
-import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
@@ -76,7 +75,7 @@ class SMSSendResultReceiver : BroadcastReceiver() {
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
-                Logs.writeLog(context, errorHead + e.message)
+                Log.e("SMSSendResultReceiver", errorHead + e.message)
                 if (ActivityCompat.checkSelfPermission(
                         context,
                         Manifest.permission.SEND_SMS
@@ -91,8 +90,8 @@ class SMSSendResultReceiver : BroadcastReceiver() {
             @Throws(IOException::class)
             override fun onResponse(call: Call, response: Response) {
                 if (response.code != 200) {
-                    Logs.writeLog(
-                        context,
+                    Log.e(
+                        "SMSSendResultReceiver",
                         errorHead + response.code + " " + Objects.requireNonNull(response.body)
                             .string()
                     )

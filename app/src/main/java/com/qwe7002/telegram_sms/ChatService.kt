@@ -29,8 +29,8 @@ import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.data_structure.SMSRequestInfo
 import com.qwe7002.telegram_sms.static_class.ChatCommand.getCommandList
 import com.qwe7002.telegram_sms.static_class.ChatCommand.getInfo
-import com.qwe7002.telegram_sms.static_class.Logs.readLog
-import com.qwe7002.telegram_sms.static_class.Logs.writeLog
+import com.qwe7002.telegram_sms.utils.logAuto
+import com.qwe7002.telegram_sms.utils.readLogcat
 import com.qwe7002.telegram_sms.static_class.Network.checkNetworkStatus
 import com.qwe7002.telegram_sms.static_class.Network.getOkhttpObj
 import com.qwe7002.telegram_sms.static_class.Network.getUrl
@@ -154,7 +154,7 @@ class ChatService : Service() {
                     }
                 } catch (e: IOException) {
                     e.printStackTrace()
-                    writeLog(applicationContext, "failed to send message:" + e.message)
+                    applicationContext.logAuto("failed to send message:" + e.message)
                 }
                 return
             }
@@ -281,7 +281,7 @@ class ChatService : Service() {
                 }
                 requestBody.text = Template.render(
                     applicationContext, "TPL_system_message",
-                    mapOf("Message" to readLog(applicationContext, line))
+                    mapOf("Message" to readLogcat(line))
                 )
                 hasCommand = true
             }
@@ -466,7 +466,7 @@ class ChatService : Service() {
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
-                writeLog(applicationContext, errorHead + e.message)
+                applicationContext.logAuto(errorHead + e.message)
                 addResendLoop(applicationContext, requestBody.text)
             }
 
@@ -474,7 +474,7 @@ class ChatService : Service() {
             override fun onResponse(call: Call, response: Response) {
                 val responseString = Objects.requireNonNull(response.body).string()
                 if (response.code != 200) {
-                    writeLog(applicationContext, errorHead + response.code + " " + responseString)
+                    applicationContext.logAuto(errorHead + response.code + " " + responseString)
                     addResendLoop(applicationContext, requestBody.text)
                 }
                 if (sendSmsNextStatus == SEND_SMS_STATUS.SEND_STATUS) {
@@ -591,19 +591,18 @@ class ChatService : Service() {
                             firstRequest = false
                         }
                     } else {
-                        writeLog(applicationContext, "Chat command response code: ${response.code}")
+                        applicationContext.logAuto("Chat command response code: ${response.code}")
                     }
                 } catch (e: IOException) {
                     e.printStackTrace()
                     if (!checkNetworkStatus(applicationContext)) {
-                        writeLog(
-                            applicationContext,
+                        applicationContext.logAuto(
                             "No network connections available, Wait for the network to recover."
                         )
                         Log.d(this::class.simpleName, "run: break loop.")
                         break
                     }
-                    writeLog(applicationContext, "Connection to the Telegram API service failed.")
+                    applicationContext.logAuto("Connection to the Telegram API service failed.")
                     Thread.sleep(1000)
                 }
             }

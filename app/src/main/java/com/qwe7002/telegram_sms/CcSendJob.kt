@@ -16,7 +16,6 @@ import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.qwe7002.telegram_sms.data_structure.config.CcConfig
 import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.static_class.CcSend
-import com.qwe7002.telegram_sms.static_class.Logs
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.SnowFlake
 import com.qwe7002.telegram_sms.value.CcType
@@ -89,8 +88,8 @@ class CcSendJob : JobService() {
                     val body: RequestBody? = if (request.postData != null) {
                         when (val mimeType = request.postData.mimeType.toMediaTypeOrNull()) {
                             null -> {
-                                Logs.writeLog(
-                                    applicationContext,
+                                Log.w(
+                                    "CcSendJob",
                                     "The MIME type of the request is not supported."
                                 )
                                 continue
@@ -124,8 +123,8 @@ class CcSendJob : JobService() {
                             }
 
                             else -> {
-                                Logs.writeLog(
-                                    applicationContext,
+                                Log.w(
+                                    "CcSendJob",
                                     "The MIME type of the request is not supported."
                                 )
                                 continue
@@ -143,8 +142,8 @@ class CcSendJob : JobService() {
                             }
 
                             else -> {
-                                Logs.writeLog(
-                                    applicationContext,
+                                Log.w(
+                                    "CcSendJob",
                                     "The request method is not supported."
                                 )
                                 continue
@@ -174,14 +173,14 @@ class CcSendJob : JobService() {
                                 "networkProgressHandle: Message sent successfully."
                             )
                         } else {
-                            Logs.writeLog(
-                                applicationContext,
+                            Log.e(
+                                "CcSendJob",
                                 "Send message failed: " + response.code + " " + response.body.string()
                             )
                         }
                     } catch (e: IOException) {
-                        Logs.writeLog(
-                            applicationContext,
+                        Log.e(
+                            "CcSendJob",
                             "An error occurred while resending: " + e.message
                         )
                         e.printStackTrace()
@@ -189,8 +188,8 @@ class CcSendJob : JobService() {
                 }
             }
             if (sendList.isNotEmpty()) {
-                Logs.writeLog(
-                    applicationContext,
+                Log.i(
+                    "CcSendJob",
                     "The CC sending was completed, and a total of ${sendList.size} messages were sent."
                 )
             }
