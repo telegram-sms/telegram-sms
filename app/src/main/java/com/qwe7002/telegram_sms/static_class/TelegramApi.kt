@@ -23,6 +23,7 @@ import java.io.IOException
  * Unified Telegram API utility class for sending messages.
  * Abstracts common network request patterns used across Receivers and Services.
  */
+@Suppress("unused")
 object TelegramApi {
     private const val TAG = "TelegramApi"
     private val gson = Gson()

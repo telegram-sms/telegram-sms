@@ -47,7 +47,6 @@ import com.qwe7002.telegram_sms.static_class.Service.isNotifyListener
 import com.qwe7002.telegram_sms.static_class.Service.startService
 import com.qwe7002.telegram_sms.static_class.Service.stopAllService
 import com.qwe7002.telegram_sms.static_class.Template
-import com.qwe7002.telegram_sms.utils.clearLogcat
 import com.qwe7002.telegram_sms.value.Const
 import com.tencent.mmkv.MMKV
 import okhttp3.Call
@@ -108,7 +107,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (preferences.getBoolean("initialized", false)) {
-            checkVersionUpgrade(true)
+            checkVersionUpgrade()
             startService(
                 applicationContext,
                 preferences.getBoolean("battery_monitoring_switch", false),
@@ -359,43 +358,41 @@ class MainActivity : AppCompatActivity() {
                 showPrivacyDialog()
                 return@setOnClickListener
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                var permissionList = arrayOf<String?>(
-                    Manifest.permission.READ_SMS,
-                    Manifest.permission.SEND_SMS,
-                    Manifest.permission.RECEIVE_SMS,
-                    Manifest.permission.CALL_PHONE,
-                    Manifest.permission.READ_PHONE_STATE,
-                    Manifest.permission.READ_CALL_LOG
+            var permissionList = arrayOf<String?>(
+                Manifest.permission.READ_SMS,
+                Manifest.permission.SEND_SMS,
+                Manifest.permission.RECEIVE_SMS,
+                Manifest.permission.CALL_PHONE,
+                Manifest.permission.READ_PHONE_STATE,
+                Manifest.permission.READ_CALL_LOG
+            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val permissionArrayList = ArrayList(
+                    listOf(*permissionList)
                 )
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    val permissionArrayList = ArrayList(
-                        listOf(*permissionList)
-                    )
-                    permissionArrayList.add(Manifest.permission.POST_NOTIFICATIONS)
-                    permissionList = permissionArrayList.toTypedArray<String?>()
-                }
-                ActivityCompat.requestPermissions(
-                    this@MainActivity,
-                    permissionList,
-                    1
-                )
+                permissionArrayList.add(Manifest.permission.POST_NOTIFICATIONS)
+                permissionList = permissionArrayList.toTypedArray<String?>()
+            }
+            ActivityCompat.requestPermissions(
+                this@MainActivity,
+                permissionList,
+                1
+            )
 
-                val powerManager =
-                    checkNotNull(getSystemService(POWER_SERVICE) as PowerManager)
-                val hasIgnored = powerManager.isIgnoringBatteryOptimizations(packageName)
-                if (!hasIgnored) {
-                    val intent =
-                        Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).setData(
-                            "package:$packageName".toUri()
-                        )
-                    if (intent.resolveActivityInfo(
-                            packageManager,
-                            PackageManager.MATCH_DEFAULT_ONLY
-                        ) != null
-                    ) {
-                        startActivity(intent)
-                    }
+            val powerManager =
+                checkNotNull(getSystemService(POWER_SERVICE) as PowerManager)
+            val hasIgnored = powerManager.isIgnoringBatteryOptimizations(packageName)
+            if (!hasIgnored) {
+                val intent =
+                    Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).setData(
+                        "package:$packageName".toUri()
+                    )
+                if (intent.resolveActivityInfo(
+                        packageManager,
+                        PackageManager.MATCH_DEFAULT_ONLY
+                    ) != null
+                ) {
+                    startActivity(intent)
                 }
             }
 
@@ -476,7 +473,7 @@ class MainActivity : AppCompatActivity() {
                         MMKV.mmkvWithID(MMKVConst.CHAT_ID).clearAll()
                     }
                     MMKV.mmkvWithID(MMKVConst.RESEND_ID).clearAll()
-                    checkVersionUpgrade(false)
+                    checkVersionUpgrade()
                     preferences.clearAll()
                     preferences.putString("bot_token", newBotToken)
                     preferences.putString(
@@ -524,7 +521,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkVersionUpgrade(writeLog: Boolean) {
+    private fun checkVersionUpgrade() {
         val versionCode = preferences.getInt("version_code", 0)
         val packageManager = applicationContext.packageManager
         val packageInfo: PackageInfo
@@ -537,9 +534,6 @@ class MainActivity : AppCompatActivity() {
             return
         }
         if (versionCode != currentVersionCode) {
-            if (writeLog) {
-                clearLogcat()
-            }
             preferences.putInt("version_code", currentVersionCode)
         }
     }
@@ -623,7 +617,7 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             0 -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                     Log.d(
                         this::class.simpleName,
                         "onRequestPermissionsResult: No camera permissions."
@@ -836,25 +830,22 @@ class MainActivity : AppCompatActivity() {
                 val apiDialog = AlertDialog.Builder(this)
                 apiDialog.setTitle("Set API Address")
                 apiDialog.setView(apiDialogView)
-                apiDialog.setPositiveButton("OK") { dialog, _ ->
-                    {
-                        val apiAddressText = apiAddress.text.toString()
-                        if (preferences.getString(
-                                "api_address",
-                                "api.telegram.org"
-                            ) == apiAddressText
-                        ) {
-                            return@setPositiveButton
-                        }
-                        if (apiAddressText.isEmpty()) {
-                            showErrorDialog("API address cannot be empty.")
-                            return@setPositiveButton
-                        }
-                        preferences.putString("api_address", apiAddressText)
-                            .apply()
-                        if (preferences.contains("initialized") && apiAddressText != "api.telegram.org") {
-                            logout(preferences.getString("bot_token", "").toString())
-                        }
+                apiDialog.setPositiveButton("OK") { _, _ ->
+                    val apiAddressText = apiAddress.text.toString()
+                    if (preferences.getString(
+                            "api_address",
+                            "api.telegram.org"
+                        ) == apiAddressText
+                    ) {
+                        return@setPositiveButton
+                    }
+                    if (apiAddressText.isEmpty()) {
+                        showErrorDialog("API address cannot be empty.")
+                        return@setPositiveButton
+                    }
+                    preferences.putString("api_address", apiAddressText)
+                    if (preferences.contains("initialized") && apiAddressText != "api.telegram.org") {
+                        logout(preferences.getString("bot_token", "").toString())
                     }
                 }
                 apiDialog.setNegativeButton("Cancel", null)

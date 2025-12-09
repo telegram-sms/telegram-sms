@@ -67,12 +67,8 @@ class SMSReceiver : BroadcastReceiver() {
             pdus.size
         )
         for (i in pdus.indices) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                messages[i] =
-                    SmsMessage.createFromPdu(pdus[i] as ByteArray, extras.getString("format"))
-            } else {
-                messages[i] = SmsMessage.createFromPdu(pdus[i] as ByteArray)
-            }
+            messages[i] =
+                SmsMessage.createFromPdu(pdus[i] as ByteArray, extras.getString("format"))
         }
         if (messages.isEmpty()) {
             Log.w("SMSReceiver", "Message length is equal to 0.")
