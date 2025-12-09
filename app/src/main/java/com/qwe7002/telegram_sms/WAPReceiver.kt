@@ -52,6 +52,33 @@ class WAPReceiver : BroadcastReceiver() {
             "image/bmp",
             "image/webp"
         )
+
+        // MMS part content types for audio
+        private val AUDIO_CONTENT_TYPES = listOf(
+            "audio/mpeg",
+            "audio/mp3",
+            "audio/aac",
+            "audio/amr",
+            "audio/amr-wb",
+            "audio/ogg",
+            "audio/wav",
+            "audio/3gpp",
+            "audio/mp4",
+            "audio/x-wav",
+            "audio/x-ms-wma"
+        )
+
+        // MMS part content types for video
+        private val VIDEO_CONTENT_TYPES = listOf(
+            "video/mp4",
+            "video/3gpp",
+            "video/3gpp2",
+            "video/mpeg",
+            "video/webm",
+            "video/x-msvideo",
+            "video/quicktime",
+            "video/h264"
+        )
     }
 
     private val executor = Executors.newSingleThreadExecutor()
@@ -168,12 +195,32 @@ class WAPReceiver : BroadcastReceiver() {
 
         val messageText = Template.render(context, "TPL_received_mms", values)
 
-        // Check if there are images to send
-        if (mmsData.images.isNotEmpty()) {
+        // Check if there are media attachments to send
+        val hasMedia = mmsData.images.isNotEmpty() || mmsData.audios.isNotEmpty() || mmsData.videos.isNotEmpty()
+
+        if (hasMedia) {
+            var captionSent = false
+
             // Send images with caption
-            sendImagesToTelegram(context, botToken, chatId, messageThreadId, messageText, mmsData.images, subId)
+            if (mmsData.images.isNotEmpty()) {
+                sendImagesToTelegram(context, botToken, chatId, messageThreadId, messageText, mmsData.images, subId)
+                captionSent = true
+            }
+
+            // Send audio files
+            if (mmsData.audios.isNotEmpty()) {
+                val audioCaption = if (captionSent) "" else messageText
+                sendAudiosToTelegram(context, botToken, chatId, messageThreadId, audioCaption, mmsData.audios, subId)
+                captionSent = true
+            }
+
+            // Send video files
+            if (mmsData.videos.isNotEmpty()) {
+                val videoCaption = if (captionSent) "" else messageText
+                sendVideosToTelegram(context, botToken, chatId, messageThreadId, videoCaption, mmsData.videos, subId)
+            }
         } else {
-            // No images, send text message only
+            // No media, send text message only
             sendTextMessage(context, botToken, chatId, messageThreadId, messageText, subId)
         }
     }
@@ -285,7 +332,7 @@ class WAPReceiver : BroadcastReceiver() {
     }
 
     /**
-     * Get MMS parts (text and images)
+     * Get MMS parts (text, images, audio, and video)
      */
     private fun getMmsParts(context: Context, mmsId: String, mmsData: MmsData) {
         var cursor: Cursor? = null
@@ -305,7 +352,7 @@ class WAPReceiver : BroadcastReceiver() {
                     val partId = it.getString(it.getColumnIndexOrThrow("_id"))
                     val contentType = it.getString(it.getColumnIndexOrThrow("ct")) ?: ""
                     val text = it.getString(it.getColumnIndexOrThrow("text"))
-                    val name = it.getString(it.getColumnIndexOrThrow("name")) ?: "image"
+                    val name = it.getString(it.getColumnIndexOrThrow("name")) ?: "media"
 
                     when {
                         contentType == "text/plain" -> {
@@ -319,12 +366,32 @@ class WAPReceiver : BroadcastReceiver() {
                         }
                         contentType in IMAGE_CONTENT_TYPES -> {
                             // Image part
-                            val imageData = readImageFromPart(context, partId)
+                            val imageData = readMediaFromPart(context, partId)
                             if (imageData != null) {
-                                val extension = getExtensionFromMimeType(contentType)
+                                val extension = getImageExtensionFromMimeType(contentType)
                                 val fileName = if (name.contains(".")) name else "$name.$extension"
-                                mmsData.images.add(MmsImage(fileName, contentType, imageData))
+                                mmsData.images.add(MmsMedia(fileName, contentType, imageData))
                                 Log.d(TAG, "Found image: $fileName, size: ${imageData.size}")
+                            }
+                        }
+                        contentType in AUDIO_CONTENT_TYPES -> {
+                            // Audio part
+                            val audioData = readMediaFromPart(context, partId)
+                            if (audioData != null) {
+                                val extension = getAudioExtensionFromMimeType(contentType)
+                                val fileName = if (name.contains(".")) name else "$name.$extension"
+                                mmsData.audios.add(MmsMedia(fileName, contentType, audioData))
+                                Log.d(TAG, "Found audio: $fileName, size: ${audioData.size}")
+                            }
+                        }
+                        contentType in VIDEO_CONTENT_TYPES -> {
+                            // Video part
+                            val videoData = readMediaFromPart(context, partId)
+                            if (videoData != null) {
+                                val extension = getVideoExtensionFromMimeType(contentType)
+                                val fileName = if (name.contains(".")) name else "$name.$extension"
+                                mmsData.videos.add(MmsMedia(fileName, contentType, videoData))
+                                Log.d(TAG, "Found video: $fileName, size: ${videoData.size}")
                             }
                         }
                     }
@@ -366,9 +433,9 @@ class WAPReceiver : BroadcastReceiver() {
     }
 
     /**
-     * Read image data from MMS part
+     * Read media data (image/audio/video) from MMS part
      */
-    private fun readImageFromPart(context: Context, partId: String): ByteArray? {
+    private fun readMediaFromPart(context: Context, partId: String): ByteArray? {
         var inputStream: InputStream? = null
 
         try {
@@ -393,9 +460,9 @@ class WAPReceiver : BroadcastReceiver() {
     }
 
     /**
-     * Get file extension from MIME type
+     * Get image file extension from MIME type
      */
-    private fun getExtensionFromMimeType(mimeType: String): String {
+    private fun getImageExtensionFromMimeType(mimeType: String): String {
         return when (mimeType) {
             "image/jpeg", "image/jpg" -> "jpg"
             "image/png" -> "png"
@@ -403,6 +470,40 @@ class WAPReceiver : BroadcastReceiver() {
             "image/bmp" -> "bmp"
             "image/webp" -> "webp"
             else -> "jpg"
+        }
+    }
+
+    /**
+     * Get audio file extension from MIME type
+     */
+    private fun getAudioExtensionFromMimeType(mimeType: String): String {
+        return when (mimeType) {
+            "audio/mpeg", "audio/mp3" -> "mp3"
+            "audio/aac" -> "aac"
+            "audio/amr" -> "amr"
+            "audio/amr-wb" -> "awb"
+            "audio/ogg" -> "ogg"
+            "audio/wav", "audio/x-wav" -> "wav"
+            "audio/3gpp" -> "3gp"
+            "audio/mp4" -> "m4a"
+            "audio/x-ms-wma" -> "wma"
+            else -> "mp3"
+        }
+    }
+
+    /**
+     * Get video file extension from MIME type
+     */
+    private fun getVideoExtensionFromMimeType(mimeType: String): String {
+        return when (mimeType) {
+            "video/mp4" -> "mp4"
+            "video/3gpp", "video/3gpp2" -> "3gp"
+            "video/mpeg" -> "mpeg"
+            "video/webm" -> "webm"
+            "video/x-msvideo" -> "avi"
+            "video/quicktime" -> "mov"
+            "video/h264" -> "mp4"
+            else -> "mp4"
         }
     }
 
@@ -415,7 +516,7 @@ class WAPReceiver : BroadcastReceiver() {
         chatId: String,
         messageThreadId: String,
         caption: String,
-        images: List<MmsImage>,
+        images: List<MmsMedia>,
         subId: Int
     ) {
         val preferences = MMKV.defaultMMKV()
@@ -437,7 +538,7 @@ class WAPReceiver : BroadcastReceiver() {
         chatId: String,
         messageThreadId: String,
         caption: String,
-        image: MmsImage,
+        image: MmsMedia,
         okhttpObj: okhttp3.OkHttpClient,
         subId: Int
     ) {
@@ -493,6 +594,176 @@ class WAPReceiver : BroadcastReceiver() {
                     }
                 } else {
                     Log.i(TAG, "MMS image sent successfully")
+                }
+            }
+        })
+    }
+
+    /**
+     * Send audio files to Telegram using sendAudio API
+     */
+    private fun sendAudiosToTelegram(
+        context: Context,
+        botToken: String,
+        chatId: String,
+        messageThreadId: String,
+        caption: String,
+        audios: List<MmsMedia>,
+        subId: Int
+    ) {
+        val preferences = MMKV.defaultMMKV()
+        val okhttpObj = Network.getOkhttpObj(preferences.getBoolean("doh_switch", true))
+
+        // Send first audio with caption, rest without
+        audios.forEachIndexed { index, audio ->
+            val audioCaption = if (index == 0) caption else ""
+            sendSingleAudio(context, botToken, chatId, messageThreadId, audioCaption, audio, okhttpObj, subId)
+        }
+    }
+
+    /**
+     * Send a single audio file to Telegram
+     */
+    private fun sendSingleAudio(
+        context: Context,
+        botToken: String,
+        chatId: String,
+        messageThreadId: String,
+        caption: String,
+        audio: MmsMedia,
+        okhttpObj: okhttp3.OkHttpClient,
+        subId: Int
+    ) {
+        val requestUri = Network.getUrl(botToken, "sendAudio")
+
+        val multipartBuilder = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("chat_id", chatId)
+            .addFormDataPart("audio", audio.fileName,
+                audio.data.toRequestBody(audio.contentType.toMediaType()))
+
+        if (caption.isNotEmpty()) {
+            multipartBuilder.addFormDataPart("caption", caption)
+        }
+
+        if (messageThreadId.isNotEmpty()) {
+            multipartBuilder.addFormDataPart("message_thread_id", messageThreadId)
+        }
+
+        val requestBody = multipartBuilder.build()
+        val request = Request.Builder()
+            .url(requestUri)
+            .post(requestBody)
+            .build()
+
+        val call = okhttpObj.newCall(request)
+        val errorHead = "Send MMS audio failed:"
+
+        call.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                e.printStackTrace()
+                Log.e(TAG, errorHead + e.message)
+                // Fallback to text message
+                if (caption.isNotEmpty()) {
+                    Resend.addResendLoop(context, caption)
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val result = Objects.requireNonNull(response.body).string()
+                if (response.code != 200) {
+                    Log.e(TAG, errorHead + response.code + " " + result)
+                    // Fallback to text message on error
+                    if (caption.isNotEmpty()) {
+                        sendTextMessage(context, botToken, chatId, messageThreadId, caption, subId)
+                    }
+                } else {
+                    Log.i(TAG, "MMS audio sent successfully")
+                }
+            }
+        })
+    }
+
+    /**
+     * Send video files to Telegram using sendVideo API
+     */
+    private fun sendVideosToTelegram(
+        context: Context,
+        botToken: String,
+        chatId: String,
+        messageThreadId: String,
+        caption: String,
+        videos: List<MmsMedia>,
+        subId: Int
+    ) {
+        val preferences = MMKV.defaultMMKV()
+        val okhttpObj = Network.getOkhttpObj(preferences.getBoolean("doh_switch", true))
+
+        // Send first video with caption, rest without
+        videos.forEachIndexed { index, video ->
+            val videoCaption = if (index == 0) caption else ""
+            sendSingleVideo(context, botToken, chatId, messageThreadId, videoCaption, video, okhttpObj, subId)
+        }
+    }
+
+    /**
+     * Send a single video file to Telegram
+     */
+    private fun sendSingleVideo(
+        context: Context,
+        botToken: String,
+        chatId: String,
+        messageThreadId: String,
+        caption: String,
+        video: MmsMedia,
+        okhttpObj: okhttp3.OkHttpClient,
+        subId: Int
+    ) {
+        val requestUri = Network.getUrl(botToken, "sendVideo")
+
+        val multipartBuilder = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("chat_id", chatId)
+            .addFormDataPart("video", video.fileName,
+                video.data.toRequestBody(video.contentType.toMediaType()))
+
+        if (caption.isNotEmpty()) {
+            multipartBuilder.addFormDataPart("caption", caption)
+        }
+
+        if (messageThreadId.isNotEmpty()) {
+            multipartBuilder.addFormDataPart("message_thread_id", messageThreadId)
+        }
+
+        val requestBody = multipartBuilder.build()
+        val request = Request.Builder()
+            .url(requestUri)
+            .post(requestBody)
+            .build()
+
+        val call = okhttpObj.newCall(request)
+        val errorHead = "Send MMS video failed:"
+
+        call.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                e.printStackTrace()
+                Log.e(TAG, errorHead + e.message)
+                // Fallback to text message
+                if (caption.isNotEmpty()) {
+                    Resend.addResendLoop(context, caption)
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val result = Objects.requireNonNull(response.body).string()
+                if (response.code != 200) {
+                    Log.e(TAG, errorHead + response.code + " " + result)
+                    // Fallback to text message on error
+                    if (caption.isNotEmpty()) {
+                        sendTextMessage(context, botToken, chatId, messageThreadId, caption, subId)
+                    }
+                } else {
+                    Log.i(TAG, "MMS video sent successfully")
                 }
             }
         })
@@ -920,13 +1191,15 @@ class WAPReceiver : BroadcastReceiver() {
         var from: String = "",
         var subject: String = "",
         var textContent: String = "",
-        var images: MutableList<MmsImage> = mutableListOf()
+        var images: MutableList<MmsMedia> = mutableListOf(),
+        var audios: MutableList<MmsMedia> = mutableListOf(),
+        var videos: MutableList<MmsMedia> = mutableListOf()
     )
 
     /**
-     * Data class to hold MMS image
+     * Data class to hold MMS media (image/audio/video)
      */
-    private data class MmsImage(
+    private data class MmsMedia(
         val fileName: String,
         val contentType: String,
         val data: ByteArray
@@ -934,7 +1207,7 @@ class WAPReceiver : BroadcastReceiver() {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
-            other as MmsImage
+            other as MmsMedia
             if (fileName != other.fileName) return false
             if (contentType != other.contentType) return false
             if (!data.contentEquals(other.data)) return false
