@@ -43,6 +43,11 @@ class TemplateActivity : AppCompatActivity() {
                 mapOf("SIM" to "SIM1 ", "From" to "+16505551212", "Content" to "Hello, World!")
             ),
             Message(
+                getString(R.string.receive_mms_title),
+                "TPL_received_mms",
+                mapOf("SIM" to "SIM1 ", "From" to "+16505551212", "Subject" to "MMS Subject", "ContentType" to "application/vnd.wap.multipart.mixed", "Size" to "10 KB")
+            ),
+            Message(
                 getString(R.string.send_sms_title),
                 "TPL_send_sms",
                 mapOf("SIM" to "SIM1 ", "To" to "+16505551212", "Content" to "Hello, World!")
