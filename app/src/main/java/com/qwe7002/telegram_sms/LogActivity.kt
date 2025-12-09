@@ -1,12 +1,7 @@
 package com.qwe7002.telegram_sms
 
 import android.graphics.Color
-import android.graphics.Typeface
 import android.os.Bundle
-import android.text.Spannable
-import android.text.SpannableStringBuilder
-import android.text.style.ForegroundColorSpan
-import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
@@ -15,15 +10,18 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.util.concurrent.CopyOnWriteArrayList
 
 class LogActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
@@ -31,7 +29,9 @@ class LogActivity : AppCompatActivity() {
     private var logcatProcess: Process? = null
     private var logcatJob: Job? = null
     private val maxLines = 500
-    private val logBuffer = mutableListOf<String>()
+    private val logBuffer = CopyOnWriteArrayList<LogEntry>()
+    private val logChannel = Channel<LogEntry>(Channel.UNLIMITED)
+    private var entryId = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,10 +39,13 @@ class LogActivity : AppCompatActivity() {
 
         recyclerView = findViewById(R.id.log_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        logAdapter = LogAdapter(logBuffer)
+        logAdapter = LogAdapter()
         recyclerView.adapter = logAdapter
 
         this.setTitle(R.string.logcat)
+
+        // Start consuming log entries
+        startLogConsumer()
     }
 
     public override fun onPause() {
@@ -65,12 +68,30 @@ class LogActivity : AppCompatActivity() {
         return true
     }
 
+    private fun startLogConsumer() {
+        lifecycleScope.launch(Dispatchers.Main) {
+            for (entry in logChannel) {
+                logBuffer.add(entry)
+                if (logBuffer.size > maxLines) {
+                    logBuffer.removeAt(0)
+                }
+                updateAdapter()
+            }
+        }
+    }
+
+    private fun updateAdapter() {
+        val newList = logBuffer.toList()
+        logAdapter.submitList(newList) {
+            if (newList.isNotEmpty()) {
+                recyclerView.scrollToPosition(newList.size - 1)
+            }
+        }
+    }
+
     private fun startLogcat() {
         logcatJob = lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // Clear previous logs and read existing logs first
-                logBuffer.clear()
-
                 // Get PID of current app
                 val pid = android.os.Process.myPid()
 
@@ -83,33 +104,42 @@ class LogActivity : AppCompatActivity() {
 
                 while (isActive) {
                     val line = reader.readLine() ?: break
-                    if (line.isNotEmpty()) {
-                        val shouldRemoveFirst: Boolean
-                        val currentSize: Int
-
-                        synchronized(logBuffer) {
-                            logBuffer.add(line)
-                            shouldRemoveFirst = logBuffer.size > maxLines
-                            if (shouldRemoveFirst) {
-                                logBuffer.removeAt(0)
-                            }
-                            currentSize = logBuffer.size
-                        }
-
-                        withContext(Dispatchers.Main) {
-                            if (shouldRemoveFirst) {
-                                logAdapter.notifyItemRemoved(0)
-                                logAdapter.notifyItemInserted(currentSize - 1)
-                            } else {
-                                logAdapter.notifyItemInserted(currentSize - 1)
-                            }
-                            recyclerView.scrollToPosition(currentSize - 1)
-                        }
+                    if (line.isNotEmpty() && !line.startsWith("------")) {
+                        val entry = parseLogLine(entryId++, line)
+                        logChannel.trySend(entry)
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+    }
+
+    private fun parseLogLine(id: Long, line: String): LogEntry {
+        // Logcat format with -v time: "MM-DD HH:MM:SS.mmm D/Tag(PID): Message"
+        val regex = Regex("""^(\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3})\s+([VDIWEF])/([^(]+)\(\s*\d+\):\s*(.*)$""")
+        val match = regex.find(line)
+
+        return if (match != null) {
+            val (timestamp, level, tag, message) = match.destructured
+            LogEntry(
+                id = id,
+                timestamp = timestamp,
+                level = level.first(),
+                tag = tag.trim(),
+                message = message,
+                rawLine = line
+            )
+        } else {
+            // Fallback for unparseable lines
+            LogEntry(
+                id = id,
+                timestamp = "",
+                level = 'V',
+                tag = "",
+                message = line,
+                rawLine = line
+            )
         }
     }
 
@@ -122,9 +152,8 @@ class LogActivity : AppCompatActivity() {
     private fun clearLogcat() {
         try {
             Runtime.getRuntime().exec("logcat -c")
-            val size = logBuffer.size
             logBuffer.clear()
-            logAdapter.notifyItemRangeRemoved(0, size)
+            logAdapter.submitList(emptyList())
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -133,86 +162,81 @@ class LogActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         stopLogcat()
+        logChannel.close()
     }
 }
 
-class LogAdapter(private val logBuffer: MutableList<String>) :
-    RecyclerView.Adapter<LogAdapter.LogViewHolder>() {
+data class LogEntry(
+    val id: Long,
+    val timestamp: String,
+    val level: Char,
+    val tag: String,
+    val message: String,
+    val rawLine: String
+)
+
+class LogAdapter : ListAdapter<LogEntry, LogAdapter.LogViewHolder>(LogDiffCallback()) {
 
     class LogViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val textView: TextView = itemView.findViewById(android.R.id.text1)
+        val tagView: TextView = itemView.findViewById(R.id.log_tag)
+        val timestampView: TextView = itemView.findViewById(R.id.log_timestamp)
+        val messageView: TextView = itemView.findViewById(R.id.log_message)
+    }
+
+    class LogDiffCallback : DiffUtil.ItemCallback<LogEntry>() {
+        override fun areItemsTheSame(oldItem: LogEntry, newItem: LogEntry): Boolean {
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: LogEntry, newItem: LogEntry): Boolean {
+            return oldItem == newItem
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LogViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(android.R.layout.simple_list_item_1, parent, false)
-        val textView = view.findViewById<TextView>(android.R.id.text1)
-        textView.typeface = Typeface.MONOSPACE
-        textView.textSize = 12f
+            .inflate(R.layout.item_log, parent, false)
         return LogViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: LogViewHolder, position: Int) {
-        val line = logBuffer[position]
-        holder.textView.text = formatLogLine(line)
+        val entry = getItem(position)
+
+        // Set tag with level indicator
+        val tagText = if (entry.tag.isNotEmpty()) {
+            "${getLevelString(entry.level)} ${entry.tag}"
+        } else {
+            getLevelString(entry.level)
+        }
+        holder.tagView.text = tagText
+        holder.tagView.setTextColor(getLevelColor(entry.level))
+
+        // Set timestamp
+        holder.timestampView.text = entry.timestamp
+
+        // Set message (use default text color from XML)
+        holder.messageView.text = entry.message
     }
 
-    override fun getItemCount(): Int = logBuffer.size
-
-    private fun formatLogLine(line: String): SpannableStringBuilder {
-        val spannable = SpannableStringBuilder(line)
-
-        // Detect log level and apply color
-        when {
-            line.contains(" E ") || line.contains("/E ") -> {
-                // Error - Red
-                spannable.setSpan(
-                    ForegroundColorSpan(Color.RED),
-                    0, line.length,
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-                spannable.setSpan(
-                    StyleSpan(Typeface.BOLD),
-                    0, line.length,
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-            }
-            line.contains(" W ") || line.contains("/W ") -> {
-                // Warning - Yellow/Orange
-                spannable.setSpan(
-                    ForegroundColorSpan(Color.rgb(255, 165, 0)),
-                    0, line.length,
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-            }
-            line.contains(" I ") || line.contains("/I ") -> {
-                // Info - Green
-                spannable.setSpan(
-                    ForegroundColorSpan(Color.rgb(0, 200, 0)),
-                    0, line.length,
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-            }
-            line.contains(" D ") || line.contains("/D ") -> {
-                // Debug - Blue
-                spannable.setSpan(
-                    ForegroundColorSpan(Color.rgb(100, 149, 237)),
-                    0, line.length,
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-            }
-            line.contains(" V ") || line.contains("/V ") -> {
-                // Verbose - Gray
-                spannable.setSpan(
-                    ForegroundColorSpan(Color.GRAY),
-                    0, line.length,
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-            }
+    private fun getLevelString(level: Char): String {
+        return when (level) {
+            'E' -> "❌"  // Error
+            'W' -> "⚠️"  // Warning
+            'I' -> "ℹ️"  // Info
+            'D' -> "🐛"  // Debug
+            'V' -> "📝"  // Verbose
+            else -> "❓"
         }
+    }
 
-        return spannable
+    private fun getLevelColor(level: Char): Int {
+        return when (level) {
+            'E' -> Color.RED
+            'W' -> Color.rgb(255, 165, 0)  // Orange
+            'I' -> Color.rgb(0, 200, 0)     // Green
+            'D' -> Color.rgb(100, 149, 237) // Cornflower Blue
+            'V' -> Color.GRAY
+            else -> Color.WHITE
+        }
     }
 }
-
-

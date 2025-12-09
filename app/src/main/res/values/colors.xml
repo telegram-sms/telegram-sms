@@ -4,4 +4,5 @@
     <color name="colorPrimaryDark">#302C37</color>
     <color name="colorAccent">#ffb049</color>
     <color name="text_color">#000000</color>
+    <color name="timestamp_color">#666666</color>
 </resources>
