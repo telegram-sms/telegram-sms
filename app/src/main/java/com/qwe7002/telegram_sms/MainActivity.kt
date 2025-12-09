@@ -69,6 +69,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         MMKV.initialize(this)
+        preferences = MMKV.defaultMMKV()
         val oldSharedPreferences = getSharedPreferences("data", MODE_PRIVATE)
         if (oldSharedPreferences.getBoolean("initialized", false)) {
             preferences.importFromSharedPreferences(oldSharedPreferences)
