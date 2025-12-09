@@ -45,7 +45,7 @@ class TemplateActivity : AppCompatActivity() {
             Message(
                 getString(R.string.receive_mms_title),
                 "TPL_received_mms",
-                mapOf("SIM" to "SIM1 ", "From" to "+16505551212", "Subject" to "MMS Subject", "ContentType" to "application/vnd.wap.multipart.mixed", "Size" to "10 KB")
+                mapOf("SIM" to "SIM1 ", "From" to "+16505551212", "Subject" to "MMS Subject", "Content" to "Hello from MMS!")
             ),
             Message(
                 getString(R.string.send_sms_title),

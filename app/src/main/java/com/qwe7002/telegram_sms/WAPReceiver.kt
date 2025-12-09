@@ -5,9 +5,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.Cursor
+import android.os.Handler
+import android.os.Looper
 import android.telephony.SubscriptionManager
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import androidx.core.net.toUri
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.Network
@@ -20,18 +24,37 @@ import com.qwe7002.telegram_sms.value.Const
 import com.tencent.mmkv.MMKV
 import okhttp3.Call
 import okhttp3.Callback
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.io.InputStream
 import java.util.Objects
+import java.util.concurrent.Executors
 
 
 class WAPReceiver : BroadcastReceiver() {
     companion object {
         private const val TAG = "WAPReceiver"
+        private const val MMS_CONTENT_URI = "content://mms"
+        private const val MMS_PART_URI = "content://mms/part"
+
+        // MMS part content types for images
+        private val IMAGE_CONTENT_TYPES = listOf(
+            "image/jpeg",
+            "image/jpg",
+            "image/png",
+            "image/gif",
+            "image/bmp",
+            "image/webp"
+        )
     }
+
+    private val executor = Executors.newSingleThreadExecutor()
 
     override fun onReceive(context: Context, intent: Intent) {
         MMKV.initialize(context)
@@ -95,33 +118,407 @@ class WAPReceiver : BroadcastReceiver() {
             "Unknown"
         }
 
-        // Parse MMS notification
+        // Parse MMS notification from PDU
         val mmsInfo = parseMmsNotification(pdu)
 
-        val botToken = preferences.getString("bot_token", "")
-        val chatId = preferences.getString("chat_id", "")
-        val messageThreadId = preferences.getString("message_thread_id", "")
-        val requestUri = Network.getUrl(botToken.toString(), "sendMessage")
+        // Delay to allow MMS to be stored in content provider
+        Handler(Looper.getMainLooper()).postDelayed({
+            executor.execute {
+                processMMSWithAttachments(context, mmsInfo, dualSim, subId)
+            }
+        }, 5000) // 5 second delay to allow MMS download
+    }
 
-        val requestBody = RequestMessage()
-        requestBody.chatId = chatId.toString()
-        requestBody.messageThreadId = messageThreadId.toString()
+    /**
+     * Process MMS with attachments from content provider
+     */
+    private fun processMMSWithAttachments(
+        context: Context,
+        mmsInfo: MmsInfo,
+        dualSim: String,
+        subId: Int
+    ) {
+        val preferences = MMKV.defaultMMKV()
+        val botToken = preferences.getString("bot_token", "") ?: ""
+        val chatId = preferences.getString("chat_id", "") ?: ""
+        val messageThreadId = preferences.getString("message_thread_id", "") ?: ""
+
+        // Try to get MMS from content provider
+        val mmsData = getMmsFromContentProvider(context, mmsInfo)
+
+        // Update mmsInfo with data from content provider if available
+        if (mmsData.from.isNotEmpty()) {
+            mmsInfo.from = mmsData.from
+        }
+        if (mmsData.subject.isNotEmpty()) {
+            mmsInfo.subject = mmsData.subject
+        }
+        if (mmsData.textContent.isNotEmpty()) {
+            mmsInfo.textContent = mmsData.textContent
+        }
 
         val values = mapOf(
             "SIM" to dualSim,
             "From" to mmsInfo.from,
             "Subject" to mmsInfo.subject,
+            "Content" to mmsInfo.textContent.ifEmpty { "(No text content)" },
             "ContentType" to mmsInfo.contentType,
             "Size" to mmsInfo.messageSize
         )
 
-        requestBody.text = Template.render(context, "TPL_received_mms", values)
-        val requestBodyText = requestBody.text
+        val messageText = Template.render(context, "TPL_received_mms", values)
+
+        // Check if there are images to send
+        if (mmsData.images.isNotEmpty()) {
+            // Send images with caption
+            sendImagesToTelegram(context, botToken, chatId, messageThreadId, messageText, mmsData.images, subId)
+        } else {
+            // No images, send text message only
+            sendTextMessage(context, botToken, chatId, messageThreadId, messageText, subId)
+        }
+    }
+
+    /**
+     * Get MMS data from content provider
+     */
+    private fun getMmsFromContentProvider(context: Context, mmsInfo: MmsInfo): MmsData {
+        val mmsData = MmsData()
+
+        try {
+            // Find the latest MMS
+            val mmsId = findLatestMmsId(context, mmsInfo.transactionId)
+            if (mmsId == null) {
+                Log.w(TAG, "Could not find MMS in content provider")
+                return mmsData
+            }
+
+            Log.d(TAG, "Found MMS ID: $mmsId")
+
+            // Get sender address
+            mmsData.from = getMmsAddress(context, mmsId)
+
+            // Get MMS parts (text and images)
+            getMmsParts(context, mmsId, mmsData)
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error reading MMS from content provider: ${e.message}")
+            e.printStackTrace()
+        }
+
+        return mmsData
+    }
+
+    /**
+     * Find the latest MMS ID, optionally matching transaction ID
+     */
+    private fun findLatestMmsId(context: Context, transactionId: String?): String? {
+        var mmsId: String? = null
+        var cursor: Cursor? = null
+
+        try {
+            val uri = MMS_CONTENT_URI.toUri()
+            val projection = arrayOf("_id", "tr_id", "sub", "date")
+
+            cursor = context.contentResolver.query(
+                uri,
+                projection,
+                null,
+                null,
+                "date DESC LIMIT 5"
+            )
+
+            cursor?.let {
+                while (it.moveToNext()) {
+                    val id = it.getString(it.getColumnIndexOrThrow("_id"))
+                    val trId = it.getString(it.getColumnIndexOrThrow("tr_id")) ?: ""
+
+                    // If transaction ID matches or we don't have one, use this MMS
+                    if (transactionId.isNullOrEmpty() || trId == transactionId) {
+                        mmsId = id
+                        break
+                    }
+                }
+
+                // If no match found, use the most recent one
+                if (mmsId == null && it.moveToFirst()) {
+                    mmsId = it.getString(it.getColumnIndexOrThrow("_id"))
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error finding MMS ID: ${e.message}")
+        } finally {
+            cursor?.close()
+        }
+
+        return mmsId
+    }
+
+    /**
+     * Get MMS sender address
+     */
+    private fun getMmsAddress(context: Context, mmsId: String): String {
+        var address = ""
+        var cursor: Cursor? = null
+
+        try {
+            val uri = "$MMS_CONTENT_URI/$mmsId/addr".toUri()
+            cursor = context.contentResolver.query(
+                uri,
+                null,
+                "type=137", // 137 = from address
+                null,
+                null
+            )
+
+            cursor?.let {
+                if (it.moveToFirst()) {
+                    address = it.getString(it.getColumnIndexOrThrow("address")) ?: ""
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting MMS address: ${e.message}")
+        } finally {
+            cursor?.close()
+        }
+
+        return cleanPhoneNumber(address)
+    }
+
+    /**
+     * Get MMS parts (text and images)
+     */
+    private fun getMmsParts(context: Context, mmsId: String, mmsData: MmsData) {
+        var cursor: Cursor? = null
+
+        try {
+            val uri = "$MMS_CONTENT_URI/$mmsId/part".toUri()
+            cursor = context.contentResolver.query(
+                uri,
+                null,
+                null,
+                null,
+                null
+            )
+
+            cursor?.let {
+                while (it.moveToNext()) {
+                    val partId = it.getString(it.getColumnIndexOrThrow("_id"))
+                    val contentType = it.getString(it.getColumnIndexOrThrow("ct")) ?: ""
+                    val text = it.getString(it.getColumnIndexOrThrow("text"))
+                    val name = it.getString(it.getColumnIndexOrThrow("name")) ?: "image"
+
+                    when {
+                        contentType == "text/plain" -> {
+                            // Text part
+                            if (!text.isNullOrEmpty()) {
+                                mmsData.textContent = text
+                            } else {
+                                // Try to read from data
+                                mmsData.textContent = readTextFromPart(context, partId)
+                            }
+                        }
+                        contentType in IMAGE_CONTENT_TYPES -> {
+                            // Image part
+                            val imageData = readImageFromPart(context, partId)
+                            if (imageData != null) {
+                                val extension = getExtensionFromMimeType(contentType)
+                                val fileName = if (name.contains(".")) name else "$name.$extension"
+                                mmsData.images.add(MmsImage(fileName, contentType, imageData))
+                                Log.d(TAG, "Found image: $fileName, size: ${imageData.size}")
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting MMS parts: ${e.message}")
+        } finally {
+            cursor?.close()
+        }
+    }
+
+    /**
+     * Read text from MMS part
+     */
+    private fun readTextFromPart(context: Context, partId: String): String {
+        var text = ""
+        var inputStream: InputStream? = null
+
+        try {
+            val partUri = "$MMS_PART_URI/$partId".toUri()
+            inputStream = context.contentResolver.openInputStream(partUri)
+            inputStream?.let {
+                val buffer = ByteArrayOutputStream()
+                val data = ByteArray(1024)
+                var count: Int
+                while (it.read(data).also { c -> count = c } != -1) {
+                    buffer.write(data, 0, count)
+                }
+                text = buffer.toString("UTF-8")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error reading text from part: ${e.message}")
+        } finally {
+            inputStream?.close()
+        }
+
+        return text
+    }
+
+    /**
+     * Read image data from MMS part
+     */
+    private fun readImageFromPart(context: Context, partId: String): ByteArray? {
+        var inputStream: InputStream? = null
+
+        try {
+            val partUri = "$MMS_PART_URI/$partId".toUri()
+            inputStream = context.contentResolver.openInputStream(partUri)
+            inputStream?.let {
+                val buffer = ByteArrayOutputStream()
+                val data = ByteArray(4096)
+                var count: Int
+                while (it.read(data).also { c -> count = c } != -1) {
+                    buffer.write(data, 0, count)
+                }
+                return buffer.toByteArray()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error reading image from part: ${e.message}")
+        } finally {
+            inputStream?.close()
+        }
+
+        return null
+    }
+
+    /**
+     * Get file extension from MIME type
+     */
+    private fun getExtensionFromMimeType(mimeType: String): String {
+        return when (mimeType) {
+            "image/jpeg", "image/jpg" -> "jpg"
+            "image/png" -> "png"
+            "image/gif" -> "gif"
+            "image/bmp" -> "bmp"
+            "image/webp" -> "webp"
+            else -> "jpg"
+        }
+    }
+
+    /**
+     * Send images to Telegram using sendPhoto API
+     */
+    private fun sendImagesToTelegram(
+        context: Context,
+        botToken: String,
+        chatId: String,
+        messageThreadId: String,
+        caption: String,
+        images: List<MmsImage>,
+        subId: Int
+    ) {
+        val preferences = MMKV.defaultMMKV()
+        val okhttpObj = Network.getOkhttpObj(preferences.getBoolean("doh_switch", true))
+
+        // Send first image with caption, rest without
+        images.forEachIndexed { index, image ->
+            val imageCaption = if (index == 0) caption else ""
+            sendSingleImage(context, botToken, chatId, messageThreadId, imageCaption, image, okhttpObj, subId)
+        }
+    }
+
+    /**
+     * Send a single image to Telegram
+     */
+    private fun sendSingleImage(
+        context: Context,
+        botToken: String,
+        chatId: String,
+        messageThreadId: String,
+        caption: String,
+        image: MmsImage,
+        okhttpObj: okhttp3.OkHttpClient,
+        subId: Int
+    ) {
+        val requestUri = Network.getUrl(botToken, "sendPhoto")
+
+        val multipartBuilder = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("chat_id", chatId)
+            .addFormDataPart("photo", image.fileName,
+                image.data.toRequestBody(image.contentType.toMediaType()))
+
+        if (caption.isNotEmpty()) {
+            multipartBuilder.addFormDataPart("caption", caption)
+        }
+
+        if (messageThreadId.isNotEmpty()) {
+            multipartBuilder.addFormDataPart("message_thread_id", messageThreadId)
+        }
+
+        val requestBody = multipartBuilder.build()
+        val request = Request.Builder()
+            .url(requestUri)
+            .post(requestBody)
+            .build()
+
+        val call = okhttpObj.newCall(request)
+        val errorHead = "Send MMS image failed:"
+
+        call.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                e.printStackTrace()
+                Log.e(TAG, errorHead + e.message)
+                // Fallback to text message
+                if (caption.isNotEmpty()) {
+                    if (ActivityCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.SEND_SMS
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        SMS.fallbackSMS(caption, subId)
+                    }
+                    Resend.addResendLoop(context, caption)
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val result = Objects.requireNonNull(response.body).string()
+                if (response.code != 200) {
+                    Log.e(TAG, errorHead + response.code + " " + result)
+                    // Fallback to text message on error
+                    if (caption.isNotEmpty()) {
+                        sendTextMessage(context, botToken, chatId, messageThreadId, caption, subId)
+                    }
+                } else {
+                    Log.i(TAG, "MMS image sent successfully")
+                }
+            }
+        })
+    }
+
+    /**
+     * Send text message to Telegram
+     */
+    private fun sendTextMessage(
+        context: Context,
+        botToken: String,
+        chatId: String,
+        messageThreadId: String,
+        text: String,
+        subId: Int
+    ) {
+        val preferences = MMKV.defaultMMKV()
+        val requestUri = Network.getUrl(botToken, "sendMessage")
+
+        val requestBody = RequestMessage()
+        requestBody.chatId = chatId
+        requestBody.messageThreadId = messageThreadId
+        requestBody.text = text
 
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(Const.JSON)
-        val okhttpObj = Network.getOkhttpObj(
-            preferences.getBoolean("doh_switch", true)
-        )
+        val okhttpObj = Network.getOkhttpObj(preferences.getBoolean("doh_switch", true))
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpObj.newCall(request)
         val errorHead = "Send MMS forward failed:"
@@ -135,9 +532,9 @@ class WAPReceiver : BroadcastReceiver() {
                         Manifest.permission.SEND_SMS
                     ) == PackageManager.PERMISSION_GRANTED
                 ) {
-                    SMS.fallbackSMS(requestBodyText, subId)
+                    SMS.fallbackSMS(text, subId)
                 }
-                Resend.addResendLoop(context, requestBody.text)
+                Resend.addResendLoop(context, text)
             }
 
             override fun onResponse(call: Call, response: Response) {
@@ -149,11 +546,11 @@ class WAPReceiver : BroadcastReceiver() {
                             Manifest.permission.SEND_SMS
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
-                        SMS.fallbackSMS(requestBodyText, subId)
+                        SMS.fallbackSMS(text, subId)
                     }
-                    Resend.addResendLoop(context, requestBody.text)
+                    Resend.addResendLoop(context, text)
                 } else {
-                    Log.i(TAG, "MMS notification forwarded successfully")
+                    Log.i(TAG, "MMS text message forwarded successfully")
                 }
             }
         })
@@ -503,7 +900,7 @@ class WAPReceiver : BroadcastReceiver() {
     }
 
     /**
-     * Data class to hold MMS information
+     * Data class to hold MMS information from PDU
      */
     private data class MmsInfo(
         var messageType: Int = 0,
@@ -512,6 +909,43 @@ class WAPReceiver : BroadcastReceiver() {
         var subject: String = "",
         var contentLocation: String = "",
         var messageSize: String = "",
-        var contentType: String = ""
+        var contentType: String = "",
+        var textContent: String = ""
     )
+
+    /**
+     * Data class to hold MMS data from content provider
+     */
+    private data class MmsData(
+        var from: String = "",
+        var subject: String = "",
+        var textContent: String = "",
+        var images: MutableList<MmsImage> = mutableListOf()
+    )
+
+    /**
+     * Data class to hold MMS image
+     */
+    private data class MmsImage(
+        val fileName: String,
+        val contentType: String,
+        val data: ByteArray
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+            other as MmsImage
+            if (fileName != other.fileName) return false
+            if (contentType != other.contentType) return false
+            if (!data.contentEquals(other.data)) return false
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = fileName.hashCode()
+            result = 31 * result + contentType.hashCode()
+            result = 31 * result + data.contentHashCode()
+            return result
+        }
+    }
 }
