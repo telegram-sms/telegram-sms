@@ -135,8 +135,5 @@ And finally, [sm.ms](https://sm.ms) for hosting images used in this page.
 ## Buy me a cup of coffee to help maintain this project further?
 
 - [via Github](https://get.telegram-sms.com/donate/github)
-- [via Paypal](https://get.telegram-sms.com/donate/paypal)
-- [via Bitcoin](bitcoin:17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae) (**17wmCCzy7hSSENnRBfUBMUSi7kdHYePrae**)
-- [via UnionPay (中国银联云闪付)](https://get.telegram-sms.com/donate/unionpay)
 
 Your donation will make me work better for this project.
