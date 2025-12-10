@@ -3,14 +3,11 @@ package com.qwe7002.telegram_sms.static_class
 import android.Manifest
 import android.content.Context
 import android.content.Context.TELEPHONY_SERVICE
-import android.content.pm.PackageManager
 import android.os.Build
-import android.telephony.SubscriptionInfo
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.annotation.RequiresPermission
-import androidx.core.app.ActivityCompat
 import com.qwe7002.telegram_sms.static_class.Other.getActiveCard
 
 object Phone {
@@ -36,10 +33,16 @@ object Phone {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             val subId1 = info.subscriptionId
             val tm = telephonyManager.createForSubscriptionId(subId1)
-            if (tm.simOperatorName == info.displayName) {
-                tm.simOperatorName + " (" + info.number + ")"
+            val phoneNumber = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                subscriptionManager.getPhoneNumber(subId1)
             } else {
-                info.displayName.toString() + " (" + info.number + ")"
+                @Suppress("DEPRECATION")
+                info.number
+            }
+            if (tm.simOperatorName == info.displayName) {
+                tm.simOperatorName + " (" + phoneNumber + ")"
+            } else {
+                info.displayName.toString() + " (" + phoneNumber + ")"
             }
         } else {
             info.carrierName.toString()
