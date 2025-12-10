@@ -149,7 +149,7 @@ cache:
         if [ ${STRIPPED} -gt 0 ]; then
           echo "==> Repacking APK with stripped libraries..."
           APK_BASENAME=$(basename "${APK_FILE}")
-          APK_DIR=$(dirname "${APK_FILE}")
+          APK_DIR=$(cd "$(dirname "${APK_FILE}")" && pwd)
           
           # Repack APK
           cd "${WORK_DIR}"
