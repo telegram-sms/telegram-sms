@@ -1,13 +1,4 @@
 // For getting git information
-static def getGitCommitId() {
-    try {
-        return 'git rev-parse --short HEAD'.execute().text.trim()
-    } catch (e) {
-        return "unknown-commit"
-    }
-}
-
-// For getting git information
 def getGitBranch() {
     // 优先从 GitLab CI 的环境变量中获取分支名
     // Prioritize getting the branch name from the GitLab CI environment variable.
