@@ -30,6 +30,12 @@ object ChatCommand {
             smsCommand = context.getString(R.string.sendsms_dual)
         }
         smsCommand += "\n" + context.getString(R.string.get_spam_sms)
+
+        // Add SMS management commands when app is default SMS app
+        if (SMS.isDefaultSmsApp(context)) {
+            smsCommand += "\n" + context.getString(R.string.listsms_command)
+        }
+
         var ussdCommand = ""
         if (ActivityCompat.checkSelfPermission(
                 context,

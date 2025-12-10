@@ -7,7 +7,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.Uri
 import android.os.Build
+import android.provider.Telephony
 import android.telephony.SmsManager
 import android.util.Log
 import androidx.annotation.RequiresPermission
@@ -21,9 +23,124 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.Objects
 
+data class SmsInfo(
+    val id: Long,
+    val address: String,
+    val body: String,
+    val date: Long,
+    val type: Int // 1=inbox, 2=sent
+) {
+    fun getTypeString(): String = if (type == 1) "inbox" else "sent"
+    fun getFormattedDate(): String {
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+        return sdf.format(Date(date))
+    }
+}
+
 object SMS {
+    private const val TAG = "SMS"
+
+    @JvmStatic
+    fun isDefaultSmsApp(context: Context): Boolean {
+        return Telephony.Sms.getDefaultSmsPackage(context) == context.packageName
+    }
+
+    @JvmStatic
+    @SuppressLint("Range")
+    @RequiresPermission(Manifest.permission.READ_SMS)
+    fun getSmsList(
+        context: Context,
+        type: String = "all",
+        page: Int = 0,
+        pageSize: Int = 5
+    ): Pair<List<SmsInfo>, Int> {
+        val smsList = mutableListOf<SmsInfo>()
+        val uri = when (type.lowercase()) {
+            "inbox" -> Uri.parse("content://sms/inbox")
+            "sent" -> Uri.parse("content://sms/sent")
+            else -> Uri.parse("content://sms")
+        }
+
+        val cursor = context.contentResolver.query(
+            uri,
+            arrayOf("_id", "address", "body", "date", "type"),
+            null,
+            null,
+            "date DESC"
+        )
+
+        var totalCount = 0
+        cursor?.use {
+            totalCount = it.count
+            val startPos = page * pageSize
+            if (startPos < totalCount && it.moveToPosition(startPos)) {
+                var count = 0
+                do {
+                    val id = it.getLong(it.getColumnIndex("_id"))
+                    val address = it.getString(it.getColumnIndex("address")) ?: ""
+                    val body = it.getString(it.getColumnIndex("body")) ?: ""
+                    val date = it.getLong(it.getColumnIndex("date"))
+                    val smsType = it.getInt(it.getColumnIndex("type"))
+                    smsList.add(SmsInfo(id, address, body, date, smsType))
+                    count++
+                } while (count < pageSize && it.moveToNext())
+            }
+        }
+
+        val totalPages = (totalCount + pageSize - 1) / pageSize
+        return Pair(smsList, totalPages)
+    }
+
+    @JvmStatic
+    @SuppressLint("Range")
+    @RequiresPermission(Manifest.permission.READ_SMS)
+    fun getSmsById(context: Context, id: Long): SmsInfo? {
+        val cursor = context.contentResolver.query(
+            Uri.parse("content://sms"),
+            arrayOf("_id", "address", "body", "date", "type"),
+            "_id = ?",
+            arrayOf(id.toString()),
+            null
+        )
+
+        cursor?.use {
+            if (it.moveToFirst()) {
+                return SmsInfo(
+                    it.getLong(it.getColumnIndex("_id")),
+                    it.getString(it.getColumnIndex("address")) ?: "",
+                    it.getString(it.getColumnIndex("body")) ?: "",
+                    it.getLong(it.getColumnIndex("date")),
+                    it.getInt(it.getColumnIndex("type"))
+                )
+            }
+        }
+        return null
+    }
+
+    @JvmStatic
+    fun deleteSmsById(context: Context, id: Long): Boolean {
+        if (!isDefaultSmsApp(context)) {
+            Log.w(TAG, "Cannot delete SMS: not default SMS app")
+            return false
+        }
+        return try {
+            val rowsDeleted = context.contentResolver.delete(
+                Uri.parse("content://sms"),
+                "_id = ?",
+                arrayOf(id.toString())
+            )
+            rowsDeleted > 0
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to delete SMS: ${e.message}", e)
+            false
+        }
+    }
+
     @JvmStatic
     @RequiresPermission(allOf = [Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE])
     fun sendSms(context: Context, sendTo: String, content: String, slot: Int, subId: Int) {

@@ -142,4 +142,24 @@
     <string name="system_message_head">[System Information]</string>
     <string name="browser_not_found">Browser not found.</string>
     <string name="set_api_title">API Address</string>
+    <!-- SMS Management -->
+    <string name="listsms_command">/listsms - List SMS messages</string>
+    <string name="listsms_inbox_command">/listsms inbox - List inbox messages\n/listsms sent - List sent messages</string>
+    <string name="sms_list_header">📱 SMS List (%1$s)</string>
+    <string name="sms_list_empty">No SMS messages found.</string>
+    <string name="sms_detail_header">📩 SMS Details</string>
+    <string name="sms_from">From:</string>
+    <string name="sms_to">To:</string>
+    <string name="sms_date">Date:</string>
+    <string name="sms_content">Content:</string>
+    <string name="sms_type_inbox">Inbox</string>
+    <string name="sms_type_sent">Sent</string>
+    <string name="sms_type_all">All</string>
+    <string name="sms_not_found">SMS not found.</string>
+    <string name="sms_deleted">SMS deleted successfully.</string>
+    <string name="sms_delete_failed">Failed to delete SMS.</string>
+    <string name="sms_delete_confirm">Are you sure you want to delete this SMS?</string>
+    <string name="not_default_sms_app">This feature requires the app to be set as the default SMS app.</string>
+    <string name="prev_page">Previous</string>
+    <string name="next_page">Next</string>
 </resources>

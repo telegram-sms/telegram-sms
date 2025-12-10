@@ -24,6 +24,9 @@ import com.qwe7002.telegram_sms.data_structure.SMSRequestInfo
 import com.qwe7002.telegram_sms.data_structure.telegram.PollingBody
 import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.KeyboardMarkup
 import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.getInlineKeyboardObj
+import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.createSmsListKeyboard
+import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.createSmsDetailKeyboard
+import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.createDeleteConfirmKeyboard
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.ChatCommand.getCommandList
 import com.qwe7002.telegram_sms.static_class.ChatCommand.getInfo
@@ -38,7 +41,9 @@ import com.qwe7002.telegram_sms.static_class.Other.getSubId
 import com.qwe7002.telegram_sms.static_class.Other.isPhoneNumber
 import com.qwe7002.telegram_sms.static_class.Phone
 import com.qwe7002.telegram_sms.static_class.Resend.addResendLoop
+import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.static_class.SMS.send
+import com.qwe7002.telegram_sms.static_class.SmsInfo
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.USSD.sendUssd
 import com.qwe7002.telegram_sms.value.Const
@@ -148,17 +153,23 @@ class ChatService : Service() {
             jsonObject = resultObj["channel_post"].asJsonObject
         }
         lateinit var callbackData: String
+        var callbackMessageId: Long = -1
         if (resultObj.has("callback_query")) {
             messageType = "callback_query"
             val callbackQuery = resultObj["callback_query"].asJsonObject
             callbackData = callbackQuery["data"].asString
+            if (callbackQuery.has("message")) {
+                callbackMessageId = callbackQuery["message"].asJsonObject["message_id"].asLong
+            }
         }
+
+        // Handle SMS management callbacks
+        if (messageType == "callback_query" && callbackData.startsWith("sms_")) {
+            handleSmsCallback(callbackData, callbackMessageId, requestBody)
+            return
+        }
+
         if (messageType == "callback_query" && sendSmsNextStatus != SEND_SMS_STATUS.STANDBY_STATUS) {
-            //var slot = Paper.book("send_temp").read("slot", -1)!!
-            /*            val messageId =
-                            Paper.book("send_temp").read("message_id", -1L)!!
-                        val to = Paper.book("send_temp").read("to", "").toString()
-                        val content = Paper.book("send_temp").read("content", "").toString()*/
             var slot = chatMMKV.getInt("slot", -1)
             val messageId = chatMMKV.getLong("message_id", -1L)
             val to = chatMMKV.getString("to", "").toString()
@@ -341,6 +352,48 @@ class ChatService : Service() {
                     applicationContext, "TPL_system_message",
                     mapOf("Message" to getString(R.string.unknown_command))
                 )
+            }
+
+            "/listsms" -> {
+                if (!SMS.isDefaultSmsApp(applicationContext)) {
+                    requestBody.text = Template.render(
+                        applicationContext, "TPL_system_message",
+                        mapOf("Message" to getString(R.string.not_default_sms_app))
+                    )
+                    hasCommand = true
+                } else if (ActivityCompat.checkSelfPermission(
+                        applicationContext,
+                        Manifest.permission.READ_SMS
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    val commandList = requestMsg.split(" ").filter { it.isNotEmpty() }
+                    val smsType = if (commandList.size >= 2) commandList[1].lowercase() else "all"
+                    val (smsList, totalPages) = SMS.getSmsList(applicationContext, smsType, 0, 5)
+
+                    if (smsList.isEmpty()) {
+                        requestBody.text = Template.render(
+                            applicationContext, "TPL_system_message",
+                            mapOf("Message" to getString(R.string.sms_list_empty))
+                        )
+                    } else {
+                        val typeLabel = when (smsType) {
+                            "inbox" -> getString(R.string.sms_type_inbox)
+                            "sent" -> getString(R.string.sms_type_sent)
+                            else -> getString(R.string.sms_type_all)
+                        }
+                        requestBody.text = buildSmsListMessage(smsList, typeLabel, 0, totalPages)
+                        val keyboardMarkup = KeyboardMarkup().apply {
+                            inlineKeyboard = createSmsListKeyboard(
+                                smsList.map { it.id },
+                                0,
+                                totalPages,
+                                smsType
+                            )
+                        }
+                        requestBody.replyMarkup = keyboardMarkup
+                    }
+                    hasCommand = true
+                }
             }
 
             "/sendsms", "/sendsms1", "/sendsms2" -> {
@@ -577,6 +630,169 @@ class ChatService : Service() {
         chatMMKV.remove("to")
         chatMMKV.remove("content")
         chatMMKV.remove("message_id")
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun handleSmsCallback(callbackData: String, messageId: Long, requestBody: RequestMessage) {
+        Log.d(TAG, "Handling SMS callback: $callbackData")
+        val parts = callbackData.split(":")
+
+        when {
+            // Handle pagination: sms_page:type:pageNum
+            callbackData.startsWith("sms_page:") && parts.size >= 3 -> {
+                val smsType = parts[1]
+                val pageStr = parts[2]
+                if (pageStr == "current") return // Ignore current page button click
+
+                val page = pageStr.toIntOrNull() ?: 0
+                if (ActivityCompat.checkSelfPermission(
+                        applicationContext,
+                        Manifest.permission.READ_SMS
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    val (smsList, totalPages) = SMS.getSmsList(applicationContext, smsType, page, 5)
+                    val typeLabel = when (smsType) {
+                        "inbox" -> getString(R.string.sms_type_inbox)
+                        "sent" -> getString(R.string.sms_type_sent)
+                        else -> getString(R.string.sms_type_all)
+                    }
+                    requestBody.text = buildSmsListMessage(smsList, typeLabel, page, totalPages)
+                    val keyboardMarkup = KeyboardMarkup().apply {
+                        inlineKeyboard = createSmsListKeyboard(smsList.map { it.id }, page, totalPages, smsType)
+                    }
+                    requestBody.replyMarkup = keyboardMarkup
+                    editMessage(messageId, requestBody)
+                }
+            }
+
+            // Handle read SMS: sms_read:id
+            callbackData.startsWith("sms_read:") && parts.size >= 2 -> {
+                val smsId = parts[1].toLongOrNull()
+                if (smsId != null && ActivityCompat.checkSelfPermission(
+                        applicationContext,
+                        Manifest.permission.READ_SMS
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    val sms = SMS.getSmsById(applicationContext, smsId)
+                    if (sms != null) {
+                        requestBody.text = buildSmsDetailMessage(sms)
+                        val keyboardMarkup = KeyboardMarkup().apply {
+                            inlineKeyboard = createSmsDetailKeyboard(smsId)
+                        }
+                        requestBody.replyMarkup = keyboardMarkup
+                    } else {
+                        requestBody.text = Template.render(
+                            applicationContext, "TPL_system_message",
+                            mapOf("Message" to getString(R.string.sms_not_found))
+                        )
+                    }
+                    editMessage(messageId, requestBody)
+                }
+            }
+
+            // Handle delete confirmation prompt: sms_del_confirm:id
+            callbackData.startsWith("sms_del_confirm:") && parts.size >= 2 -> {
+                val smsId = parts[1].toLongOrNull()
+                if (smsId != null) {
+                    requestBody.text = Template.render(
+                        applicationContext, "TPL_system_message",
+                        mapOf("Message" to getString(R.string.sms_delete_confirm) + "\n\nID: $smsId")
+                    )
+                    val keyboardMarkup = KeyboardMarkup().apply {
+                        inlineKeyboard = createDeleteConfirmKeyboard(smsId)
+                    }
+                    requestBody.replyMarkup = keyboardMarkup
+                    editMessage(messageId, requestBody)
+                }
+            }
+
+            // Handle actual delete: sms_del:id
+            callbackData.startsWith("sms_del:") && parts.size >= 2 -> {
+                val smsId = parts[1].toLongOrNull()
+                if (smsId != null) {
+                    val success = SMS.deleteSmsById(applicationContext, smsId)
+                    val message = if (success) {
+                        getString(R.string.sms_deleted)
+                    } else {
+                        getString(R.string.sms_delete_failed)
+                    }
+                    requestBody.text = Template.render(
+                        applicationContext, "TPL_system_message",
+                        mapOf("Message" to message)
+                    )
+                    // Return to list
+                    if (ActivityCompat.checkSelfPermission(
+                            applicationContext,
+                            Manifest.permission.READ_SMS
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        val (smsList, totalPages) = SMS.getSmsList(applicationContext, "all", 0, 5)
+                        if (smsList.isNotEmpty()) {
+                            requestBody.text = buildSmsListMessage(smsList, getString(R.string.sms_type_all), 0, totalPages)
+                            val keyboardMarkup = KeyboardMarkup().apply {
+                                inlineKeyboard = createSmsListKeyboard(smsList.map { it.id }, 0, totalPages, "all")
+                            }
+                            requestBody.replyMarkup = keyboardMarkup
+                        }
+                    }
+                    editMessage(messageId, requestBody)
+                }
+            }
+        }
+    }
+
+    private fun buildSmsListMessage(smsList: List<SmsInfo>, typeLabel: String, page: Int, totalPages: Int): String {
+        val header = String.format(getString(R.string.sms_list_header), typeLabel)
+        val builder = StringBuilder()
+        builder.append(header).append("\n")
+        builder.append("━━━━━━━━━━━━━━━\n")
+
+        for (sms in smsList) {
+            val typeIcon = if (sms.type == 1) "📥" else "📤"
+            val preview = if (sms.body.length > 30) sms.body.take(30) + "..." else sms.body
+            builder.append("$typeIcon #${sms.id}\n")
+            builder.append("📞 ${sms.address}\n")
+            builder.append("💬 $preview\n")
+            builder.append("🕐 ${sms.getFormattedDate()}\n")
+            builder.append("───────────────\n")
+        }
+
+        return builder.toString()
+    }
+
+    private fun buildSmsDetailMessage(sms: SmsInfo): String {
+        val typeIcon = if (sms.type == 1) "📥" else "📤"
+        val addressLabel = if (sms.type == 1) getString(R.string.sms_from) else getString(R.string.sms_to)
+
+        return """
+${getString(R.string.sms_detail_header)} $typeIcon #${sms.id}
+━━━━━━━━━━━━━━━
+$addressLabel ${sms.address}
+${getString(R.string.sms_date)} ${sms.getFormattedDate()}
+━━━━━━━━━━━━━━━
+${getString(R.string.sms_content)}
+${sms.body}
+        """.trimIndent()
+    }
+
+    private fun editMessage(messageId: Long, requestBody: RequestMessage) {
+        val requestUri = getUrl(botToken, "editMessageText")
+        requestBody.messageId = messageId
+
+        val body: RequestBody = Gson().toJson(requestBody).toRequestBody(Const.JSON)
+        val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
+
+        okHttpClient.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e(TAG, "Failed to edit message: ${e.message}", e)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.code != 200) {
+                    Log.e(TAG, "Failed to edit message: ${response.code}")
+                }
+            }
+        })
     }
 
     @Suppress("DEPRECATION")
