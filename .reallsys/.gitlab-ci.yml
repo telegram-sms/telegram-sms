@@ -269,12 +269,7 @@ build_release:
         -replace \
         "${RELEASE_TAG}" \
         "./app/build/outputs/apk/release/"
-  artifacts:
-    name: "telegram-sms-release-${CI_COMMIT_SHORT_SHA}"
-    paths:
-      - app/build/outputs/apk/release/*.apk
-    expire_in: 4 weeks
-    when: on_success
+
 
 # ------------------------------------------------------------------------------
 # Manual Debug Build (for testing)
