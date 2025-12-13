@@ -146,12 +146,6 @@ build_nightly:
         -replace \
         "${RELEASE_TAG}" \
         "./app/build/outputs/apk/release/"
-  artifacts:
-    name: "telegram-sms-nightly-${CI_COMMIT_SHORT_SHA}"
-    paths:
-      - app/build/outputs/apk/release/*.apk
-    expire_in: 1 week
-    when: on_success
 
 # ------------------------------------------------------------------------------
 # Release Build Job
