@@ -68,7 +68,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        MMKV.initialize(this)
         preferences = MMKV.defaultMMKV()
         val oldSharedPreferences = getSharedPreferences("data", MODE_PRIVATE)
         if (oldSharedPreferences.getBoolean("initialized", false)) {
@@ -175,10 +174,10 @@ class MainActivity : AppCompatActivity() {
         }
         verificationCodeSwitch.isChecked = preferences.getBoolean("verification_code", false)
 
-        dohSwitch.isChecked = preferences.getBoolean("doh_switch", true)
+        dohSwitch.isChecked = preferences.getBoolean("doh_switch", false)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             val proxyMMKV = MMKV.mmkvWithID("proxy")
-            dohSwitch.isEnabled = proxyMMKV.getBoolean("enable", false)
+            dohSwitch.isEnabled = !proxyMMKV.getBoolean("enable", false)
             /*            dohSwitch.isEnabled =
                             !Paper.book("system_config").read("proxy_config", proxy())!!.enable*/
         }
@@ -359,7 +358,7 @@ class MainActivity : AppCompatActivity() {
                 showPrivacyDialog()
                 return@setOnClickListener
             }
-            var permissionList = arrayOf<String?>(
+            val permissionList = mutableListOf(
                 Manifest.permission.READ_SMS,
                 Manifest.permission.SEND_SMS,
                 Manifest.permission.RECEIVE_SMS,
@@ -368,15 +367,14 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.READ_CALL_LOG
             )
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                val permissionArrayList = ArrayList(
-                    listOf(*permissionList)
-                )
-                permissionArrayList.add(Manifest.permission.POST_NOTIFICATIONS)
-                permissionList = permissionArrayList.toTypedArray<String?>()
+                permissionList.add(Manifest.permission.POST_NOTIFICATIONS)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                permissionList.add(Manifest.permission.READ_PHONE_NUMBERS)
             }
             ActivityCompat.requestPermissions(
                 this@MainActivity,
-                permissionList,
+                permissionList.toTypedArray(),
                 1
             )
 
@@ -410,7 +408,7 @@ class MainActivity : AppCompatActivity() {
                     "api.telegram.org"
                 ) != "api.telegram.org"
             ) {
-                logout(preferences.getString("bot_token", "").toString())
+//                logout(preferences.getString("bot_token", "").toString())
             }
 
             val requestUri = getUrl(
@@ -475,7 +473,9 @@ class MainActivity : AppCompatActivity() {
                     }
                     MMKV.mmkvWithID(MMKVConst.RESEND_ID).clearAll()
                     checkVersionUpgrade()
+                    val apiAddress = preferences.getString("api_address", "api.telegram.org")
                     preferences.clearAll()
+                    preferences.putString("api_address", apiAddress)
                     preferences.putString("bot_token", newBotToken)
                     preferences.putString(
                         "chat_id",
@@ -789,7 +789,7 @@ class MainActivity : AppCompatActivity() {
                 val proxyUsername = view.findViewById<EditText>(R.id.proxy_username_editview)
                 val proxyPassword = view.findViewById<EditText>(R.id.proxy_password_editview)
                 val proxyMMKV = MMKV.mmkvWithID(MMKVConst.PROXY_ID)
-                proxyEnable.isChecked = proxyMMKV.getBoolean("proxy_enable", false)
+                proxyEnable.isChecked = proxyMMKV.getBoolean("enable", false)
                 proxyHost.setText(proxyMMKV.getString("host", ""))
                 proxyPort.setText(proxyMMKV.getInt("port", 0).toString())
                 proxyUsername.setText(proxyMMKV.getString("username", ""))
@@ -845,9 +845,9 @@ class MainActivity : AppCompatActivity() {
                         return@setPositiveButton
                     }
                     preferences.putString("api_address", apiAddressText)
-                    if (preferences.contains("initialized") && apiAddressText != "api.telegram.org") {
-                        logout(preferences.getString("bot_token", "").toString())
-                    }
+//                    if (preferences.contains("initialized") && apiAddressText != "api.telegram.org") {
+//                        logout(preferences.getString("bot_token", "").toString())
+//                    }
                 }
                 apiDialog.setNegativeButton("Cancel", null)
                 apiDialog.show()
@@ -976,7 +976,7 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    fun logout(chatId: String) {
+    fun logout(botToken: String) {
         val progressDialog = ProgressDialog(this)
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
         progressDialog.setTitle(getString(R.string.get_recent_chat_title))
@@ -984,7 +984,7 @@ class MainActivity : AppCompatActivity() {
         progressDialog.isIndeterminate = false
         progressDialog.setCancelable(false)
         progressDialog.show()
-        val requestUri = "https://api.telegram.org/bot$chatId/logout"
+        val requestUri = "https://api.telegram.org/bot$botToken/logout"
         var okhttpClient = getOkhttpObj(
             preferences.getBoolean("doh_switch", false)
         )
@@ -1009,6 +1009,7 @@ class MainActivity : AppCompatActivity() {
                     val body = response.body.string()
                     val jsonObj = JsonParser.parseString(body).asJsonObject
                     if (jsonObj.get("ok").asBoolean) {
+
                         Snackbar.make(
                             findViewById(R.id.doh_switch),
                             "Set API address successful.",
@@ -1025,4 +1026,3 @@ class MainActivity : AppCompatActivity() {
     }
 
 }
-
