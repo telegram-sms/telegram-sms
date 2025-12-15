@@ -209,11 +209,7 @@ build_release:
               parts: [{
                 text: $prompt
               }]
-            }],
-            generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 1024
-            }
+            }]
           }')
         
         # Call Gemini REST API
