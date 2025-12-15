@@ -478,7 +478,6 @@ class ChatService : Service() {
                 SEND_SMS_STATUS.MESSAGE_INPUT_STATUS -> {
                     val tempTo = getSendPhoneNumber(requestMsg)
                     if (isPhoneNumber(tempTo)) {
-                        //Paper.book("send_temp").write("to", tempTo)
                         chatMMKV.putString("to", tempTo)
                         sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
                         Template.render(
@@ -517,11 +516,6 @@ class ChatService : Service() {
                         )
                     }
                     requestBody.replyMarkup = keyboardMarkup
-                    /* val values = mapOf(
-                         "SIM" to dualSim,
-                         "To" to Paper.book("send_temp").read("to", "").toString(),
-                         "Content" to Paper.book("send_temp").read("content", "").toString()
-                     )*/
                     val values = mapOf(
                         "SIM" to dualSim,
                         "To" to chatMMKV.getString("to", "").toString(),
