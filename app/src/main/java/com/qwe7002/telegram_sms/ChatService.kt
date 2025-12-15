@@ -190,8 +190,9 @@ class ChatService : Service() {
                 val requestBodyRaw = gson.toJson(requestBody)
                 val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
                 val okhttpObj = getOkhttpObj(
-                    sharedPreferences.getBoolean("doh_switch", true)
+                    sharedPreferences.getBoolean("doh_switch", false)
                 )
+                Log.d(TAG,"doh switch status: "+ sharedPreferences.getBoolean("doh_switch", false))
                 val request: Request =
                     Request.Builder().url(requestUri).method("POST", body).build()
                 val call = okhttpObj.newCall(request)
@@ -580,9 +581,13 @@ class ChatService : Service() {
         MMKV.initialize(applicationContext)
         setSmsSendStatusStandby()
         MMKV.initialize(applicationContext)
-        sharedPreferences = MMKV.mmkvWithID("data")
+        sharedPreferences = MMKV.defaultMMKV()
         chatId = sharedPreferences.getString("chat_id", "")!!
         botToken = sharedPreferences.getString("bot_token", "")!!
+        botUsername = sharedPreferences.getString("bot_username", "")!!
+        Log.d(TAG, "Chat ID: "+ chatId)
+        Log.d(TAG, "Bot token: "+ botToken)
+        Log.d(TAG, "Bot username: "+ botUsername)
         messageThreadId = sharedPreferences.getString("message_thread_id", "")!!
         okHttpClient = getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true)
@@ -815,6 +820,7 @@ ${sms.body}
                 }
 
                 val requestUri = getUrl(botToken, "getUpdates")
+                Log.d(TAG, "Polling request: $requestUri")
                 val requestBody = PollingBody().apply {
                     this.offset = RequestOffset
                     this.timeout = if (firstRequest) 0 else 60

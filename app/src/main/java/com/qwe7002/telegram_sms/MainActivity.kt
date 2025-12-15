@@ -176,6 +176,12 @@ class MainActivity : AppCompatActivity() {
         verificationCodeSwitch.isChecked = preferences.getBoolean("verification_code", false)
 
         dohSwitch.isChecked = preferences.getBoolean("doh_switch", true)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            val proxyMMKV = MMKV.mmkvWithID("proxy")
+            dohSwitch.isEnabled = proxyMMKV.getBoolean("enable", false)
+            /*            dohSwitch.isEnabled =
+                            !Paper.book("system_config").read("proxy_config", proxy())!!.enable*/
+        }
 
 
         chatIdEditView.addTextChangedListener(object : TextWatcher {
@@ -776,6 +782,7 @@ class MainActivity : AppCompatActivity() {
 
             R.id.set_proxy_menu_item -> {
                 val view = inflater.inflate(R.layout.set_proxy_layout, null)
+                val dohSwitch = findViewById<SwitchMaterial>(R.id.doh_switch)
                 val proxyEnable = view.findViewById<SwitchMaterial>(R.id.proxy_enable_switch)
                 val proxyHost = view.findViewById<EditText>(R.id.proxy_host_editview)
                 val proxyPort = view.findViewById<EditText>(R.id.proxy_port_editview)
@@ -790,6 +797,10 @@ class MainActivity : AppCompatActivity() {
                 AlertDialog.Builder(this).setTitle(R.string.proxy_dialog_title)
                     .setView(view)
                     .setPositiveButton(R.string.ok_button) { _: DialogInterface?, _: Int ->
+                        if (!dohSwitch.isChecked) {
+                            dohSwitch.isChecked = true
+                        }
+                        dohSwitch.isEnabled = !proxyEnable.isChecked
                         proxyMMKV.putBoolean("enable", proxyEnable.isChecked)
                         proxyMMKV.putString("host", proxyHost.text.toString())
                         proxyMMKV.putInt("port", proxyPort.text.toString().toInt())

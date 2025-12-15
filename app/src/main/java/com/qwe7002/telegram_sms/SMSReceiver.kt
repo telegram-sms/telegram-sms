@@ -27,7 +27,6 @@ import java.util.Locale
 class SMSReceiver : BroadcastReceiver() {
     @Suppress("DEPRECATION")
     override fun onReceive(context: Context, intent: Intent) {
-        MMKV.initialize(context)
         Log.d(this::class.simpleName, "Receive action: " + intent.action)
         val extras = intent.extras!!
         val preferences = MMKV.defaultMMKV()
@@ -60,7 +59,12 @@ class SMSReceiver : BroadcastReceiver() {
              context,
              intentSlot,
          )*/
-        val dualSim = Phone.getSimDisplayName(context, slot)
+        val dualSim = try {
+            Phone.getSimDisplayName(context, slot)
+        } catch (e: SecurityException) {
+            Log.e(this::class.simpleName, "Failed to get SIM display name due to missing permission: ${e.message}")
+            "Unknown"
+        }
 
         val pdus = (extras["pdus"] as Array<*>?)!!
         val messages = arrayOfNulls<SmsMessage>(
