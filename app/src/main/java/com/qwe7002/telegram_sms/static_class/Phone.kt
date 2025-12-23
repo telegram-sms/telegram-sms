@@ -9,9 +9,10 @@ import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import com.qwe7002.telegram_sms.static_class.Other.getActiveCard
+import com.tencent.mmkv.MMKV
 
 object Phone {
-
+    val preferences = MMKV.defaultMMKV()
     @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
     @JvmStatic
     fun getSimDisplayName(context: Context, slot: Int): String {
@@ -39,7 +40,9 @@ object Phone {
                 @Suppress("DEPRECATION")
                 info.number
             }
-            if (tm.simOperatorName == info.displayName) {
+            if (preferences.getBoolean("hide_phone_number",false)){
+                tm.simOperatorName + " "
+            } else if (tm.simOperatorName == info.displayName) {
                 tm.simOperatorName + " (" + phoneNumber + ")"
             } else {
                 info.displayName.toString() + " (" + phoneNumber + ")"

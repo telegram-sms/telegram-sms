@@ -98,6 +98,7 @@ class QrcodeActivity : AppCompatActivity() {
         val sendList: ArrayList<CcSendService> = gson.fromJson(serviceListJson, type)
         val config = ScannerJson(
             preferences.getString("bot_token", "")!!,
+            preferences.getString("api_address","api.telegram.org")!!,
             preferences.getString("chat_id", "")!!,
             preferences.getString("trusted_phone_number", "")!!,
             preferences.getBoolean("battery_monitoring_switch", false),
@@ -109,7 +110,8 @@ class QrcodeActivity : AppCompatActivity() {
             preferences.getBoolean("display_dual_sim_display_name", false),
             preferences.getBoolean("verification_code", false),
             preferences.getString("message_thread_id", "")!!,
-            sendList
+            sendList,
+            preferences.getBoolean("hide_phone_number", false)
         )
         return Gson().toJson(config)
     }
