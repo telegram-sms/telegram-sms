@@ -1,17 +1,12 @@
 # Telegram SMS
 
 <p align="center">
-<img src="https://vip1.loli.net/2020/09/28/PzWnqVZgcbE7wCv.png" alt="Telegram SMS">
+<img src="https://github.com/user-attachments/assets/7a283d15-52fe-42cd-a782-4984427db234" alt="Telegram SMS">
 </p>
 
 ![Min Android Version](https://img.shields.io/badge/Min%20Android%20Version-5.1-orange.svg?style=flat-square)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg?style=flat-square)](https://github.com/telegram-sms/telegram-sms/blob/master/LICENSE)
 [![GitHub Releases](https://img.shields.io/github/downloads/telegram-sms/telegram-sms/latest/app-release.apk?style=flat-square)](https://github.com/telegram-sms/telegram-sms/releases/latest)
-
-[//]: # (~~## We're in this together)
-
-[//]: # ()
-[//]: # (> Fight COVID-19. Stay at home. Save lives.~~)
 
 ## News, Questions and Contributions
 
@@ -140,3 +135,10 @@ And finally, [sm.ms](https://sm.ms) for hosting images used in this page.
 - [via Github](https://get.telegram-sms.com/donate/github)
 
 Your donation will make me work better for this project.
+
+## Contributors
+<a href="https://github.com/telegram-sms/telegram-sms/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=telegram-sms/telegram-sms" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
