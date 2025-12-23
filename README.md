@@ -8,9 +8,10 @@
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg?style=flat-square)](https://github.com/telegram-sms/telegram-sms/blob/master/LICENSE)
 [![GitHub Releases](https://img.shields.io/github/downloads/telegram-sms/telegram-sms/latest/app-release.apk?style=flat-square)](https://github.com/telegram-sms/telegram-sms/releases/latest)
 
-~~## We're in this together
+[//]: # (~~## We're in this together)
 
-> Fight COVID-19. Stay at home. Save lives.~~
+[//]: # ()
+[//]: # (> Fight COVID-19. Stay at home. Save lives.~~)
 
 ## News, Questions and Contributions
 
@@ -20,8 +21,7 @@ You can follow the Telegram channel Telegram SMS Change Log for the latest news.
 
 The primary language used for commit messages is Simplified Chinese. However, you're welcome to use English in commit messages when making contributions.
 
-
-If you want to generate the configuration QR code in a fast way, please visit [qrcode.telegram-sms.com](https://qrcode.telegram-sms.com).
+If you want to generate the configuration QR code in a fast way, please visit [config.telegram-sms.com](https://config.telegram-sms.com).
 
 ## Get the Right Version
 
@@ -41,9 +41,11 @@ Android 5.0 or lower? Click [![Github Release](https://img.shields.io/github/dow
 ## Features
 
 - Forward SMS text messages to Telegram as a bot;
-- Notification regarding missed calls;
+- Notification regarding missed or incoming calls;
 - Notification regarding device battery power changes;
+- Carbon Copy - a new way to configure the forward destination(e.g. bark, pushdeer, gotify, etc.).
 - Remote control via chat command or SMS.
+- Set self-hosted bot API address(See [instructions](./docs/self_hosted_bot_api.md)).
 
 ## Permission
 
@@ -102,6 +104,7 @@ This APP uses the following open source libraries:
 - [Paper](https://github.com/pilgr/Paper)
 - [AwesomeQRCode](https://github.com/SumiMakito/AwesomeQRCode)
 - [code-scanner](https://github.com/yuriy-budiyev/code-scanner)
+- [MMKV](https://github.com/Tencent/MMKV)
 
 The creation of this APP would not be possible without the help from the following people:
 
