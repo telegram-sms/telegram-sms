@@ -66,21 +66,10 @@ android {
     buildTypes {
         release {
             minifyEnabled = false
-
-            if (file("keys.jks").exists()) {
-                signingConfig = signingConfigs.release
-            } else {
-                println "喵呜！本地没有 keys.jks，借用 Debug 签名来跑 Release 包！"
-                signingConfig = signingConfigs.debug
-            }
+            signingConfig = signingConfigs.release
 
             ndk {
                 //noinspection ChromeOsAbiSupport
-                // abiFilters 比较特殊，它通常接受一个集合。
-                // 如果报错，试着保持原样，或者用 abiFilters.addAll(...)
-                // 但如果是属性赋值警告，通常是因为它被当成了方法。
-                // 在 Groovy DSL 中，ndk 块里的 abiFilters 往往不需要改，
-                // 但如果它报错，可以尝试 abiFilters = [...]
                 abiFilters "armeabi-v7a", "arm64-v8a"
             }
 
@@ -112,7 +101,7 @@ dependencies {
     implementation 'com.github.yuriy-budiyev:code-scanner:2.1.0'
     implementation 'androidx.core:core-ktx:1.17.0'
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.21'
-    implementation 'androidx.activity:activity-ktx:1.12.1'
+    implementation 'androidx.activity:activity-ktx:1.12.2'
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'com.goterl:lazysodium-android:5.2.0@aar'
     implementation 'net.java.dev.jna:jna:5.18.1@aar'
