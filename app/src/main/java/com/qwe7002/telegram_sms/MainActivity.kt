@@ -932,7 +932,7 @@ class MainActivity : AppCompatActivity() {
                 val hidePhoneNumberSwitch = findViewById<SwitchMaterial>(R.id.hide_phone_number_switch)
                 hidePhoneNumberSwitch.isChecked = jsonConfig.hidePhoneNumber
 
-                if (!jsonConfig.apiAddress.isNullOrEmpty()) {
+                if (jsonConfig.apiAddress.isNotEmpty()) {
                     preferences.putString("api_address", jsonConfig.apiAddress)
                 }
                 (findViewById<View>(R.id.bot_token_editview) as EditText).setText(jsonConfig.botToken)
