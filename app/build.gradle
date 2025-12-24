@@ -1,6 +1,5 @@
 // For getting git information
 def getGitBranch() {
-    // 优先从 GitLab CI 的环境变量中获取分支名
     // Prioritize getting the branch name from the GitLab CI environment variable.
     def ciBranch = System.getenv("CI_COMMIT_REF_NAME")
     if (ciBranch != null && !ciBranch.isEmpty()) {
@@ -8,7 +7,6 @@ def getGitBranch() {
         return ciBranch
     }
 
-    // 如果不在 CI 环境中（比如在本地），则回退到使用 git 命令
     // If not in a CI environment (e.g., locally), fall back to using the git command.
     try {
         def localBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
