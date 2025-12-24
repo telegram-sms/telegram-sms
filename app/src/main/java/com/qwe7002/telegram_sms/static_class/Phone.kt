@@ -41,7 +41,11 @@ object Phone {
                 info.number
             }
             if (preferences.getBoolean("hide_phone_number",false)){
-                tm.simOperatorName + " "
+                if (tm.simOperatorName == info.displayName) {
+                    tm.simOperatorName + " "
+                } else {
+                    info.displayName.toString() + " "
+                }
             } else if (tm.simOperatorName == info.displayName) {
                 tm.simOperatorName + " (" + phoneNumber + ")"
             } else {
