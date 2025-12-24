@@ -84,6 +84,7 @@ class MainActivity : AppCompatActivity() {
         val trustedPhoneNumberEditView = findViewById<EditText>(R.id.trusted_phone_number_editview)
         val chatCommandSwitch = findViewById<SwitchMaterial>(R.id.chat_command_switch)
         val callNotifySwitch = findViewById<SwitchMaterial>(R.id.call_notify_switch)
+        val hidePhoneNumberSwitch = findViewById<SwitchMaterial>(R.id.hide_phone_number_switch)
         val fallbackSmsSwitch = findViewById<SwitchMaterial>(R.id.fallback_sms_switch)
         val batteryMonitoringSwitch = findViewById<SwitchMaterial>(R.id.battery_monitoring_switch)
         val chargerStatusSwitch = findViewById<SwitchMaterial>(R.id.charger_status_switch)
@@ -140,6 +141,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         callNotifySwitch.isChecked = preferences.getBoolean("call_notify", false)
+
+        hidePhoneNumberSwitch.isChecked = preferences.getBoolean("hide_phone_number", false)
 
         fallbackSmsSwitch.isChecked = preferences.getBoolean("fallback_sms", false)
         if (trustedPhoneNumberEditView.length() == 0) {
@@ -501,6 +504,7 @@ class MainActivity : AppCompatActivity() {
                     preferences.putBoolean("initialized", true)
                     preferences.putBoolean("privacy_dialog_agree", true)
                     preferences.putBoolean("call_notify", callNotifySwitch.isChecked)
+                    preferences.putBoolean("hide_phone_number", hidePhoneNumberSwitch.isChecked)
                     Thread {
                         ReSendJob.stopJob(applicationContext)
                         KeepAliveJob.stopJob(applicationContext)
@@ -925,6 +929,13 @@ class MainActivity : AppCompatActivity() {
                 val callNotifySwitch = findViewById<SwitchMaterial>(R.id.call_notify_switch)
                 callNotifySwitch.isChecked = jsonConfig.callNotifySwitch
 
+                val hidePhoneNumberSwitch = findViewById<SwitchMaterial>(R.id.hide_phone_number_switch)
+                hidePhoneNumberSwitch.isChecked = jsonConfig.hidePhoneNumber
+
+                if (!jsonConfig.apiAddress.isNullOrEmpty()) {
+                    preferences.putString("api_address", jsonConfig.apiAddress)
+                }
+                (findViewById<View>(R.id.bot_token_editview) as EditText).setText(jsonConfig.botToken)
 
                 val trustedPhoneNumber = findViewById<EditText>(R.id.trusted_phone_number_editview)
                 trustedPhoneNumber.setText(jsonConfig.trustedPhoneNumber)

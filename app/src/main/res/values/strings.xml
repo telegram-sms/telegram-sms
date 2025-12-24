@@ -142,6 +142,7 @@
     <string name="system_message_head">[System Information]</string>
     <string name="browser_not_found">Browser not found.</string>
     <string name="set_api_title">API Address</string>
+    <string name="hide_phone_number">Hide Phone Numbers</string>
     <!-- SMS Management -->
     <string name="listsms_command">/listsms - List SMS messages</string>
     <string name="listsms_inbox_command">/listsms inbox - List inbox messages\n/listsms sent - List sent messages</string>

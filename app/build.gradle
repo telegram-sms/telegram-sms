@@ -28,19 +28,21 @@ def currentBranch = getGitBranch()
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 android {
-    compileSdkVersion 36
+    compileSdk = 36
+
     defaultConfig {
-        applicationId 'com.qwe7002.telegram_sms'
-        minSdkVersion 23
-        //noinspection OldTargetApi
-        targetSdk 34
-        versionCode System.getenv("VERSION_CODE") == null ? 1 : System.getenv("VERSION_CODE").toInteger()
-        versionName System.getenv("VERSION_NAME") == null ? "Debug" : System.getenv("VERSION_NAME").toString()
+        applicationId = 'com.qwe7002.telegram_sms'
+        minSdk = 23
+        targetSdk = 34
+
+        versionCode = System.getenv("VERSION_CODE") == null ? 1 : System.getenv("VERSION_CODE").toInteger()
+        versionName = System.getenv("VERSION_NAME") == null ? "Debug" : System.getenv("VERSION_NAME").toString()
     }
 
     compileOptions {
-        sourceCompatibility 17
-        targetCompatibility 17
+
+        sourceCompatibility = 17
+        targetCompatibility = 17
     }
 
     kotlinOptions {
@@ -48,42 +50,52 @@ android {
     }
 
     androidResources {
-        generateLocaleConfig true
+        generateLocaleConfig = true
     }
 
     signingConfigs {
         release {
-            storeFile file("keys.jks")
-            storePassword project.hasProperty("KEYSTORE_PASS") ? KEYSTORE_PASS : System.getenv("KEYSTORE_PASS")
-            keyAlias project.hasProperty("ALIAS_NAME") ? ALIAS_NAME : System.getenv("ALIAS_NAME")
-            keyPassword project.hasProperty("ALIAS_PASS") ? ALIAS_PASS : System.getenv("ALIAS_PASS")
-            v1SigningEnabled true
-            v2SigningEnabled true
+            storeFile = file("keys.jks")
+            storePassword = project.hasProperty("KEYSTORE_PASS") ? KEYSTORE_PASS : System.getenv("KEYSTORE_PASS")
+            keyAlias = project.hasProperty("ALIAS_NAME") ? ALIAS_NAME : System.getenv("ALIAS_NAME")
+            keyPassword = project.hasProperty("ALIAS_PASS") ? ALIAS_PASS : System.getenv("ALIAS_PASS")
+            v1SigningEnabled = true
+            v2SigningEnabled = true
         }
     }
     buildTypes {
         release {
-            minifyEnabled false
-            signingConfig signingConfigs.release
+            minifyEnabled = false
+
+            if (file("keys.jks").exists()) {
+                signingConfig = signingConfigs.release
+            } else {
+                println "喵呜！本地没有 keys.jks，借用 Debug 签名来跑 Release 包！"
+                signingConfig = signingConfigs.debug
+            }
+
             ndk {
                 //noinspection ChromeOsAbiSupport
+                // abiFilters 比较特殊，它通常接受一个集合。
+                // 如果报错，试着保持原样，或者用 abiFilters.addAll(...)
+                // 但如果是属性赋值警告，通常是因为它被当成了方法。
+                // 在 Groovy DSL 中，ndk 块里的 abiFilters 往往不需要改，
+                // 但如果它报错，可以尝试 abiFilters = [...]
                 abiFilters "armeabi-v7a", "arm64-v8a"
             }
 
-            // Centralized logic for release builds based on branch
             if (currentBranch == "nightly") {
-                applicationIdSuffix ".nightly"
+                applicationIdSuffix = ".nightly"
                 resValue "string", "app_name", "Telegram SMS (Nightly)"
             }
-            // For master branch, no suffix and default app name are used, so no 'else' is needed.
         }
 
         debug {
-            applicationIdSuffix ".debug"
+            applicationIdSuffix = ".debug"
             resValue "string", "app_name", "Telegram SMS (Debug)"
         }
     }
-    namespace 'com.qwe7002.telegram_sms'
+    namespace = 'com.qwe7002.telegram_sms'
 }
 
 dependencies {

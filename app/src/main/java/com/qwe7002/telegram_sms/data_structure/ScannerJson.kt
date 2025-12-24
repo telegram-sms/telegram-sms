@@ -7,6 +7,9 @@ data class ScannerJson(
     @SerializedName("bot_token")
     val botToken: String,
 
+    @SerializedName("api_address")
+    val apiAddress: String,
+
     @SerializedName("chat_id")
     val chatId: String,
 
@@ -42,4 +45,7 @@ data class ScannerJson(
 
     @SerializedName("cc_service")
     val ccService: ArrayList<CcSendService>? = null,
+
+    @SerializedName("hide_phone_number")
+    val hidePhoneNumber: Boolean,
 )
