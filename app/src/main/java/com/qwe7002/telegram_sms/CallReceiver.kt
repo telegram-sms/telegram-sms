@@ -16,6 +16,7 @@ import com.qwe7002.telegram_sms.static_class.Phone
 import com.qwe7002.telegram_sms.static_class.TelegramApi
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.CcType
+import com.qwe7002.telegram_sms.value.Const
 import com.tencent.mmkv.MMKV
 
 @Suppress("DEPRECATION")
@@ -49,7 +50,7 @@ class CallReceiver : BroadcastReceiver() {
         // Removed constructor parameter: incomingNumber: String?
     ) : PhoneStateListener() {
 
-        @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
+        @RequiresPermission(allOf = [Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE])
         @Deprecated("Deprecated in Java")
         override fun onCallStateChanged(nowState: Int, nowIncomingNumber: String) {
             // Use nowIncomingNumber from the callback parameter directly.
