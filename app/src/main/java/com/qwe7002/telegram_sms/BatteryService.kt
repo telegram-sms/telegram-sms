@@ -18,6 +18,7 @@ import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.TelegramApi
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.CcType
+import com.qwe7002.telegram_sms.value.Const
 import com.qwe7002.telegram_sms.value.Notify
 import com.tencent.mmkv.MMKV
 import java.util.Objects
@@ -173,7 +174,7 @@ class BatteryService : Service() {
 
     internal inner class batteryChangeReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            Log.d(this::class.simpleName, "Receive action: " + intent.action)
+            Log.d(Const.TAG, "Receive action: " + intent.action)
 
             val action = intent.action
             val batteryManager = context.getSystemService(BATTERY_SERVICE) as BatteryManager
@@ -183,14 +184,14 @@ class BatteryService : Service() {
                 Intent.ACTION_POWER_CONNECTED -> context.getString(R.string.charger_connect)
                 Intent.ACTION_POWER_DISCONNECTED -> context.getString(R.string.charger_disconnect)
                 else -> {
-                    Log.e(this::class.simpleName, "Unknown action: $action")
+                    Log.e(Const.TAG, "Unknown action: $action")
                     return
                 }
             }
             var batteryLevel =
                 batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
             if (batteryLevel > 100) {
-                Log.d(this::class.simpleName, "The previous battery is over 100%, and the correction is 100%.")
+                Log.d(Const.TAG, "The previous battery is over 100%, and the correction is 100%.")
                 batteryLevel = 100
             }
             val result = Template.render(

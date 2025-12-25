@@ -382,7 +382,7 @@ class ChatService : Service() {
                             "sent" -> getString(R.string.sms_type_sent)
                             else -> getString(R.string.sms_type_all)
                         }
-                        requestBody.text = buildSmsListMessage(smsList, typeLabel, 0, totalPages)
+                        requestBody.text = buildSmsListMessage(smsList, typeLabel)
                         val keyboardMarkup = KeyboardMarkup().apply {
                             inlineKeyboard = createSmsListKeyboard(
                                 smsList.map { it.id },
@@ -655,7 +655,7 @@ class ChatService : Service() {
                         "sent" -> getString(R.string.sms_type_sent)
                         else -> getString(R.string.sms_type_all)
                     }
-                    requestBody.text = buildSmsListMessage(smsList, typeLabel, page, totalPages)
+                    requestBody.text = buildSmsListMessage(smsList, typeLabel)
                     val keyboardMarkup = KeyboardMarkup().apply {
                         inlineKeyboard = createSmsListKeyboard(smsList.map { it.id }, page, totalPages, smsType)
                     }
@@ -727,7 +727,8 @@ class ChatService : Service() {
                     ) {
                         val (smsList, totalPages) = SMS.getSmsList(applicationContext, "all", 0, 5)
                         if (smsList.isNotEmpty()) {
-                            requestBody.text = buildSmsListMessage(smsList, getString(R.string.sms_type_all), 0, totalPages)
+                            requestBody.text = buildSmsListMessage(smsList, getString(R.string.sms_type_all)
+                            )
                             val keyboardMarkup = KeyboardMarkup().apply {
                                 inlineKeyboard = createSmsListKeyboard(smsList.map { it.id }, 0, totalPages, "all")
                             }
@@ -740,7 +741,7 @@ class ChatService : Service() {
         }
     }
 
-    private fun buildSmsListMessage(smsList: List<SmsInfo>, typeLabel: String, page: Int, totalPages: Int): String {
+    private fun buildSmsListMessage(smsList: List<SmsInfo>, typeLabel: String): String {
         val header = String.format(getString(R.string.sms_list_header), typeLabel)
         val builder = StringBuilder()
         builder.append(header).append("\n")

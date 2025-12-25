@@ -15,6 +15,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import com.qwe7002.telegram_sms.R
+import com.qwe7002.telegram_sms.value.Const
 
 @Suppress("DEPRECATION")
 object ChatCommand {
@@ -126,7 +127,7 @@ object ChatCommand {
                 networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> return "WIFI"
                 networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
                     if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-                        Log.d(this::class.simpleName, "No permission.")
+                        Log.d(Const.TAG, "No permission.")
                         continue
                     }
                     return checkCellularNetworkType(telephonyManager.dataNetworkType)
@@ -149,7 +150,7 @@ object ChatCommand {
 
     @SuppressLint("LongLogTag")
     private fun checkCellularNetworkType(type: Int): String {
-        Log.d(this::class.simpleName, "checkCellularNetworkType: $type")
+        Log.d(Const.TAG, "checkCellularNetworkType: $type")
         return when (type) {
             TelephonyManager.NETWORK_TYPE_NR -> "NR"
             TelephonyManager.NETWORK_TYPE_LTE -> "LTE"

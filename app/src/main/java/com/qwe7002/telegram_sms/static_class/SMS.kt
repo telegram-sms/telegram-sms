@@ -142,14 +142,14 @@ object SMS {
     }
 
     @JvmStatic
-    @RequiresPermission(allOf = [Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE])
+    @RequiresPermission(allOf = [Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE])
     fun sendSms(context: Context, sendTo: String, content: String, slot: Int, subId: Int) {
         send(context, sendTo, content, slot, subId, -1)
     }
 
     @JvmStatic
     @SuppressLint("UnspecifiedImmutableFlag", "UnspecifiedRegisterReceiverFlag")
-    @RequiresPermission(allOf = [Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE])
+    @RequiresPermission(allOf = [Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE])
     fun send(
         context: Context,
         sendTo: String,
@@ -169,7 +169,7 @@ object SMS {
         val messageThreadId = preferences.getString("message_thread_id", "")!!
         var requestUri = Network.getUrl(botToken, "sendMessage")
         if (messageId != -1L) {
-            Log.d(this::class.simpleName, "Find the message_id and switch to edit mode.")
+            Log.d(Const.TAG, "Find the message_id and switch to edit mode.")
             requestUri = Network.getUrl(botToken, "editMessageText")
         }
         val requestBody = RequestMessage()

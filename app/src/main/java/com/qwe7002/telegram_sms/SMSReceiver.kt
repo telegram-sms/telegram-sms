@@ -21,13 +21,14 @@ import com.qwe7002.telegram_sms.static_class.TelegramApi
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.USSD
 import com.qwe7002.telegram_sms.value.CcType
+import com.qwe7002.telegram_sms.value.Const
 import com.tencent.mmkv.MMKV
 import java.util.Locale
 
 class SMSReceiver : BroadcastReceiver() {
     @Suppress("DEPRECATION")
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(this::class.simpleName, "Receive action: " + intent.action)
+        Log.d(Const.TAG, "Receive action: " + intent.action)
         val extras = intent.extras!!
         val preferences = MMKV.defaultMMKV()
         if (!preferences.getBoolean("initialized", false)) {
@@ -62,7 +63,7 @@ class SMSReceiver : BroadcastReceiver() {
         val dualSim = try {
             Phone.getSimDisplayName(context, slot)
         } catch (e: SecurityException) {
-            Log.e(this::class.simpleName, "Failed to get SIM display name due to missing permission: ${e.message}")
+            Log.e(Const.TAG, "Failed to get SIM display name due to missing permission: ${e.message}")
             "Unknown"
         }
 

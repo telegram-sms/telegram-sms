@@ -254,7 +254,7 @@ class MainActivity : AppCompatActivity() {
             val errorHead = "Get chat ID failed: "
             call.enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    Log.d(this::class.simpleName, "onFailure: $e")
+                    Log.d(Const.TAG, "onFailure: $e")
                     progressDialog.cancel()
                     val message = errorHead + e.message
                     Log.e("MainActivity", message)
@@ -283,7 +283,7 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     val result = response.body.string()
-                    Log.d(this::class.simpleName, "onResponse: $result")
+                    Log.d(Const.TAG, "onResponse: $result")
                     try {
                         val resultObj = JsonParser.parseString(result).asJsonObject
                         val chatList = resultObj.getAsJsonArray("result")
@@ -450,7 +450,7 @@ class MainActivity : AppCompatActivity() {
             val errorHead = "Send message failed: "
             call.enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    Log.d(this::class.simpleName, "onFailure: $e")
+                    Log.d(Const.TAG, "onFailure: $e")
                     progressDialog.cancel()
                     val errorMessage = errorHead + e.message
                     Log.e("MainActivity", errorMessage)
@@ -547,7 +547,7 @@ class MainActivity : AppCompatActivity() {
             packageInfo = packageManager.getPackageInfo(applicationContext.packageName, 0)
             currentVersionCode = packageInfo.versionCode
         } catch (e: PackageManager.NameNotFoundException) {
-            Log.d(this::class.simpleName, "checkVersionUpgrade: $e")
+            Log.d(Const.TAG, "checkVersionUpgrade: $e")
             return
         }
         if (versionCode != currentVersionCode) {
@@ -592,7 +592,7 @@ class MainActivity : AppCompatActivity() {
             try {
                 customTabsIntent.launchUrl(applicationContext, uri)
             } catch (e: ActivityNotFoundException) {
-                Log.d(this::class.simpleName, "showPrivacyDialog: $e")
+                Log.d(Const.TAG, "showPrivacyDialog: $e")
                 Snackbar.make(
                     findViewById(R.id.bot_token_editview),
                     "Browser not found.",
@@ -660,7 +660,7 @@ class MainActivity : AppCompatActivity() {
             packageInfo = packageManager.getPackageInfo(applicationContext.packageName, 0)
             versionName = packageInfo.versionName.toString()
         } catch (e: PackageManager.NameNotFoundException) {
-            Log.d(this::class.simpleName, "onOptionsItemSelected: $e")
+            Log.d(Const.TAG, "onOptionsItemSelected: $e")
         }
         if (versionName == "unknown" || versionName == "Debug" || versionName.startsWith("nightly")) {
             showErrorDialog("Debug version can not check update.")
@@ -694,7 +694,7 @@ class MainActivity : AppCompatActivity() {
                     Log.e("MainActivity", errorMessage)
                 }
                 val jsonString = response.body.string()
-                Log.d(this::class.simpleName, "onResponse: $jsonString")
+                Log.d(Const.TAG, "onResponse: $jsonString")
                 val gson = Gson()
                 val release = gson.fromJson(jsonString, GitHubRelease::class.java)
                 if (release.tagName != versionName) {
@@ -708,7 +708,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call, e: IOException) {
-                Log.d(this::class.simpleName, "onFailure: $e")
+                Log.d(Const.TAG, "onFailure: $e")
                 progressDialog.cancel()
                 val errorMessage = errorHead + e.message
                 Log.e("MainActivity", errorMessage)
@@ -746,7 +746,7 @@ class MainActivity : AppCompatActivity() {
                     packageInfo = packageManager.getPackageInfo(applicationContext.packageName, 0)
                     versionName = packageInfo.versionName
                 } catch (e: PackageManager.NameNotFoundException) {
-                    Log.d(this::class.simpleName, "onOptionsItemSelected: $e")
+                    Log.d(Const.TAG, "onOptionsItemSelected: $e")
                 }
                 val builder = AlertDialog.Builder(this)
                 builder.setTitle(R.string.about_title)
@@ -915,7 +915,7 @@ class MainActivity : AppCompatActivity() {
         try {
             customTabsIntent.launchUrl(this, uri)
         } catch (e: ActivityNotFoundException) {
-            Log.d(this::class.simpleName, "onOptionsItemSelected: $e")
+            Log.d(Const.TAG, "onOptionsItemSelected: $e")
             showErrorDialog(getString(R.string.browser_not_found))
         }
         return true
@@ -1039,7 +1039,7 @@ class MainActivity : AppCompatActivity() {
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 progressDialog.cancel()
-                Log.e(this::class.simpleName, "onFailure: ", e)
+                Log.e(Const.TAG, "onFailure: ", e)
             }
 
             override fun onResponse(call: Call, response: Response) {

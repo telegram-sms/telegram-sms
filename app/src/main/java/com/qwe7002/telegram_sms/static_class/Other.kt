@@ -15,6 +15,7 @@ import com.google.gson.JsonParser
 import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.qwe7002.telegram_sms.R
 import com.qwe7002.telegram_sms.data_structure.SMSRequestInfo
+import com.qwe7002.telegram_sms.value.Const
 import com.tencent.mmkv.MMKV
 import java.util.Locale
 
@@ -68,7 +69,7 @@ object Other {
         while (--i >= 0) {
             val c = str[i]
             if (c == '+') {
-                Log.d(this::class.simpleName, "is_phone_number: found +.")
+                Log.d(Const.TAG, "is_phone_number: found +.")
                 continue
             }
             if (!Character.isDigit(c)) {
@@ -148,7 +149,7 @@ object Other {
                 Manifest.permission.READ_PHONE_STATE
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            Log.d(this::class.simpleName, "No permission.")
+            Log.d(Const.TAG, "No permission.")
             return -1
         }
         val subscriptionManager =
@@ -165,6 +166,6 @@ object Other {
         val itemString = gson.toJson(item)
         val chatInfoMMKV = MMKV.mmkvWithID(MMKVConst.CHAT_INFO_ID)
         chatInfoMMKV.putString(messageId.toString(), itemString)
-        Log.d(this::class.simpleName, "add_message_list: $messageId")
+        Log.d(Const.TAG, "add_message_list: $messageId")
     }
 }

@@ -12,7 +12,7 @@ import com.tencent.mmkv.MMKV
 
 class SMSSendResultReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(this::class.simpleName, "Receive action: " + intent.action)
+        Log.d(Const.TAG, "Receive action: " + intent.action)
         val extras = intent.extras!!
         val sub = extras.getInt("sub_id")
         val sharedPreferences = MMKV.defaultMMKV()
@@ -26,8 +26,8 @@ class SMSSendResultReceiver : BroadcastReceiver() {
         var method = "sendMessage"
         val messageId = extras.getLong("message_id")
         if (messageId != -1L) {
-            Log.d(this::class.simpleName, "Find the message_id and switch to edit mode.")
-            Log.d(this::class.simpleName, "onReceive: $messageId")
+            Log.d(Const.TAG, "Find the message_id and switch to edit mode.")
+            Log.d(Const.TAG, "onReceive: $messageId")
             method = "editMessageText"
             requestBody.messageId = messageId
         }

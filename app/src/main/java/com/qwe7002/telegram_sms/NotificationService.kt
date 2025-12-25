@@ -14,6 +14,7 @@ import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.CcType
 import com.tencent.mmkv.MMKV
 import com.google.gson.Gson
+import com.qwe7002.telegram_sms.value.Const
 
 class NotificationService : NotificationListenerService() {
     lateinit var preferences: MMKV
@@ -26,7 +27,7 @@ class NotificationService : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         val packageName = sbn.packageName
-        Log.d(this::class.simpleName, "onNotificationPosted: $packageName")
+        Log.d(Const.TAG, "onNotificationPosted: $packageName")
 
         if (!preferences.getBoolean("initialized", false)) {
             Log.i(this::class.simpleName, "Uninitialized, Notification receiver is deactivated.")
@@ -43,7 +44,7 @@ class NotificationService : NotificationListenerService() {
         }
         val extras = sbn.notification.extras!!
         var appName = "unknown"
-        Log.d(this::class.simpleName, "onNotificationPosted: $appNameList")
+        Log.d(Const.TAG, "onNotificationPosted: $appNameList")
         if (appNameList.containsKey(packageName)) {
             appName = appNameList[packageName].toString()
         } else {
@@ -53,7 +54,7 @@ class NotificationService : NotificationListenerService() {
                 appName = pm.getApplicationLabel(applicationInfo) as String
                 appNameList[packageName] = appName
             } catch (e: PackageManager.NameNotFoundException) {
-                Log.e(this::class.simpleName, "onNotificationPosted: ", e)
+                Log.e(Const.TAG, "onNotificationPosted: ", e)
             }
         }
 
