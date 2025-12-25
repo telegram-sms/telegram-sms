@@ -798,25 +798,20 @@ class MainActivity : AppCompatActivity() {
 
             R.id.set_proxy_menu_item -> {
                 val view = inflater.inflate(R.layout.set_proxy_layout, null)
-                val dohSwitch = findViewById<SwitchMaterial>(R.id.doh_switch)
                 val proxyEnable = view.findViewById<SwitchMaterial>(R.id.proxy_enable_switch)
                 val proxyHost = view.findViewById<EditText>(R.id.proxy_host_editview)
                 val proxyPort = view.findViewById<EditText>(R.id.proxy_port_editview)
                 val proxyUsername = view.findViewById<EditText>(R.id.proxy_username_editview)
                 val proxyPassword = view.findViewById<EditText>(R.id.proxy_password_editview)
                 val proxyMMKV = MMKV.mmkvWithID(MMKVConst.PROXY_ID)
-                proxyEnable.isChecked = proxyMMKV.getBoolean("proxy_enable", false)
+                proxyEnable.isChecked = proxyMMKV.getBoolean("enable", false)
                 proxyHost.setText(proxyMMKV.getString("host", ""))
-                proxyPort.setText(proxyMMKV.getInt("port", 0).toString())
+                proxyPort.setText(proxyMMKV.getInt("port", 100).toString())
                 proxyUsername.setText(proxyMMKV.getString("username", ""))
                 proxyPassword.setText(proxyMMKV.getString("password", ""))
                 AlertDialog.Builder(this).setTitle(R.string.proxy_dialog_title)
                     .setView(view)
                     .setPositiveButton(R.string.ok_button) { _: DialogInterface?, _: Int ->
-                        if (!dohSwitch.isChecked) {
-                            dohSwitch.isChecked = true
-                        }
-                        dohSwitch.isEnabled = !proxyEnable.isChecked
                         proxyMMKV.putBoolean("enable", proxyEnable.isChecked)
                         proxyMMKV.putString("host", proxyHost.text.toString())
                         proxyMMKV.putInt("port", proxyPort.text.toString().toInt())
