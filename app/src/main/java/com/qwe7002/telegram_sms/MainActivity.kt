@@ -809,9 +809,30 @@ class MainActivity : AppCompatActivity() {
                 proxyPort.setText(proxyMMKV.getInt("port", 100).toString())
                 proxyUsername.setText(proxyMMKV.getString("username", ""))
                 proxyPassword.setText(proxyMMKV.getString("password", ""))
-                AlertDialog.Builder(this).setTitle(R.string.proxy_dialog_title)
+                val dialog = AlertDialog.Builder(this).setTitle(R.string.proxy_dialog_title)
                     .setView(view)
-                    .setPositiveButton(R.string.ok_button) { _: DialogInterface?, _: Int ->
+                    .setPositiveButton(R.string.ok_button,null)
+                    .show()
+                val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                positiveButton.setOnClickListener({
+                    var hasError = false
+                    if(proxyEnable.isChecked) {
+                        if(proxyHost.text.toString().isEmpty()) {
+                            view.findViewById<TextInputLayout>(R.id.proxy_host_layout).error="Proxy host can not be empty."
+                            hasError = true
+                        }
+                        val portLayout = view.findViewById<TextInputLayout>(R.id.proxy_port_layout)
+                        if(proxyPort.text.toString().isEmpty()) {
+                            portLayout.error="Proxy port can not be empty."
+                            hasError = true
+                        }
+                        val port = proxyPort.text.toString().toInt()
+                        if(port !in 1..65535) {
+                            portLayout.error="Proxy port must be between 1 and 65535."
+                            hasError = true
+                        }
+                    }
+                    if(!hasError) {
                         proxyMMKV.putBoolean("enable", proxyEnable.isChecked)
                         proxyMMKV.putString("host", proxyHost.text.toString())
                         proxyMMKV.putInt("port", proxyPort.text.toString().toInt())
@@ -830,8 +851,10 @@ class MainActivity : AppCompatActivity() {
                                 )
                             }
                         }.start()
+                        dialog.dismiss()
                     }
-                    .show()
+                })
+
                 return true
             }
 
