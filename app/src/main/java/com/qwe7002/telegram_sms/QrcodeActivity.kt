@@ -35,6 +35,8 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import android.text.TextWatcher
 import android.text.Editable
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.tencent.mmkv.MMKV
 import okio.IOException
@@ -47,6 +49,14 @@ class QrcodeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_qrcode)
+        // Handle window insets for edge-to-edge
+        val rootView = findViewById<View>(android.R.id.content)
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+        FakeStatusBar().fakeStatusBar(this, window)
         preferences = MMKV.defaultMMKV()
         okhttpObject = Network.getOkhttpObj(
             preferences.getBoolean("doh_switch", true)

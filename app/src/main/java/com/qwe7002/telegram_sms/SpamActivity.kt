@@ -11,6 +11,8 @@ import android.widget.EditText
 import android.widget.ListView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.tencent.mmkv.MMKV
 
@@ -22,7 +24,13 @@ class SpamActivity : AppCompatActivity() {
         val inflater = this.layoutInflater
         val fab = findViewById<FloatingActionButton>(R.id.spam_list_fab)
         val spamList = findViewById<ListView>(R.id.spam_list)
-
+        // Handle window insets for edge-to-edge
+        ViewCompat.setOnApplyWindowInsetsListener(spamList) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+        FakeStatusBar().fakeStatusBar(this, window)
         val preferences = MMKV.defaultMMKV()
         val blockKeywordList =
             preferences.getStringSet("block_keyword_list", setOf())?.toMutableList()

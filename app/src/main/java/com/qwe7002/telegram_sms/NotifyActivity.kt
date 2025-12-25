@@ -17,6 +17,8 @@ import android.widget.ProgressBar
 import android.widget.SearchView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.tencent.mmkv.MMKV
@@ -54,6 +56,17 @@ class NotifyActivity : AppCompatActivity() {
         MMKV.initialize(applicationContext)
         this.title = getString(R.string.app_list)
         setContentView(R.layout.activity_notify_apps_list)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.notify_linear_layout)) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.progress_view)) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+        FakeStatusBar().fakeStatusBar(this, window)
         val appList = findViewById<ListView>(R.id.app_listview)
         val filterEdit = findViewById<SearchView>(R.id.filter_searchview)
         filterEdit.isIconifiedByDefault = false

@@ -63,6 +63,7 @@ class CcActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        FakeStatusBar().fakeStatusBar(this, window)
         val inflater = this.layoutInflater
         val fab = findViewById<FloatingActionButton>(R.id.cc_fab)
         val ccList = findViewById<ListView>(R.id.cc_list)
