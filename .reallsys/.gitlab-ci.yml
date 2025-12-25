@@ -88,13 +88,13 @@ cache:
       echo "Release Tag: ${RELEASE_TAG}"
       echo "Version Code: ${VERSION_CODE}"
 
-.build_apk: &build_apk
+.build_apk:
   script:
     - |
       echo "==> Building APK..."
       ./gradlew clean assembleRelease --stacktrace --no-daemon
 
-.deploy_to_github: &deploy_to_github
+.deploy_to_github:
   script:
     - |
       echo "==> Validating GitHub credentials..."
