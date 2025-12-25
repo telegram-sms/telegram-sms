@@ -8,6 +8,7 @@ import android.telephony.SmsManager
 import android.util.Log
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.TelegramApi
+import com.qwe7002.telegram_sms.value.Const
 import com.tencent.mmkv.MMKV
 
 class SMSSendResultReceiver : BroadcastReceiver() {

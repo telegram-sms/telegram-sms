@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.qwe7002.telegram_sms.value.Const
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -116,7 +117,7 @@ class LogActivity : AppCompatActivity() {
 
                 // Start logcat process filtering by PID
                 logcatProcess = Runtime.getRuntime().exec(
-                    arrayOf("logcat", "-v", "time", "--pid=$pid", "-t", "500")
+                    arrayOf("logcat", "-s", Const.TAG + ":*:V", "-v", "time", "-t", "500")
                 )
 
                 val reader = BufferedReader(InputStreamReader(logcatProcess?.inputStream))
@@ -136,7 +137,8 @@ class LogActivity : AppCompatActivity() {
 
     private fun parseLogLine(id: Long, line: String): LogEntry {
         // Logcat format with -v time: "MM-DD HH:MM:SS.mmm D/Tag(PID): Message"
-        val regex = Regex("""^(\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3})\s+([VDIWEF])/([^(]+)\(\s*\d+\):\s*(.*)$""")
+        val regex =
+            Regex("""^(\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3})\s+([VDIWEF])/([^(]+)\(\s*\d+\):\s*(.*)$""")
         val match = regex.find(line)
 
         return if (match != null) {

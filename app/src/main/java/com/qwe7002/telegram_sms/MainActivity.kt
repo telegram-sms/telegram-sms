@@ -71,7 +71,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         // Handle window insets for edge-to-edge on ScrollView
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_scroll_view)) { view, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
