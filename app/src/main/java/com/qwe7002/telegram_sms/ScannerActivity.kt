@@ -5,7 +5,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import com.budiyev.android.codescanner.CodeScanner
 import com.budiyev.android.codescanner.CodeScannerView
 import com.budiyev.android.codescanner.DecodeCallback
@@ -20,9 +22,14 @@ class ScannerActivity : Activity() {
     public override fun onCreate(state: Bundle?) {
         super.onCreate(state)
         setContentView(R.layout.activity_scanner)
-        // Enable edge-to-edge using WindowCompat
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         val scannerView = findViewById<CodeScannerView>(R.id.scanner_view)
+        // Handle window insets for edge-to-edge on ScrollView
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.scanner_container)) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
         mCodeScanner = CodeScanner(this, scannerView)
         mCodeScanner.formats = object : ArrayList<BarcodeFormat?>() {
             init {
