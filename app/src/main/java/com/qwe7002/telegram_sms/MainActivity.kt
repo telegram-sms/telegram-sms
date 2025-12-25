@@ -256,7 +256,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d(Const.TAG, "onFailure: $e")
                     progressDialog.cancel()
                     val message = errorHead + e.message
-                    Log.e("MainActivity", message)
+                    Log.e(Const.TAG, message)
                     runOnUiThread {
                         showErrorDialog(message)
                     }
@@ -270,12 +270,12 @@ class MainActivity : AppCompatActivity() {
                         try {
                             val resultObj = JsonParser.parseString(result).asJsonObject
                             val errorMessage = errorHead + resultObj["description"].asString
-                            Log.e("MainActivity", errorMessage)
+                            Log.e(Const.TAG, errorMessage)
                             runOnUiThread { showErrorDialog(errorMessage) }
                         } catch (e: Exception) {
                             e.printStackTrace()
                             val errorMessage = errorHead + "Failed to parse error response"
-                            Log.e("MainActivity", errorMessage)
+                            Log.e(Const.TAG, errorMessage)
                             runOnUiThread { showErrorDialog(errorMessage) }
                         }
                         return
@@ -350,7 +350,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     } catch (e: Exception) {
                         val errorMessage = errorHead + "Failed to parse response: ${e.message}"
-                        Log.e("MainActivity", errorMessage)
+                        Log.e(Const.TAG, errorMessage)
                         runOnUiThread { showErrorDialog(errorMessage) }
                     }
                 }
@@ -452,7 +452,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d(Const.TAG, "onFailure: $e")
                     progressDialog.cancel()
                     val errorMessage = errorHead + e.message
-                    Log.e("MainActivity", errorMessage)
+                    Log.e(Const.TAG, errorMessage)
                     runOnUiThread {
                         showErrorDialog(errorMessage)
                     }
@@ -468,14 +468,14 @@ class MainActivity : AppCompatActivity() {
                         try {
                             val resultObj = JsonParser.parseString(result).asJsonObject
                             val errorMessage = errorHead + resultObj["description"]
-                            Log.e("MainActivity", errorMessage)
+                            Log.e(Const.TAG, errorMessage)
                             runOnUiThread {
                                 showErrorDialog(errorMessage)
                             }
                         } catch (e: Exception) {
                             e.printStackTrace()
                             val errorMessage = errorHead + "Failed to parse error response"
-                            Log.e("MainActivity", errorMessage)
+                            Log.e(Const.TAG, errorMessage)
                             runOnUiThread { showErrorDialog(errorMessage) }
                         }
                         return
@@ -690,7 +690,7 @@ class MainActivity : AppCompatActivity() {
                 progressDialog.cancel()
                 if (!response.isSuccessful) {
                     val errorMessage = errorHead + response.code
-                    Log.e("MainActivity", errorMessage)
+                    Log.e(Const.TAG, errorMessage)
                 }
                 val jsonString = response.body.string()
                 Log.d(Const.TAG, "onResponse: $jsonString")
@@ -710,7 +710,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d(Const.TAG, "onFailure: $e")
                 progressDialog.cancel()
                 val errorMessage = errorHead + e.message
-                Log.e("MainActivity", errorMessage)
+                Log.e(Const.TAG, errorMessage)
                 runOnUiThread {
                     showErrorDialog(errorMessage)
                 }

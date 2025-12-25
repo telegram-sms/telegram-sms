@@ -64,7 +64,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class ChatService : Service() {
     companion object {
-        private const val TAG = "ChatService"
         private var RequestOffset: Long = 0
         private lateinit var sharedPreferences: MMKV
         private var sendSmsNextStatus = SEND_SMS_STATUS.STANDBY_STATUS
@@ -96,7 +95,7 @@ class ChatService : Service() {
                 process.destroy()
                 logBuilder.toString().trim().ifEmpty { "No logs available" }
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to read logcat: ${e.message}", e)
+                Log.e(Const.TAG, "Failed to read logcat: ${e.message}", e)
                 "Failed to read logs: ${e.message}"
             }
         }
@@ -135,7 +134,7 @@ class ChatService : Service() {
         val updateId = resultObj["update_id"].asLong
         RequestOffset = updateId + 1
         if (getIdOnly) {
-            Log.d(TAG, "Receive handle: Get ID only mode, update_id=$updateId")
+            Log.d(Const.TAG, "Receive handle: Get ID only mode, update_id=$updateId")
             return
         }
         var messageType = ""
@@ -192,7 +191,7 @@ class ChatService : Service() {
                 val okhttpObj = getOkhttpObj(
                     sharedPreferences.getBoolean("doh_switch", false)
                 )
-                Log.d(TAG,"doh switch status: "+ sharedPreferences.getBoolean("doh_switch", false))
+                Log.d(Const.TAG,"doh switch status: "+ sharedPreferences.getBoolean("doh_switch", false))
                 val request: Request =
                     Request.Builder().url(requestUri).method("POST", body).build()
                 val call = okhttpObj.newCall(request)
@@ -202,7 +201,7 @@ class ChatService : Service() {
                         throw IOException(response.code.toString())
                     }
                 } catch (e: IOException) {
-                    Log.e(TAG, "Failed to edit message: ${e.message}", e)
+                    Log.e(Const.TAG, "Failed to edit message: ${e.message}", e)
                 }
                 return
             }
@@ -228,7 +227,7 @@ class ChatService : Service() {
         if (jsonObject.has("from")) {
             fromObj = jsonObject["from"].asJsonObject
             if (!isPrivate && fromObj["is_bot"].asBoolean) {
-                Log.d(TAG, "Message from bot ignored")
+                Log.d(Const.TAG, "Message from bot ignored")
                 return
             }
         }
@@ -243,12 +242,12 @@ class ChatService : Service() {
                 fromTopicId = jsonObject["message_thread_id"].asString
             }
             if (messageThreadId != fromTopicId) {
-                Log.w(TAG, "Topic ID mismatch: expected=$messageThreadId, actual=$fromTopicId")
+                Log.w(Const.TAG, "Topic ID mismatch: expected=$messageThreadId, actual=$fromTopicId")
                 return
             }
         }
         if (chatId != fromId) {
-            Log.w(TAG, "Chat ID not authorized: $fromId")
+            Log.w(Const.TAG, "Chat ID not authorized: $fromId")
             return
         }
         var command = ""
@@ -297,10 +296,10 @@ class ChatService : Service() {
             }
         }
         if (!isPrivate && currentBotUsername != botUsername) {
-            Log.d(TAG, "Privacy mode: Bot username not matched, ignoring message")
+            Log.d(Const.TAG, "Privacy mode: Bot username not matched, ignoring message")
             return
         }
-        Log.d(TAG, "Command received: $command")
+        Log.d(Const.TAG, "Command received: $command")
         var hasCommand = false
         when (command) {
             "/help", "/start", "/commandlist" -> {
@@ -408,7 +407,7 @@ class ChatService : Service() {
                 chatMMKV.putInt("slot", sendSlot)
                 val msgSendList =
                     requestMsg.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                Log.d(TAG, "SMS send list size: ${msgSendList.size}")
+                Log.d(Const.TAG, "SMS send list size: ${msgSendList.size}")
                 if (msgSendList.size > 1) {
                     sendSmsNextStatus = SEND_SMS_STATUS.READY_TO_SEND_STATUS
                     val msgSendTo = getSendPhoneNumber(
@@ -431,7 +430,7 @@ class ChatService : Service() {
                     }
 
                 } else {
-                    Log.d(TAG, "Entering interactive SMS sending mode")
+                    Log.d(Const.TAG, "Entering interactive SMS sending mode")
                     sendSmsNextStatus = SEND_SMS_STATUS.PHONE_INPUT_STATUS
                 }
             }
@@ -439,7 +438,7 @@ class ChatService : Service() {
             else -> {
                 if (!isPrivate && sendSmsNextStatus == -1) {
                     if (messageType != "supergroup" || messageThreadId.isEmpty()) {
-                        Log.d(TAG, "Non-private conversation without topic, ignoring message")
+                        Log.d(Const.TAG, "Non-private conversation without topic, ignoring message")
                         return
                     }
                 }
@@ -451,11 +450,11 @@ class ChatService : Service() {
         }
 
         if (hasCommand) {
-            Log.d(TAG, "Command processed, entering standby state")
+            Log.d(Const.TAG, "Command processed, entering standby state")
             setSmsSendStatusStandby()
         }
         if (!hasCommand && sendSmsNextStatus != -1) {
-            Log.d(TAG, "Entering interactive SMS sending mode, status=$sendSmsNextStatus")
+            Log.d(Const.TAG, "Entering interactive SMS sending mode, status=$sendSmsNextStatus")
             //val sendSlotTemp = Paper.book("send_temp").read("slot", -1)!!
             val sendSlotTemp = chatMMKV.getInt("slot", -1)
             val dualSim = if (sendSlotTemp != -1) "SIM${sendSlotTemp + 1} " else ""
@@ -465,7 +464,7 @@ class ChatService : Service() {
                 "TPL_send_sms_chat",
                 mapOf("SIM" to dualSim, "Content" to getString(R.string.failed_to_get_information))
             )
-            Log.d(TAG, "Sending mode status: $sendSmsNextStatus")
+            Log.d(Const.TAG, "Sending mode status: $sendSmsNextStatus")
             resultSend = when (sendSmsNextStatus) {
                 SEND_SMS_STATUS.PHONE_INPUT_STATUS -> {
                     sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
@@ -540,7 +539,7 @@ class ChatService : Service() {
         val errorHead = "Send reply failed:"
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.e(TAG, "$errorHead ${e.message}", e)
+                Log.e(Const.TAG, "$errorHead ${e.message}", e)
                 addResendLoop(applicationContext, requestBody.text)
             }
 
@@ -548,7 +547,7 @@ class ChatService : Service() {
             override fun onResponse(call: Call, response: Response) {
                 val responseString = Objects.requireNonNull(response.body).string()
                 if (response.code != 200) {
-                    Log.e(TAG, "$errorHead ${response.code} $responseString")
+                    Log.e(Const.TAG, "$errorHead ${response.code} $responseString")
                     addResendLoop(applicationContext, requestBody.text)
                 }
                 if (sendSmsNextStatus == SEND_SMS_STATUS.SEND_STATUS) {
@@ -585,9 +584,9 @@ class ChatService : Service() {
         chatId = sharedPreferences.getString("chat_id", "")!!
         botToken = sharedPreferences.getString("bot_token", "")!!
         botUsername = sharedPreferences.getString("bot_username", "")!!
-        Log.d(TAG, "Chat ID: "+ chatId)
-        Log.d(TAG, "Bot token: "+ botToken)
-        Log.d(TAG, "Bot username: "+ botUsername)
+        Log.d(Const.TAG, "Chat ID: $chatId")
+        Log.d(Const.TAG, "Bot token: $botToken")
+        Log.d(Const.TAG, "Bot username: $botUsername")
         messageThreadId = sharedPreferences.getString("message_thread_id", "")!!
         okHttpClient = getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true)
@@ -633,7 +632,7 @@ class ChatService : Service() {
 
     @SuppressLint("MissingPermission")
     private fun handleSmsCallback(callbackData: String, messageId: Long, requestBody: RequestMessage) {
-        Log.d(TAG, "Handling SMS callback: $callbackData")
+        Log.d(Const.TAG, "Handling SMS callback: $callbackData")
         val parts = callbackData.split(":")
 
         when {
@@ -784,12 +783,12 @@ ${sms.body}
 
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.e(TAG, "Failed to edit message: ${e.message}", e)
+                Log.e(Const.TAG, "Failed to edit message: ${e.message}", e)
             }
 
             override fun onResponse(call: Call, response: Response) {
                 if (response.code != 200) {
-                    Log.e(TAG, "Failed to edit message: ${response.code}")
+                    Log.e(Const.TAG, "Failed to edit message: ${response.code}")
                 }
             }
         })
@@ -811,7 +810,7 @@ ${sms.body}
         private val NETWORK_CHECK_INTERVAL_MS = 5000L
 
         override fun run() {
-            Log.d(TAG, "Polling thread started")
+            Log.d(Const.TAG, "Polling thread started")
             var retryDelayMs = MIN_RETRY_DELAY_MS
 
             while (isRunning.get()) {
@@ -821,7 +820,7 @@ ${sms.body}
                 }
 
                 val requestUri = getUrl(botToken, "getUpdates")
-                Log.d(TAG, "Polling request: $requestUri")
+                Log.d(Const.TAG, "Polling request: $requestUri")
                 val requestBody = PollingBody().apply {
                     this.offset = RequestOffset
                     this.timeout = if (firstRequest) 0 else 60
@@ -844,31 +843,31 @@ ${sms.body}
                             // Reset retry delay on success
                             retryDelayMs = MIN_RETRY_DELAY_MS
                         } else {
-                            Log.w(TAG, "Polling response error: ${response.code}")
+                            Log.w(Const.TAG, "Polling response error: ${response.code}")
                             sleepWithCheck(retryDelayMs)
                             retryDelayMs = (retryDelayMs * 2).coerceAtMost(MAX_RETRY_DELAY_MS)
                         }
                     }
                 } catch (e: IOException) {
                     if (!isRunning.get()) {
-                        Log.d(TAG, "Polling thread interrupted, exiting")
+                        Log.d(Const.TAG, "Polling thread interrupted, exiting")
                         break
                     }
-                    Log.e(TAG, "Polling error: ${e.message}", e)
+                    Log.e(Const.TAG, "Polling error: ${e.message}", e)
                     sleepWithCheck(retryDelayMs)
                     retryDelayMs = (retryDelayMs * 2).coerceAtMost(MAX_RETRY_DELAY_MS)
                 } catch (e: Exception) {
-                    Log.e(TAG, "Unexpected error in polling loop", e)
+                    Log.e(Const.TAG, "Unexpected error in polling loop", e)
                     sleepWithCheck(retryDelayMs)
                     retryDelayMs = (retryDelayMs * 2).coerceAtMost(MAX_RETRY_DELAY_MS)
                 }
             }
-            Log.d(TAG, "Polling thread stopped")
+            Log.d(Const.TAG, "Polling thread stopped")
         }
 
         private fun waitForNetwork(): Boolean {
             while (isRunning.get() && !checkNetworkStatus(applicationContext)) {
-                Log.w(TAG, "No network available, waiting for recovery...")
+                Log.w(Const.TAG, "No network available, waiting for recovery...")
                 sleepWithCheck(NETWORK_CHECK_INTERVAL_MS)
             }
             return isRunning.get()
@@ -879,7 +878,7 @@ ${sms.body}
                 Thread.sleep(delayMs)
             } catch (_: InterruptedException) {
                 Thread.currentThread().interrupt()
-                Log.d(TAG, "Thread sleep interrupted")
+                Log.d(Const.TAG, "Thread sleep interrupted")
             }
         }
     }

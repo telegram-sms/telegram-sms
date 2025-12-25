@@ -92,7 +92,7 @@ class USSDCallBack(
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
-                Log.e("USSDCallBack", errorHead + e.message)
+                Log.e(Const.TAG, errorHead + e.message)
                 if (ActivityCompat.checkSelfPermission(
                         context,
                         Manifest.permission.SEND_SMS
@@ -108,7 +108,7 @@ class USSDCallBack(
             override fun onResponse(call: Call, response: Response) {
                 if (response.code != 200) {
                     Log.e(
-                        "USSDCallBack",
+                        Const.TAG,
                         errorHead + response.code + " " + Objects.requireNonNull(response.body)
                             .string()
                     )

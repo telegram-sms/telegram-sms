@@ -38,7 +38,7 @@ object USSD {
                 Manifest.permission.CALL_PHONE
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            Log.i(context::class.simpleName, "send_ussd: No permission.")
+            Log.i(Const.TAG, "send_ussd: No permission.")
         }
 
         val botToken = preferences.getString("bot_token", "")!!

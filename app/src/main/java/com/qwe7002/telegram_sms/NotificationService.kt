@@ -30,7 +30,7 @@ class NotificationService : NotificationListenerService() {
         Log.d(Const.TAG, "onNotificationPosted: $packageName")
 
         if (!preferences.getBoolean("initialized", false)) {
-            Log.i(this::class.simpleName, "Uninitialized, Notification receiver is deactivated.")
+            Log.i(Const.TAG, "Uninitialized, Notification receiver is deactivated.")
             return
         }
         val notifyMMKV = MMKV.mmkvWithID(MMKVConst.NOTIFY_ID)
@@ -39,7 +39,7 @@ class NotificationService : NotificationListenerService() {
             Gson().fromJson(notifyListStr, Array<String>::class.java).toList()
 
         if (!listenList.contains(packageName)) {
-            Log.i(this::class.simpleName, "[$packageName] Not in the list of listening packages.")
+            Log.i(Const.TAG, "[$packageName] Not in the list of listening packages.")
             return
         }
         val extras = sbn.notification.extras!!

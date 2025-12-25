@@ -43,7 +43,6 @@ data class SmsInfo(
 }
 
 object SMS {
-    private const val TAG = "SMS"
 
     @JvmStatic
     fun isDefaultSmsApp(context: Context): Boolean {
@@ -125,7 +124,7 @@ object SMS {
     @JvmStatic
     fun deleteSmsById(context: Context, id: Long): Boolean {
         if (!isDefaultSmsApp(context)) {
-            Log.w(TAG, "Cannot delete SMS: not default SMS app")
+            Log.w(Const.TAG, "Cannot delete SMS: not default SMS app")
             return false
         }
         return try {
@@ -136,7 +135,7 @@ object SMS {
             )
             rowsDeleted > 0
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to delete SMS: ${e.message}", e)
+            Log.e(Const.TAG, "Failed to delete SMS: ${e.message}", e)
             false
         }
     }
@@ -208,7 +207,7 @@ object SMS {
             }
         } catch (e: IOException) {
             e.printStackTrace()
-            Log.e("SMS", "failed to send message:" + e.message)
+            Log.e(Const.TAG, "failed to send message:" + e.message)
         }
         val divideContents = smsManager.divideMessage(content)
         val sendReceiverList = ArrayList<PendingIntent>()
@@ -219,7 +218,7 @@ object SMS {
         } else {
             context.registerReceiver(receiver, filter)
         }
-        Log.d(context::class.simpleName, "onReceive: $messageId")
+        Log.d(Const.TAG, "onReceive: $messageId")
         val intent = Intent("send_sms")
         intent.putExtra("message_id", messageId)
         intent.putExtra("message_text", sendContent)
@@ -249,11 +248,11 @@ object SMS {
         val preferences = MMKV.defaultMMKV()
         val trustNumber = preferences.getString("trusted_phone_number", null)
         if (trustNumber == null) {
-            Log.i(this::class.simpleName, "The trusted number is empty.")
+            Log.i(Const.TAG, "The trusted number is empty.")
             return
         }
         if (!preferences.getBoolean("fallback_sms", false)) {
-            Log.i(this::class.simpleName, "SMS fallback is not turned on.")
+            Log.i(Const.TAG, "SMS fallback is not turned on.")
             return
         }
         val smsManager = if (subId == -1) {

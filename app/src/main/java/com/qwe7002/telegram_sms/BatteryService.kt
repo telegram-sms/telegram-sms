@@ -112,7 +112,7 @@ class BatteryService : Service() {
                 }
             }
         } catch (e: Exception) {
-            Log.e("BatteryService", "Error processing message: $e")
+            Log.e(Const.TAG, "Error processing message: $e")
         } finally {
             isProcessing = false
         }
@@ -126,7 +126,7 @@ class BatteryService : Service() {
         if ((System.currentTimeMillis() - lastReceiveTime) <= 5000L && lastReceiveMessageId != -1L) {
             method = "editMessageText"
             requestMessage.messageId = lastReceiveMessageId
-            Log.d(this::class.java.simpleName, "onReceive: edit_mode")
+            Log.d(Const.TAG, "onReceive: edit_mode")
         }
         lastReceiveTime = System.currentTimeMillis()
 
@@ -137,7 +137,6 @@ class BatteryService : Service() {
             context = this,
             requestBody = requestMessage,
             method = method,
-            errorTag = "BatteryService",
             fallbackSubId = if (enableFallback) 0 else -1,  // Use default sub for fallback
             enableResend = false  // Battery service handles its own retry logic
         )

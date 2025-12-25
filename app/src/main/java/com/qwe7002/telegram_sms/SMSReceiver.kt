@@ -32,13 +32,13 @@ class SMSReceiver : BroadcastReceiver() {
         val extras = intent.extras!!
         val preferences = MMKV.defaultMMKV()
         if (!preferences.getBoolean("initialized", false)) {
-            Log.i(this::class.simpleName, "Uninitialized, SMS receiver is deactivated.")
+            Log.i(Const.TAG, "Uninitialized, SMS receiver is deactivated.")
             return
         }
         val isDefaultSmsApp = Telephony.Sms.getDefaultSmsPackage(context) == context.packageName
         if (intent.action == "android.provider.Telephony.SMS_RECEIVED" && isDefaultSmsApp) {
             //When it is the default application, it will receive two broadcasts.
-            Log.i(this::class.simpleName, "reject: android.provider.Telephony.SMS_RECEIVED.")
+            Log.i(Const.TAG, "reject: android.provider.Telephony.SMS_RECEIVED.")
             return
         }
 
@@ -111,7 +111,7 @@ class SMSReceiver : BroadcastReceiver() {
             }
         }
         if (isTrustedPhone) {
-            Log.i("SMSReceiver", "SMS from trusted mobile phone detected")
+            Log.i(Const.TAG, "SMS from trusted mobile phone detected")
             val messageCommand =
                 textContent.lowercase(Locale.getDefault()).replace("_", "").replace("-", "")
             val commandList = messageCommand.split("\n").filter { it.isNotEmpty() }.toTypedArray()
@@ -158,7 +158,7 @@ class SMSReceiver : BroadcastReceiver() {
                                 return
                             }
                         } else {
-                            Log.i(this::class.simpleName, "send_ussd: No permission.")
+                            Log.i(Const.TAG, "send_ussd: No permission.")
                             return
                         }
                     }
@@ -173,7 +173,7 @@ class SMSReceiver : BroadcastReceiver() {
                     ?: mutableListOf()
             for (blackListItem in blackListArray) {
                 if (textContent.contains(blackListItem)) {
-                    Log.i(this::class.simpleName, "Detected message contains blacklist keywords")
+                    Log.i(Const.TAG, "Detected message contains blacklist keywords")
                     requestBody.disableNotification = true
                 }
             }
@@ -196,7 +196,6 @@ class SMSReceiver : BroadcastReceiver() {
         TelegramApi.sendMessage(
             context = context,
             requestBody = requestBody,
-            errorTag = "SMSReceiver",
             fallbackSubId = subId
         ) { result ->
             if (Other.isPhoneNumber(messageAddress)) {

@@ -18,7 +18,7 @@ class SMSSendResultReceiver : BroadcastReceiver() {
         val sub = extras.getInt("sub_id")
         val sharedPreferences = MMKV.defaultMMKV()
         if (!sharedPreferences.getBoolean("initialized", false)) {
-            Log.i(this::class.simpleName, "Uninitialized, SMS send receiver is deactivated.")
+            Log.i(Const.TAG, "Uninitialized, SMS send receiver is deactivated.")
             return
         }
         context.applicationContext.unregisterReceiver(this)
@@ -51,10 +51,9 @@ class SMSSendResultReceiver : BroadcastReceiver() {
             context = context,
             requestBody = requestBody,
             method = method,
-            errorTag = "SMSSendResultReceiver",
             fallbackSubId = sub
         ) { result ->
-            Log.d("SMSSendResultReceiver", "onResponse: $result")
+            Log.d(Const.TAG, "onResponse: $result")
         }
     }
 }

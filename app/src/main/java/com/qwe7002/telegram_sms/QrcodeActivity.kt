@@ -147,7 +147,7 @@ class QrcodeActivity : AppCompatActivity() {
                     val response = call.execute()
                     if (response.code == 200) {
                         val responseBody = response.body.string()
-                        Log.d("networkProgressHandle", "sendConfig: $responseBody")
+                        Log.d(Const.TAG, "sendConfig: $responseBody")
                         val jsonObject = JsonParser.parseString(responseBody)
                             .asJsonObject
                         val key = jsonObject.get(

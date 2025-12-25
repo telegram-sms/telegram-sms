@@ -203,7 +203,7 @@ class CcActivity : AppCompatActivity() {
         serviceList: ArrayList<CcSendService>,
         listAdapter: ArrayAdapter<CcSendService>
     ) {
-        Log.d("save_and_flush", serviceList.toString())
+        Log.d(Const.TAG, serviceList.toString())
         val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
         carbonCopyMMKV.putString("service", gson.toJson(serviceList))
         listAdapter.notifyDataSetChanged()
@@ -315,7 +315,7 @@ class CcActivity : AppCompatActivity() {
                 val httpUrlBuilder: HttpUrl.Builder = url.newBuilder()
                 httpUrlBuilder.addQueryParameter("key", id)
                 val httpUrl = httpUrlBuilder.build()
-                Log.d("config", "getConfig: $httpUrl")
+                Log.d(Const.TAG, "getConfig: $httpUrl")
                 val requestObj = Request.Builder().url(httpUrl).method("GET", null)
                 val call = okhttpObject.newCall(requestObj.build())
                 try {
@@ -413,7 +413,7 @@ class CcActivity : AppCompatActivity() {
         when (requestCode) {
             0 -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                    Log.d("CcActivity", "onRequestPermissionsResult: No camera permissions.")
+                    Log.d(Const.TAG, "onRequestPermissionsResult: No camera permissions.")
                     Snackbar.make(
                         findViewById(R.id.bot_token_editview),
                         R.string.no_camera_permission,
@@ -431,14 +431,14 @@ class CcActivity : AppCompatActivity() {
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        Log.d("onActivityResult", "onActivityResult: $resultCode")
+        Log.d(Const.TAG, "onActivityResult: $resultCode")
         if (requestCode == 1) {
             if (resultCode == Const.RESULT_CONFIG_JSON) {
                 val jsonConfig = gson.fromJson(
                     data!!.getStringExtra("config_json"),
                     CcSendService::class.java
                 )
-                Log.d("onActivityResult", "onActivityResult: $jsonConfig")
+                Log.d(Const.TAG, "onActivityResult: $jsonConfig")
                 serviceList.add(jsonConfig)
                 saveAndFlush(serviceList, listAdapter)
             }

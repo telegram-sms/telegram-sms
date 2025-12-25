@@ -91,7 +91,6 @@ class CallReceiver : BroadcastReceiver() {
                 TelegramApi.sendMessage(
                     context = context,
                     requestBody = requestBody,
-                    errorTag = "CallReceiver",
                     fallbackSubId = Other.getSubId(context, slot)
                 ) { responseBodyStr ->
                     // Use actualIncomingNumber from the callback
@@ -112,7 +111,7 @@ class CallReceiver : BroadcastReceiver() {
             if (lastReceiveStatus == TelephonyManager.CALL_STATE_RINGING && nowState == TelephonyManager.CALL_STATE_IDLE) {
                 val preferences = MMKV.defaultMMKV()
                 if (!preferences.getBoolean("initialized", false)) {
-                    Log.i("call_status_listener", "Uninitialized, Phone receiver is deactivated.")
+                    Log.i(Const.TAG, "Uninitialized, Phone receiver is deactivated.")
                     return
                 }
 
@@ -134,7 +133,6 @@ class CallReceiver : BroadcastReceiver() {
                 TelegramApi.sendMessage(
                     context = context,
                     requestBody = requestBody,
-                    errorTag = "CallReceiver",
                     fallbackSubId = Other.getSubId(context, slot)
                 ) { responseBodyStr ->
                     // Use actualIncomingNumber from the callback

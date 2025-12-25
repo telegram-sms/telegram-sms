@@ -10,6 +10,7 @@ import android.util.Log
 import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.TelegramApi
+import com.qwe7002.telegram_sms.value.Const
 import com.tencent.mmkv.MMKV
 import java.util.concurrent.TimeUnit
 
@@ -27,7 +28,6 @@ class ReSendJob : JobService() {
         val result = TelegramApi.sendMessageSync(
             context = this,
             requestBody = requestBody,
-            errorTag = "ReSendJob",
             fallbackSubId = -1,  // No SMS fallback for resend
             enableResend = false  // Don't add back to resend loop
         )
@@ -38,12 +38,12 @@ class ReSendJob : JobService() {
             resendListLocal.remove(message)
             resendMMKV.encode("resend_list", resendListLocal.toSet())
         } else {
-            Log.e("ReSendJob", "Failed to resend message, will retry later")
+            Log.e(Const.TAG, "Failed to resend message, will retry later")
         }
     }
 
     override fun onStartJob(params: JobParameters?): Boolean {
-        Log.d("ReSend", "startJob: Try resending the message.")
+        Log.d(Const.TAG, "startJob: Try resending the message.")
         MMKV.initialize(applicationContext)
         resendMMKV = MMKV.mmkvWithID(MMKVConst.RESEND_ID)
 
@@ -54,7 +54,7 @@ class ReSendJob : JobService() {
             }
             if (sendList.isNotEmpty()) {
                 Log.i(
-                    "ReSendJob",
+                    Const.TAG,
                     "startJob: Resend completed. ${sendList.size} messages have been resent."
                 )
             }
