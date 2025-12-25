@@ -102,7 +102,7 @@ class LogActivity : AppCompatActivity() {
 
                 // Start logcat process filtering by PID
                 logcatProcess = Runtime.getRuntime().exec(
-                    arrayOf("logcat", "-v", "time", "--pid=$pid", "-t", "100")
+                    arrayOf("logcat", "-v", "time", "--pid=$pid", "-t", "500")
                 )
 
                 val reader = BufferedReader(InputStreamReader(logcatProcess?.inputStream))
