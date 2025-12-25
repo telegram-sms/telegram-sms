@@ -143,7 +143,6 @@ build_nightly:
         -n "Nightly Build ${RELEASE_TAG}" \
         -generatenotes \
         -prerelease \
-        -replace \
         "${RELEASE_TAG}" \
         "./app/build/outputs/apk/release/"
 
@@ -185,7 +184,6 @@ build_release:
         -r "${REPO}" \
         -n "Release ${RELEASE_TAG}" \
         -b "${RELEASE_CHANGELOG}" \
-        -replace \
         "${RELEASE_TAG}" \
         "./app/build/outputs/apk/release/"
 
