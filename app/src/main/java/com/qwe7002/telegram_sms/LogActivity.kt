@@ -112,9 +112,6 @@ class LogActivity : AppCompatActivity() {
     private fun startLogcat() {
         logcatJob = lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // Get PID of current app
-                val pid = android.os.Process.myPid()
-
                 // Start logcat process filtering by PID
                 logcatProcess = Runtime.getRuntime().exec(
                     arrayOf("logcat", "-s", Const.TAG + ":*:V", "-v", "time", "-t", "500")
