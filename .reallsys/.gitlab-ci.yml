@@ -168,10 +168,13 @@ build_release:
     - !reference [.deploy_to_github, script]
     - |
       echo "==> Generating changelog with One API..."
+      git remote add source https://github.com/telegram-sms/telegram-sms
+      git fetch source --tags
       echo "==> Compiling ChangelogGenerate.java..."
       javac .reallsys/changelogGenerate.java
       echo "==> Running ChangelogGenerate..."
-      RELEASE_CHANGELOG=$(java -cp .reallsys ChangelogGenerate)
+      java -cp .reallsys ChangelogGenerate
+      RELEASE_CHANGELOG=$(cat CHANGELOG.md)
       echo "==> Generated changelog:"
       echo "${RELEASE_CHANGELOG}"
     - |
