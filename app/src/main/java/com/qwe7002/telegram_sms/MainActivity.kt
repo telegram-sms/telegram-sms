@@ -67,7 +67,7 @@ class MainActivity : AppCompatActivity() {
     private val gson = Gson()
     private var setPermissionBack = false
 
-    @SuppressLint("BatteryLife", "UseKtx")
+    @SuppressLint("BatteryLife", "UseKtx", "GestureBackNavigation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -197,12 +197,6 @@ class MainActivity : AppCompatActivity() {
         verificationCodeSwitch.isChecked = preferences.getBoolean("verification_code", false)
 
         dohSwitch.isChecked = preferences.getBoolean("doh_switch", true)
-/*        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            val proxyMMKV = MMKV.mmkvWithID("proxy")
-            dohSwitch.isEnabled = proxyMMKV.getBoolean("enable", false)
-            *//*            dohSwitch.isEnabled =
-                            !Paper.book("system_config").read("proxy_config", proxy())!!.enable*//*
-        }*/
 
 
         chatIdEditView.addTextChangedListener(object : TextWatcher {
