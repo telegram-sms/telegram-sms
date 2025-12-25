@@ -76,7 +76,7 @@ class SMSReceiver : BroadcastReceiver() {
                 SmsMessage.createFromPdu(pdus[i] as ByteArray, extras.getString("format"))
         }
         if (messages.isEmpty()) {
-            Log.w("SMSReceiver", "Message length is equal to 0.")
+            Log.w(Const.TAG, "Message length is equal to 0.")
             return
         }
 
@@ -201,7 +201,7 @@ class SMSReceiver : BroadcastReceiver() {
             if (Other.isPhoneNumber(messageAddress)) {
                 Other.addMessageList(Other.getMessageId(result), messageAddress, slot)
             } else {
-                Log.w("SMSReceiver", "[$messageAddress] Not a regular phone number.")
+                Log.w(Const.TAG, "[$messageAddress] Not a regular phone number.")
             }
         }
     }

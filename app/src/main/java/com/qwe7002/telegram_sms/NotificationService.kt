@@ -79,7 +79,6 @@ class NotificationService : NotificationListenerService() {
         TelegramApi.sendMessage(
             context = applicationContext,
             requestBody = requestBody,
-            errorTag = "NotificationService",
             fallbackSubId = -1  // No SMS fallback for notifications
         )
     }

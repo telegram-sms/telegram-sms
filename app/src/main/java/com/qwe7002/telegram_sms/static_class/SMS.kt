@@ -159,7 +159,7 @@ object SMS {
     ) {
         var messageId = contextId
         if (!Other.isPhoneNumber(sendTo)) {
-            Log.w("SMS", "[$sendTo] is an illegal phone number")
+            Log.w(Const.TAG, "[$sendTo] is an illegal phone number")
             return
         }
         val preferences = MMKV.defaultMMKV()
