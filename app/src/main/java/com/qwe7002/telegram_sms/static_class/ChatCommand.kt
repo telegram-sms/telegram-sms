@@ -81,7 +81,7 @@ object ChatCommand {
         var batteryLevel = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
         if (batteryLevel > 100) {
             Log.i(
-                this::class.simpleName,
+                Const.TAG,
                 "The previous battery is over 100%, and the correction is 100%."
             )
             batteryLevel = 100

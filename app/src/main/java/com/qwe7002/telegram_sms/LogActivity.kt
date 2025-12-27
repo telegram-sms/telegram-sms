@@ -1,7 +1,10 @@
 package com.qwe7002.telegram_sms
 
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
@@ -36,6 +39,7 @@ class LogActivity : AppCompatActivity() {
     private val logBuffer = CopyOnWriteArrayList<LogEntry>()
     private val logChannel = Channel<LogEntry>(Channel.UNLIMITED)
     private var entryId = 0L
+    private var level = "I"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +58,18 @@ class LogActivity : AppCompatActivity() {
             WindowInsetsCompat.CONSUMED
         }
         FakeStatusBar().fakeStatusBar(this, window)
+        var versionName = "unknown"
+        val packageManager = applicationContext.packageManager
+        val packageInfo: PackageInfo
+        try {
+            packageInfo = packageManager.getPackageInfo(applicationContext.packageName, 0)
+            versionName = packageInfo.versionName.toString()
+        } catch (e: PackageManager.NameNotFoundException) {
+            Log.d(Const.TAG, "onOptionsItemSelected: $e")
+        }
+        if (versionName == "unknown" || versionName == "Debug" || versionName.startsWith("nightly")) {
+            level = "V"
+        }
         logAdapter = LogAdapter()
         logAdapter.setHasStableIds(true)
         recyclerView.adapter = logAdapter
@@ -114,7 +130,7 @@ class LogActivity : AppCompatActivity() {
             try {
                 // Start logcat process filtering by PID
                 logcatProcess = Runtime.getRuntime().exec(
-                    arrayOf("logcat", "-s", Const.TAG + ":*:V", "-v", "time", "-t", "500")
+                    arrayOf("logcat", "${Const.TAG}:${level}","*:S", "-d", "-t", "500")
                 )
 
                 val reader = BufferedReader(InputStreamReader(logcatProcess?.inputStream))
