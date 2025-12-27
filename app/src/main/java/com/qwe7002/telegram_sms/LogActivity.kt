@@ -261,11 +261,11 @@ class LogAdapter : ListAdapter<LogEntry, LogAdapter.LogViewHolder>(LogDiffCallba
 
     private fun getLevelString(level: Char): String {
         return when (level) {
-            'E' -> "❌"  // Error
-            'W' -> "⚠️"  // Warning
-            'I' -> "ℹ️"  // Info
-            'D' -> "🐛"  // Debug
-            'V' -> "📝"  // Verbose
+            'E' -> "❌ Error"  // Error
+            'W' -> "⚠️ Warning"  // Warning
+            'I' -> "ℹ️ Info"  // Info
+            'D' -> "🐛 Debug"  // Debug
+            'V' -> "📝 Verbose"  // Verbose
             else -> "❓"
         }
     }
