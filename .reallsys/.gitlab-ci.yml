@@ -93,28 +93,7 @@ cache:
     - |
       echo "==> Building APK..."
       ./gradlew clean assembleRelease --stacktrace --no-daemon
-
-.deploy_to_github:
-  script:
-    - |
-      echo "==> Validating GitHub credentials..."
-      if [ -z "${GITHUB_ACCESS_KEY:-}" ]; then
-        echo "ERROR: GITHUB_ACCESS_KEY is not set"
-        exit 1
-      fi
-    - |
-      echo "==> Downloading ghr..."
-      GHR_URL="https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz"
-      wget -q --retry-connrefused --waitretry=5 --timeout=30 -t 3 "${GHR_URL}" -O ghr.tar.gz
-      tar -xzf ghr.tar.gz
-      GHR_BIN="./ghr_v${GHR_VERSION}_linux_amd64/ghr"
-      chmod +x "${GHR_BIN}"
-    - |
-      echo "==> Syncing to GitHub..."
-      git push --set-upstream "https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git" \
-        "HEAD:refs/heads/${CI_COMMIT_REF_NAME}" || {
-          echo "WARNING: Failed to push to GitHub, continuing with release..."
-        }
+    
 
 # ------------------------------------------------------------------------------
 # Nightly Build Job
@@ -132,7 +111,25 @@ build_nightly:
   <<: *setup_environment
   script:
     - !reference [.build_apk, script]
-    - !reference [.deploy_to_github, script]
+    - |
+      echo "==> Validating GitHub credentials..."
+      if [ -z "${GITHUB_ACCESS_KEY:-}" ]; then
+        echo "ERROR: GITHUB_ACCESS_KEY is not set"
+        exit 1
+      fi
+    - |
+      echo "==> Downloading ghr..."
+      GHR_URL="https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz"
+      wget -q --retry-connrefused --waitretry=5 --timeout=30 -t 3 "${GHR_URL}" -O ghr.tar.gz
+      tar -xzf ghr.tar.gz
+      GHR_BIN="./ghr_v${GHR_VERSION}_linux_amd64/ghr"
+      chmod +x "${GHR_BIN}"
+    - |
+      echo "==> Syncing to GitHub..."
+      git push --set-upstream "https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}-nightly.git" \
+        "HEAD:refs/heads/${CI_COMMIT_REF_NAME}" || {
+          echo "WARNING: Failed to push to GitHub, continuing with release..."
+        }
     - |
       echo "==> Creating GitHub pre-release..."
       "${GHR_BIN}" \
@@ -141,7 +138,6 @@ build_nightly:
         -r "${REPO}" \
         -c "nightly" \
         -n "Nightly Build ${RELEASE_TAG}" \
-        -generatenotes \
         -prerelease \
         "${RELEASE_TAG}" \
         "./app/build/outputs/apk/release/"
@@ -164,7 +160,25 @@ build_release:
       echo "==> Copying language pack..."
       ./gradlew app:copy_language_pack --no-daemon
     - !reference [.build_apk, script]
-    - !reference [.deploy_to_github, script]
+    - |
+      echo "==> Validating GitHub credentials..."
+      if [ -z "${GITHUB_ACCESS_KEY:-}" ]; then
+        echo "ERROR: GITHUB_ACCESS_KEY is not set"
+        exit 1
+      fi
+    - |
+      echo "==> Downloading ghr..."
+      GHR_URL="https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz"
+      wget -q --retry-connrefused --waitretry=5 --timeout=30 -t 3 "${GHR_URL}" -O ghr.tar.gz
+      tar -xzf ghr.tar.gz
+      GHR_BIN="./ghr_v${GHR_VERSION}_linux_amd64/ghr"
+      chmod +x "${GHR_BIN}"
+    - |
+      echo "==> Syncing to GitHub..."
+      git push --set-upstream "https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git" \
+        "HEAD:refs/heads/${CI_COMMIT_REF_NAME}" || {
+          echo "WARNING: Failed to push to GitHub, continuing with release..."
+        }
     - |
       echo "==> Generating changelog with One API..."
       git remote add source https://github.com/telegram-sms/telegram-sms
@@ -184,9 +198,10 @@ build_release:
         -r "${REPO}" \
         -n "Release ${RELEASE_TAG}" \
         -b "${RELEASE_CHANGELOG}" \
+        -prerelease \
         "${RELEASE_TAG}" \
         "./app/build/outputs/apk/release/"
-
+      
 
 # ------------------------------------------------------------------------------
 # Manual Debug Build (for testing)
