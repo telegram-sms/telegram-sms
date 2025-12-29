@@ -86,7 +86,7 @@ class ChatService : Service() {
                     level = "V" // Verbose in debug builds
                 }
                 val process = Runtime.getRuntime().exec(
-                    arrayOf("logcat", "${Const.TAG}:${level}","*:S", "-d", "-t", "500")
+                    arrayOf("logcat", "${Const.TAG}:${level}","*:S", "-d", "-t", lines.toString())
                 )
 
                 val reader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
