@@ -81,10 +81,14 @@ class ChatService : Service() {
 
         private fun readLogcat(lines: Int): String {
             return try {
-                val pid = android.os.Process.myPid()
+                var level = "I"
+                if(BuildConfig.DEBUG) {
+                    level = "V" // Verbose in debug builds
+                }
                 val process = Runtime.getRuntime().exec(
-                    arrayOf("logcat", "-v", "time", "--pid=$pid", "-t", lines.toString())
+                    arrayOf("logcat", "${Const.TAG}:${level}","*:S", "-d", "-t", "500")
                 )
+
                 val reader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
                 val logBuilder = StringBuilder()
                 var line: String?
