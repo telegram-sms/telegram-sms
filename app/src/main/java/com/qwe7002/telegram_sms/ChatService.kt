@@ -261,10 +261,6 @@ class ChatService : Service() {
             requestMsg = jsonObject["text"].asString
         }
         if (jsonObject.has("reply_to_message")) {
-            /*            val saveItem = Paper.book().read<SMSRequestInfo>(
-                            jsonObject["reply_to_message"].asJsonObject["message_id"].asString,
-                            null
-                        )*/
             val saveItemString = chatInfoMMKV.getString(
                 jsonObject["reply_to_message"].asJsonObject["message_id"].asString,
                 null

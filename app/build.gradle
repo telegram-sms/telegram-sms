@@ -45,9 +45,6 @@ android {
         targetCompatibility = 17
     }
 
-    kotlinOptions {
-        jvmTarget = '17'
-    }
 
     androidResources {
         generateLocaleConfig = true
@@ -59,8 +56,10 @@ android {
             storePassword = project.hasProperty("KEYSTORE_PASS") ? KEYSTORE_PASS : System.getenv("KEYSTORE_PASS")
             keyAlias = project.hasProperty("ALIAS_NAME") ? ALIAS_NAME : System.getenv("ALIAS_NAME")
             keyPassword = project.hasProperty("ALIAS_PASS") ? ALIAS_PASS : System.getenv("ALIAS_PASS")
-            v1SigningEnabled = true
-            v2SigningEnabled = true
+            v1SigningEnabled true
+            v2SigningEnabled true
+            enableV3Signing = true
+            enableV4Signing = true
         }
     }
     buildTypes {
