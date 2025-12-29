@@ -135,7 +135,7 @@ build_nightly:
       "${GHR_BIN}" \
         -t "${GITHUB_ACCESS_KEY}" \
         -u "${OWNER}" \
-        -r "${REPO}" \
+        -r "${REPO}-nightly" \
         -c "nightly" \
         -n "Nightly Build ${RELEASE_TAG}" \
         -prerelease \
