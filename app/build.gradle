@@ -32,9 +32,11 @@ android {
         applicationId = 'com.qwe7002.telegram_sms'
         minSdk = 23
         targetSdk = 36
-
         versionCode = System.getenv("VERSION_CODE") == null ? 1 : System.getenv("VERSION_CODE").toInteger()
         versionName = System.getenv("VERSION_NAME") == null ? "Debug" : System.getenv("VERSION_NAME").toString()
+    }
+    buildFeatures {
+        buildConfig true
     }
 
     compileOptions {
