@@ -8,7 +8,7 @@ stages:
 # Global Configuration
 # ------------------------------------------------------------------------------
 default:
-  image: alvrme/alpine-android:android-35-jdk17
+  image: alvrme/alpine-android:android-36-jdk21
   timeout: 30m
   interruptible: true
 
