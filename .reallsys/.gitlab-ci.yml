@@ -178,7 +178,7 @@ build_nightly:
         -r "${REPO}-nightly" \
         -c "nightly" \
         -n "${RELEASE_TAG}" \
-        -prerelease \
+        --generate-notes \
         "${RELEASE_TAG}" \
         "./app/build/outputs/apk/release/"
 
