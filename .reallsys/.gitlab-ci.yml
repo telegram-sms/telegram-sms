@@ -177,7 +177,7 @@ build_nightly:
         -u "${OWNER}" \
         -r "${REPO}-nightly" \
         -c "nightly" \
-        -n "Nightly Build ${RELEASE_TAG}" \
+        -n "${RELEASE_TAG}" \
         -prerelease \
         "${RELEASE_TAG}" \
         "./app/build/outputs/apk/release/"
@@ -236,7 +236,7 @@ build_release:
         -t "${GITHUB_ACCESS_KEY}" \
         -u "${OWNER}" \
         -r "${REPO}" \
-        -n "Release ${RELEASE_TAG}" \
+        -n "${RELEASE_TAG}" \
         -b "${RELEASE_CHANGELOG}" \
         -prerelease \
         "${RELEASE_TAG}" \
