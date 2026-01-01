@@ -160,7 +160,6 @@ public class changelogGenerate {
                 "Analyze the following Git commit history and generate a clean, structured changelog.\n" +
                         "Format: hash | author | date | message\n\n" +
                         "Output ONLY the categorized changelog in this exact format:\n\n" +
-                        "# CHANGELOG\n\n" +
                         "## Features\n" +
                         "- [hash] message\n\n" +
                         "## Bug Fixes\n" +
