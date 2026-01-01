@@ -74,7 +74,7 @@ cache:
       mkdir -p "${GRADLE_USER_HOME}"
       cat >> "${GRADLE_USER_HOME}/gradle.properties" << EOF
       org.gradle.jvmargs=-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError
-      org.gradle.parallel=true
+      org.gradle.parallel=true 
       org.gradle.caching=true
       org.gradle.configureondemand=true
       android.ndkVersion=${NDK_VERSION}
@@ -112,7 +112,7 @@ cache:
         
         # Generate final version
         if [ "${PATCH_NUM}" -gt 0 ]; then
-          export RELEASE_TAG="${UBUNTU_VERSION}.${PATCH_NUM}"
+          export RELEASE_TAG="${UBUNTU_VERSION}.${PATCH_NUM}-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}"
           export VERSION_NAME="${UBUNTU_VERSION}.${PATCH_NUM}"
         else
           export RELEASE_TAG="${UBUNTU_VERSION}"
