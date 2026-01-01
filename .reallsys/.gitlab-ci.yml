@@ -82,9 +82,49 @@ cache:
       chmod +x ./gradlew
     - |
       echo "==> Generating release tag..."
-      export RELEASE_TAG="$(date +%Y%m%d%H%M)-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}"
-      export VERSION_CODE="${CI_PIPELINE_ID}"
-      export VERSION_NAME="${RELEASE_TAG}"
+      if [ "${CI_COMMIT_REF_NAME}" = "master" ]; then
+        # Ubuntu-style versioning: YY.MM format with patch number
+        UBUNTU_VERSION="$(date +%y.%m)"
+        
+        # Fetch all tags to check for existing versions this month
+        git fetch --tags 2>/dev/null || true
+        
+        # Find the highest patch number for this month
+        PATCH_NUM=0
+        EXISTING_TAGS=$(git tag -l "${UBUNTU_VERSION}*" 2>/dev/null || echo "")
+        
+        if [ -n "${EXISTING_TAGS}" ]; then
+          for tag in ${EXISTING_TAGS}; do
+            # Extract patch number if exists (e.g., 26.01.1 -> 1)
+            if echo "${tag}" | grep -qE "^${UBUNTU_VERSION}\.[0-9]+$"; then
+              CURRENT_PATCH=$(echo "${tag}" | sed "s/${UBUNTU_VERSION}\.//")
+              if [ "${CURRENT_PATCH}" -ge "${PATCH_NUM}" ]; then
+                PATCH_NUM=$((CURRENT_PATCH + 1))
+              fi
+            elif [ "${tag}" = "${UBUNTU_VERSION}" ]; then
+              # Base version exists, start with .1
+              if [ "${PATCH_NUM}" -eq 0 ]; then
+                PATCH_NUM=1
+              fi
+            fi
+          done
+        fi
+        
+        # Generate final version
+        if [ "${PATCH_NUM}" -gt 0 ]; then
+          export RELEASE_TAG="${UBUNTU_VERSION}.${PATCH_NUM}"
+          export VERSION_NAME="${UBUNTU_VERSION}.${PATCH_NUM}"
+        else
+          export RELEASE_TAG="${UBUNTU_VERSION}"
+          export VERSION_NAME="${UBUNTU_VERSION}"
+        fi
+        export VERSION_CODE="${CI_PIPELINE_ID}"
+      else
+        # Nightly or other branches: timestamp-based
+        export RELEASE_TAG="$(date +%Y%m%d%H%M)-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}"
+        export VERSION_CODE="${CI_PIPELINE_ID}"
+        export VERSION_NAME="${RELEASE_TAG}"
+      fi
       echo "Release Tag: ${RELEASE_TAG}"
       echo "Version Code: ${VERSION_CODE}"
 
