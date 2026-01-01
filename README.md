@@ -1,8 +1,8 @@
 # Telegram SMS
 
-<p align="center">
+<div align="center">
 <img src="https://github.com/user-attachments/assets/7a283d15-52fe-42cd-a782-4984427db234" alt="Telegram SMS">
-</p>
+</div>
 
 ![Min Android Version](https://img.shields.io/badge/Min%20Android%20Version-6.0-orange.svg?style=flat-square)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg?style=flat-square)](https://github.com/telegram-sms/telegram-sms/blob/master/LICENSE)
@@ -14,7 +14,7 @@
 
 You can follow the Telegram channel Telegram SMS Change Log for the latest news. [English](https://t.me/tg_sms_changelog_eng), [简体中文](https://t.me/tg_sms_changelog)
 
-**Please visit [https://reall.uk](https://reall.uk) to submit and discuss issues regarding this project.**
+**For bug reports and feature requests, please use [GitHub Issues](https://github.com/telegram-sms/telegram-sms/issues).**
 
 The primary language used for commit messages is Simplified Chinese. However, you're welcome to use English in commit messages when making contributions.
 
@@ -26,13 +26,11 @@ If you want to generate the configuration QR code in a fast way, please visit [c
 
 [Latest Release Download](https://github.com/telegram-sms/telegram-sms/releases/latest)
 
-[Pre-release Verison](https://github.com/qwe7002/telegram-sms) [Download](https://github.com/qwe7002/telegram-sms/actions?query=actor%3Areall-network+branch%3Anightly+is%3Asuccess+event%3Apush)
+[Pre-release Version](https://github.com/telegram-sms/telegram-sms-nightly)
 
 **NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK!**
 
-[Telegram SMS compat](https://github.com/telegram-sms/telegram-sms-compat)
-
-Android 5.0 or lower? Click [![Github Release](https://img.shields.io/github/downloads/telegram-sms/telegram-sms-compat/latest/app-release.apk?style=flat-square)](https://github.com/telegram-sms/telegram-sms-compat/releases/latest) to download the latest and greatest.
+**[Telegram SMS compat](https://github.com/telegram-sms/telegram-sms-compat)** - For older Android devices (Android 5.0 or lower). [![Github Release](https://img.shields.io/github/downloads/telegram-sms/telegram-sms-compat/latest/app-release.apk?style=flat-square)](https://github.com/telegram-sms/telegram-sms-compat/releases/latest)
 
 
 ## Features
@@ -140,7 +138,7 @@ Your donation will make me work better for this project.
 
 ## Contributors
 <a href="https://github.com/telegram-sms/telegram-sms/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=telegram-sms/telegram-sms" />
+  <img src="https://contrib.rocks/image?repo=telegram-sms/telegram-sms" alt="Contributors" />
 </a>
 
 Made with [contrib.rocks](https://contrib.rocks).

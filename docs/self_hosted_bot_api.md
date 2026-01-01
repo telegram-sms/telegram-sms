@@ -70,12 +70,10 @@ docker compose up -d
 ### Nginx
 
 ```conf
-# 1. 定义日志格式（放在文件最开头，server 块外面）
 log_format token_filter '$remote_addr - $remote_user [$time_local] '
                         '"$sanitized_request" $status $body_bytes_sent '
                         '"$http_referer" "$http_user_agent"';
 
-# 定义上游服务，方便管理
 upstream telegram-bot-api {
     server 127.0.0.1:8081;
 }
