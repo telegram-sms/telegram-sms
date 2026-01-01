@@ -13,6 +13,7 @@ def getGitBranch() {
         println "Found local branch: " + localBranch
         return localBranch
     } catch (e) {
+        e.printStackTrace()
         println "Could not determine branch, falling back to 'unknown-branch'"
         return "unknown-branch"
     }
