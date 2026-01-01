@@ -44,8 +44,8 @@ android {
         targetCompatibility = 21
     }
 
-    kotlinOptions {
-        jvmTarget = '21'
+    kotlin {
+        jvmToolchain(21)
     }
 
     androidResources {
