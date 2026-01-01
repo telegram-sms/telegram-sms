@@ -172,7 +172,7 @@ public class changelogGenerate {
                         "- [hash] message\n\n" +
                         "Rules:\n" +
                         "1. Do NOT include any introductory text, notes, or explanations\n" +
-                        "2. Start directly with '# CHANGELOG'\n" +
+                        "2. Start directly with the first category\n" +
                         "3. Only include categories that have commits\n" +
                         "4. Keep commit messages concise\n" +
                         "5. Use markdown format only"
