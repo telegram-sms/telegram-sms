@@ -94,7 +94,6 @@ This APP uses the following open source libraries:
 - [okhttp](https://github.com/square/okhttp)
 - [Gson](https://github.com/google/gson)
 - [CodeauxLib](https://github.com/telegram-sms/CodeauxLibPortable)
-- [Paper](https://github.com/pilgr/Paper)
 - [AwesomeQRCode](https://github.com/SumiMakito/AwesomeQRCode)
 - [code-scanner](https://github.com/yuriy-budiyev/code-scanner)
 - [MMKV](https://github.com/Tencent/MMKV)
