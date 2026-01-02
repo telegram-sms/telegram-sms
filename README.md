@@ -110,6 +110,7 @@ I would also like to thank the following people for their hard work to localise 
 - English
     - [@tangbao](https://github.com/tangbao)
     - [@jixunmoe](https://github.com/jixunmoe) ([Donate](https://paypal.me/jixun))
+    - [@ous50](https://github.com/ous50)
 - Japanese
     - [@Lollycc](https://github.com/lollycc)
     - [@AisakaMk2](https://github.com/AisakaMk2)
