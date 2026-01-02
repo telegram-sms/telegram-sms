@@ -40,7 +40,7 @@ If you want to generate the configuration QR code in a fast way, please visit [c
 - Notification regarding device battery power changes;
 - Carbon Copy - a new way to configure the forward destination(e.g. bark, pushdeer, gotify, etc.).
 - Remote control via chat command or SMS.
-- Set self-hosted bot API address(See [instructions](./docs/self_hosted_bot_api.md)).
+- Set self-hosted bot API address(See [instructions](./document/docs/develop/self_hosted_bot_api.md)).
 
 ## Permission
 

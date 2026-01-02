@@ -39,6 +39,7 @@ import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.MMKV.DataMigrationManager
 import com.qwe7002.telegram_sms.data_structure.GitHubRelease
 import com.qwe7002.telegram_sms.data_structure.ScannerJson
 import com.qwe7002.telegram_sms.data_structure.telegram.PollingBody
@@ -92,6 +93,10 @@ class MainActivity : AppCompatActivity() {
             preferences.importFromSharedPreferences(oldSharedPreferences)
             oldSharedPreferences.edit().clear().apply()
         }
+
+        // Check and perform data structure migration
+        DataMigrationManager.checkAndMigrate(this)
+
         privacyPolice = "/privacy-policy"
 
         val chatIdEditView = findViewById<EditText>(R.id.chat_id_editview)
