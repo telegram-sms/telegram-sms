@@ -879,7 +879,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     preferences.putString("api_address", apiAddressText)
                     if (preferences.contains("initialized") && apiAddressText != "api.telegram.org") {
-                        logout(preferences.getString("bot_token", "").toString())
+                        checkAndLogout(preferences.getString("bot_token", "").toString())
                     }
                 }
                 apiDialog.setNegativeButton("Cancel", null)
@@ -1014,6 +1014,69 @@ class MainActivity : AppCompatActivity() {
             .setMessage(message)
             .setPositiveButton(android.R.string.ok, null)
             .show()
+    }
+
+    fun checkAndLogout(botToken: String) {
+        val progressDialog = ProgressDialog(this)
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
+        progressDialog.setTitle(getString(R.string.get_recent_chat_title))
+        progressDialog.setMessage(getString(R.string.get_recent_chat_message))
+        progressDialog.isIndeterminate = false
+        progressDialog.setCancelable(false)
+        progressDialog.show()
+
+        val getMeUri = "https://api.telegram.org/bot$botToken/getMe"
+        var okhttpClient = getOkhttpObj(
+            preferences.getBoolean("doh_switch", false)
+        )
+        okhttpClient = okhttpClient.newBuilder().build()
+        val request: Request = Request.Builder().url(getMeUri).get().build()
+        val call = okhttpClient.newCall(request)
+        call.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                progressDialog.cancel()
+                Log.e(Const.TAG, "checkAndLogout getMe onFailure: ", e)
+                runOnUiThread {
+                    Snackbar.make(
+                        findViewById(R.id.doh_switch),
+                        "Set API address successful.",
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                progressDialog.cancel()
+                if (response.isSuccessful) {
+                    val body = response.body.string()
+                    val jsonObj = JsonParser.parseString(body).asJsonObject
+                    if (jsonObj.get("ok").asBoolean) {
+                        // Bot token is still active on official API, need to logout
+                        runOnUiThread {
+                            logout(botToken)
+                        }
+                    } else {
+                        // Already logged out
+                        runOnUiThread {
+                            Snackbar.make(
+                                findViewById(R.id.doh_switch),
+                                "Set API address successful.",
+                                Snackbar.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                } else {
+                    // Not logged in or error, no need to logout
+                    runOnUiThread {
+                        Snackbar.make(
+                            findViewById(R.id.doh_switch),
+                            "Set API address successful.",
+                            Snackbar.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            }
+        })
     }
 
     fun logout(chatId: String) {
