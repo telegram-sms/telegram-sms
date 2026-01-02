@@ -410,6 +410,7 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                 }
             }
+            checkAndLogout(botTokenEditView.text.toString().trim { it <= ' ' })
 
             val progressDialog = ProgressDialog(this@MainActivity)
             progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
@@ -419,13 +420,6 @@ class MainActivity : AppCompatActivity() {
             progressDialog.setCancelable(false)
             progressDialog.show()
 
-            if (preferences.contains("initialized") && preferences.getString(
-                    "api_address",
-                    "api.telegram.org"
-                ) != "api.telegram.org"
-            ) {
-                logout(preferences.getString("bot_token", "").toString())
-            }
 
             val requestUri = getUrl(
                 botTokenEditView.text.toString().trim { it <= ' ' },
