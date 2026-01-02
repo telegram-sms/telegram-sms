@@ -76,9 +76,7 @@ Artwork Use free fonts licensed by the whole society: [Refrigerator Deluxe](http
 
 Copyright of the artwork belongs to [@walliant](https://www.pixiv.net/member.php?id=5600144). Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
-Cover Author: [@YJBeetle](https://github.com/yjbeetle)
-
-Download resource file of the artwork: [mega.nz](https://mega.nz/#F!TmwQSYjD!XN-uVfciajwy3okjIdpCAQ)
+Download resource file: [Google Drive](https://drive.google.com/drive/folders/1Rg_MaJk0dnIN5GtKKmfvHPPCxjys8A0A?usp=drive_link)
 
 Character set：
 
