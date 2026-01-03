@@ -29,7 +29,7 @@ object Phone {
             }
             if (info == null) {
                 Log.d(Const.TAG, "The active card is not found.")
-                return "Unknown"
+                return ""
             }
         }
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
