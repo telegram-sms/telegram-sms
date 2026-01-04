@@ -206,8 +206,7 @@ object SMS {
                 messageId = Other.getMessageId(Objects.requireNonNull(response.body).string())
             }
         } catch (e: IOException) {
-            e.printStackTrace()
-            Log.e(Const.TAG, "failed to send message:" + e.message)
+            Log.e(Const.TAG, "failed to send message:" + e.message,e)
         }
         val divideContents = smsManager.divideMessage(content)
         val sendReceiverList = ArrayList<PendingIntent>()

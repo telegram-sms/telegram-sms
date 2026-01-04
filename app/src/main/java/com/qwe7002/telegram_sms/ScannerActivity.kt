@@ -15,6 +15,7 @@ import com.google.gson.JsonParser
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.Result
 import com.qwe7002.telegram_sms.value.Const
+import kotlin.math.log
 
 class ScannerActivity : Activity() {
     private lateinit var mCodeScanner: CodeScanner
@@ -74,7 +75,7 @@ class ScannerActivity : Activity() {
         try {
             jsonElement = JsonParser.parseString(jsonStr)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(Const.TAG, "JSON parsing error: ${e.message}",e)
             return false
         }
         if (jsonElement == null) {

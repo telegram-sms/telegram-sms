@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,6 +22,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.value.Const
 import com.tencent.mmkv.MMKV
 import java.util.Locale
 
@@ -46,7 +48,7 @@ class NotifyActivity : AppCompatActivity() {
                 appInfoList.add(appInfo)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(Const.TAG, "scanAppList: ${e.message}", e)
         }
         return appInfoList
     }

@@ -2,6 +2,7 @@ package com.qwe7002.telegram_sms
 
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
@@ -168,7 +169,7 @@ class LogActivity : AppCompatActivity() {
                     logChannel.trySend(lastEntry)
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e(Const.TAG, "startLogcat: ${e.message}", e)
             }
         }
     }
@@ -216,7 +217,7 @@ class LogActivity : AppCompatActivity() {
             logBuffer.clear()
             logAdapter.submitList(emptyList())
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(Const.TAG, "clearLogcat: ${e.message}", e)
         }
     }
 

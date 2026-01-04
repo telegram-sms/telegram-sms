@@ -91,8 +91,7 @@ class USSDCallBack(
         val errorHead = "Send USSD failed:"
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-                Log.e(Const.TAG, errorHead + e.message)
+                Log.e(Const.TAG, errorHead + e.message,e)
                 if (ActivityCompat.checkSelfPermission(
                         context,
                         Manifest.permission.SEND_SMS

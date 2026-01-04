@@ -19,7 +19,7 @@ object Service {
             context.stopService(Intent(context, ChatService::class.java))
             context.stopService(Intent(context, BatteryService::class.java))
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(Const.TAG, "stopAllService: Failed to stop services", e)
         }
     }
 

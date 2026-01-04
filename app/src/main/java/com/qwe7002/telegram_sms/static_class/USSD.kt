@@ -69,7 +69,7 @@ object USSD {
                     Objects.requireNonNull(response.body).string()
                 )
             } catch (e: IOException) {
-                e.printStackTrace()
+                Log.e(Const.TAG, "send_ussd: Send USSD message failed: " + e.message,e)
             }
             if (ActivityCompat.checkSelfPermission(
                     context,

@@ -229,8 +229,7 @@ class WAPReceiver : BroadcastReceiver() {
             getMmsParts(context, mmsId, mmsData)
 
         } catch (e: Exception) {
-            Log.e(Const.TAG, "Error reading MMS from content provider: ${e.message}")
-            e.printStackTrace()
+            Log.e(Const.TAG, "Error reading MMS from content provider: ${e.message}",e)
         }
 
         return mmsData

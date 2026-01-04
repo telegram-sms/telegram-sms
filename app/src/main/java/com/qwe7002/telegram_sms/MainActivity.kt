@@ -258,10 +258,9 @@ class MainActivity : AppCompatActivity() {
             val errorHead = "Get chat ID failed: "
             call.enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    Log.e(Const.TAG, "onResponse: ", e)
+                    Log.e(Const.TAG, "onResponse: ${e.message}", e)
                     progressDialog.cancel()
                     val message = errorHead + e.message
-                    Log.e(Const.TAG, message)
                     runOnUiThread {
                         showErrorDialog(message)
                     }
@@ -278,9 +277,8 @@ class MainActivity : AppCompatActivity() {
                             Log.e(Const.TAG, errorMessage)
                             runOnUiThread { showErrorDialog(errorMessage) }
                         } catch (e: Exception) {
-                            e.printStackTrace()
                             val errorMessage = errorHead + "Failed to parse error response"
-                            Log.e(Const.TAG, errorMessage)
+                            Log.e(Const.TAG, errorMessage,e)
                             runOnUiThread { showErrorDialog(errorMessage) }
                         }
                         return
@@ -354,9 +352,8 @@ class MainActivity : AppCompatActivity() {
                                 .show()
                         }
                     } catch (e: Exception) {
-                        Log.e(Const.TAG, "onResponse: ", e)
+                        Log.e(Const.TAG, "onResponse: ${e.message}", e)
                         val errorMessage = errorHead + "Failed to parse response: ${e.message}"
-                        Log.e(Const.TAG, errorMessage)
                         runOnUiThread { showErrorDialog(errorMessage) }
                     }
                 }

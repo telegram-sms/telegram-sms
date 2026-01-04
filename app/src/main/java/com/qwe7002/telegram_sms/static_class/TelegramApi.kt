@@ -101,8 +101,7 @@ object TelegramApi {
 
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-                Log.e(Const.TAG, "Request failed: ${e.message}")
+                Log.e(Const.TAG, "Request failed: ${e.message}",e)
                 handleFailure(context, requestBody.text, fallbackSubId, enableResend)
             }
 
@@ -176,8 +175,7 @@ object TelegramApi {
                 null
             }
         } catch (e: IOException) {
-            e.printStackTrace()
-            Log.e(Const.TAG, "Request failed: ${e.message}")
+            Log.e(Const.TAG, "Request failed: ${e.message}",e)
             handleFailure(context, requestBody.text, fallbackSubId, enableResend)
             null
         }
@@ -249,8 +247,7 @@ object TelegramApi {
 
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-                Log.e(Const.TAG, "Media upload failed: ${e.message}")
+                Log.e(Const.TAG, "Media upload failed: ${e.message}",e)
                 if (caption.isNotEmpty()) {
                     handleFailure(context, caption, fallbackSubId, enableResend)
                 }

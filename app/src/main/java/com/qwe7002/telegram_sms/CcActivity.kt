@@ -332,8 +332,8 @@ class CcActivity : AppCompatActivity() {
                             }
                         } catch (e: Exception) {
                             Log.e(
-                                "CcActivity",
-                                "An error occurred while resending: " + e.message
+                                Const.TAG,
+                                "An error occurred while resending: " + e.message,e
                             )
                             runOnUiThread {
                                 AlertDialog.Builder(this)
@@ -343,7 +343,6 @@ class CcActivity : AppCompatActivity() {
                                     .show()
 
                             }
-                            e.printStackTrace()
                         }
                     } else {
                         runOnUiThread {
@@ -357,9 +356,8 @@ class CcActivity : AppCompatActivity() {
                 } catch (e: IOException) {
                     Log.e(
                         "CcActivity",
-                        "An error occurred while resending: " + e.message
+                        "An error occurred while resending: " + e.message,e
                     )
-                    e.printStackTrace()
                 } finally {
                     progressDialog.dismiss()
                 }

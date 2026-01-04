@@ -175,10 +175,10 @@ class QrcodeActivity : AppCompatActivity() {
                     }
                 } catch (e: IOException) {
                     Log.e(
-                        "QrcodeActivity",
+                        Const.TAG,
                         "An error occurred while resending: " + e.message
+                        ,e
                     )
-                    e.printStackTrace()
                 } finally {
                     progressDialog.dismiss()
                 }
@@ -232,7 +232,7 @@ class QrcodeActivity : AppCompatActivity() {
                                     .show()
 
                             }
-                            e.printStackTrace()
+                            Log.e(Const.TAG, "Decryption error", e)
                         }
                     } else {
                         runOnUiThread {
@@ -246,10 +246,10 @@ class QrcodeActivity : AppCompatActivity() {
                     response.close()
                 } catch (e: IOException) {
                     Log.e(
-                        "QrcodeActivity",
+                        Const.TAG,
                         "An error occurred while getting configuration: " + e.message
+                        ,e
                     )
-                    e.printStackTrace()
                 } finally {
                     progressDialog.dismiss()
                 }
