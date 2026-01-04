@@ -117,17 +117,53 @@ class LogActivity : AppCompatActivity() {
                     level = "V" // Verbose in debug builds
                 }
                 logcatProcess = Runtime.getRuntime().exec(
-                    arrayOf("logcat", "${Const.TAG}:${level}","*:S", "-d", "-t", "500")
+                    arrayOf("logcat", "${Const.TAG}:${level}","*:S", "-d", "-t", "500","-v","time")
                 )
 
                 val reader = BufferedReader(InputStreamReader(logcatProcess?.inputStream))
+                var lastEntry: LogEntry? = null
+                var lastTimestamp: String? = null
+                var lastTag: String? = null
 
                 while (isActive) {
                     val line = reader.readLine() ?: break
                     if (line.isNotEmpty() && !line.startsWith("------")) {
-                        val entry = parseLogLine(entryId++, line)
-                        logChannel.trySend(entry)
+                        val parsed = parseLogLine(entryId, line)
+
+                        // Check if this is a continuation line (same timestamp, tag, and message starts with whitespace or is a simple exception name)
+                        val isContinuation = lastEntry != null &&
+                            lastTimestamp == parsed.timestamp &&
+                            lastTag == parsed.tag &&
+                            (parsed.message.startsWith("\t") ||
+                             parsed.message.startsWith("    ") ||
+                             parsed.message.matches(Regex("^\\s+at\\s+.*")) ||
+                             parsed.message.matches(Regex("^\\s*Caused by:.*")) ||
+                             parsed.message.matches(Regex("^\\s*Suppressed:.*")) ||
+                             parsed.message.matches(Regex("^\\s*\\.{3}\\s+\\d+\\s+more\\s*$")) ||
+                             parsed.message.matches(Regex("^[a-zA-Z]+(\\.[a-zA-Z]+)*Exception.*")) ||
+                             parsed.message.matches(Regex("^[a-zA-Z]+(\\.[a-zA-Z]+)*Error.*")) ||
+                             parsed.message.trim().isEmpty() && parsed.message.isNotEmpty())
+
+                        if (isContinuation) {
+                            // Add to the last entry's continuation lines
+                            lastEntry.continuationLines.add(parsed.message)
+                        } else {
+                            // Send the previous entry if exists
+                            if (lastEntry != null) {
+                                logChannel.trySend(lastEntry)
+                            }
+                            // Start a new entry
+                            entryId++
+                            lastEntry = parsed
+                            lastTimestamp = parsed.timestamp
+                            lastTag = parsed.tag
+                        }
                     }
+                }
+
+                // Send the last entry if exists
+                if (lastEntry != null) {
+                    logChannel.trySend(lastEntry)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -149,7 +185,8 @@ class LogActivity : AppCompatActivity() {
                 level = level.first(),
                 tag = tag.trim(),
                 message = message,
-                rawLine = line
+                rawLine = line,
+                continuationLines = mutableListOf()
             )
         } else {
             // Fallback for unparseable lines
@@ -159,7 +196,8 @@ class LogActivity : AppCompatActivity() {
                 level = 'V',
                 tag = "",
                 message = line,
-                rawLine = line
+                rawLine = line,
+                continuationLines = mutableListOf()
             )
         }
     }
@@ -193,8 +231,16 @@ data class LogEntry(
     val level: Char,
     val tag: String,
     val message: String,
-    val rawLine: String
-)
+    val rawLine: String,
+    val continuationLines: MutableList<String> = mutableListOf(),
+    var isExpanded: Boolean = false
+) {
+    fun hasContinuation(): Boolean = continuationLines.isNotEmpty()
+
+    fun copy(expanded: Boolean): LogEntry {
+        return LogEntry(id, timestamp, level, tag, message, rawLine, continuationLines, expanded)
+    }
+}
 
 class LogAdapter : ListAdapter<LogEntry, LogAdapter.LogViewHolder>(LogDiffCallback()) {
 
@@ -211,6 +257,8 @@ class LogAdapter : ListAdapter<LogEntry, LogAdapter.LogViewHolder>(LogDiffCallba
         val timestampView: TextView = itemView.findViewById(R.id.log_timestamp)
         val messageView: TextView = itemView.findViewById(R.id.log_message)
         val levelView: TextView = itemView.findViewById(R.id.log_level)
+        val expandIndicator: TextView = itemView.findViewById(R.id.log_expand_indicator)
+        val detailsView: TextView = itemView.findViewById(R.id.log_details)
     }
 
     class LogDiffCallback : DiffUtil.ItemCallback<LogEntry>() {
@@ -244,6 +292,32 @@ class LogAdapter : ListAdapter<LogEntry, LogAdapter.LogViewHolder>(LogDiffCallba
 
         // Set message (keep default text color from XML)
         holder.messageView.text = entry.message
+
+        // Handle expand/collapse for continuation lines
+        if (entry.hasContinuation()) {
+            holder.expandIndicator.visibility = View.VISIBLE
+            holder.expandIndicator.text = if (entry.isExpanded) "▼ ${entry.continuationLines.size}" else "▶ ${entry.continuationLines.size}"
+
+            if (entry.isExpanded) {
+                holder.detailsView.visibility = View.VISIBLE
+                holder.detailsView.text = entry.continuationLines.joinToString("\n")
+            } else {
+                holder.detailsView.visibility = View.GONE
+            }
+
+            holder.itemView.setOnClickListener {
+                val currentPosition = holder.bindingAdapterPosition
+                if (currentPosition != RecyclerView.NO_POSITION) {
+                    val currentEntry = getItem(currentPosition)
+                    currentEntry.isExpanded = !currentEntry.isExpanded
+                    notifyItemChanged(currentPosition)
+                }
+            }
+        } else {
+            holder.expandIndicator.visibility = View.GONE
+            holder.detailsView.visibility = View.GONE
+            holder.itemView.setOnClickListener(null)
+        }
     }
 
     private fun getLevelString(level: Char): String {

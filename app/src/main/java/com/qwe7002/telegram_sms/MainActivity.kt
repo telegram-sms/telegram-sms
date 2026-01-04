@@ -427,7 +427,14 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                 }
             }
-            checkAndLogout(botTokenEditView.text.toString().trim { it <= ' ' })
+            if (preferences.getString(
+                    "api_address",
+                    "api.telegram.org"
+                ) != "api.telegram.org"
+            ) {
+                checkAndLogout(botTokenEditView.text.toString().trim { it <= ' ' })
+            }
+
 
             val progressDialog = ProgressDialog(this@MainActivity)
             progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)

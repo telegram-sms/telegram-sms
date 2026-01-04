@@ -843,12 +843,13 @@ ${sms.body}
                             // Reset retry delay on success
                             retryDelayMs = MIN_RETRY_DELAY_MS
                         } else {
-                            Log.w(Const.TAG, "Polling response error: ${response.code}")
+                            Log.e(Const.TAG, "Polling response error: ${response.code}")
                             sleepWithCheck(retryDelayMs)
                             retryDelayMs = (retryDelayMs * 2).coerceAtMost(MAX_RETRY_DELAY_MS)
                         }
                     }
                 } catch (e: IOException) {
+                    e.printStackTrace()
                     if (!isRunning.get()) {
                         Log.d(Const.TAG, "Polling thread interrupted, exiting")
                         break

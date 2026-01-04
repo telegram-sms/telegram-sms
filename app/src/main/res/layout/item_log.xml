@@ -38,14 +38,43 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="2dp">
+
+        <TextView
+            android:id="@+id/log_message"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="monospace"
+            android:textColor="@color/text_color"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/log_expand_indicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="@color/timestamp_color"
+            android:visibility="gone"
+            android:paddingStart="8dp"
+            android:paddingEnd="4dp" />
+
+    </LinearLayout>
+
     <TextView
-        android:id="@+id/log_message"
+        android:id="@+id/log_details"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
+        android:layout_marginStart="16dp"
         android:fontFamily="monospace"
         android:textColor="@color/text_color"
-        android:textSize="12sp" />
+        android:textSize="11sp"
+        android:visibility="gone" />
 
 </LinearLayout>
 
