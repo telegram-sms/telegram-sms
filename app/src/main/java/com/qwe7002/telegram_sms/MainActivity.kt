@@ -468,7 +468,6 @@ class MainActivity : AppCompatActivity() {
                     Log.e(Const.TAG, "onResponse: ", e)
                     progressDialog.cancel()
                     val errorMessage = errorHead + e.message
-                    Log.e(Const.TAG, errorMessage)
                     runOnUiThread {
                         showErrorDialog(errorMessage)
                     }
@@ -723,10 +722,9 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call, e: IOException) {
-                Log.d(Const.TAG, "onFailure: $e")
+                Log.d(Const.TAG, "onFailure: $e",e)
                 progressDialog.cancel()
                 val errorMessage = errorHead + e.message
-                Log.e(Const.TAG, errorMessage)
                 runOnUiThread {
                     showErrorDialog(errorMessage)
                 }

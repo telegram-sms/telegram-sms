@@ -59,7 +59,7 @@ class SMSReceiver : BroadcastReceiver() {
         val dualSim = try {
             Phone.getSimDisplayName(context, slot)
         } catch (e: SecurityException) {
-            Log.e(Const.TAG, "Failed to get SIM display name due to missing permission: ${e.message}")
+            Log.e(Const.TAG, "Failed to get SIM display name due to missing permission: ${e.message}",e)
             ""
         }
 

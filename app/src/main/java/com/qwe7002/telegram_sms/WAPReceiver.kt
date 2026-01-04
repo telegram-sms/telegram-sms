@@ -116,7 +116,7 @@ class WAPReceiver : BroadcastReceiver() {
                         intentSlot = info.simSlotIndex
                     }
                 } catch (e: Exception) {
-                    Log.e(Const.TAG, "Failed to get subscription info: ${e.message}")
+                    Log.e(Const.TAG, "Failed to get subscription info: ${e.message}",e)
                 }
             }
         }
@@ -272,7 +272,7 @@ class WAPReceiver : BroadcastReceiver() {
                 }
             }
         } catch (e: Exception) {
-            Log.e(Const.TAG, "Error finding MMS ID: ${e.message}")
+            Log.e(Const.TAG, "Error finding MMS ID: ${e.message}",e)
         } finally {
             cursor?.close()
         }
@@ -303,7 +303,7 @@ class WAPReceiver : BroadcastReceiver() {
                 }
             }
         } catch (e: Exception) {
-            Log.e(Const.TAG, "Error getting MMS address: ${e.message}")
+            Log.e(Const.TAG, "Error getting MMS address: ${e.message}",e)
         } finally {
             cursor?.close()
         }
@@ -378,7 +378,7 @@ class WAPReceiver : BroadcastReceiver() {
                 }
             }
         } catch (e: Exception) {
-            Log.e(Const.TAG, "Error getting MMS parts: ${e.message}")
+            Log.e(Const.TAG, "Error getting MMS parts: ${e.message}",e)
         } finally {
             cursor?.close()
         }
@@ -404,7 +404,7 @@ class WAPReceiver : BroadcastReceiver() {
                 text = buffer.toString("UTF-8")
             }
         } catch (e: Exception) {
-            Log.e(Const.TAG, "Error reading text from part: ${e.message}")
+            Log.e(Const.TAG, "Error reading text from part: ${e.message}",e)
         } finally {
             inputStream?.close()
         }
@@ -431,7 +431,7 @@ class WAPReceiver : BroadcastReceiver() {
                 return buffer.toByteArray()
             }
         } catch (e: Exception) {
-            Log.e(Const.TAG, "Error reading image from part: ${e.message}")
+            Log.e(Const.TAG, "Error reading image from part: ${e.message}",e)
         } finally {
             inputStream?.close()
         }
@@ -711,7 +711,7 @@ class WAPReceiver : BroadcastReceiver() {
                 }
             }
         } catch (e: Exception) {
-            Log.e(Const.TAG, "Error parsing MMS PDU: ${e.message}")
+            Log.e(Const.TAG, "Error parsing MMS PDU: ${e.message}",e)
         }
 
         // Clean up from address
