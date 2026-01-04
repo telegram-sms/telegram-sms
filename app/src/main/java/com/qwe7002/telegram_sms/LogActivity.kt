@@ -284,10 +284,10 @@ class LogAdapter : ListAdapter<LogEntry, LogAdapter.LogViewHolder>(LogDiffCallba
 
         // Set level emoji
         holder.levelView.text = getLevelString(entry.level)
+        holder.levelView.setTextColor(getLevelColor(entry.level))
 
         // Set tag (without emoji, but with level color)
         holder.tagView.text = entry.tag.ifEmpty { "Unknown" }
-        holder.tagView.setTextColor(getLevelColor(entry.level))
 
         // Set timestamp
         holder.timestampView.text = entry.timestamp
