@@ -590,9 +590,6 @@ class ChatService : Service() {
         chatId = sharedPreferences.getString("chat_id", "")!!
         botToken = sharedPreferences.getString("bot_token", "")!!
         botUsername = sharedPreferences.getString("bot_username", "")!!
-        Log.d(Const.TAG, "Chat ID: $chatId")
-        Log.d(Const.TAG, "Bot token: $botToken")
-        Log.d(Const.TAG, "Bot username: $botUsername")
         messageThreadId = sharedPreferences.getString("message_thread_id", "")!!
         okHttpClient = getOkhttpObj(
             sharedPreferences.getBoolean("doh_switch", true)
