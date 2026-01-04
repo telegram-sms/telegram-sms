@@ -130,19 +130,21 @@ class LogActivity : AppCompatActivity() {
                     if (line.isNotEmpty() && !line.startsWith("------")) {
                         val parsed = parseLogLine(entryId, line)
 
-                        // Check if this is a continuation line (same timestamp, tag, and message starts with whitespace or is a simple exception name)
+                        // Check if this is a continuation line (same timestamp, tag, and message is part of a stack trace)
+                        val msg = parsed.message
                         val isContinuation = lastEntry != null &&
                             lastTimestamp == parsed.timestamp &&
                             lastTag == parsed.tag &&
-                            (parsed.message.startsWith("\t") ||
-                             parsed.message.startsWith("    ") ||
-                             parsed.message.matches(Regex("^\\s+at\\s+.*")) ||
-                             parsed.message.matches(Regex("^\\s*Caused by:.*")) ||
-                             parsed.message.matches(Regex("^\\s*Suppressed:.*")) ||
-                             parsed.message.matches(Regex("^\\s*\\.{3}\\s+\\d+\\s+more\\s*$")) ||
-                             parsed.message.matches(Regex("^[a-zA-Z]+(\\.[a-zA-Z]+)*Exception.*")) ||
-                             parsed.message.matches(Regex("^[a-zA-Z]+(\\.[a-zA-Z]+)*Error.*")) ||
-                             parsed.message.trim().isEmpty() && parsed.message.isNotEmpty())
+                            (msg.startsWith("\t") ||
+                             msg.startsWith("    ") ||
+                             msg.matches(Regex("^\\s*at\\s+.*")) ||
+                             msg.matches(Regex("^\\s*Caused by:.*")) ||
+                             msg.matches(Regex("^\\s*Suppressed:.*")) ||
+                             msg.matches(Regex("^\\s*\\.{3}\\s+\\d+\\s+more\\s*$")) ||
+                             msg.matches(Regex("^[a-zA-Z]+(\\.[a-zA-Z0-9_\$]+)*Exception.*")) ||
+                             msg.matches(Regex("^[a-zA-Z]+(\\.[a-zA-Z0-9_\$]+)*Error.*")) ||
+                             msg.matches(Regex("^[a-zA-Z]+(\\.[a-zA-Z0-9_\$]+)*:\\s+.*")) ||
+                             (msg.trim().isEmpty() && msg.isNotEmpty()))
 
                         if (isContinuation) {
                             // Add to the last entry's continuation lines

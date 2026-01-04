@@ -258,7 +258,7 @@ class MainActivity : AppCompatActivity() {
             val errorHead = "Get chat ID failed: "
             call.enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    Log.d(Const.TAG, "onFailure: $e")
+                    Log.e(Const.TAG, "onResponse: ", e)
                     progressDialog.cancel()
                     val message = errorHead + e.message
                     Log.e(Const.TAG, message)
@@ -354,6 +354,7 @@ class MainActivity : AppCompatActivity() {
                                 .show()
                         }
                     } catch (e: Exception) {
+                        Log.e(Const.TAG, "onResponse: ", e)
                         val errorMessage = errorHead + "Failed to parse response: ${e.message}"
                         Log.e(Const.TAG, errorMessage)
                         runOnUiThread { showErrorDialog(errorMessage) }
@@ -467,7 +468,7 @@ class MainActivity : AppCompatActivity() {
             val errorHead = "Send message failed: "
             call.enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    Log.d(Const.TAG, "onFailure: $e")
+                    Log.e(Const.TAG, "onResponse: ", e)
                     progressDialog.cancel()
                     val errorMessage = errorHead + e.message
                     Log.e(Const.TAG, errorMessage)
@@ -491,7 +492,7 @@ class MainActivity : AppCompatActivity() {
                                 showErrorDialog(errorMessage)
                             }
                         } catch (e: Exception) {
-                            e.printStackTrace()
+                            Log.e(Const.TAG, "onResponse: ", e)
                             val errorMessage = errorHead + "Failed to parse error response"
                             Log.e(Const.TAG, errorMessage)
                             runOnUiThread { showErrorDialog(errorMessage) }
@@ -500,7 +501,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     if (newBotToken != botTokenSave) {
                         Log.i(
-                            this::class.simpleName,
+                            Const.TAG,
                             "onResponse: The current bot token does not match the saved bot token, clearing the message database."
                         )
                         MMKV.mmkvWithID(MMKVConst.CHAT_ID).clearAll()
