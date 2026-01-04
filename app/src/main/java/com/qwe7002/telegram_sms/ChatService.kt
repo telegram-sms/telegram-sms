@@ -82,11 +82,11 @@ class ChatService : Service() {
         private fun readLogcat(lines: Int): String {
             return try {
                 var level = "I"
-                if(BuildConfig.DEBUG) {
+                if (BuildConfig.DEBUG) {
                     level = "V" // Verbose in debug builds
                 }
                 val process = Runtime.getRuntime().exec(
-                    arrayOf("logcat", "${Const.TAG}:${level}","*:S", "-d", "-t", lines.toString())
+                    arrayOf("logcat", "${Const.TAG}:${level}", "*:S", "-d", "-t", lines.toString())
                 )
 
                 val reader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
@@ -195,7 +195,10 @@ class ChatService : Service() {
                 val okhttpObj = getOkhttpObj(
                     sharedPreferences.getBoolean("doh_switch", false)
                 )
-                Log.d(Const.TAG,"doh switch status: "+ sharedPreferences.getBoolean("doh_switch", false))
+                Log.d(
+                    Const.TAG,
+                    "doh switch status: " + sharedPreferences.getBoolean("doh_switch", false)
+                )
                 val request: Request =
                     Request.Builder().url(requestUri).method("POST", body).build()
                 val call = okhttpObj.newCall(request)
@@ -220,7 +223,7 @@ class ChatService : Service() {
                     Manifest.permission.SEND_SMS
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
-                send( applicationContext,to, content, slot, subId, messageId)
+                send(applicationContext, to, content, slot, subId, messageId)
             }
 
             setSmsSendStatusStandby()
@@ -246,7 +249,10 @@ class ChatService : Service() {
                 fromTopicId = jsonObject["message_thread_id"].asString
             }
             if (messageThreadId != fromTopicId) {
-                Log.w(Const.TAG, "Topic ID mismatch: expected=$messageThreadId, actual=$fromTopicId")
+                Log.w(
+                    Const.TAG,
+                    "Topic ID mismatch: expected=$messageThreadId, actual=$fromTopicId"
+                )
                 return
             }
         }
@@ -631,7 +637,11 @@ class ChatService : Service() {
     }
 
     @SuppressLint("MissingPermission")
-    private fun handleSmsCallback(callbackData: String, messageId: Long, requestBody: RequestMessage) {
+    private fun handleSmsCallback(
+        callbackData: String,
+        messageId: Long,
+        requestBody: RequestMessage
+    ) {
         Log.d(Const.TAG, "Handling SMS callback: $callbackData")
         val parts = callbackData.split(":")
 
@@ -656,7 +666,8 @@ class ChatService : Service() {
                     }
                     requestBody.text = buildSmsListMessage(smsList, typeLabel)
                     val keyboardMarkup = KeyboardMarkup().apply {
-                        inlineKeyboard = createSmsListKeyboard(smsList.map { it.id }, page, totalPages, smsType)
+                        inlineKeyboard =
+                            createSmsListKeyboard(smsList.map { it.id }, page, totalPages, smsType)
                     }
                     requestBody.replyMarkup = keyboardMarkup
                     editMessage(messageId, requestBody)
@@ -726,10 +737,16 @@ class ChatService : Service() {
                     ) {
                         val (smsList, totalPages) = SMS.getSmsList(applicationContext, "all", 0, 5)
                         if (smsList.isNotEmpty()) {
-                            requestBody.text = buildSmsListMessage(smsList, getString(R.string.sms_type_all)
+                            requestBody.text = buildSmsListMessage(
+                                smsList, getString(R.string.sms_type_all)
                             )
                             val keyboardMarkup = KeyboardMarkup().apply {
-                                inlineKeyboard = createSmsListKeyboard(smsList.map { it.id }, 0, totalPages, "all")
+                                inlineKeyboard = createSmsListKeyboard(
+                                    smsList.map { it.id },
+                                    0,
+                                    totalPages,
+                                    "all"
+                                )
                             }
                             requestBody.replyMarkup = keyboardMarkup
                         }
@@ -761,7 +778,8 @@ class ChatService : Service() {
 
     private fun buildSmsDetailMessage(sms: SmsInfo): String {
         val typeIcon = if (sms.type == 1) "📥" else "📤"
-        val addressLabel = if (sms.type == 1) getString(R.string.sms_from) else getString(R.string.sms_to)
+        val addressLabel =
+            if (sms.type == 1) getString(R.string.sms_from) else getString(R.string.sms_to)
 
         return """
 ${getString(R.string.sms_detail_header)} $typeIcon #${sms.id}
@@ -820,7 +838,7 @@ ${sms.body}
                 }
 
                 val requestUri = getUrl(botToken, "getUpdates")
-                Log.d(Const.TAG, "Polling request: $requestUri")
+                Log.v(Const.TAG, "Polling request: $requestUri")
                 val requestBody = PollingBody().apply {
                     this.offset = RequestOffset
                     this.timeout = if (firstRequest) 0 else 60
@@ -849,7 +867,6 @@ ${sms.body}
                         }
                     }
                 } catch (e: IOException) {
-                    e.printStackTrace()
                     if (!isRunning.get()) {
                         Log.d(Const.TAG, "Polling thread interrupted, exiting")
                         break
