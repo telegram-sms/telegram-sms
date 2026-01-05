@@ -685,7 +685,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
         var appIdentifier = applicationContext.getString(R.string.app_identifier)
-        if(BuildConfig.VERSION_NAME.contains("nightly")){
+        if (BuildConfig.VERSION_NAME.contains("nightly")) {
             appIdentifier += "-nightly"
         }
         val updateMMKV = MMKV.mmkvWithID(MMKVConst.UPDATE_ID)
@@ -748,7 +748,11 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun checkVersionFromMetadata(release: GitHubRelease, metadataUrl: String, okhttpObj: OkHttpClient) {
+    private fun checkVersionFromMetadata(
+        release: GitHubRelease,
+        metadataUrl: String,
+        okhttpObj: OkHttpClient
+    ) {
         val request: Request = Request.Builder().url(metadataUrl).build()
         val call = okhttpObj.newCall(request)
         call.enqueue(object : Callback {
@@ -785,7 +789,10 @@ class MainActivity : AppCompatActivity() {
                             Log.w(Const.TAG, "No APK asset found in release")
                         }
                     } else {
-                        Log.d(Const.TAG, "App is up to date. Current: ${BuildConfig.VERSION_CODE}, Remote: $remoteVersionCode")
+                        Log.d(
+                            Const.TAG,
+                            "App is up to date. Current: ${BuildConfig.VERSION_CODE}, Remote: $remoteVersionCode"
+                        )
                     }
                 } catch (e: Exception) {
                     Log.e(Const.TAG, "Failed to parse output-metadata.json", e)
@@ -836,18 +843,10 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.about_menu_item -> {
-                val packageManager = applicationContext.packageManager
-                val packageInfo: PackageInfo
-                var versionName: String? = "unknown"
-                try {
-                    packageInfo = packageManager.getPackageInfo(applicationContext.packageName, 0)
-                    versionName = packageInfo.versionName
-                } catch (e: PackageManager.NameNotFoundException) {
-                    Log.d(Const.TAG, "onOptionsItemSelected: $e")
-                }
+
                 val builder = AlertDialog.Builder(this)
                 builder.setTitle(R.string.about_title)
-                builder.setMessage(getString(R.string.about_content) + versionName)
+                builder.setMessage(getString(R.string.about_content) + BuildConfig.VERSION_NAME)
                 builder.setCancelable(false)
                 builder.setPositiveButton(R.string.ok_button, null)
                 builder.show()
