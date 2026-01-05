@@ -70,13 +70,35 @@ When making significant changes, update documentation in `docs/docs/`:
 - New integrations → Update `CarbonCopyProvider.md`
 - Security changes → Update `CRYPTO_DOC.md`
 
+**VitePress Documentation Sites**:
+- Both `docs/` and `document/` are deployed using **VitePress**
+- When adding new documentation pages, update the corresponding `config.mts` file:
+  - `docs/.vitepress/config.mts` - Developer documentation config
+  - `document/.vitepress/config.mts` - User documentation config
+- Add navigation items, sidebar entries, and routing as needed
+
 **Note**: Focus on developer docs in `docs/`. User documentation in `document/` requires multi-language support.
 
 ### 9. Git Submodules
 The project uses git submodules:
 - `language_pack/` - Translations (9 languages)
+  - Located at: `app/language_pack/`
+  - Contains language-specific string resources in `values-*` directories
+  - Each language corresponds to Android resource qualifiers (e.g., `values-zh-rCN`, `values-ja-rJP`)
+  - When adding new strings, update the corresponding language files in language_pack
 - `AwesomeQrRenderer/` - QR code rendering
 - `CodeauxLibPortable/` - Portable library
+
+**Language Pack Structure**:
+- `values-zh-rCN/` - Simplified Chinese
+- `values-zh-rTW/` - Traditional Chinese
+- `values-zh-rHK/` - Hong Kong Chinese
+- `values-yue-rCN/` - Cantonese (China)
+- `values-yue-rHK/` - Cantonese (Hong Kong)
+- `values-ja-rJP/` - Japanese
+- `values-es-rES/` - Spanish
+- `values-ru/` - Russian
+- `values-vi/` - Vietnamese
 
 Handle submodules carefully when making changes.
 
