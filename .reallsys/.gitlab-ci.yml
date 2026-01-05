@@ -28,7 +28,6 @@ cache:
     files:
       - gradle/wrapper/gradle-wrapper.properties
       - app/build.gradle
-      - .reallsys/requirements.txt
     prefix: ${CI_PROJECT_ID}
   paths:
     - .gradle/caches/
