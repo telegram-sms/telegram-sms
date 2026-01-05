@@ -42,7 +42,7 @@ cache:
     - |
       set -euo pipefail
       echo "==> Installing dependencies..."
-      apk --update --no-cache add git openssl bash curl wget ca-certificates zip unzip
+      apk --summary --no-cache add git openssl bash curl wget ca-certificates zip unzip
     - |
       echo "==> Setting up keystore..."
       if [ -z "${KEYSTORE:-}" ]; then

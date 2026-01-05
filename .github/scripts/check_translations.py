@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Translation Completeness Checker
-Compares language pack strings.xml files with the reference strings.xml
+Compares language pack string resource files with the reference files
 to find missing translations.
 """
 
@@ -10,6 +10,29 @@ import sys
 from lxml import etree
 from pathlib import Path
 from typing import Dict, Set, List, Tuple
+
+# Define the string resource files to check
+STRING_RESOURCE_FILES = [
+    'strings.xml',
+    'strings_battery.xml',
+    'strings_telegram.xml',
+    'strings_sms.xml',
+    'strings_call.xml',
+    'strings_ussd.xml',
+    'strings_network.xml',
+    'strings_cc.xml',
+    'strings_notification.xml',
+    'strings_scanner.xml',
+    'strings_privacy_about.xml',
+    'strings_common.xml'
+]
+
+# Files that should be merged into other files for checking
+# Format: source_file -> target_file
+FILE_MERGE_MAP = {
+    'strings_chat.xml': 'strings_telegram.xml',
+    'strings_sms_manage.xml': 'strings_sms.xml'
+}
 
 
 def parse_strings_xml(file_path: str) -> Dict[str, str]:
@@ -32,8 +55,8 @@ def parse_strings_xml(file_path: str) -> Dict[str, str]:
         return {}
 
 
-def get_language_packs(base_path: str) -> List[Tuple[str, str]]:
-    """Get all language pack directories and their strings.xml files."""
+def get_language_packs(base_path: str) -> List[Tuple[str, Path]]:
+    """Get all language pack directories."""
     language_packs = []
     language_pack_dir = Path(base_path) / 'app' / 'language_pack'
 
@@ -43,73 +66,152 @@ def get_language_packs(base_path: str) -> List[Tuple[str, str]]:
 
     for item in language_pack_dir.iterdir():
         if item.is_dir() and item.name.startswith('values-'):
-            strings_file = item / 'strings.xml'
-            if strings_file.exists():
-                language_packs.append((item.name, str(strings_file)))
+            language_packs.append((item.name, item))
 
     return language_packs
 
 
+def get_reference_strings(base_path: str) -> Dict[str, Dict[str, str]]:
+    """Get all reference strings from the values directory, organized by file."""
+    reference_dir = Path(base_path) / 'app' / 'src' / 'main' / 'res' / 'values'
+    all_strings = {}
+
+    # Load main files
+    for resource_file in STRING_RESOURCE_FILES:
+        file_path = reference_dir / resource_file
+        if file_path.exists():
+            strings = parse_strings_xml(str(file_path))
+            if strings:
+                all_strings[resource_file] = strings
+        else:
+            print(f"Warning: Reference file not found: {file_path}")
+
+    # Merge additional files into their target files
+    for source_file, target_file in FILE_MERGE_MAP.items():
+        source_path = reference_dir / source_file
+        if source_path.exists():
+            source_strings = parse_strings_xml(str(source_path))
+            if source_strings and target_file in all_strings:
+                # Merge source strings into target
+                all_strings[target_file].update(source_strings)
+                print(f"Merged {source_file} into {target_file} ({len(source_strings)} strings)")
+
+    return all_strings
+
+
+def get_language_strings(language_dir: Path) -> Dict[str, Dict[str, str]]:
+    """Get all strings from a language pack directory, organized by file."""
+    all_strings = {}
+
+    for resource_file in STRING_RESOURCE_FILES:
+        file_path = language_dir / resource_file
+        if file_path.exists():
+            strings = parse_strings_xml(str(file_path))
+            if strings:
+                all_strings[resource_file] = strings
+
+    return all_strings
+
+
 def check_translation_completeness(
-    reference_strings: Dict[str, str],
-    language_strings: Dict[str, str],
+    reference_strings: Dict[str, Dict[str, str]],
+    language_strings: Dict[str, Dict[str, str]],
     language_name: str
-) -> Tuple[Set[str], Set[str]]:
+) -> Dict[str, Tuple[Set[str], Set[str], Set[str]]]:
     """
-    Compare reference strings with language strings.
-    Returns: (missing_keys, extra_keys)
+    Compare reference strings with language strings for each file.
+    Returns: Dict[filename, (missing_keys, extra_keys, missing_files)]
     """
-    reference_keys = set(reference_strings.keys())
-    language_keys = set(language_strings.keys())
+    results = {}
+    missing_files = set()
 
-    missing_keys = reference_keys - language_keys
-    extra_keys = language_keys - reference_keys
+    for filename, ref_strings in reference_strings.items():
+        if filename not in language_strings:
+            missing_files.add(filename)
+            results[filename] = (set(ref_strings.keys()), set(), missing_files)
+        else:
+            reference_keys = set(ref_strings.keys())
+            language_keys = set(language_strings[filename].keys())
 
-    return missing_keys, extra_keys
+            missing_keys = reference_keys - language_keys
+            extra_keys = language_keys - reference_keys
+
+            results[filename] = (missing_keys, extra_keys, set())
+
+    return results
 
 
 def generate_report(
-    reference_strings: Dict[str, str],
-    language_packs: List[Tuple[str, str]]
+    reference_strings: Dict[str, Dict[str, str]],
+    language_packs: List[Tuple[str, Path]]
 ) -> str:
     """Generate a detailed report of translation completeness."""
     report_lines = []
     report_lines.append("=" * 80)
     report_lines.append("Translation Completeness Report")
     report_lines.append("=" * 80)
-    report_lines.append(f"\nReference strings.xml contains {len(reference_strings)} strings.\n")
+
+    # Calculate total reference strings
+    total_ref_strings = sum(len(strings) for strings in reference_strings.values())
+    report_lines.append(f"\nReference files contain {total_ref_strings} strings across {len(reference_strings)} files.\n")
 
     all_complete = True
 
-    for language_name, language_file in sorted(language_packs):
-        language_strings = parse_strings_xml(language_file)
-        missing_keys, extra_keys = check_translation_completeness(
+    for language_name, language_dir in sorted(language_packs):
+        language_strings = get_language_strings(language_dir)
+        results = check_translation_completeness(
             reference_strings, language_strings, language_name
         )
 
+        # Calculate overall statistics
+        total_lang_strings = sum(len(strings) for strings in language_strings.values())
+        total_missing = sum(len(missing) for missing, _, _ in results.values())
+        total_extra = sum(len(extra) for _, extra, _ in results.values())
+
         completeness = (
-            (len(language_strings) - len(extra_keys)) / len(reference_strings) * 100
-            if len(reference_strings) > 0 else 0
+            ((total_lang_strings - total_extra) / total_ref_strings * 100)
+            if total_ref_strings > 0 else 0
         )
 
         report_lines.append("-" * 80)
         report_lines.append(f"Language: {language_name}")
-        report_lines.append(f"File: {language_file}")
-        report_lines.append(f"Total strings: {len(language_strings)}")
+        report_lines.append(f"Directory: {language_dir}")
+        report_lines.append(f"Total strings: {total_lang_strings}")
         report_lines.append(f"Completeness: {completeness:.1f}%")
 
-        if missing_keys:
+        # Check for missing files
+        missing_files = [f for f, (_, _, mf) in results.items() if mf]
+        if missing_files:
             all_complete = False
-            report_lines.append(f"\n⚠️  Missing {len(missing_keys)} string(s):")
-            for key in sorted(missing_keys):
-                report_lines.append(f"  - {key}")
-        else:
-            report_lines.append("\n✅ All strings present!")
+            report_lines.append(f"\n⚠️  Missing {len(missing_files)} file(s):")
+            for filename in sorted(missing_files):
+                report_lines.append(f"  - {filename}")
 
-        if extra_keys:
-            report_lines.append(f"\n⚠️  Extra {len(extra_keys)} string(s) not in reference:")
-            for key in sorted(extra_keys):
-                report_lines.append(f"  - {key}")
+        # Report per-file issues
+        has_issues = False
+        for filename in sorted(results.keys()):
+            missing_keys, extra_keys, _ = results[filename]
+
+            if missing_keys or extra_keys:
+                if not has_issues:
+                    report_lines.append(f"\nFile-specific issues:")
+                    has_issues = True
+
+                report_lines.append(f"\n  [{filename}]")
+
+                if missing_keys:
+                    all_complete = False
+                    report_lines.append(f"    ⚠️  Missing {len(missing_keys)} string(s):")
+                    for key in sorted(missing_keys):
+                        report_lines.append(f"      - {key}")
+
+                if extra_keys:
+                    report_lines.append(f"    ⚠️  Extra {len(extra_keys)} string(s):")
+                    for key in sorted(extra_keys):
+                        report_lines.append(f"      - {key}")
+
+        if not has_issues and not missing_files:
+            report_lines.append("\n✅ All files and strings present!")
 
         report_lines.append("")
 
@@ -117,7 +219,7 @@ def generate_report(
     if all_complete:
         report_lines.append("✅ All language packs are complete!")
     else:
-        report_lines.append("⚠️  Some language packs have missing strings.")
+        report_lines.append("⚠️  Some language packs have missing strings or files.")
     report_lines.append("=" * 80)
 
     return "\n".join(report_lines)
@@ -128,21 +230,15 @@ def main():
     # Get workspace path
     workspace_path = os.getcwd()
 
-    # Parse reference strings.xml from the repository
-    reference_file = os.path.join(workspace_path, 'app', 'src', 'main', 'res', 'values', 'strings.xml')
-
-    if not os.path.exists(reference_file):
-        print(f"Error: Reference file not found: {reference_file}")
-        sys.exit(1)
-
-    print(f"Loading reference strings from {reference_file}...")
-    reference_strings = parse_strings_xml(reference_file)
+    print(f"Loading reference strings from app/src/main/res/values/...")
+    reference_strings = get_reference_strings(workspace_path)
 
     if not reference_strings:
-        print("Error: No strings found in reference file.")
+        print("Error: No reference strings found.")
         sys.exit(1)
 
-    print(f"Found {len(reference_strings)} strings in reference file.")
+    total_ref_strings = sum(len(strings) for strings in reference_strings.values())
+    print(f"Found {total_ref_strings} strings across {len(reference_strings)} files.")
 
     # Get all language packs
     print(f"\nScanning language packs in {workspace_path}...")
@@ -169,13 +265,18 @@ def main():
 
     # Check if any language pack has missing strings
     has_missing = False
-    for language_name, language_file in language_packs:
-        language_strings = parse_strings_xml(language_file)
-        missing_keys, _ = check_translation_completeness(
+    for language_name, language_dir in language_packs:
+        language_strings = get_language_strings(language_dir)
+        results = check_translation_completeness(
             reference_strings, language_strings, language_name
         )
-        if missing_keys:
-            has_missing = True
+
+        for filename, (missing_keys, _, missing_files) in results.items():
+            if missing_keys or missing_files:
+                has_missing = True
+                break
+
+        if has_missing:
             break
 
     # Exit with error code if there are missing strings
