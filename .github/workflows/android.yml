@@ -35,18 +35,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y git openssl curl wget ca-certificates zip unzip
-
-      - name: Set up Android NDK
-        run: |
-          NDK_VERSION="27.2.12479018"
-          echo "y" | ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --install "ndk;${NDK_VERSION}"
-          echo "ANDROID_NDK_HOME=${ANDROID_SDK_ROOT}/ndk/${NDK_VERSION}" >> $GITHUB_ENV
-
-      - name: Configure Git
-        run: |
-          git config --global user.email "ci-bot@telegram-sms.com"
-          git config --global user.name "GitHub Actions Bot"
-
       - name: Generate version information
         run: |
           UBUNTU_VERSION="$(date +%y.%m)"
@@ -71,7 +59,6 @@ jobs:
           org.gradle.parallel=true
           org.gradle.caching=true
           org.gradle.configureondemand=true
-          android.ndkVersion=27.2.12479018
           EOF
 
       - name: Copy language pack

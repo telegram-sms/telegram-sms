@@ -55,16 +55,6 @@ cache:
         exit 1
       fi
     - |
-      echo "==> Setting up Android NDK..."
-      NDK_VERSION="27.2.12479018"
-      if [ ! -d "${ANDROID_SDK_ROOT}/ndk/${NDK_VERSION}" ]; then
-        echo "Installing NDK ${NDK_VERSION}..."
-        yes | sdkmanager --install "ndk;${NDK_VERSION}" || true
-      fi
-      export ANDROID_NDK_HOME="${ANDROID_SDK_ROOT}/ndk/${NDK_VERSION}"
-      export PATH="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin:${PATH}"
-      echo "NDK installed at: ${ANDROID_NDK_HOME}"
-    - |
       echo "==> Configuring git..."
       git config --global user.email "ci-bot@telegram-sms.com"
       git config --global user.name "GitLab CI Bot"
@@ -77,7 +67,6 @@ cache:
       org.gradle.parallel=true 
       org.gradle.caching=true
       org.gradle.configureondemand=true
-      android.ndkVersion=${NDK_VERSION}
       EOF
       chmod +x ./gradlew
     - |
