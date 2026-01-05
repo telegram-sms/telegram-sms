@@ -272,7 +272,9 @@ object DataMigrationManager {
                     destination.encode(key, intVal)
                     continue
                 }
-            } catch (e: Exception) { /* Not an int */ }
+            } catch (e: Exception) {
+                Log.e(TAG, "copyMMKVData: ${e.message}",e )
+            }
 
             try {
                 val longVal = source.decodeLong(key, Long.MIN_VALUE)
@@ -280,12 +282,16 @@ object DataMigrationManager {
                     destination.encode(key, longVal)
                     continue
                 }
-            } catch (e: Exception) { /* Not a long */ }
+            } catch (e: Exception) {
+                Log.e(TAG, "copyMMKVData: ${e.message}",e )
+            }
 
             try {
                 val boolVal = source.decodeBool(key)
                 destination.encode(key, boolVal)
-            } catch (e: Exception) { /* Not a boolean */ }
+            } catch (e: Exception) {
+                Log.e(TAG, "copyMMKVData: ${e.message}",e )
+            }
         }
     }
 }
