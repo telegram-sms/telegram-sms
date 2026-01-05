@@ -54,6 +54,11 @@ class TemplateActivity : AppCompatActivity() {
                 mapOf("SIM" to "SIM1 ", "To" to "+16505551212", "Content" to "Hello, World!")
             ),
             Message(
+                getString(R.string.receive_call_title),
+                "TPL_receiving_call",
+                mapOf("SIM" to "SIM1 ", "From" to "+16505551212")
+            ),
+            Message(
                 getString(R.string.missed_call_title),
                 "TPL_missed_call",
                 mapOf("SIM" to "SIM1 ", "From" to "+16505551212")
@@ -74,12 +79,7 @@ class TemplateActivity : AppCompatActivity() {
                     "Message" to applicationContext.getString(R.string.battery_low),
                     "BatteryLevel" to "10"
                 )
-            ),
-            Message(
-                getString(R.string.missed_call_title),
-                "TPL_receiving_call",
-                mapOf("SIM" to "SIM1 ", "From" to "+16505551212")
-            ),
+            )
         )
 
         val adapter = MessageAdapter(this, messages)

@@ -105,6 +105,7 @@
     <string name="template_title">Template</string>
     <string name="reset_button">Reset</string>
     <string name="send_sms_title">Send SMS</string>
+    <string name="receive_call_title">Receive Call</string>
     <string name="missed_call_title">Missed Call</string>
     <string name="receive_sms_title">Receive SMS</string>
     <string name="receive_mms_title">Receive MMS</string>
