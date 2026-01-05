@@ -10,7 +10,7 @@
     <ImageView
         android:id="@+id/log_character_set"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:alpha="@dimen/alpha"
         android:scaleType="center"
         android:src="@drawable/character_set"
