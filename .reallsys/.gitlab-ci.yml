@@ -28,10 +28,12 @@ cache:
     files:
       - gradle/wrapper/gradle-wrapper.properties
       - app/build.gradle
+      - .reallsys/requirements.txt
     prefix: ${CI_PROJECT_ID}
   paths:
     - .gradle/caches/
     - .gradle/wrapper/
+    - .cache/pip/
   policy: pull-push
 
 # ------------------------------------------------------------------------------
@@ -226,10 +228,13 @@ build_release:
       echo "==> Generating changelog with One API..."
       git remote add source https://github.com/telegram-sms/telegram-sms
       git fetch source --tags
-      echo "==> Compiling ChangelogGenerate.java..."
-      javac .reallsys/changelogGenerate.java
-      echo "==> Running ChangelogGenerate..."
-      java -cp .reallsys ChangelogGenerate
+      echo "==> Installing Python dependencies..."
+      apk add --no-cache python3 py3-pip
+      export PIP_CACHE_DIR="${CI_PROJECT_DIR}/.cache/pip"
+      mkdir -p "${PIP_CACHE_DIR}"
+      pip3 install --cache-dir="${PIP_CACHE_DIR}" -r .reallsys/requirements.txt
+      echo "==> Running Python changelog generator..."
+      python3 .reallsys/changelogGenerate.py
       RELEASE_CHANGELOG=$(cat CHANGELOG.md)
       echo "==> Generated changelog:"
       echo "${RELEASE_CHANGELOG}"
