@@ -239,10 +239,10 @@ data class LogEntry(
     var isExpanded: Boolean = false
 ) {
     fun hasContinuation(): Boolean = continuationLines.isNotEmpty()
-
+/*
     fun copy(expanded: Boolean): LogEntry {
         return LogEntry(id, timestamp, level, tag, message, rawLine, continuationLines, expanded)
-    }
+    }*/
 }
 
 class LogAdapter : ListAdapter<LogEntry, LogAdapter.LogViewHolder>(LogDiffCallback()) {

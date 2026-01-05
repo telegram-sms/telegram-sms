@@ -826,7 +826,7 @@ class MainActivity : AppCompatActivity() {
                     .setView(view)
                     .setPositiveButton(R.string.ok_button,null)
                     .show()
-                val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
                 positiveButton.setOnClickListener({
                     var hasError = false
                     if(proxyEnable.isChecked) {

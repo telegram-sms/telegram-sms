@@ -27,6 +27,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.Objects
+import androidx.core.net.toUri
 
 data class SmsInfo(
     val id: Long,
@@ -35,7 +36,7 @@ data class SmsInfo(
     val date: Long,
     val type: Int // 1=inbox, 2=sent
 ) {
-    fun getTypeString(): String = if (type == 1) "inbox" else "sent"
+/*    fun getTypeString(): String = if (type == 1) "inbox" else "sent"*/
     fun getFormattedDate(): String {
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
         return sdf.format(Date(date))
@@ -60,9 +61,9 @@ object SMS {
     ): Pair<List<SmsInfo>, Int> {
         val smsList = mutableListOf<SmsInfo>()
         val uri = when (type.lowercase()) {
-            "inbox" -> Uri.parse("content://sms/inbox")
-            "sent" -> Uri.parse("content://sms/sent")
-            else -> Uri.parse("content://sms")
+            "inbox" -> "content://sms/inbox".toUri()
+            "sent" -> "content://sms/sent".toUri()
+            else -> "content://sms".toUri()
         }
 
         val cursor = context.contentResolver.query(
@@ -100,7 +101,7 @@ object SMS {
     @RequiresPermission(Manifest.permission.READ_SMS)
     fun getSmsById(context: Context, id: Long): SmsInfo? {
         val cursor = context.contentResolver.query(
-            Uri.parse("content://sms"),
+            "content://sms".toUri(),
             arrayOf("_id", "address", "body", "date", "type"),
             "_id = ?",
             arrayOf(id.toString()),
@@ -129,7 +130,7 @@ object SMS {
         }
         return try {
             val rowsDeleted = context.contentResolver.delete(
-                Uri.parse("content://sms"),
+                "content://sms".toUri(),
                 "_id = ?",
                 arrayOf(id.toString())
             )

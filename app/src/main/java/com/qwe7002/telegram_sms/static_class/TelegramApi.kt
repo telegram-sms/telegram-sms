@@ -56,7 +56,6 @@ object TelegramApi {
      * @param context Android context
      * @param requestBody The RequestMessage object containing chat_id, text, etc.
      * @param method Telegram API method (default: "sendMessage", can be "editMessageText")
-     * @param errorTag Tag for error logging
      * @param fallbackSubId Subscription ID for SMS fallback (-1 to disable)
      * @param enableResend Whether to add to resend loop on failure (default: true)
      * @param onSuccess Optional callback when request succeeds, receives response body string
@@ -124,7 +123,6 @@ object TelegramApi {
      * @param context Android context
      * @param requestBody The RequestMessage object
      * @param method Telegram API method
-     * @param errorTag Tag for error logging
      * @param fallbackSubId Subscription ID for SMS fallback
      * @param enableResend Whether to add to resend loop on failure
      * @return Response body string on success, null on failure
@@ -188,7 +186,6 @@ object TelegramApi {
      * @param mediaType Type of media: "photo", "audio", or "video"
      * @param media MediaData containing file name, content type, and data bytes
      * @param caption Optional caption text
-     * @param errorTag Tag for error logging
      * @param fallbackSubId Subscription ID for SMS fallback
      * @param enableResend Whether to add caption to resend loop on failure
      * @param onSuccess Optional callback when request succeeds
