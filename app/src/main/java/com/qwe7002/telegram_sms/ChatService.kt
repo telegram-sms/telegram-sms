@@ -728,16 +728,16 @@ class ChatService : Service() {
             val dualSim = if (ussdSlotTemp != -1) "SIM${ussdSlotTemp + 1} " else ""
 
             var resultUssd = Template.render(
-                applicationContext, "TPL_system_message",
-                mapOf("Message" to getString(R.string.failed_to_get_information))
+                applicationContext, "TPL_send_USSD_chat",
+                mapOf("Content" to getString(R.string.failed_to_get_information))
             )
             Log.d(Const.TAG, "USSD sending mode status: $sendUssdNextStatus")
             resultUssd = when (sendUssdNextStatus) {
                 SEND_USSD_STATUS.CODE_INPUT_STATUS -> {
                     sendUssdNextStatus = SEND_USSD_STATUS.WAITING_TO_SEND_STATUS
                     Template.render(
-                        applicationContext, "TPL_system_message",
-                        mapOf("Message" to "$dualSim${getString(R.string.enter_ussd_code)}")
+                        applicationContext, "TPL_send_USSD_chat",
+                        mapOf("Content" to "$dualSim${getString(R.string.enter_ussd_code)}")
                     )
                 }
 
@@ -745,8 +745,8 @@ class ChatService : Service() {
                     if (!hasReplyToMessage) {
                         setUssdSendStatusStandby()
                         Template.render(
-                            applicationContext, "TPL_system_message",
-                            mapOf("Message" to getString(R.string.please_reply_to_continue))
+                            applicationContext, "TPL_send_USSD_chat",
+                            mapOf("Content" to getString(R.string.please_reply_to_continue))
                         )
                     } else {
                         val ussdCode = requestMsg.trim()
@@ -767,14 +767,14 @@ class ChatService : Service() {
                             requestBody.replyMarkup = keyboardMarkup
                             sendUssdNextStatus = SEND_USSD_STATUS.SEND_STATUS
                             Template.render(
-                                applicationContext, "TPL_system_message",
-                                mapOf("Message" to "${dualSim}USSD: $ussdCode")
+                                applicationContext, "TPL_send_USSD_chat",
+                                mapOf("Content" to "${dualSim}USSD: $ussdCode")
                             )
                         } else {
                             setUssdSendStatusStandby()
                             Template.render(
-                                applicationContext, "TPL_system_message",
-                                mapOf("Message" to getString(R.string.invalid_ussd_code))
+                                applicationContext, "TPL_send_USSD_chat",
+                                mapOf("Content" to getString(R.string.invalid_ussd_code))
                             )
                         }
                     }
