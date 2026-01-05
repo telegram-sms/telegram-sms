@@ -19,5 +19,10 @@
     <string name="get_recent_chat_message">Please send some messages to the bot.</string>
     <string name="using_privacy_mode">Respond only to commands containing the Bot username</string>
     <string name="set_api_title">API Address</string>
+    <string name="set_api_success">API address set successfully.</string>
+    <string name="set_api_failed">Failed to set API address.</string>
+    <string name="logout_progress_title">Logging out from official API…</string>
+    <string name="logout_progress_message">Please wait…</string>
+    <string name="logout_failed">Logout failed.</string>
 </resources>
 

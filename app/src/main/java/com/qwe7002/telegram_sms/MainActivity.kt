@@ -1133,7 +1133,7 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
                     Snackbar.make(
                         findViewById(R.id.doh_switch),
-                        "Set API address successful.",
+                        getString(R.string.set_api_success),
                         Snackbar.LENGTH_LONG
                     ).show()
                 }
@@ -1145,26 +1145,29 @@ class MainActivity : AppCompatActivity() {
                     val body = response.body.string()
                     val jsonObj = JsonParser.parseString(body).asJsonObject
                     if (jsonObj.get("ok").asBoolean) {
+                        Log.i(Const.TAG, "onResponse: Logged in, proceeding to logout")
                         // Bot token is still active on official API, need to logout
                         runOnUiThread {
                             logout(botToken)
                         }
                     } else {
+                        Log.i(Const.TAG, "onResponse: Already logged out")
                         // Already logged out
                         runOnUiThread {
                             Snackbar.make(
                                 findViewById(R.id.doh_switch),
-                                "Set API address successful.",
+                                getString(R.string.set_api_success),
                                 Snackbar.LENGTH_LONG
                             ).show()
                         }
                     }
                 } else {
+                    Log.w(Const.TAG, "onResponse: ${response.code}" )
                     // Not logged in or error, no need to logout
                     runOnUiThread {
                         Snackbar.make(
                             findViewById(R.id.doh_switch),
-                            "Set API address successful.",
+                            getString(R.string.set_api_success),
                             Snackbar.LENGTH_LONG
                         ).show()
                     }
@@ -1176,8 +1179,8 @@ class MainActivity : AppCompatActivity() {
     fun logout(chatId: String) {
         val progressDialog = ProgressDialog(this)
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
-        progressDialog.setTitle(getString(R.string.get_recent_chat_title))
-        progressDialog.setMessage(getString(R.string.get_recent_chat_message))
+        progressDialog.setTitle(getString(R.string.logout_progress_title))
+        progressDialog.setMessage(getString(R.string.logout_progress_message))
         progressDialog.isIndeterminate = false
         progressDialog.setCancelable(false)
         progressDialog.show()
@@ -1201,18 +1204,18 @@ class MainActivity : AppCompatActivity() {
             override fun onResponse(call: Call, response: Response) {
                 progressDialog.cancel()
                 if (!response.isSuccessful) {
-                    showErrorDialog("Logout failed.")
+                    showErrorDialog(getString(R.string.logout_failed))
                 } else {
                     val body = response.body.string()
                     val jsonObj = JsonParser.parseString(body).asJsonObject
                     if (jsonObj.get("ok").asBoolean) {
                         Snackbar.make(
                             findViewById(R.id.doh_switch),
-                            "Set API address successful.",
+                            getString(R.string.set_api_success),
                             Snackbar.LENGTH_LONG
                         ).show()
                     } else {
-                        showErrorDialog("Set API address failed.")
+                        showErrorDialog(getString(R.string.set_api_failed))
                     }
 
                 }
