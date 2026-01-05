@@ -43,6 +43,7 @@ import com.qwe7002.telegram_sms.migration.DataMigrationManager
 import com.qwe7002.telegram_sms.data_structure.GitHubRelease
 import com.qwe7002.telegram_sms.data_structure.ScannerJson
 import com.qwe7002.telegram_sms.data_structure.telegram.PollingBody
+import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.Network.getOkhttpObj
 import com.qwe7002.telegram_sms.static_class.Network.getUrl
@@ -278,7 +279,7 @@ class MainActivity : AppCompatActivity() {
                             runOnUiThread { showErrorDialog(errorMessage) }
                         } catch (e: Exception) {
                             val errorMessage = errorHead + "Failed to parse error response"
-                            Log.e(Const.TAG, errorMessage,e)
+                            Log.e(Const.TAG, errorMessage, e)
                             runOnUiThread { showErrorDialog(errorMessage) }
                         }
                         return
@@ -457,7 +458,13 @@ class MainActivity : AppCompatActivity() {
             )
             // Add command keyboard if chat command is enabled
             if (chatCommandSwitch.isChecked) {
-                requestBody.replyMarkup = com.qwe7002.telegram_sms.static_class.ChatCommand.getCommandKeyboard(applicationContext)
+                requestBody.replyMarkup =
+                    com.qwe7002.telegram_sms.static_class.ChatCommand.getCommandKeyboard(
+                        applicationContext
+                    )
+            } else {
+                // Remove keyboard when chat command is disabled
+                requestBody.replyMarkup = ReplyMarkupKeyboard.ReplyKeyboardRemove()
             }
             val requestBodyRaw = gson.toJson(requestBody)
             val body: RequestBody = RequestBody.create(Const.JSON, requestBodyRaw)
@@ -725,7 +732,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call, e: IOException) {
-                Log.d(Const.TAG, "onFailure: $e",e)
+                Log.d(Const.TAG, "onFailure: $e", e)
                 progressDialog.cancel()
                 val errorMessage = errorHead + e.message
                 runOnUiThread {
@@ -827,28 +834,29 @@ class MainActivity : AppCompatActivity() {
                 proxyPassword.setText(proxyMMKV.getString("password", ""))
                 val dialog = AlertDialog.Builder(this).setTitle(R.string.proxy_dialog_title)
                     .setView(view)
-                    .setPositiveButton(R.string.ok_button,null)
+                    .setPositiveButton(R.string.ok_button, null)
                     .show()
                 val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
                 positiveButton.setOnClickListener({
                     var hasError = false
-                    if(proxyEnable.isChecked) {
-                        if(proxyHost.text.toString().isEmpty()) {
-                            view.findViewById<TextInputLayout>(R.id.proxy_host_layout).error="Proxy host can not be empty."
+                    if (proxyEnable.isChecked) {
+                        if (proxyHost.text.toString().isEmpty()) {
+                            view.findViewById<TextInputLayout>(R.id.proxy_host_layout).error =
+                                "Proxy host can not be empty."
                             hasError = true
                         }
                         val portLayout = view.findViewById<TextInputLayout>(R.id.proxy_port_layout)
-                        if(proxyPort.text.toString().isEmpty()) {
-                            portLayout.error="Proxy port can not be empty."
+                        if (proxyPort.text.toString().isEmpty()) {
+                            portLayout.error = "Proxy port can not be empty."
                             hasError = true
                         }
                         val port = proxyPort.text.toString().toInt()
-                        if(port !in 1..65535) {
-                            portLayout.error="Proxy port must be between 1 and 65535."
+                        if (port !in 1..65535) {
+                            portLayout.error = "Proxy port must be between 1 and 65535."
                             hasError = true
                         }
                     }
-                    if(!hasError) {
+                    if (!hasError) {
                         proxyMMKV.putBoolean("enable", proxyEnable.isChecked)
                         proxyMMKV.putString("host", proxyHost.text.toString())
                         proxyMMKV.putInt("port", proxyPort.text.toString().toInt())
@@ -975,7 +983,8 @@ class MainActivity : AppCompatActivity() {
                 val callNotifySwitch = findViewById<SwitchMaterial>(R.id.call_notify_switch)
                 callNotifySwitch.isChecked = jsonConfig.callNotifySwitch
 
-                val hidePhoneNumberSwitch = findViewById<SwitchMaterial>(R.id.hide_phone_number_switch)
+                val hidePhoneNumberSwitch =
+                    findViewById<SwitchMaterial>(R.id.hide_phone_number_switch)
                 hidePhoneNumberSwitch.isChecked = jsonConfig.hidePhoneNumber
 
                 if (jsonConfig.apiAddress.isNotEmpty()) {

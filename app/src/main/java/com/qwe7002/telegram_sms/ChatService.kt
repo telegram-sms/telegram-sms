@@ -82,10 +82,7 @@ class ChatService : Service() {
 
         private fun readLogcat(lines: Int): String {
             return try {
-                var level = "I"
-                if (BuildConfig.DEBUG) {
-                    level = "V" // Verbose in debug builds
-                }
+                val level = "I"
                 val process = Runtime.getRuntime().exec(
                     arrayOf("logcat", "${Const.TAG}:${level}", "*:S", "-d", "-t", lines.toString())
                 )

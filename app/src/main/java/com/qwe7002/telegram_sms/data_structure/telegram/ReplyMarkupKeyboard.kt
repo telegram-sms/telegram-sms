@@ -154,4 +154,15 @@ object ReplyMarkupKeyboard {
     fun createReplyButtonRow(vararg buttons: ReplyKeyboardButton): ArrayList<ReplyKeyboardButton> {
         return ArrayList(buttons.toList())
     }
+
+    /**
+     * Remove the current custom keyboard and display the default letter-keyboard
+     */
+    class ReplyKeyboardRemove {
+        @SerializedName("remove_keyboard")
+        var removeKeyboard: Boolean = true
+
+        @SerializedName("selective")
+        var selective: Boolean = false
+    }
 }
