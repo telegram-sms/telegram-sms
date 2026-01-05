@@ -152,7 +152,7 @@
         </receiver>
 
         <activity
-            android:name=".QrcodeActivity"
+            android:name=".TransferConfigActivity"
             android:exported="false"
             android:label="@string/transfer_configuration" />
         <activity

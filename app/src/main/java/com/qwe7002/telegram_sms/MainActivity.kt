@@ -785,7 +785,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.config_qrcode_menu_item -> {
-                val intent = Intent(this, QrcodeActivity::class.java)
+                val intent = Intent(this, TransferConfigActivity::class.java)
                 startActivityForResult(intent, 1)
                 return true
             }

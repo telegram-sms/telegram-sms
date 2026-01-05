@@ -42,7 +42,7 @@ import com.tencent.mmkv.MMKV
 import okio.IOException
 
 
-class QrcodeActivity : AppCompatActivity() {
+class TransferConfigActivity : AppCompatActivity() {
     lateinit var okhttpObject: okhttp3.OkHttpClient
     lateinit var preferences: android.content.SharedPreferences
     val url = "https://api.telegram-sms.com/config"
@@ -99,8 +99,6 @@ class QrcodeActivity : AppCompatActivity() {
     }
 
     private fun getConfigJson(): String {
-/*        val serviceListJson =
-            Paper.book("system_config").read("CC_service_list", "[]").toString()*/
         val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
         val serviceListJson = carbonCopyMMKV.getString("CC_service_list", "[]")
         val gson = Gson()
@@ -116,9 +114,8 @@ class QrcodeActivity : AppCompatActivity() {
             preferences.getBoolean("chat_command", false),
             preferences.getBoolean("fallback_sms", false),
             preferences.getBoolean("privacy_mode", false),
-            preferences.getBoolean("call_notify", false),
-            preferences.getBoolean("display_dual_sim_display_name", false),
             preferences.getBoolean("verification_code", false),
+            preferences.getBoolean("call_notify", false),
             preferences.getString("message_thread_id", "")!!,
             sendList,
             preferences.getBoolean("hide_phone_number", false)
