@@ -223,6 +223,35 @@ class ChatService : Service() {
                 }
                 return
             }
+            // First reply to user with "Sending" status before executing send operation
+            setSmsSendStatusStandby()
+            val requestUri = getUrl(botToken, "editMessageText")
+            val dualSim = Phone.getSimDisplayName(applicationContext, slot)
+            requestBody.text = Template.render(
+                applicationContext,
+                "TPL_send_sms",
+                mapOf("SIM" to dualSim, "To" to to, "Content" to content)
+            ) + "\n" + getString(R.string.status) + getString(R.string.sending)
+            requestBody.messageId = messageId
+            val gson = Gson()
+            val requestBodyRaw = gson.toJson(requestBody)
+            val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
+            val okhttpObj = getOkhttpObj(
+                sharedPreferences.getBoolean("doh_switch", false)
+            )
+            val request: Request =
+                Request.Builder().url(requestUri).method("POST", body).build()
+            val call = okhttpObj.newCall(request)
+            try {
+                val response = call.execute()
+                if (response.code != 200) {
+                    throw IOException(response.code.toString())
+                }
+            } catch (e: IOException) {
+                Log.e(Const.TAG, "Failed to edit message: ${e.message}", e)
+            }
+
+            // Now execute the send operation
             var subId = -1
             if (getActiveCard(applicationContext) == 1) {
                 slot = -1
@@ -236,8 +265,6 @@ class ChatService : Service() {
             ) {
                 send(applicationContext, to, content, slot, subId, messageId)
             }
-
-            setSmsSendStatusStandby()
             return
         }
 
@@ -281,7 +308,36 @@ class ChatService : Service() {
                 return
             }
 
-            // Send USSD
+            // First reply to user with "Sending" status before executing send operation
+            setUssdSendStatusStandby()
+            val requestUri = getUrl(botToken, "editMessageText")
+            val dualSim = if (ussdSlot != -1) "SIM${ussdSlot + 1} " else ""
+            requestBody.text = Template.render(
+                applicationContext, "TPL_send_USSD_chat",
+                mapOf(
+                    "Content" to "${dualSim}USSD: $ussdCode\n${getString(R.string.status)}${
+                        getString(R.string.sending)
+                    }"
+                )
+            )
+            requestBody.messageId = messageId
+            val gson = Gson()
+            val requestBodyRaw = gson.toJson(requestBody)
+            val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
+            val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
+            val request: Request =
+                Request.Builder().url(requestUri).method("POST", body).build()
+            val call = okhttpObj.newCall(request)
+            try {
+                val response = call.execute()
+                if (response.code != 200) {
+                    throw IOException(response.code.toString())
+                }
+            } catch (e: IOException) {
+                Log.e(Const.TAG, "Failed to edit message: ${e.message}", e)
+            }
+
+            // Now execute the send operation
             var subId = -1
             if (getActiveCard(applicationContext) > 1 && ussdSlot >= 0) {
                 subId = getSubId(applicationContext, ussdSlot)
@@ -294,7 +350,6 @@ class ChatService : Service() {
             ) {
                 sendUssd(applicationContext, ussdCode, subId, messageId)
             }
-            setUssdSendStatusStandby()
             return
         }
 
