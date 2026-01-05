@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="user_manual">User manual</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="donate">Donate</string>
+    <string name="privacy_reminder_information">You should be aware that using Telegram-SMS means you trust the way we handle your information. We fully understand that it is a significant responsibility, thus we work hard to protect your information and make sure you can take everything under control. Please refer to our privacy policy to understand your rights and better protect your privacy.</string>
+    <string name="privacy_reminder_title">Privacy and terms</string>
+    <string name="agree">Agree</string>
+    <string name="decline">"I'll decide later"</string>
+    <string name="visit_page">Visit the Privacy Terms page</string>
+    <string name="about_title">About</string>
+    <string name="about_content">"Developer: qwe7002 ous50\nEnglish translation: @tangbao @jixunmoe\nCurrent version: "</string>
+    <string name="check_update">Check for updates</string>
+    <string name="update_dialog_title">New Version Found</string>
+    <string name="update_dialog_body">%s is available for update.</string>
+    <string name="update_dialog_ok">Update now</string>
+    <string name="update_dialog_no">Talk to you later</string>
+    <string name="browser_not_found">Browser not found.</string>
+</resources>
+

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="edit_cc_service">Edit Cc Service</string>
+    <string name="add_cc_service">Add Cc Service</string>
+    <string name="copy_notification_menu">Carbon copy</string>
+    <string name="cc_service_enabled">" (Enabled)"</string>
+    <string name="cc_service_disabled">" (Disabled)"</string>
+    <string name="cc_service_config_title">Please select the service that needs to be copied</string>
+</resources>
+

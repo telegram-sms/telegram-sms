@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="Notification_Listener_title">"Notification Listener "</string>
+    <string name="set_notification_listener">Notification listener</string>
+    <string name="receive_notification_title">Receive Notification</string>
+    <string name="app_name_title">App Name:</string>
+    <string name="title">Title:</string>
+</resources>
+

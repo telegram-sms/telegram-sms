@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="send_ussd_title">Send USSD</string>
+    <string name="invalid_ussd_code">Invalid USSD code format</string>
+    <string name="enter_ussd_code">Please reply the USSD code.</string>
+    <string name="ussd_code_running">USSD code running…</string>
+</resources>
+
