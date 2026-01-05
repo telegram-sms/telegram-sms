@@ -738,7 +738,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call, e: IOException) {
-                Log.d(Const.TAG, "onFailure: $e", e)
+                Log.e(Const.TAG, "onFailure: $e", e)
                 progressDialog.cancel()
                 val errorMessage = errorHead + e.message
                 runOnUiThread {
@@ -756,15 +756,7 @@ class MainActivity : AppCompatActivity() {
             override fun onResponse(call: Call, response: Response) {
                 if (!response.isSuccessful) {
                     Log.e(Const.TAG, "Failed to download output-metadata.json: ${response.code}")
-                    // Fallback to tagName comparison
-                    if (release.tagName != BuildConfig.VERSION_NAME) {
-                        runOnUiThread {
-                            showUpdateDialog(
-                                release.tagName,
-                                release.assets[0].browserDownloadUrl
-                            )
-                        }
-                    }
+                    showErrorDialog("Failed to download update metadata.")
                     return
                 }
 
