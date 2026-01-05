@@ -843,7 +843,6 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.about_menu_item -> {
-
                 val builder = AlertDialog.Builder(this)
                 builder.setTitle(R.string.about_title)
                 builder.setMessage(getString(R.string.about_content) + BuildConfig.VERSION_NAME)
