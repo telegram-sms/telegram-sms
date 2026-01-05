@@ -48,8 +48,8 @@
     <string name="user_manual">User manual</string>
     <string name="privacy_policy">Privacy policy</string>
     <string name="charging">Charging</string>
-    <string name="enter_number">Please enter the receiver\'s number.</string>
-    <string name="enter_content">Please enter the message to be sent.</string>
+    <string name="enter_reply_number">Please reply the receiver\'s number.</string>
+    <string name="enter_reply_content">Please reply the message to be sent.</string>
     <string name="unable_get_phone_number">Unable to get phone number.</string>
     <string name="donate">Donate</string>
     <string name="not_charging">Not charging</string>
@@ -60,7 +60,7 @@
     <string name="Notification_Listener_title">"Notification Listener "</string>
     <string name="request">"Request: "</string>
     <string name="ussd_code_running">USSD code running…</string>
-    <string name="enter_ussd_code">Please enter the USSD code:</string>
+    <string name="enter_ussd_code">Please reply the USSD code.</string>
     <string name="invalid_ussd_code">Invalid USSD code format</string>
     <string name="privacy_reminder_information">You should be aware that using Telegram-SMS means you trust the way we handle your information. We fully understand that it is a significant responsibility, thus we work hard to protect your information and make sure you can take everything under control. Please refer to our privacy policy to understand your rights and better protect your privacy.</string>
     <string name="privacy_reminder_title">Privacy and terms</string>
@@ -138,6 +138,7 @@
     <string name="browser_not_found">Browser not found.</string>
     <string name="set_api_title">API Address</string>
     <string name="hide_phone_number">Hide Phone Numbers</string>
+    <string name="please_reply_to_continue">Please reply to the previous message to continue.</string>
 
 
 </resources>

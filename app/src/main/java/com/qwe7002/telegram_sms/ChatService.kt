@@ -254,14 +254,21 @@ class ChatService : Service() {
                 val dualSim = if (ussdSlot != -1) "SIM${ussdSlot + 1} " else ""
                 requestBody.text = Template.render(
                     applicationContext, "TPL_system_message",
-                    mapOf("Message" to "${dualSim}USSD: $ussdCode\n${getString(R.string.status)}${getString(R.string.cancel_button)}")
+                    mapOf(
+                        "Message" to "${dualSim}USSD: $ussdCode\n${getString(R.string.status)}${
+                            getString(
+                                R.string.cancel_button
+                            )
+                        }"
+                    )
                 )
                 requestBody.messageId = messageId
                 val gson = Gson()
                 val requestBodyRaw = gson.toJson(requestBody)
                 val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
                 val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
-                val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
+                val request: Request =
+                    Request.Builder().url(requestUri).method("POST", body).build()
                 val call = okhttpObj.newCall(request)
                 try {
                     val response = call.execute()
@@ -280,7 +287,10 @@ class ChatService : Service() {
                 subId = getSubId(applicationContext, ussdSlot)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED
+                ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.CALL_PHONE
+                ) == PackageManager.PERMISSION_GRANTED
             ) {
                 sendUssd(applicationContext, ussdCode, subId, messageId)
             }
@@ -325,7 +335,8 @@ class ChatService : Service() {
         if (jsonObject.has("text")) {
             requestMsg = jsonObject["text"].asString
         }
-        if (jsonObject.has("reply_to_message")) {
+        val hasReplyToMessage = jsonObject.has("reply_to_message")
+        if (hasReplyToMessage) {
             val saveItemString = chatInfoMMKV.getString(
                 jsonObject["reply_to_message"].asJsonObject["message_id"].asString,
                 null
@@ -551,7 +562,8 @@ class ChatService : Service() {
                             "To" to msgSendTo,
                             "Content" to sendContent
                         )
-                        requestBody.text = Template.render(applicationContext, "TPL_send_sms", values)
+                        requestBody.text =
+                            Template.render(applicationContext, "TPL_send_sms", values)
                     } else {
                         setSmsSendStatusStandby()
                         requestBody.text = Template.render(
@@ -565,13 +577,13 @@ class ChatService : Service() {
                     }
                     hasCommand = true
                 } else {
-                    // Interactive mode: ask for phone number
+                    // Interactive mode: ask for phone number first
                     Log.d(Const.TAG, "Entering interactive SMS sending mode")
                     val dualSim = if (sendSlot != -1) "SIM${sendSlot + 1} " else ""
                     requestBody.text = Template.render(
                         applicationContext,
                         "TPL_send_sms_chat",
-                        mapOf("SIM" to dualSim, "Content" to getString(R.string.enter_number))
+                        mapOf("SIM" to dualSim, "Content" to getString(R.string.enter_reply_number))
                     )
                     sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
                     hasCommand = true
@@ -597,11 +609,13 @@ class ChatService : Service() {
             // Only reset status if we're not in an interactive mode that needs to continue
             if (sendSmsNextStatus != SEND_SMS_STATUS.MESSAGE_INPUT_STATUS &&
                 sendSmsNextStatus != SEND_SMS_STATUS.WAITING_TO_SEND_STATUS &&
-                sendSmsNextStatus != SEND_SMS_STATUS.SEND_STATUS) {
+                sendSmsNextStatus != SEND_SMS_STATUS.SEND_STATUS
+            ) {
                 setSmsSendStatusStandby()
             }
             if (sendUssdNextStatus != SEND_USSD_STATUS.WAITING_TO_SEND_STATUS &&
-                sendUssdNextStatus != SEND_USSD_STATUS.SEND_STATUS) {
+                sendUssdNextStatus != SEND_USSD_STATUS.SEND_STATUS
+            ) {
                 setUssdSendStatusStandby()
             }
         }
@@ -622,57 +636,84 @@ class ChatService : Service() {
                     Template.render(
                         applicationContext,
                         "TPL_send_sms_chat",
-                        mapOf("SIM" to dualSim, "Content" to getString(R.string.enter_number))
+                        mapOf("SIM" to dualSim, "Content" to getString(R.string.enter_reply_number))
                     )
                 }
 
                 SEND_SMS_STATUS.MESSAGE_INPUT_STATUS -> {
-                    val tempTo = getSendPhoneNumber(requestMsg)
-                    if (isPhoneNumber(tempTo)) {
-                        chatMMKV.putString("to", tempTo)
-                        sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
-                        Template.render(
-                            applicationContext,
-                            "TPL_send_sms_chat",
-                            mapOf("SIM" to dualSim, "Content" to getString(R.string.enter_content))
-                        )
-                    } else {
+                    if (!hasReplyToMessage) {
                         setSmsSendStatusStandby()
                         Template.render(
                             applicationContext,
                             "TPL_send_sms_chat",
                             mapOf(
                                 "SIM" to dualSim,
-                                "Content" to getString(R.string.unable_get_phone_number)
+                                "Content" to getString(R.string.please_reply_to_continue)
                             )
                         )
+                    } else {
+                        val tempTo = getSendPhoneNumber(requestMsg)
+                        if (isPhoneNumber(tempTo)) {
+                            chatMMKV.putString("to", tempTo)
+                            sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
+                            Template.render(
+                                applicationContext,
+                                "TPL_send_sms_chat",
+                                mapOf(
+                                    "SIM" to dualSim,
+                                    "Content" to getString(R.string.enter_reply_content)
+                                )
+                            )
+                        } else {
+                            setSmsSendStatusStandby()
+                            Template.render(
+                                applicationContext,
+                                "TPL_send_sms_chat",
+                                mapOf(
+                                    "SIM" to dualSim,
+                                    "Content" to getString(R.string.unable_get_phone_number)
+                                )
+                            )
+                        }
                     }
                 }
 
                 SEND_SMS_STATUS.WAITING_TO_SEND_STATUS, SEND_SMS_STATUS.READY_TO_SEND_STATUS -> {
-                    if (sendSmsNextStatus == SEND_SMS_STATUS.WAITING_TO_SEND_STATUS) {
-                        chatMMKV.putString("content", requestMsg)
-                    }
-                    val keyboardMarkup = KeyboardMarkup().apply {
-                        inlineKeyboard = arrayListOf(
-                            getInlineKeyboardObj(
-                                getString(R.string.send_button),
-                                CALLBACK_DATA_VALUE.SEND
-                            ),
-                            getInlineKeyboardObj(
-                                getString(R.string.cancel_button),
-                                CALLBACK_DATA_VALUE.CANCEL
+                    if (!hasReplyToMessage) {
+                        setSmsSendStatusStandby()
+                        Template.render(
+                            applicationContext,
+                            "TPL_send_sms_chat",
+                            mapOf(
+                                "SIM" to dualSim,
+                                "Content" to getString(R.string.please_reply_to_continue)
                             )
                         )
+                    } else {
+                        if (sendSmsNextStatus == SEND_SMS_STATUS.WAITING_TO_SEND_STATUS) {
+                            chatMMKV.putString("content", requestMsg)
+                        }
+                        val keyboardMarkup = KeyboardMarkup().apply {
+                            inlineKeyboard = arrayListOf(
+                                getInlineKeyboardObj(
+                                    getString(R.string.send_button),
+                                    CALLBACK_DATA_VALUE.SEND
+                                ),
+                                getInlineKeyboardObj(
+                                    getString(R.string.cancel_button),
+                                    CALLBACK_DATA_VALUE.CANCEL
+                                )
+                            )
+                        }
+                        requestBody.replyMarkup = keyboardMarkup
+                        val values = mapOf(
+                            "SIM" to dualSim,
+                            "To" to chatMMKV.getString("to", "").toString(),
+                            "Content" to chatMMKV.getString("content", "").toString()
+                        )
+                        sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS
+                        Template.render(applicationContext, "TPL_send_sms", values)
                     }
-                    requestBody.replyMarkup = keyboardMarkup
-                    val values = mapOf(
-                        "SIM" to dualSim,
-                        "To" to chatMMKV.getString("to", "").toString(),
-                        "Content" to chatMMKV.getString("content", "").toString()
-                    )
-                    sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS
-                    Template.render(applicationContext, "TPL_send_sms", values)
                 }
 
                 else -> resultSend
@@ -701,33 +742,41 @@ class ChatService : Service() {
                 }
 
                 SEND_USSD_STATUS.WAITING_TO_SEND_STATUS -> {
-                    val ussdCode = requestMsg.trim()
-                    if (isValidUssdCode(ussdCode)) {
-                        chatMMKV.putString("ussd_code", ussdCode)
-                        val keyboardMarkup = KeyboardMarkup().apply {
-                            inlineKeyboard = arrayListOf(
-                                getInlineKeyboardObj(
-                                    getString(R.string.send_button),
-                                    CALLBACK_DATA_VALUE.USSD_SEND
-                                ),
-                                getInlineKeyboardObj(
-                                    getString(R.string.cancel_button),
-                                    CALLBACK_DATA_VALUE.USSD_CANCEL
-                                )
-                            )
-                        }
-                        requestBody.replyMarkup = keyboardMarkup
-                        sendUssdNextStatus = SEND_USSD_STATUS.SEND_STATUS
-                        Template.render(
-                            applicationContext, "TPL_system_message",
-                            mapOf("Message" to "${dualSim}USSD: $ussdCode")
-                        )
-                    } else {
+                    if (!hasReplyToMessage) {
                         setUssdSendStatusStandby()
                         Template.render(
                             applicationContext, "TPL_system_message",
-                            mapOf("Message" to getString(R.string.invalid_ussd_code))
+                            mapOf("Message" to getString(R.string.please_reply_to_continue))
                         )
+                    } else {
+                        val ussdCode = requestMsg.trim()
+                        if (isValidUssdCode(ussdCode)) {
+                            chatMMKV.putString("ussd_code", ussdCode)
+                            val keyboardMarkup = KeyboardMarkup().apply {
+                                inlineKeyboard = arrayListOf(
+                                    getInlineKeyboardObj(
+                                        getString(R.string.send_button),
+                                        CALLBACK_DATA_VALUE.USSD_SEND
+                                    ),
+                                    getInlineKeyboardObj(
+                                        getString(R.string.cancel_button),
+                                        CALLBACK_DATA_VALUE.USSD_CANCEL
+                                    )
+                                )
+                            }
+                            requestBody.replyMarkup = keyboardMarkup
+                            sendUssdNextStatus = SEND_USSD_STATUS.SEND_STATUS
+                            Template.render(
+                                applicationContext, "TPL_system_message",
+                                mapOf("Message" to "${dualSim}USSD: $ussdCode")
+                            )
+                        } else {
+                            setUssdSendStatusStandby()
+                            Template.render(
+                                applicationContext, "TPL_system_message",
+                                mapOf("Message" to getString(R.string.invalid_ussd_code))
+                            )
+                        }
                     }
                 }
 
