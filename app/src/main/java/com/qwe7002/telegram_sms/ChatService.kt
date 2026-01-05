@@ -418,19 +418,46 @@ class ChatService : Service() {
                         val ussdCode = commandList[1]
                         if (isValidUssdCode(ussdCode)) {
                             chatMMKV.putString("ussd_code", ussdCode)
-                            sendUssdNextStatus = SEND_USSD_STATUS.WAITING_TO_SEND_STATUS
+                            sendUssdNextStatus = SEND_USSD_STATUS.SEND_STATUS
+                            // Show confirmation with keyboard
+                            val dualSim = if (chatMMKV.getInt("ussd_slot", -1) != -1)
+                                "SIM${chatMMKV.getInt("ussd_slot", -1) + 1} " else ""
+                            val keyboardMarkup = KeyboardMarkup().apply {
+                                inlineKeyboard = arrayListOf(
+                                    getInlineKeyboardObj(
+                                        getString(R.string.send_button),
+                                        CALLBACK_DATA_VALUE.USSD_SEND
+                                    ),
+                                    getInlineKeyboardObj(
+                                        getString(R.string.cancel_button),
+                                        CALLBACK_DATA_VALUE.USSD_CANCEL
+                                    )
+                                )
+                            }
+                            requestBody.replyMarkup = keyboardMarkup
+                            requestBody.text = Template.render(
+                                applicationContext, "TPL_system_message",
+                                mapOf("Message" to "${dualSim}USSD: $ussdCode")
+                            )
                         } else {
                             setUssdSendStatusStandby()
                             requestBody.text = Template.render(
                                 applicationContext, "TPL_system_message",
                                 mapOf("Message" to getString(R.string.invalid_ussd_code))
                             )
-                            hasCommand = true
                         }
+                        hasCommand = true
                     } else {
                         // Interactive mode: ask for USSD code
                         Log.d(Const.TAG, "Entering interactive USSD sending mode")
-                        sendUssdNextStatus = SEND_USSD_STATUS.CODE_INPUT_STATUS
+                        val dualSim = if (chatMMKV.getInt("ussd_slot", -1) != -1)
+                            "SIM${chatMMKV.getInt("ussd_slot", -1) + 1} " else ""
+                        requestBody.text = Template.render(
+                            applicationContext, "TPL_system_message",
+                            mapOf("Message" to "$dualSim${getString(R.string.enter_ussd_code)}")
+                        )
+                        sendUssdNextStatus = SEND_USSD_STATUS.WAITING_TO_SEND_STATUS
+                        hasCommand = true
                     }
                 } else {
                     requestBody.text = Template.render(
@@ -496,7 +523,6 @@ class ChatService : Service() {
                     requestMsg.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                 Log.d(Const.TAG, "SMS send list size: ${msgSendList.size}")
                 if (msgSendList.size > 1) {
-                    sendSmsNextStatus = SEND_SMS_STATUS.READY_TO_SEND_STATUS
                     val msgSendTo = getSendPhoneNumber(
                         msgSendList[1]
                     )
@@ -504,6 +530,28 @@ class ChatService : Service() {
                         chatMMKV.putString("to", msgSendTo)
                         val sendContent = msgSendList.drop(2).joinToString("\n")
                         chatMMKV.putString("content", sendContent)
+                        sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS
+                        // Show confirmation with keyboard
+                        val dualSim = if (sendSlot != -1) "SIM${sendSlot + 1} " else ""
+                        val keyboardMarkup = KeyboardMarkup().apply {
+                            inlineKeyboard = arrayListOf(
+                                getInlineKeyboardObj(
+                                    getString(R.string.send_button),
+                                    CALLBACK_DATA_VALUE.SEND
+                                ),
+                                getInlineKeyboardObj(
+                                    getString(R.string.cancel_button),
+                                    CALLBACK_DATA_VALUE.CANCEL
+                                )
+                            )
+                        }
+                        requestBody.replyMarkup = keyboardMarkup
+                        val values = mapOf(
+                            "SIM" to dualSim,
+                            "To" to msgSendTo,
+                            "Content" to sendContent
+                        )
+                        requestBody.text = Template.render(applicationContext, "TPL_send_sms", values)
                     } else {
                         setSmsSendStatusStandby()
                         requestBody.text = Template.render(
@@ -515,10 +563,18 @@ class ChatService : Service() {
                             )
                         )
                     }
-
+                    hasCommand = true
                 } else {
+                    // Interactive mode: ask for phone number
                     Log.d(Const.TAG, "Entering interactive SMS sending mode")
-                    sendSmsNextStatus = SEND_SMS_STATUS.PHONE_INPUT_STATUS
+                    val dualSim = if (sendSlot != -1) "SIM${sendSlot + 1} " else ""
+                    requestBody.text = Template.render(
+                        applicationContext,
+                        "TPL_send_sms_chat",
+                        mapOf("SIM" to dualSim, "Content" to getString(R.string.enter_number))
+                    )
+                    sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
+                    hasCommand = true
                 }
             }
 
@@ -538,11 +594,19 @@ class ChatService : Service() {
 
         if (hasCommand) {
             Log.d(Const.TAG, "Command processed, entering standby state")
-            setSmsSendStatusStandby()
+            // Only reset status if we're not in an interactive mode that needs to continue
+            if (sendSmsNextStatus != SEND_SMS_STATUS.MESSAGE_INPUT_STATUS &&
+                sendSmsNextStatus != SEND_SMS_STATUS.WAITING_TO_SEND_STATUS &&
+                sendSmsNextStatus != SEND_SMS_STATUS.SEND_STATUS) {
+                setSmsSendStatusStandby()
+            }
+            if (sendUssdNextStatus != SEND_USSD_STATUS.WAITING_TO_SEND_STATUS &&
+                sendUssdNextStatus != SEND_USSD_STATUS.SEND_STATUS) {
+                setUssdSendStatusStandby()
+            }
         }
         if (!hasCommand && sendSmsNextStatus != -1) {
             Log.d(Const.TAG, "Entering interactive SMS sending mode, status=$sendSmsNextStatus")
-            //val sendSlotTemp = Paper.book("send_temp").read("slot", -1)!!
             val sendSlotTemp = chatMMKV.getInt("slot", -1)
             val dualSim = if (sendSlotTemp != -1) "SIM${sendSlotTemp + 1} " else ""
 
