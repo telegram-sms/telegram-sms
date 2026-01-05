@@ -67,6 +67,7 @@ class ChatService : Service() {
         private var RequestOffset: Long = 0
         private lateinit var sharedPreferences: MMKV
         private var sendSmsNextStatus = SEND_SMS_STATUS.STANDBY_STATUS
+        private var sendUssdNextStatus = SEND_USSD_STATUS.STANDBY_STATUS
         private lateinit var threadMain: Thread
         private var firstRequest = true
 
@@ -109,6 +110,8 @@ class ChatService : Service() {
     private object CALLBACK_DATA_VALUE {
         const val SEND: String = "send"
         const val CANCEL: String = "cancel"
+        const val USSD_SEND: String = "ussd_send"
+        const val USSD_CANCEL: String = "ussd_cancel"
     }
 
     @Suppress("ClassName")
@@ -119,6 +122,14 @@ class ChatService : Service() {
         const val WAITING_TO_SEND_STATUS: Int = 2
         const val READY_TO_SEND_STATUS: Int = 4
         const val SEND_STATUS: Int = 3
+    }
+
+    @Suppress("ClassName")
+    private object SEND_USSD_STATUS {
+        const val STANDBY_STATUS: Int = -1
+        const val CODE_INPUT_STATUS: Int = 0
+        const val WAITING_TO_SEND_STATUS: Int = 1
+        const val SEND_STATUS: Int = 2
     }
 
     private lateinit var chatId: String
@@ -229,6 +240,54 @@ class ChatService : Service() {
             setSmsSendStatusStandby()
             return
         }
+
+        // Handle USSD callback
+        if (messageType == "callback_query" && sendUssdNextStatus != SEND_USSD_STATUS.STANDBY_STATUS) {
+            val ussdSlot = chatMMKV.getInt("ussd_slot", -1)
+            val messageId = chatMMKV.getLong("ussd_message_id", -1L)
+            val ussdCode = chatMMKV.getString("ussd_code", "").toString()
+
+            if (callbackData != CALLBACK_DATA_VALUE.USSD_SEND) {
+                // Cancel USSD
+                setUssdSendStatusStandby()
+                val requestUri = getUrl(botToken, "editMessageText")
+                val dualSim = if (ussdSlot != -1) "SIM${ussdSlot + 1} " else ""
+                requestBody.text = Template.render(
+                    applicationContext, "TPL_system_message",
+                    mapOf("Message" to "${dualSim}USSD: $ussdCode\n${getString(R.string.status)}${getString(R.string.cancel_button)}")
+                )
+                requestBody.messageId = messageId
+                val gson = Gson()
+                val requestBodyRaw = gson.toJson(requestBody)
+                val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
+                val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
+                val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
+                val call = okhttpObj.newCall(request)
+                try {
+                    val response = call.execute()
+                    if (response.code != 200) {
+                        throw IOException(response.code.toString())
+                    }
+                } catch (e: IOException) {
+                    Log.e(Const.TAG, "Failed to edit message: ${e.message}", e)
+                }
+                return
+            }
+
+            // Send USSD
+            var subId = -1
+            if (getActiveCard(applicationContext) > 1 && ussdSlot >= 0) {
+                subId = getSubId(applicationContext, ussdSlot)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED
+            ) {
+                sendUssd(applicationContext, ussdCode, subId)
+            }
+            setUssdSendStatusStandby()
+            return
+        }
+
         lateinit var fromObj: JsonObject
         val isPrivate = messageType == "private"
         if (jsonObject.has("from")) {
@@ -343,21 +402,43 @@ class ChatService : Service() {
                         Manifest.permission.CALL_PHONE
                     ) == PackageManager.PERMISSION_GRANTED
                 ) {
-                    val commandList = requestMsg.split(" ").filter { it.isNotEmpty() }
-                    var subId = -1
-                    if (getActiveCard(applicationContext) == 2 && command == "/sendussd2") {
-                        subId = getSubId(applicationContext, 1)
+                    // Determine slot based on command
+                    var ussdSlot = -1
+                    if (getActiveCard(applicationContext) > 1) {
+                        ussdSlot = 0
+                        if (command == "/sendussd2") {
+                            ussdSlot = 1
+                        }
                     }
-                    if (commandList.size == 2) {
-                        sendUssd(applicationContext, commandList[1], subId)
-                        return
-                    }
-                }
+                    chatMMKV.putInt("ussd_slot", ussdSlot)
 
-                requestBody.text = Template.render(
-                    applicationContext, "TPL_system_message",
-                    mapOf("Message" to getString(R.string.unknown_command))
-                )
+                    val commandList = requestMsg.split(" ").filter { it.isNotEmpty() }
+                    if (commandList.size >= 2) {
+                        // Direct USSD code provided: /sendussd *123#
+                        val ussdCode = commandList[1]
+                        if (isValidUssdCode(ussdCode)) {
+                            chatMMKV.putString("ussd_code", ussdCode)
+                            sendUssdNextStatus = SEND_USSD_STATUS.WAITING_TO_SEND_STATUS
+                        } else {
+                            setUssdSendStatusStandby()
+                            requestBody.text = Template.render(
+                                applicationContext, "TPL_system_message",
+                                mapOf("Message" to getString(R.string.invalid_ussd_code))
+                            )
+                            hasCommand = true
+                        }
+                    } else {
+                        // Interactive mode: ask for USSD code
+                        Log.d(Const.TAG, "Entering interactive USSD sending mode")
+                        sendUssdNextStatus = SEND_USSD_STATUS.CODE_INPUT_STATUS
+                    }
+                } else {
+                    requestBody.text = Template.render(
+                        applicationContext, "TPL_system_message",
+                        mapOf("Message" to getString(R.string.unknown_command))
+                    )
+                    hasCommand = true
+                }
             }
 
             "/listsms" -> {
@@ -506,7 +587,6 @@ class ChatService : Service() {
 
                 SEND_SMS_STATUS.WAITING_TO_SEND_STATUS, SEND_SMS_STATUS.READY_TO_SEND_STATUS -> {
                     if (sendSmsNextStatus == SEND_SMS_STATUS.WAITING_TO_SEND_STATUS) {
-                        //Paper.book("send_temp").write("content", requestMsg)
                         chatMMKV.putString("content", requestMsg)
                     }
                     val keyboardMarkup = KeyboardMarkup().apply {
@@ -536,6 +616,62 @@ class ChatService : Service() {
             requestBody.text = resultSend
         }
 
+        // Handle USSD interactive mode
+        if (!hasCommand && sendUssdNextStatus != SEND_USSD_STATUS.STANDBY_STATUS) {
+            Log.d(Const.TAG, "Entering interactive USSD sending mode, status=$sendUssdNextStatus")
+            val ussdSlotTemp = chatMMKV.getInt("ussd_slot", -1)
+            val dualSim = if (ussdSlotTemp != -1) "SIM${ussdSlotTemp + 1} " else ""
+
+            var resultUssd = Template.render(
+                applicationContext, "TPL_system_message",
+                mapOf("Message" to getString(R.string.failed_to_get_information))
+            )
+            Log.d(Const.TAG, "USSD sending mode status: $sendUssdNextStatus")
+            resultUssd = when (sendUssdNextStatus) {
+                SEND_USSD_STATUS.CODE_INPUT_STATUS -> {
+                    sendUssdNextStatus = SEND_USSD_STATUS.WAITING_TO_SEND_STATUS
+                    Template.render(
+                        applicationContext, "TPL_system_message",
+                        mapOf("Message" to "$dualSim${getString(R.string.enter_ussd_code)}")
+                    )
+                }
+
+                SEND_USSD_STATUS.WAITING_TO_SEND_STATUS -> {
+                    val ussdCode = requestMsg.trim()
+                    if (isValidUssdCode(ussdCode)) {
+                        chatMMKV.putString("ussd_code", ussdCode)
+                        val keyboardMarkup = KeyboardMarkup().apply {
+                            inlineKeyboard = arrayListOf(
+                                getInlineKeyboardObj(
+                                    getString(R.string.send_button),
+                                    CALLBACK_DATA_VALUE.USSD_SEND
+                                ),
+                                getInlineKeyboardObj(
+                                    getString(R.string.cancel_button),
+                                    CALLBACK_DATA_VALUE.USSD_CANCEL
+                                )
+                            )
+                        }
+                        requestBody.replyMarkup = keyboardMarkup
+                        sendUssdNextStatus = SEND_USSD_STATUS.SEND_STATUS
+                        Template.render(
+                            applicationContext, "TPL_system_message",
+                            mapOf("Message" to "${dualSim}USSD: $ussdCode")
+                        )
+                    } else {
+                        setUssdSendStatusStandby()
+                        Template.render(
+                            applicationContext, "TPL_system_message",
+                            mapOf("Message" to getString(R.string.invalid_ussd_code))
+                        )
+                    }
+                }
+
+                else -> resultUssd
+            }
+            requestBody.text = resultUssd
+        }
+
         val requestUri = getUrl(
             botToken, "sendMessage"
         )
@@ -558,6 +694,9 @@ class ChatService : Service() {
                 }
                 if (sendSmsNextStatus == SEND_SMS_STATUS.SEND_STATUS) {
                     chatMMKV.putLong("message_id", getMessageId(responseString))
+                }
+                if (sendUssdNextStatus == SEND_USSD_STATUS.SEND_STATUS) {
+                    chatMMKV.putLong("ussd_message_id", getMessageId(responseString))
                 }
             }
         })
@@ -585,7 +724,7 @@ class ChatService : Service() {
         super.onCreate()
         MMKV.initialize(applicationContext)
         setSmsSendStatusStandby()
-        MMKV.initialize(applicationContext)
+        setUssdSendStatusStandby()
         sharedPreferences = MMKV.defaultMMKV()
         chatId = sharedPreferences.getString("chat_id", "")!!
         botToken = sharedPreferences.getString("bot_token", "")!!
@@ -631,6 +770,20 @@ class ChatService : Service() {
         chatMMKV.remove("to")
         chatMMKV.remove("content")
         chatMMKV.remove("message_id")
+    }
+
+    private fun setUssdSendStatusStandby() {
+        sendUssdNextStatus = SEND_USSD_STATUS.STANDBY_STATUS
+        chatMMKV.remove("ussd_slot")
+        chatMMKV.remove("ussd_code")
+        chatMMKV.remove("ussd_message_id")
+    }
+
+    private fun isValidUssdCode(code: String): Boolean {
+        // USSD codes typically start with * or # and end with #
+        // They can contain digits, *, and #
+        val ussdPattern = Regex("^[*#][0-9*#]+#?\$")
+        return code.isNotEmpty() && ussdPattern.matches(code)
     }
 
     @SuppressLint("MissingPermission")

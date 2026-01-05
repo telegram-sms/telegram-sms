@@ -34,7 +34,6 @@ object ChatCommand {
         if (Other.getActiveCard(context) == 2) {
             smsCommand = context.getString(R.string.sendsms_dual)
         }
-        smsCommand += "\n" + context.getString(R.string.get_spam_sms)
 
         // Add SMS management commands when app is default SMS app
         if (SMS.isDefaultSmsApp(context)) {
@@ -115,10 +114,9 @@ object ChatCommand {
             }
         }
 
-        // Third row: Info and spam commands
+        // Third row: Info command
         keyboard.add(createReplyButtonRow(
-            createReplyButton("/getinfo"),
-            createReplyButton("/getspamsms")
+            createReplyButton("/getinfo")
         ))
 
         // Fourth row: SMS list command (if app is default SMS app)
