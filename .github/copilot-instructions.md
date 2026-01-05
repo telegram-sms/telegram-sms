@@ -15,8 +15,7 @@ This is the **Telegram SMS** Android application project. Please refer to the co
 ## Key Guidelines
 
 ### 1. Language and Code Style
-- **Primary commit language**: Simplified Chinese (中文)
-- **English commits**: Welcome for contributions
+- **Primary commit language**: English
 - **Kotlin coding conventions**: Follow standard Kotlin style guide
 - **Documentation language**: English for developer docs (`docs/`)
 
