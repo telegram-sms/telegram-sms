@@ -1,4 +1,4 @@
-package com.qwe7002.telegram_sms.MMKV
+package com.qwe7002.telegram_sms.migration
 /**
  * Example of how to implement data structure migrations
  * This file serves as a reference for developers

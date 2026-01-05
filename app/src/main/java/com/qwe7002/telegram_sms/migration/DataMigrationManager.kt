@@ -1,7 +1,8 @@
-package com.qwe7002.telegram_sms.MMKV
+package com.qwe7002.telegram_sms.migration
 
 import android.content.Context
 import android.util.Log
+import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.tencent.mmkv.MMKV
 
 /**
