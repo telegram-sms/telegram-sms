@@ -197,6 +197,20 @@ build_release:
   <<: *setup_environment
   script:
     - |
+      echo "==> Validating keystore for release build..."
+      if [ ! -f app/keys.jks ]; then
+        echo "ERROR: Keystore file not found at app/keys.jks"
+        exit 1
+      fi
+      
+      # Verify keystore is valid and not corrupted
+      if ! keytool -list -keystore app/keys.jks -storepass "${KEYSTORE_PASSWORD}" > /dev/null 2>&1; then
+        echo "ERROR: Keystore validation failed - file may be corrupted or password incorrect"
+        exit 1
+      fi
+      
+      echo "✓ Keystore validation passed"
+    - |
       echo "==> Copying language pack..."
       ./gradlew app:copy_language_pack --no-daemon
     - !reference [.build_apk, script]
