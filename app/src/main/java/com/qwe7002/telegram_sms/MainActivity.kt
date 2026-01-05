@@ -41,6 +41,7 @@ import com.google.gson.JsonParser
 import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.qwe7002.telegram_sms.migration.DataMigrationManager
 import com.qwe7002.telegram_sms.data_structure.GitHubRelease
+import com.qwe7002.telegram_sms.data_structure.OutputMetadata
 import com.qwe7002.telegram_sms.data_structure.ScannerJson
 import com.qwe7002.telegram_sms.data_structure.telegram.PollingBody
 import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard
@@ -56,6 +57,7 @@ import com.qwe7002.telegram_sms.value.Const
 import com.tencent.mmkv.MMKV
 import okhttp3.Call
 import okhttp3.Callback
+import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
@@ -678,18 +680,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkUpdate() {
-        var versionName = "unknown"
-        val packageManager = applicationContext.packageManager
-        val packageInfo: PackageInfo
-        try {
-            packageInfo = packageManager.getPackageInfo(applicationContext.packageName, 0)
-            versionName = packageInfo.versionName.toString()
-        } catch (e: PackageManager.NameNotFoundException) {
-            Log.d(Const.TAG, "onOptionsItemSelected: $e")
-        }
-        if (versionName == "unknown" || versionName == "Debug" || versionName.startsWith("nightly")) {
+        if (BuildConfig.DEBUG) {
             showErrorDialog("Debug version can not check update.")
             return
+        }
+        var appIdentifier = applicationContext.getString(R.string.app_identifier)
+        if(BuildConfig.VERSION_NAME.contains("nightly")){
+            appIdentifier += "-nightly"
         }
         val updateMMKV = MMKV.mmkvWithID(MMKVConst.UPDATE_ID)
         updateMMKV.putLong("last_check", System.currentTimeMillis())
@@ -704,7 +701,7 @@ class MainActivity : AppCompatActivity() {
         val okhttpObj = getOkhttpObj(false)
         val requestUri = String.format(
             "https://api.github.com/repos/telegram-sms/%s/releases/latest",
-            applicationContext.getString(R.string.app_identifier)
+            appIdentifier
         )
         val request: Request = Request.Builder().url(requestUri).build()
         val call = okhttpObj.newCall(request)
@@ -721,12 +718,21 @@ class MainActivity : AppCompatActivity() {
                 Log.d(Const.TAG, "onResponse: $jsonString")
                 val gson = Gson()
                 val release = gson.fromJson(jsonString, GitHubRelease::class.java)
-                if (release.tagName != versionName) {
-                    runOnUiThread {
-                        showUpdateDialog(
-                            release.tagName,
-                            release.assets[0].browserDownloadUrl
-                        )
+
+                // Find output-metadata.json in release assets
+                val metadataAsset = release.assets.find { it.name == "output-metadata.json" }
+                if (metadataAsset != null) {
+                    // Download and parse output-metadata.json
+                    checkVersionFromMetadata(release, metadataAsset.browserDownloadUrl, okhttpObj)
+                } else {
+                    // Fallback to tagName comparison for older releases
+                    if (release.tagName != BuildConfig.VERSION_NAME) {
+                        runOnUiThread {
+                            showUpdateDialog(
+                                release.tagName,
+                                release.assets[0].browserDownloadUrl
+                            )
+                        }
                     }
                 }
             }
@@ -737,6 +743,82 @@ class MainActivity : AppCompatActivity() {
                 val errorMessage = errorHead + e.message
                 runOnUiThread {
                     showErrorDialog(errorMessage)
+                }
+            }
+        })
+    }
+
+    private fun checkVersionFromMetadata(release: GitHubRelease, metadataUrl: String, okhttpObj: OkHttpClient) {
+        val request: Request = Request.Builder().url(metadataUrl).build()
+        val call = okhttpObj.newCall(request)
+        call.enqueue(object : Callback {
+            @Throws(IOException::class)
+            override fun onResponse(call: Call, response: Response) {
+                if (!response.isSuccessful) {
+                    Log.e(Const.TAG, "Failed to download output-metadata.json: ${response.code}")
+                    // Fallback to tagName comparison
+                    if (release.tagName != BuildConfig.VERSION_NAME) {
+                        runOnUiThread {
+                            showUpdateDialog(
+                                release.tagName,
+                                release.assets[0].browserDownloadUrl
+                            )
+                        }
+                    }
+                    return
+                }
+
+                val metadataJson = response.body.string()
+                Log.d(Const.TAG, "output-metadata.json: $metadataJson")
+
+                try {
+                    val gson = Gson()
+                    val metadata = gson.fromJson(metadataJson, OutputMetadata::class.java)
+
+                    // Get the versionCode from metadata (first element)
+                    val remoteVersionCode = metadata.elements.firstOrNull()?.versionCode
+                    if (remoteVersionCode != null && remoteVersionCode > BuildConfig.VERSION_CODE) {
+                        // Find the APK asset
+                        val apkAsset = release.assets.find {
+                            it.name.endsWith(".apk") && !it.name.contains("output-metadata")
+                        }
+                        if (apkAsset != null) {
+                            runOnUiThread {
+                                showUpdateDialog(
+                                    release.tagName,
+                                    apkAsset.browserDownloadUrl
+                                )
+                            }
+                        } else {
+                            Log.w(Const.TAG, "No APK asset found in release")
+                        }
+                    } else {
+                        Log.d(Const.TAG, "App is up to date. Current: ${BuildConfig.VERSION_CODE}, Remote: $remoteVersionCode")
+                    }
+                } catch (e: Exception) {
+                    Log.e(Const.TAG, "Failed to parse output-metadata.json", e)
+                    // Fallback to tagName comparison
+                    if (release.tagName != BuildConfig.VERSION_NAME) {
+                        runOnUiThread {
+                            showUpdateDialog(
+                                release.tagName,
+                                release.assets[0].browserDownloadUrl
+                            )
+                        }
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e(Const.TAG, "Failed to fetch output-metadata.json", e)
+                // Fallback to tagName comparison
+                if (release.tagName != BuildConfig.VERSION_NAME) {
+                    runOnUiThread {
+                        showUpdateDialog(
+                            release.tagName,
+                            release.assets[0].browserDownloadUrl
+                        )
+                    }
                 }
             }
         })
