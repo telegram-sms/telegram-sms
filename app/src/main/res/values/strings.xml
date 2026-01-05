@@ -22,4 +22,6 @@
     <string name="error_title">Error</string>
     <string name="no_service_available">No service available.</string>
     <string name="system_message_head">[System Information]</string>
+    <string name="send_configuration">Send configuration</string>
+    <string name="receive_configuration">Receive configuration</string>
 </resources>

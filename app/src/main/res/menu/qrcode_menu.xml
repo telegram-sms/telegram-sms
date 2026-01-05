@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/send_config_menu_item"
-        android:title="Send configuration"
-        tools:ignore="HardcodedText" />
+        android:title="@string/send_configuration"/>
     <item
         android:id="@+id/receive_config_menu_item"
-        android:title="Receive configuration"
-        tools:ignore="HardcodedText" />
+        android:title="@string/receive_configuration"/>
 </menu>
