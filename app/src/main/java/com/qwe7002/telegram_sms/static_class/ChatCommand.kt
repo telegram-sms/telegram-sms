@@ -86,7 +86,12 @@ object ChatCommand {
         val keyboard = ArrayList<ArrayList<ReplyKeyboardButton>>()
         val activeCards = Other.getActiveCard(context)
 
-        // First row: SMS commands
+        // First row: Info command
+        keyboard.add(createReplyButtonRow(
+            createReplyButton("/getinfo")
+        ))
+
+        // Second row: SMS commands
         if (activeCards == 2) {
             keyboard.add(createReplyButtonRow(
                 createReplyButton("/sendsms1"),
@@ -98,7 +103,14 @@ object ChatCommand {
             ))
         }
 
-        // Second row: USSD commands (if available)
+        // Third row: SMS list command (if app is default SMS app)
+        if (SMS.isDefaultSmsApp(context)) {
+            keyboard.add(createReplyButtonRow(
+                createReplyButton("/listsms")
+            ))
+        }
+
+        // Fourth row: USSD commands (if available)
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 if (activeCards == 2) {
@@ -114,17 +126,7 @@ object ChatCommand {
             }
         }
 
-        // Third row: Info command
-        keyboard.add(createReplyButtonRow(
-            createReplyButton("/getinfo")
-        ))
 
-        // Fourth row: SMS list command (if app is default SMS app)
-        if (SMS.isDefaultSmsApp(context)) {
-            keyboard.add(createReplyButtonRow(
-                createReplyButton("/listsms")
-            ))
-        }
 
         return ReplyKeyboardMarkup().apply {
             this.keyboard = keyboard
