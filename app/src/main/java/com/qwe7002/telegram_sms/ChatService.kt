@@ -253,9 +253,9 @@ class ChatService : Service() {
                 val requestUri = getUrl(botToken, "editMessageText")
                 val dualSim = if (ussdSlot != -1) "SIM${ussdSlot + 1} " else ""
                 requestBody.text = Template.render(
-                    applicationContext, "TPL_system_message",
+                    applicationContext, "TPL_send_USSD_chat",
                     mapOf(
-                        "Message" to "${dualSim}USSD: $ussdCode\n${getString(R.string.status)}${
+                        "Content" to "${dualSim}USSD: $ussdCode\n${getString(R.string.status)}${
                             getString(
                                 R.string.cancel_button
                             )
@@ -464,8 +464,8 @@ class ChatService : Service() {
                         val dualSim = if (chatMMKV.getInt("ussd_slot", -1) != -1)
                             "SIM${chatMMKV.getInt("ussd_slot", -1) + 1} " else ""
                         requestBody.text = Template.render(
-                            applicationContext, "TPL_system_message",
-                            mapOf("Message" to "$dualSim${getString(R.string.enter_ussd_code)}")
+                            applicationContext, "TPL_send_USSD_chat",
+                            mapOf("Content" to "$dualSim${getString(R.string.enter_ussd_code)}")
                         )
                         sendUssdNextStatus = SEND_USSD_STATUS.WAITING_TO_SEND_STATUS
                         hasCommand = true
@@ -473,7 +473,7 @@ class ChatService : Service() {
                 } else {
                     requestBody.text = Template.render(
                         applicationContext, "TPL_system_message",
-                        mapOf("Message" to getString(R.string.unknown_command))
+                        mapOf("Content" to getString(R.string.unknown_command))
                     )
                     hasCommand = true
                 }
