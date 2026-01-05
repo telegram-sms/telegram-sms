@@ -116,3 +116,21 @@ tasks.register('copy_language_pack', Copy) {
     exclude '**/README.md'
     include '**/*'
 }
+tasks.register('clean_language_pack', Delete) {
+    description 'Clean up copied language pack directories from the source directory'
+
+    // Delete entire language pack directories
+    delete file('src/main/res/values-zh-rCN')
+    delete file('src/main/res/values-zh-rTW')
+    delete file('src/main/res/values-zh-rHK')
+    delete file('src/main/res/values-yue-rCN')
+    delete file('src/main/res/values-yue-rHK')
+    delete file('src/main/res/values-ja-rJP')
+    delete file('src/main/res/values-es-rES')
+    delete file('src/main/res/values-ru')
+    delete file('src/main/res/values-vi')
+
+    doLast {
+        println "Language pack directories cleaned from src/main/res/"
+    }
+}
