@@ -738,7 +738,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call, e: IOException) {
-                Log.e(Const.TAG, "onFailure: $e", e)
+                Log.e(Const.TAG, "onFailure: ${e.message}", e)
                 progressDialog.cancel()
                 val errorMessage = errorHead + e.message
                 runOnUiThread {
@@ -760,7 +760,9 @@ class MainActivity : AppCompatActivity() {
             override fun onResponse(call: Call, response: Response) {
                 if (!response.isSuccessful) {
                     Log.e(Const.TAG, "Failed to download output-metadata.json: ${response.code}")
-                    showErrorDialog("Failed to download update metadata.")
+                    runOnUiThread {
+                        showErrorDialog("Failed to download update metadata.")
+                    }
                     return
                 }
 
@@ -786,38 +788,32 @@ class MainActivity : AppCompatActivity() {
                                 )
                             }
                         } else {
-                            Log.w(Const.TAG, "No APK asset found in release")
+                            Log.e(Const.TAG, "No APK asset found in release")
+                            runOnUiThread {
+                                showErrorDialog("No APK found for the update.")
+                            }
                         }
                     } else {
                         Log.d(
                             Const.TAG,
                             "App is up to date. Current: ${BuildConfig.VERSION_CODE}, Remote: $remoteVersionCode"
                         )
+
+
                     }
                 } catch (e: Exception) {
                     Log.e(Const.TAG, "Failed to parse output-metadata.json", e)
-                    // Fallback to tagName comparison
-                    if (release.tagName != BuildConfig.VERSION_NAME) {
-                        runOnUiThread {
-                            showUpdateDialog(
-                                release.tagName,
-                                release.assets[0].browserDownloadUrl
-                            )
-                        }
+                    runOnUiThread {
+                        showErrorDialog("Failed to parse update metadata.")
                     }
+
                 }
             }
 
             override fun onFailure(call: Call, e: IOException) {
                 Log.e(Const.TAG, "Failed to fetch output-metadata.json", e)
-                // Fallback to tagName comparison
-                if (release.tagName != BuildConfig.VERSION_NAME) {
-                    runOnUiThread {
-                        showUpdateDialog(
-                            release.tagName,
-                            release.assets[0].browserDownloadUrl
-                        )
-                    }
+                runOnUiThread {
+                    showErrorDialog("Failed to fetch update metadata.")
                 }
             }
         })
@@ -1011,7 +1007,7 @@ class MainActivity : AppCompatActivity() {
         try {
             customTabsIntent.launchUrl(this, uri)
         } catch (e: ActivityNotFoundException) {
-            Log.d(Const.TAG, "onOptionsItemSelected: $e")
+            Log.e(Const.TAG, "onOptionsItemSelected: ${e.message}",e)
             showErrorDialog(getString(R.string.browser_not_found))
         }
         return true
