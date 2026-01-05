@@ -835,7 +835,6 @@ ${sms.body}
                 }
 
                 val requestUri = getUrl(botToken, "getUpdates")
-                Log.v(Const.TAG, "Polling request: $requestUri")
                 val requestBody = PollingBody().apply {
                     this.offset = RequestOffset
                     this.timeout = if (firstRequest) 0 else 60
