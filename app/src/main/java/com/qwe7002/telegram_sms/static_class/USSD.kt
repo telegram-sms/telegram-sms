@@ -25,7 +25,7 @@ import java.util.Objects
 object USSD {
     @JvmStatic
     @RequiresApi(api = Build.VERSION_CODES.O)
-    fun sendUssd(context: Context, ussdRaw: String, subId: Int) {
+    fun sendUssd(context: Context, ussdRaw: String, subId: Int, messageId: Long = -1L) {
         val ussd = Other.getNineKeyMapConvert(ussdRaw)
         var tm =
             checkNotNull(context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager)
@@ -44,10 +44,14 @@ object USSD {
         val botToken = preferences.getString("bot_token", "")!!
         val chatId = preferences.getString("chat_id", "")!!
         val messsageThreadId = preferences.getString("message_thread_id", "")!!
-        val requestUri = Network.getUrl(botToken, "sendMessage")
+        val apiMethod = if (messageId != -1L) "editMessageText" else "sendMessage"
+        val requestUri = Network.getUrl(botToken, apiMethod)
         val requestBody = RequestMessage()
         requestBody.chatId = chatId
         requestBody.messageThreadId = messsageThreadId
+        if (messageId != -1L) {
+            requestBody.messageId = messageId
+        }
         requestBody.text = Template.render(
             context,
             "TPL_send_USSD",
@@ -62,14 +66,22 @@ object USSD {
         val call = okhttpClient.newCall(request)
 
         Thread {
-            var messageId = -1L
-            try {
-                val response = call.execute()
-                messageId = Other.getMessageId(
-                    Objects.requireNonNull(response.body).string()
-                )
-            } catch (e: IOException) {
-                Log.e(Const.TAG, "send_ussd: Send USSD message failed: " + e.message,e)
+            var resultMessageId = messageId
+            if (messageId == -1L) {
+                try {
+                    val response = call.execute()
+                    resultMessageId = Other.getMessageId(
+                        Objects.requireNonNull(response.body).string()
+                    )
+                } catch (e: IOException) {
+                    Log.e(Const.TAG, "send_ussd: Send USSD message failed: " + e.message, e)
+                }
+            } else {
+                try {
+                    call.execute()
+                } catch (e: IOException) {
+                    Log.e(Const.TAG, "send_ussd: Edit USSD message failed: " + e.message, e)
+                }
             }
             if (ActivityCompat.checkSelfPermission(
                     context,
@@ -80,7 +92,7 @@ object USSD {
                 val handler = Handler(Looper.getMainLooper())
                 tm.sendUssdRequest(
                     ussd,
-                    USSDCallBack(context, messageId),
+                    USSDCallBack(context, resultMessageId),
                     handler
                 )
                 Looper.loop()

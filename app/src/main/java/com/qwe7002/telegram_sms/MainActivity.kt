@@ -684,7 +684,6 @@ class MainActivity : AppCompatActivity() {
             showErrorDialog("Debug version can not check update.")
             return
         }
-        /*Paper.book("update").write("last_check", System.currentTimeMillis())*/
         val updateMMKV = MMKV.mmkvWithID(MMKVConst.UPDATE_ID)
         updateMMKV.putLong("last_check", System.currentTimeMillis())
 

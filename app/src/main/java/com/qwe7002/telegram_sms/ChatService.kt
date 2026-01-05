@@ -282,7 +282,7 @@ class ChatService : Service() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED
             ) {
-                sendUssd(applicationContext, ussdCode, subId)
+                sendUssd(applicationContext, ussdCode, subId, messageId)
             }
             setUssdSendStatusStandby()
             return
