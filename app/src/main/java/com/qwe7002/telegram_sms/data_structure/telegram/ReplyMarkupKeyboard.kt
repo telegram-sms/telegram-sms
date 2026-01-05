@@ -115,5 +115,43 @@ object ReplyMarkupKeyboard {
         @SerializedName("callback_data")
         lateinit var callbackData: String
     }
-}
 
+    /**
+     * Reply keyboard markup for displaying command buttons
+     */
+    class ReplyKeyboardMarkup {
+        @SerializedName("keyboard")
+        lateinit var keyboard: ArrayList<ArrayList<ReplyKeyboardButton>>
+
+        @SerializedName("resize_keyboard")
+        var resizeKeyboard: Boolean = true
+
+        @SerializedName("one_time_keyboard")
+        var oneTimeKeyboard: Boolean = false
+
+        @SerializedName("is_persistent")
+        var isPersistent: Boolean = true
+    }
+
+    class ReplyKeyboardButton {
+        lateinit var text: String
+    }
+
+    /**
+     * Create a ReplyKeyboardButton with the given text
+     */
+    @JvmStatic
+    fun createReplyButton(text: String): ReplyKeyboardButton {
+        return ReplyKeyboardButton().apply {
+            this.text = text
+        }
+    }
+
+    /**
+     * Create a row of reply keyboard buttons
+     */
+    @JvmStatic
+    fun createReplyButtonRow(vararg buttons: ReplyKeyboardButton): ArrayList<ReplyKeyboardButton> {
+        return ArrayList(buttons.toList())
+    }
+}

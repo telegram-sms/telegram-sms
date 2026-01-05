@@ -1,7 +1,6 @@
 package com.qwe7002.telegram_sms.data_structure.telegram
 
 import com.google.gson.annotations.SerializedName
-import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.KeyboardMarkup
 
 class RequestMessage {
     //Turn off page preview to avoid being tracked
@@ -19,7 +18,7 @@ class RequestMessage {
     @SerializedName(value = "message_thread_id")
     lateinit var messageThreadId: String
     @SerializedName(value = "reply_markup")
-    lateinit var replyMarkup: KeyboardMarkup
+    var replyMarkup: Any? = null
 
     @SerializedName(value = "disable_notification")
     var disableNotification: Boolean = false

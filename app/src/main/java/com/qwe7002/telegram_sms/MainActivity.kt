@@ -455,6 +455,10 @@ class MainActivity : AppCompatActivity() {
                 "TPL_system_message",
                 mapOf("Message" to getString(R.string.success_connect))
             )
+            // Add command keyboard if chat command is enabled
+            if (chatCommandSwitch.isChecked) {
+                requestBody.replyMarkup = com.qwe7002.telegram_sms.static_class.ChatCommand.getCommandKeyboard(applicationContext)
+            }
             val requestBodyRaw = gson.toJson(requestBody)
             val body: RequestBody = RequestBody.create(Const.JSON, requestBodyRaw)
             val okhttpObj = getOkhttpObj(

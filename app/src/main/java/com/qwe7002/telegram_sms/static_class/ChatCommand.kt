@@ -15,6 +15,10 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import com.qwe7002.telegram_sms.R
+import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.ReplyKeyboardMarkup
+import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.ReplyKeyboardButton
+import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.createReplyButton
+import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.createReplyButtonRow
 import com.qwe7002.telegram_sms.value.Const
 
 @Suppress("DEPRECATION")
@@ -73,6 +77,63 @@ object ChatCommand {
         }
         return  Template.render(context,"TPL_system_message", mapOf("Message" to context.getString(R.string.current_battery_level) + batteryInfo(context) + "\n" + context.getString(R.string.current_network_connection_status) + getNetworkType(context) + cardInfo))
 
+    }
+
+    /**
+     * Generate a ReplyKeyboardMarkup with available commands
+     */
+    @JvmStatic
+    fun getCommandKeyboard(context: Context): ReplyKeyboardMarkup {
+        val keyboard = ArrayList<ArrayList<ReplyKeyboardButton>>()
+        val activeCards = Other.getActiveCard(context)
+
+        // First row: SMS commands
+        if (activeCards == 2) {
+            keyboard.add(createReplyButtonRow(
+                createReplyButton("/sendsms1"),
+                createReplyButton("/sendsms2")
+            ))
+        } else {
+            keyboard.add(createReplyButtonRow(
+                createReplyButton("/sendsms")
+            ))
+        }
+
+        // Second row: USSD commands (if available)
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (activeCards == 2) {
+                    keyboard.add(createReplyButtonRow(
+                        createReplyButton("/sendussd1"),
+                        createReplyButton("/sendussd2")
+                    ))
+                } else {
+                    keyboard.add(createReplyButtonRow(
+                        createReplyButton("/sendussd")
+                    ))
+                }
+            }
+        }
+
+        // Third row: Info and spam commands
+        keyboard.add(createReplyButtonRow(
+            createReplyButton("/getinfo"),
+            createReplyButton("/getspamsms")
+        ))
+
+        // Fourth row: SMS list command (if app is default SMS app)
+        if (SMS.isDefaultSmsApp(context)) {
+            keyboard.add(createReplyButtonRow(
+                createReplyButton("/listsms")
+            ))
+        }
+
+        return ReplyKeyboardMarkup().apply {
+            this.keyboard = keyboard
+            this.resizeKeyboard = true
+            this.oneTimeKeyboard = false
+            this.isPersistent = true
+        }
     }
 
     private fun batteryInfo(context: Context): String {
