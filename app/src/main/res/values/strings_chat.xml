@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <string name="available_command">Available Commands:\n/help - Display help information\n/getinfo - Get system information\n/log - Output the last 10 log records</string>
     <string name="sendsms">/sendsms - Send SMS</string>
+    <string name="sendsms_dual">/sendsms [1|2] - Send SMS (specify SIM card)</string>
     <string name="send_ussd_command">/sendussd - Send USSD request</string>
-    <!-- Dual SIM commands -->
-    <string name="sendsms_dual" tools:ignore="Typos">/sendsms1 - Send SMS using SIM slot 1\n/sendsms2 - Send SMS using SIM slot 2</string>
-    <string name="send_ussd_dual_command" tools:ignore="Typos">"/sendussd1 - Send USSD request using SIM slot 1\n/sendussd2 - Send USSD request using SIM slot 2"</string>
+    <string name="send_ussd_dual_command">/sendussd [1|2] - Send USSD request (specify SIM card)</string>
     <!-- List SMS commands -->
     <string name="listsms_command">/listsms - List SMS messages</string>
     <string name="listsms_inbox_command">/listsms inbox - List inbox messages\n/listsms sent - List sent messages</string>

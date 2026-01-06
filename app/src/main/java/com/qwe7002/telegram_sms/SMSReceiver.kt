@@ -114,21 +114,41 @@ class SMSReceiver : BroadcastReceiver() {
             if (commandList.isNotEmpty()) {
                 val messageList = textContent.split("\n").filter { it.isNotEmpty() }.toTypedArray()
                 when (commandList[0].trim()) {
-                    "/sendsms", "/sendsms1", "/sendsms2" -> {
+                    "/sendsms" -> {
                         val messageInfo =
                             messageList[0].split(" ").filter { it.isNotEmpty() }.toTypedArray()
-                        if (messageInfo.size == 2) {
-                            val msgSendTo = Other.getSendPhoneNumber(messageInfo[1])
-                            if (Other.isPhoneNumber(msgSendTo)) {
-                                val msgSendContent = messageList.drop(2).joinToString("\n")
-                                var sendSlot = slot
-                                if (Other.getActiveCard(context) > 1) {
-                                    sendSlot = when (commandList[0].trim()) {
-                                        "/sendsms1" -> 0
-                                        "/sendsms2" -> 1
-                                        else -> sendSlot
+
+                        // Determine which element contains the phone number
+                        // Format can be: /sendsms phone or /sendsms 1 phone or /sendsms1 phone
+                        val baseCommand = commandList[0].trim()
+                        var phoneIndex = 1
+                        var sendSlot = slot
+
+                        if (Other.getActiveCard(context) > 1) {
+                            when (baseCommand) {
+                                "/sendsms" -> {
+                                    // Check if SIM card number is specified
+                                    if (messageInfo.size >= 3) {
+                                        when (messageInfo[1]) {
+                                            "1" -> {
+                                                sendSlot = 0
+                                                phoneIndex = 2
+                                            }
+                                            "2" -> {
+                                                sendSlot = 1
+                                                phoneIndex = 2
+                                            }
+                                        }
                                     }
                                 }
+                            }
+                        }
+
+                        if (messageInfo.size > phoneIndex) {
+                            val msgSendTo = Other.getSendPhoneNumber(messageInfo[phoneIndex])
+                            if (Other.isPhoneNumber(msgSendTo)) {
+                                val contentStartLine = if (phoneIndex == 2) 2 else 1
+                                val msgSendContent = messageList.drop(contentStartLine + 1).joinToString("\n")
                                 Thread {
                                     SMS.sendSms(
                                         context,
@@ -149,8 +169,36 @@ class SMSReceiver : BroadcastReceiver() {
                                 Manifest.permission.CALL_PHONE
                             ) == PackageManager.PERMISSION_GRANTED
                         ) {
-                            if (messageList.size == 2) {
-                                USSD.sendUssd(context, messageList[1], subId)
+                            val messageInfo =
+                                messageList[0].split(" ").filter { it.isNotEmpty() }.toTypedArray()
+
+                            val baseCommand = commandList[0].trim()
+                            var codeIndex = 1
+                            var ussdSlot = slot
+
+                            if (Other.getActiveCard(context) > 1) {
+                                when (baseCommand) {
+                                    "/sendussd" -> {
+                                        // Check if SIM card number is specified
+                                        if (messageInfo.size >= 3) {
+                                            when (messageInfo[1]) {
+                                                "1" -> {
+                                                    ussdSlot = 0
+                                                    codeIndex = 2
+                                                }
+                                                "2" -> {
+                                                    ussdSlot = 1
+                                                    codeIndex = 2
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (messageInfo.size > codeIndex) {
+                                val ussdCode = messageInfo[codeIndex]
+                                USSD.sendUssd(context, ussdCode, Other.getSubId(context, ussdSlot))
                                 return
                             }
                         } else {

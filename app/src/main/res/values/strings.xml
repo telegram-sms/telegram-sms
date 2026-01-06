@@ -24,4 +24,5 @@
     <string name="system_message_head">[System Information]</string>
     <string name="send_configuration">Send configuration</string>
     <string name="receive_configuration">Receive configuration</string>
+    <string name="select_sim_card">Please select a SIM card:</string>
 </resources>
