@@ -3,7 +3,7 @@
     <string name="trusted_phone_number">Trusted phone number</string>
     <string name="network_error_falls_back_to_sms">Forward SMS to trusted number when network unavailable</string>
     <string name="trusted_phone_number_empty">Trusted phone number cannot be empty.</string>
-    <string name="display_sim_card_alias_in_dual_card_mode">Display SIM card alias</string>
+
     <string name="using_verification_code_identification">Verification code automatic extraction (Alpha)</string>
     <string name="enter_reply_number">Please reply the receiver\'s number.</string>
     <string name="enter_reply_content">Please reply the message to be sent.</string>
