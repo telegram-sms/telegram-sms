@@ -303,6 +303,22 @@ class MainActivity : AppCompatActivity() {
                             val itemObj = item.asJsonObject
                             if (itemObj.has("message")) {
                                 val messageObj = itemObj["message"].asJsonObject
+                                if (messageObj.has("migrate_to_chat_id")) {
+                                    val newChatId = messageObj["migrate_to_chat_id"].asString
+                                    if (!chatIdList.contains(newChatId)) {
+                                        val chatObj = messageObj["chat"].asJsonObject
+                                        var username = StringBuilder()
+                                        if (chatObj.has("title")) {
+                                            username = StringBuilder(chatObj["title"].asString)
+                                        } else if (chatObj.has("username")) {
+                                            username = StringBuilder(chatObj["username"].asString)
+                                        }
+                                        chatNameList.add("$username(supergroup)")
+                                        chatIdList.add(newChatId)
+                                        chatTopicIdList.add("")
+                                    }
+                                    continue
+                                }
                                 val chatObj = messageObj["chat"].asJsonObject
                                 if (!chatIdList.contains(chatObj["id"].asString)) {
                                     var username = ""
