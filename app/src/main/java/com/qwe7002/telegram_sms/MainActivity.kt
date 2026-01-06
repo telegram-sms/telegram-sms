@@ -303,6 +303,7 @@ class MainActivity : AppCompatActivity() {
                             val itemObj = item.asJsonObject
                             if (itemObj.has("message")) {
                                 val messageObj = itemObj["message"].asJsonObject
+                                // Handle chat migration to supergroup
                                 if (messageObj.has("migrate_to_chat_id")) {
                                     val newChatId = messageObj["migrate_to_chat_id"].asString
                                     if (!chatIdList.contains(newChatId)) {
