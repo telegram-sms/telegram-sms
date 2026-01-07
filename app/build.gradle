@@ -131,19 +131,6 @@ tasks.register('copy_language_pack', Copy) {
     include '**/*'
 }
 
-// Ensure language pack is copied before all resource-related tasks
-tasks.configureEach { task ->
-    if (task.name.contains('Resource') ||
-        task.name.contains('Locale') ||
-        task.name.startsWith('map') ||
-        task.name.startsWith('merge') ||
-        task.name.startsWith('process') ||
-        task.name.startsWith('extract') ||
-        task.name.startsWith('generate')) {
-        task.dependsOn 'copy_language_pack'
-    }
-}
-
 tasks.register('clean_language_pack', Delete) {
     description 'Clean up copied language pack directories from the source directory'
 
