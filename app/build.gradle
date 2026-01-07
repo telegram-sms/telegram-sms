@@ -67,7 +67,6 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled = false
             signingConfig = signingConfigs.release
 
             ndk {
@@ -76,8 +75,14 @@ android {
             }
 
             if (currentBranch == "nightly") {
+                minifyEnabled = false
+                shrinkResources = false
                 applicationIdSuffix = ".nightly"
                 resValue "string", "app_name", "Telegram SMS (Nightly)"
+            }else{
+                minifyEnabled = true
+                shrinkResources = true
+                proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             }
         }
 
