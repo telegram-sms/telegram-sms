@@ -35,6 +35,9 @@ android {
         targetSdk = 36
         versionCode = System.getenv("VERSION_CODE") == null ? 1 : System.getenv("VERSION_CODE").toInteger()
         versionName = System.getenv("VERSION_NAME") == null ? "Debug" : System.getenv("VERSION_NAME").toString()
+
+        // Configure resource configurations for resource shrinking
+        resourceConfigurations.addAll(['en', 'zh-rCN', 'zh-rTW', 'zh-rHK', 'yue-rCN', 'yue-rHK', 'ja-rJP', 'es-rES', 'ru', 'vi'])
     }
     buildFeatures {
         buildConfig true
@@ -55,30 +58,34 @@ android {
 
     signingConfigs {
         release {
-            storeFile = file("keys.jks")
-            storePassword = project.hasProperty("KEYSTORE_PASS") ? KEYSTORE_PASS : System.getenv("KEYSTORE_PASS")
-            keyAlias = project.hasProperty("ALIAS_NAME") ? ALIAS_NAME : System.getenv("ALIAS_NAME")
-            keyPassword = project.hasProperty("ALIAS_PASS") ? ALIAS_PASS : System.getenv("ALIAS_PASS")
-            v1SigningEnabled true
-            v2SigningEnabled true
-            enableV3Signing = true
-            enableV4Signing = true
+            def keystoreFile = file("keys.jks")
+            if (keystoreFile.exists()) {
+                storeFile = keystoreFile
+                storePassword = project.hasProperty("KEYSTORE_PASS") ? KEYSTORE_PASS : System.getenv("KEYSTORE_PASS")
+                keyAlias = project.hasProperty("ALIAS_NAME") ? ALIAS_NAME : System.getenv("ALIAS_NAME")
+                keyPassword = project.hasProperty("ALIAS_PASS") ? ALIAS_PASS : System.getenv("ALIAS_PASS")
+                v1SigningEnabled true
+                v2SigningEnabled true
+                enableV3Signing = true
+                enableV4Signing = true
+            }
         }
     }
     buildTypes {
         release {
+            debuggable false
+            testCoverageEnabled true
+            minifyEnabled = false
+            shrinkResources = false
             if (currentBranch == "nightly") {
-                minifyEnabled = true
-                shrinkResources = true
                 applicationIdSuffix = ".nightly"
                 resValue "string", "app_name", "Telegram SMS (Nightly)"
-            } else {
-                minifyEnabled = true
-                shrinkResources = true
-                proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             }
-            //signingConfig = signingConfigs.release
 
+            // Only apply signing config if keystore exists
+            if (file("keys.jks").exists()) {
+                signingConfig = signingConfigs.release
+            }
             ndk {
                 //noinspection ChromeOsAbiSupport
                 abiFilters "armeabi-v7a", "arm64-v8a"
@@ -123,6 +130,20 @@ tasks.register('copy_language_pack', Copy) {
     exclude '**/README.md'
     include '**/*'
 }
+
+// Ensure language pack is copied before all resource-related tasks
+tasks.configureEach { task ->
+    if (task.name.contains('Resource') ||
+        task.name.contains('Locale') ||
+        task.name.startsWith('map') ||
+        task.name.startsWith('merge') ||
+        task.name.startsWith('process') ||
+        task.name.startsWith('extract') ||
+        task.name.startsWith('generate')) {
+        task.dependsOn 'copy_language_pack'
+    }
+}
+
 tasks.register('clean_language_pack', Delete) {
     description 'Clean up copied language pack directories from the source directory'
 

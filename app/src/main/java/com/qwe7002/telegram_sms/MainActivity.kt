@@ -292,7 +292,7 @@ class MainActivity : AppCompatActivity() {
                     try {
                         val resultObj = JsonParser.parseString(result).asJsonObject
                         val chatList = resultObj.getAsJsonArray("result")
-                        if (chatList.isEmpty) {
+                        if (chatList == null || chatList.isEmpty) {
                             runOnUiThread { showErrorDialog(getString(R.string.unable_get_recent)) }
                             return
                         }
