@@ -114,6 +114,41 @@ class ChangelogGenerator:
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"Git command failed: {e.stderr}")
 
+    def detect_breaking_changes(self, commits: str) -> bool:
+        """
+        Detect if there are breaking changes in commit messages
+
+        Args:
+            commits: Commit history
+
+        Returns:
+            True if breaking changes detected, False otherwise
+        """
+        breaking_indicators = [
+            "BREAKING CHANGE:",
+            "breaking change:",
+            "BREAKING:",
+            "breaking:",
+            "!:",  # Conventional commit with breaking change marker
+        ]
+
+        commit_lines = commits.split('\n')
+        for line in commit_lines:
+            # Check for breaking change indicators
+            for indicator in breaking_indicators:
+                if indicator in line.lower():
+                    return True
+
+            # Check for conventional commit with ! (e.g., "feat!: something")
+            if " | " in line:
+                parts = line.split(" | ")
+                if len(parts) >= 4:
+                    message = parts[3]
+                    if message.strip().startswith(('feat!', 'fix!', 'refactor!', 'perf!')):
+                        return True
+
+        return False
+
     def build_prompt(self, commits: str) -> str:
         """
         Build the prompt for AI API
@@ -127,9 +162,17 @@ class ChangelogGenerator:
         prompt = (
             "Analyze the following Git commit history and generate a clean, structured changelog.\n"
             "Format: hash | author | date | message\n\n"
+            "IMPORTANT: Detect Breaking Changes by looking for:\n"
+            "- Commits with 'BREAKING CHANGE:', 'breaking change:', or '!' in commit messages\n"
+            "- API changes that break backward compatibility\n"
+            "- Removed features or deprecated functionality\n"
+            "- Changes to data structures, configuration formats, or interfaces\n"
+            "- Database schema changes requiring migration\n\n"
             "Output ONLY the categorized changelog in this exact format:\n\n"
             "## Summary\n"
             "A concise summary of the changes (approx. 140 characters).\n\n"
+            "## ⚠️ Breaking Changes\n"
+            "- [hash] message (detailed explanation of what breaks and migration steps)\n\n"
             "## Features\n"
             "- [hash] message\n\n"
             "## Bug Fixes\n"
@@ -143,9 +186,11 @@ class ChangelogGenerator:
             "Rules:\n"
             "1. Do NOT include any introductory text, notes, or explanations\n"
             "2. Start directly with the Summary\n"
-            "3. Only include changelog categories that have commits (Summary is mandatory)\n"
-            "4. Keep commit messages concise\n"
-            "5. Use markdown format only"
+            "3. Breaking Changes section should be placed FIRST after Summary if detected\n"
+            "4. Only include changelog categories that have commits (Summary is mandatory)\n"
+            "5. Keep commit messages concise\n"
+            "6. Use markdown format only\n"
+            "7. If no breaking changes found, omit the Breaking Changes section entirely"
         )
         return f"{prompt}\n\nCommit History:\n{commits}"
 
@@ -226,9 +271,24 @@ class ChangelogGenerator:
             raise ValueError("No commit history found")
 
         print(f"\nFetched commits:\n{commits}")
-        print("\nCalling OneAPI for summarization...")
+
+        # Detect breaking changes
+        has_breaking = self.detect_breaking_changes(commits)
+        if has_breaking:
+            print("\n⚠️  WARNING: Potential BREAKING CHANGES detected in commits!")
+            print("    Please review the changelog carefully.\n")
+        else:
+            print("\n✓ No breaking changes detected in commit messages.\n")
+
+        print("Calling OneAPI for summarization...")
 
         summary = self.summarize_changelog(commits)
+
+        # Verify if AI detected breaking changes
+        if "Breaking Changes" in summary or "⚠️" in summary:
+            print("\n⚠️  BREAKING CHANGES DETECTED IN CHANGELOG!")
+            print("    This release contains breaking changes that may affect users.\n")
+
         print(f"\n=== Changelog Summary ===\n{summary}")
 
         return summary

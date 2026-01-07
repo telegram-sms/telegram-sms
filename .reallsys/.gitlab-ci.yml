@@ -26,7 +26,7 @@ variables:
 cache:
   key:
     files:
-      - .reallsys/requirements.txt
+      - .reallsys/scripts/requirements.txt
       - app/build.gradle
     prefix: ${CI_PROJECT_ID}
   paths:
@@ -225,15 +225,15 @@ build_release:
         }
     - |
       echo "==> Generating changelog with One API..."
-      git remote add source https://github.com/telegram-sms/telegram-sms
+      git remote add source https://github.com/telegram-sms/telegram-sms || true
       git fetch source --tags
       echo "==> Installing Python dependencies..."
       apk add --no-cache python3 py3-pip
       export PIP_CACHE_DIR="${CI_PROJECT_DIR}/.cache/pip"
       mkdir -p "${PIP_CACHE_DIR}"
-      pip3 install --cache-dir="${PIP_CACHE_DIR}" -r .reallsys/requirements.txt
+      pip3 install --cache-dir="${PIP_CACHE_DIR}" -r .reallsys/scripts/requirements.txt
       echo "==> Running Python changelog generator..."
-      python3 .reallsys/changelogGenerate.py
+      python3 .reallsys/scripts/changelogGenerate.py
       RELEASE_CHANGELOG=$(cat CHANGELOG.md)
       echo "==> Generated changelog:"
       echo "${RELEASE_CHANGELOG}"
