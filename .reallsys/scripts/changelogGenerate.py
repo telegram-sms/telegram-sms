@@ -132,11 +132,29 @@ class ChangelogGenerator:
             "!:",  # Conventional commit with breaking change marker
         ]
 
+        # Potential breaking change patterns (case-insensitive)
+        potential_breaking_patterns = [
+            "migrate",
+            "migration",
+            "replace.*with",
+            "removed.*feature",
+            "deprecate",
+            "rename.*package",
+            "change.*api",
+            "incompatible",
+            "paper.*mmkv",
+            "sharedpreferences.*mmkv",
+        ]
+
         commit_lines = commits.split('\n')
+        has_potential_breaking = False
+
         for line in commit_lines:
-            # Check for breaking change indicators
+            line_lower = line.lower()
+
+            # Check for explicit breaking change indicators
             for indicator in breaking_indicators:
-                if indicator in line.lower():
+                if indicator in line_lower:
                     return True
 
             # Check for conventional commit with ! (e.g., "feat!: something")
@@ -147,7 +165,15 @@ class ChangelogGenerator:
                     if message.strip().startswith(('feat!', 'fix!', 'refactor!', 'perf!')):
                         return True
 
-        return False
+                    # Check for potential breaking patterns in commit message
+                    message_lower = message.lower()
+                    for pattern in potential_breaking_patterns:
+                        import re
+                        if re.search(pattern, message_lower):
+                            has_potential_breaking = True
+                            break
+
+        return has_potential_breaking
 
     def build_prompt(self, commits: str) -> str:
         """
@@ -167,7 +193,11 @@ class ChangelogGenerator:
             "- API changes that break backward compatibility\n"
             "- Removed features or deprecated functionality\n"
             "- Changes to data structures, configuration formats, or interfaces\n"
-            "- Database schema changes requiring migration\n\n"
+            "- Database schema changes requiring migration\n"
+            "- Library replacements (e.g., Paper to MMKV, SharedPreferences to MMKV)\n"
+            "- Storage migration or data format changes\n"
+            "- Package renames or major refactoring\n"
+            "- Commits with 'migrate', 'migration', 'replace X with Y' that affect user data\n\n"
             "Output ONLY the categorized changelog in this exact format:\n\n"
             "## Summary\n"
             "A concise summary of the changes (approx. 140 characters).\n\n"
