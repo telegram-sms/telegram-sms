@@ -1068,10 +1068,9 @@ class ChatService : Service() {
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(Const.JSON)
         val sendRequest: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okHttpClient.newCall(sendRequest)
-        val errorHead = "Send reply failed:"
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.e(Const.TAG, "$errorHead ${e.message}", e)
+                Log.e(Const.TAG, "Send reply failed: ${e.message}", e)
                 addResendLoop(applicationContext, requestBody.text)
             }
 
@@ -1079,7 +1078,7 @@ class ChatService : Service() {
             override fun onResponse(call: Call, response: Response) {
                 val responseString = Objects.requireNonNull(response.body).string()
                 if (response.code != 200) {
-                    Log.e(Const.TAG, "$errorHead ${response.code} $responseString")
+                    Log.e(Const.TAG, "Send reply failed: ${response.code} $responseString")
                     addResendLoop(applicationContext, requestBody.text)
                 }
                 if (sendSmsNextStatus == SEND_SMS_STATUS.SEND_STATUS) {

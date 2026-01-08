@@ -258,14 +258,12 @@ class MainActivity : AppCompatActivity() {
                 }
                 false
             }
-            val errorHead = "Get chat ID failed: "
             call.enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
                     Log.e(Const.TAG, "onResponse: ${e.message}", e)
                     progressDialog.cancel()
-                    val message = errorHead + e.message
                     runOnUiThread {
-                        showErrorDialog(message)
+                        showErrorDialog("Get recent chat failed: " + e.message)
                     }
                 }
 
@@ -276,13 +274,10 @@ class MainActivity : AppCompatActivity() {
                         val result = response.body.string()
                         try {
                             val resultObj = JsonParser.parseString(result).asJsonObject
-                            val errorMessage = errorHead + resultObj["description"].asString
-                            Log.e(Const.TAG, errorMessage)
-                            runOnUiThread { showErrorDialog(errorMessage) }
+                            runOnUiThread { showErrorDialog("${resultObj["description"].asString}") }
                         } catch (e: Exception) {
-                            val errorMessage = errorHead + "Failed to parse error response"
-                            Log.e(Const.TAG, errorMessage, e)
-                            runOnUiThread { showErrorDialog(errorMessage) }
+                            Log.e(Const.TAG, "Failed to parse error response: ${e.message}", e)
+                            runOnUiThread { showErrorDialog("Failed to parse error response: ${e.message}") }
                         }
                         return
                     }
@@ -373,8 +368,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     } catch (e: Exception) {
                         Log.e(Const.TAG, "onResponse: ${e.message}", e)
-                        val errorMessage = errorHead + "Failed to parse response: ${e.message}"
-                        runOnUiThread { showErrorDialog(errorMessage) }
+                        runOnUiThread { showErrorDialog("Failed to parse response: ${e.message}") }
                     }
                 }
             })
@@ -492,14 +486,12 @@ class MainActivity : AppCompatActivity() {
             )
             val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
             val call = okhttpObj.newCall(request)
-            val errorHead = "Send message failed: "
             call.enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    Log.e(Const.TAG, "onResponse: ", e)
+                    Log.e(Const.TAG, "onResponse: ${e.message}", e)
                     progressDialog.cancel()
-                    val errorMessage = errorHead + e.message
                     runOnUiThread {
-                        showErrorDialog(errorMessage)
+                        showErrorDialog("Connection failed: " + e.message)
                     }
                 }
 
@@ -512,16 +504,12 @@ class MainActivity : AppCompatActivity() {
                         val result = response.body.string()
                         try {
                             val resultObj = JsonParser.parseString(result).asJsonObject
-                            val errorMessage = errorHead + resultObj["description"]
-                            Log.e(Const.TAG, errorMessage)
                             runOnUiThread {
-                                showErrorDialog(errorMessage)
+                                showErrorDialog("${resultObj["description"].asString}")
                             }
                         } catch (e: Exception) {
-                            Log.e(Const.TAG, "onResponse: ", e)
-                            val errorMessage = errorHead + "Failed to parse error response"
-                            Log.e(Const.TAG, errorMessage)
-                            runOnUiThread { showErrorDialog(errorMessage) }
+                            Log.e(Const.TAG, "Failed to parse error response: ${e.message}", e)
+                            runOnUiThread { showErrorDialog("Failed to parse error response: ${e.message}") }
                         }
                         return
                     }
@@ -722,17 +710,14 @@ class MainActivity : AppCompatActivity() {
         )
         val request: Request = Request.Builder().url(requestUri).build()
         val call = okhttpObj.newCall(request)
-        val errorHead = "Send message failed: "
         call.enqueue(object : Callback {
             @Throws(IOException::class)
             override fun onResponse(call: Call, response: Response) {
                 progressDialog.cancel()
                 if (!response.isSuccessful) {
-                    val errorMessage = errorHead + response.code
-                    Log.e(Const.TAG, errorMessage)
+                    Log.e(Const.TAG, "Check update failed: ${response.code}")
                 }
                 val jsonString = response.body.string()
-                Log.d(Const.TAG, "onResponse: $jsonString")
                 val gson = Gson()
                 val release = gson.fromJson(jsonString, GitHubRelease::class.java)
 
@@ -757,9 +742,8 @@ class MainActivity : AppCompatActivity() {
             override fun onFailure(call: Call, e: IOException) {
                 Log.e(Const.TAG, "onFailure: ${e.message}", e)
                 progressDialog.cancel()
-                val errorMessage = errorHead + e.message
                 runOnUiThread {
-                    showErrorDialog(errorMessage)
+                    showErrorDialog("Failed to check for updates.")
                 }
             }
         })
