@@ -122,8 +122,6 @@ class ChatService : Service() {
         const val USSD_CANCEL: String = "ussd_cancel"
         const val SIM1: String = "sim1"
         const val SIM2: String = "sim2"
-        const val USSD_SIM1: String = "ussd_sim1"
-        const val USSD_SIM2: String = "ussd_sim2"
     }
 
     @Suppress("ClassName")
@@ -345,7 +343,7 @@ class ChatService : Service() {
         // Handle USSD SIM selection callback
         if (messageType == "callback_query" && sendUssdNextStatus == SEND_USSD_STATUS.SIM_SELECT_STATUS) {
             when (callbackData) {
-                CALLBACK_DATA_VALUE.USSD_SIM1 -> {
+                CALLBACK_DATA_VALUE.SIM1 -> {
                     chatMMKV.putInt("ussd_slot", 0)
                     sendUssdNextStatus = SEND_USSD_STATUS.WAITING_TO_SEND_STATUS
                     val requestUri = getUrl(botToken, "editMessageText")
@@ -372,7 +370,7 @@ class ChatService : Service() {
                     }
                 }
 
-                CALLBACK_DATA_VALUE.USSD_SIM2 -> {
+                CALLBACK_DATA_VALUE.SIM2 -> {
                     chatMMKV.putInt("ussd_slot", 1)
                     sendUssdNextStatus = SEND_USSD_STATUS.WAITING_TO_SEND_STATUS
                     val requestUri = getUrl(botToken, "editMessageText")
@@ -681,11 +679,11 @@ class ChatService : Service() {
                                 inlineKeyboard = arrayListOf(
                                     getInlineKeyboardObj(
                                         "SIM 1",
-                                        CALLBACK_DATA_VALUE.USSD_SIM1
+                                        CALLBACK_DATA_VALUE.SIM1
                                     ),
                                     getInlineKeyboardObj(
                                         "SIM 2",
-                                        CALLBACK_DATA_VALUE.USSD_SIM2
+                                        CALLBACK_DATA_VALUE.SIM2
                                     )
                                 )
                             }
