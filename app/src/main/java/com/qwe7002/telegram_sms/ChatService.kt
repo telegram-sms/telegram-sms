@@ -83,12 +83,16 @@ class ChatService : Service() {
         private fun readLogcat(lines: Int): String {
             return try {
                 val level = "I"
-                val command = if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
-                    arrayOf("logcat", "${Const.TAG}:${level}","*:S", "-d", "-t", lines
-                        .toString(),"-v","time", "--pid=${android.os.Process.myPid()}")
-                }else{
-                    arrayOf("logcat", "${Const.TAG}:${level}","*:S", "-d", "-t", lines
-                        .toString(),"-v","time")
+                val command = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    arrayOf(
+                        "logcat", "${Const.TAG}:${level}", "*:S", "-d", "-t", lines
+                            .toString(), "-v", "time", "--pid=${android.os.Process.myPid()}"
+                    )
+                } else {
+                    arrayOf(
+                        "logcat", "${Const.TAG}:${level}", "*:S", "-d", "-t", lines
+                            .toString(), "-v", "time"
+                    )
                 }
                 val process = Runtime.getRuntime().exec(
                     command
@@ -210,7 +214,8 @@ class ChatService : Service() {
                     val requestBodyRaw = gson.toJson(requestBody)
                     val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
                     val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
-                    val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
+                    val request: Request =
+                        Request.Builder().url(requestUri).method("POST", body).build()
                     val call = okhttpObj.newCall(request)
                     try {
                         val response = call.execute()
@@ -221,6 +226,7 @@ class ChatService : Service() {
                         Log.e(Const.TAG, "Failed to edit message: ${e.message}", e)
                     }
                 }
+
                 CALLBACK_DATA_VALUE.SIM2 -> {
                     chatMMKV.putInt("slot", 1)
                     sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
@@ -235,7 +241,8 @@ class ChatService : Service() {
                     val requestBodyRaw = gson.toJson(requestBody)
                     val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
                     val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
-                    val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
+                    val request: Request =
+                        Request.Builder().url(requestUri).method("POST", body).build()
                     val call = okhttpObj.newCall(request)
                     try {
                         val response = call.execute()
@@ -352,7 +359,8 @@ class ChatService : Service() {
                     val requestBodyRaw = gson.toJson(requestBody)
                     val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
                     val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
-                    val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
+                    val request: Request =
+                        Request.Builder().url(requestUri).method("POST", body).build()
                     val call = okhttpObj.newCall(request)
                     try {
                         val response = call.execute()
@@ -363,6 +371,7 @@ class ChatService : Service() {
                         Log.e(Const.TAG, "Failed to edit message: ${e.message}", e)
                     }
                 }
+
                 CALLBACK_DATA_VALUE.USSD_SIM2 -> {
                     chatMMKV.putInt("ussd_slot", 1)
                     sendUssdNextStatus = SEND_USSD_STATUS.WAITING_TO_SEND_STATUS
@@ -377,7 +386,8 @@ class ChatService : Service() {
                     val requestBodyRaw = gson.toJson(requestBody)
                     val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
                     val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
-                    val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
+                    val request: Request =
+                        Request.Builder().url(requestUri).method("POST", body).build()
                     val call = okhttpObj.newCall(request)
                     try {
                         val response = call.execute()
@@ -614,6 +624,7 @@ class ChatService : Service() {
                                             ussdSlot = 0
                                             codeIndex = 2 // Code is at index 2
                                         }
+
                                         "2" -> {
                                             ussdSlot = 1
                                             codeIndex = 2 // Code is at index 2
@@ -777,25 +788,28 @@ class ChatService : Service() {
                 Log.d(Const.TAG, "SMS send list size: ${msgSendList.size}")
 
                 // Check if phone number is provided
-                val hasPhoneNumber = if (sendSlot != -1 && baseCommand == "/sendsms" && commandParts.size > 1 && (commandParts[1] == "1" || commandParts[1] == "2")) {
-                    // Format: /sendsms 1\nphone\ncontent or /sendsms 2\nphone\ncontent
-                    msgSendList.size > 2
-                } else {
-                    msgSendList.size > 1
-                }
+                val hasPhoneNumber =
+                    if (sendSlot != -1 && baseCommand == "/sendsms" && commandParts.size > 1 && (commandParts[1] == "1" || commandParts[1] == "2")) {
+                        // Format: /sendsms 1\nphone\ncontent or /sendsms 2\nphone\ncontent
+                        msgSendList.size > 2
+                    } else {
+                        msgSendList.size > 1
+                    }
 
                 if (hasPhoneNumber) {
-                    val phoneLineIndex = if (sendSlot != -1 && baseCommand == "/sendsms" && commandParts.size > 1 && (commandParts[1] == "1" || commandParts[1] == "2")) {
-                        2 // Skip command and SIM number
-                    } else {
-                        1 // Skip only command
-                    }
+                    val phoneLineIndex =
+                        if (sendSlot != -1 && baseCommand == "/sendsms" && commandParts.size > 1 && (commandParts[1] == "1" || commandParts[1] == "2")) {
+                            2 // Skip command and SIM number
+                        } else {
+                            1 // Skip only command
+                        }
 
                     if (msgSendList.size > phoneLineIndex) {
                         val msgSendTo = getSendPhoneNumber(msgSendList[phoneLineIndex])
                         if (isPhoneNumber(msgSendTo)) {
                             chatMMKV.putString("to", msgSendTo)
-                            val sendContent = msgSendList.drop(phoneLineIndex + 1).joinToString("\n")
+                            val sendContent =
+                                msgSendList.drop(phoneLineIndex + 1).joinToString("\n")
                             chatMMKV.putString("content", sendContent)
                             sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS
                             // Show confirmation with keyboard
@@ -864,7 +878,10 @@ class ChatService : Service() {
                         requestBody.text = Template.render(
                             applicationContext,
                             "TPL_send_sms_chat",
-                            mapOf("SIM" to dualSim, "Content" to getString(R.string.enter_reply_number))
+                            mapOf(
+                                "SIM" to dualSim,
+                                "Content" to getString(R.string.enter_reply_number)
+                            )
                         )
                         sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
                     }
