@@ -1,6 +1,7 @@
 package com.qwe7002.telegram_sms
 
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -117,9 +118,12 @@ class LogActivity : AppCompatActivity() {
                 if(BuildConfig.DEBUG) {
                     level = "V" // Verbose in debug builds
                 }
-                logcatProcess = Runtime.getRuntime().exec(
+                val command = if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
+                    arrayOf("logcat", "${Const.TAG}:${level}","*:S", "-d", "-t", "500","-v","time", "--pid=${android.os.Process.myPid()}")
+                }else{
                     arrayOf("logcat", "${Const.TAG}:${level}","*:S", "-d", "-t", "500","-v","time")
-                )
+                }
+                logcatProcess = Runtime.getRuntime().exec(command)
 
                 val reader = BufferedReader(InputStreamReader(logcatProcess?.inputStream))
                 var lastEntry: LogEntry? = null

@@ -83,8 +83,15 @@ class ChatService : Service() {
         private fun readLogcat(lines: Int): String {
             return try {
                 val level = "I"
+                val command = if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
+                    arrayOf("logcat", "${Const.TAG}:${level}","*:S", "-d", "-t", lines
+                        .toString(),"-v","time", "--pid=${android.os.Process.myPid()}")
+                }else{
+                    arrayOf("logcat", "${Const.TAG}:${level}","*:S", "-d", "-t", lines
+                        .toString(),"-v","time")
+                }
                 val process = Runtime.getRuntime().exec(
-                    arrayOf("logcat", "${Const.TAG}:${level}", "*:S", "-d", "-t", lines.toString())
+                    command
                 )
 
                 val reader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
