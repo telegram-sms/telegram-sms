@@ -25,7 +25,6 @@ def currentBranch = getGitBranch()
 
 
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
 android {
     compileSdk = 36
 
@@ -74,12 +73,10 @@ android {
     buildTypes {
         release {
             debuggable false
-            testCoverageEnabled true
             minifyEnabled = false
             shrinkResources = false
             if (currentBranch == "nightly") {
                 applicationIdSuffix = ".nightly"
-                resValue "string", "app_name", "Telegram SMS (Nightly)"
             }
 
             // Only apply signing config if keystore exists
@@ -90,12 +87,13 @@ android {
                 //noinspection ChromeOsAbiSupport
                 abiFilters "armeabi-v7a", "arm64-v8a"
             }
+            enableUnitTestCoverage true
+            enableAndroidTestCoverage true
         }
 
         debug {
             minifyEnabled = false
             applicationIdSuffix = ".debug"
-            resValue "string", "app_name", "Telegram SMS (Debug)"
         }
     }
     namespace = 'com.qwe7002.telegram_sms'
@@ -116,7 +114,7 @@ dependencies {
     implementation 'com.github.yuriy-budiyev:code-scanner:2.1.0'
     implementation 'androidx.core:core-ktx:1.17.0'
     //noinspection GradleDependency
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.2.21'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.2.10'
     implementation 'androidx.activity:activity-ktx:1.12.2'
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'com.goterl:lazysodium-android:5.2.0@aar'
