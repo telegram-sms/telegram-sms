@@ -148,21 +148,33 @@ class LogActivity : AppCompatActivity() {
         logcatJob = lifecycleScope.launch(Dispatchers.IO) {
             Log.d(Const.TAG, "startLogcat: Starting logcat process")
             try {
+                // Filters to pass to logcat (tag names only)
+                val filterArray = Const.TAG_FILTER
                 var level = "I"
                 if (BuildConfig.DEBUG) {
+                    filterArray.plus("MainActivity")
+                    filterArray.plus("LogActivity")
+                    filterArray.plus("CcActivity")
+                    filterArray.plus("NotifyActivity")
+                    filterArray.plus("ScannerActivity")
+
                     level = "V" // Verbose in debug builds
                 }
+
+                // Map tags to "Tag:LEVEL" strings for logcat arguments
+                val addFilterArray = filterArray.map { tag -> "${Const.TAG}.$tag:$level" }.toTypedArray()
+                addFilterArray.plus("${Const.TAG}:$level")
                 val command = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     arrayOf(
                         "logcat",
-                        "${Const.TAG}:${level}",
+                        *addFilterArray,
                         "*:S",
                         "-v",
                         "time",
                         "--pid=${android.os.Process.myPid()}"
                     )
                 } else {
-                    arrayOf("logcat", "${Const.TAG}:${level}", "*:S", "-v", "time")
+                    arrayOf("logcat", *addFilterArray, "*:S", "-v", "time")
                 }
                 logcatProcess = Runtime.getRuntime().exec(command)
 
@@ -380,6 +392,8 @@ class LogAdapter : ListAdapter<LogEntry, LogAdapter.LogViewHolder>(LogDiffCallba
         }
     }
 }
+
+
 
 
 

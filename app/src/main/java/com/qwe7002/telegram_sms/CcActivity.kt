@@ -50,6 +50,7 @@ import java.io.IOException
 
 @Suppress("NAME_SHADOWING")
 class CcActivity : AppCompatActivity() {
+    private val logTag = "${Const.TAG}.CcActivity"
     private lateinit var listAdapter: ArrayAdapter<CcSendService>
     private lateinit var serviceList: ArrayList<CcSendService>
     private val gson = Gson()
@@ -203,7 +204,7 @@ class CcActivity : AppCompatActivity() {
         serviceList: ArrayList<CcSendService>,
         listAdapter: ArrayAdapter<CcSendService>
     ) {
-        Log.d(Const.TAG, serviceList.toString())
+        Log.d(logTag, serviceList.toString())
         val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
         carbonCopyMMKV.putString("service", gson.toJson(serviceList))
         listAdapter.notifyDataSetChanged()
@@ -315,7 +316,7 @@ class CcActivity : AppCompatActivity() {
                 val httpUrlBuilder: HttpUrl.Builder = url.newBuilder()
                 httpUrlBuilder.addQueryParameter("key", id)
                 val httpUrl = httpUrlBuilder.build()
-                Log.d(Const.TAG, "getConfig: $httpUrl")
+                Log.d(logTag, "getConfig: $httpUrl")
                 val requestObj = Request.Builder().url(httpUrl).method("GET", null)
                 val call = okhttpObject.newCall(requestObj.build())
                 try {
@@ -332,7 +333,7 @@ class CcActivity : AppCompatActivity() {
                             }
                         } catch (e: Exception) {
                             Log.e(
-                                Const.TAG,
+                                logTag,
                                 "An error occurred while resending: " + e.message,e
                             )
                             runOnUiThread {
@@ -411,7 +412,7 @@ class CcActivity : AppCompatActivity() {
         when (requestCode) {
             0 -> {
                 if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                    Log.d(Const.TAG, "onRequestPermissionsResult: No camera permissions.")
+                    Log.d(logTag, "onRequestPermissionsResult: No camera permissions.")
                     Snackbar.make(
                         findViewById(R.id.bot_token_editview),
                         R.string.no_camera_permission,
@@ -429,14 +430,14 @@ class CcActivity : AppCompatActivity() {
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        Log.d(Const.TAG, "onActivityResult: $resultCode")
+        Log.d(logTag, "onActivityResult: $resultCode")
         if (requestCode == 1) {
             if (resultCode == Const.RESULT_CONFIG_JSON) {
                 val jsonConfig = gson.fromJson(
                     data!!.getStringExtra("config_json"),
                     CcSendService::class.java
                 )
-                Log.d(Const.TAG, "onActivityResult: $jsonConfig")
+                Log.d(logTag, "onActivityResult: $jsonConfig")
                 serviceList.add(jsonConfig)
                 saveAndFlush(serviceList, listAdapter)
             }

@@ -27,6 +27,7 @@ import com.tencent.mmkv.MMKV
 import java.util.Locale
 
 class NotifyActivity : AppCompatActivity() {
+    private val logTag = "${Const.TAG}.NotifyActivity"
     private lateinit var appAdapter: AppAdapter
 
     private fun scanAppList(packageManager: PackageManager): List<applicationInfo> {
@@ -48,7 +49,7 @@ class NotifyActivity : AppCompatActivity() {
                 appInfoList.add(appInfo)
             }
         } catch (e: Exception) {
-            Log.e(Const.TAG, "scanAppList: ${e.message}", e)
+            Log.e(logTag, "scanAppList: ${e.message}", e)
         }
         return appInfoList
     }

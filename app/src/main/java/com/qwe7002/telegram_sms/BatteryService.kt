@@ -28,6 +28,7 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 class BatteryService : Service() {
+    private val logTag = "${Const.TAG}.BatteryService"
     private lateinit var batteryReceiver: batteryChangeReceiver
 
     // Thread-safe map to store pending actions (key: action type, value: sendObj)
@@ -112,7 +113,7 @@ class BatteryService : Service() {
                 }
             }
         } catch (e: Exception) {
-            Log.e(Const.TAG, "Error processing message: $e")
+            Log.e(logTag, "Error processing message: $e")
         } finally {
             isProcessing = false
         }
@@ -126,7 +127,7 @@ class BatteryService : Service() {
         if ((System.currentTimeMillis() - lastReceiveTime) <= 5000L && lastReceiveMessageId != -1L) {
             method = "editMessageText"
             requestMessage.messageId = lastReceiveMessageId
-            Log.d(Const.TAG, "onReceive: edit_mode")
+            Log.d(logTag, "onReceive: edit_mode")
         }
         lastReceiveTime = System.currentTimeMillis()
 
@@ -173,7 +174,7 @@ class BatteryService : Service() {
 
     internal inner class batteryChangeReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            Log.d(Const.TAG, "Receive action: " + intent.action)
+            Log.d(logTag, "Receive action: " + intent.action)
 
             val action = intent.action
             val batteryManager = context.getSystemService(BATTERY_SERVICE) as BatteryManager
@@ -183,14 +184,14 @@ class BatteryService : Service() {
                 Intent.ACTION_POWER_CONNECTED -> context.getString(R.string.charger_connect)
                 Intent.ACTION_POWER_DISCONNECTED -> context.getString(R.string.charger_disconnect)
                 else -> {
-                    Log.e(Const.TAG, "Unknown action: $action")
+                    Log.e(logTag, "Unknown action: $action")
                     return
                 }
             }
             var batteryLevel =
                 batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
             if (batteryLevel > 100) {
-                Log.d(Const.TAG, "The previous battery is over 100%, and the correction is 100%.")
+                Log.d(logTag, "The previous battery is over 100%, and the correction is 100%.")
                 batteryLevel = 100
             }
             val result = Template.render(

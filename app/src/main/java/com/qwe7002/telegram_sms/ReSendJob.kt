@@ -15,6 +15,7 @@ import com.tencent.mmkv.MMKV
 import java.util.concurrent.TimeUnit
 
 class ReSendJob : JobService() {
+    private val logTag = "${Const.TAG}.ReSendJob"
     private lateinit var resendMMKV: MMKV
 
     private fun networkProgressHandle(message: String) {
@@ -38,12 +39,12 @@ class ReSendJob : JobService() {
             resendListLocal.remove(message)
             resendMMKV.encode("resend_list", resendListLocal.toSet())
         } else {
-            Log.e(Const.TAG, "Failed to resend message, will retry later")
+            Log.e(logTag, "Failed to resend message, will retry later")
         }
     }
 
     override fun onStartJob(params: JobParameters?): Boolean {
-        Log.d(Const.TAG, "ReSendJob: Try resending the message.")
+        Log.d(logTag, "ReSendJob: Try resending the message.")
         MMKV.initialize(applicationContext)
         resendMMKV = MMKV.mmkvWithID(MMKVConst.RESEND_ID)
 
@@ -54,7 +55,7 @@ class ReSendJob : JobService() {
             }
             if (sendList.isNotEmpty()) {
                 Log.i(
-                    Const.TAG,
+                    logTag,
                     "ReSendJob: Resend completed. ${sendList.size} messages have been resent."
                 )
             }

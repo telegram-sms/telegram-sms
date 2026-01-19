@@ -83,7 +83,6 @@ class SpamActivity : AppCompatActivity() {
         blackKeywordList: MutableList<String>,
         listAdapter: ArrayAdapter<String>
     ) {
-        Log.d(Const.TAG, blackKeywordList.toString())
         MMKV.defaultMMKV().encode("block_keyword_list", blackKeywordList.toSet())
         listAdapter.notifyDataSetChanged()
     }

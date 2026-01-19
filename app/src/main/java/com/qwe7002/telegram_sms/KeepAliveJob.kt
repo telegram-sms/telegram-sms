@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit
 class KeepAliveJob : JobService() {
 
     companion object {
+        private const val logTag = "${Const.TAG}.KeepAliveJob"
         private const val JOB_ID = 10
         private val MIN_LATENCY_MS = TimeUnit.SECONDS.toMillis(5)
 
@@ -50,7 +51,7 @@ class KeepAliveJob : JobService() {
             )
         }
 
-        Log.d(Const.TAG, "startJob: Try to pull up the service")
+        Log.d(logTag, "startJob: Try to pull up the service")
         jobFinished(params, false)
         startJob(applicationContext)
 

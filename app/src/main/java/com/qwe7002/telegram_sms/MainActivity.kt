@@ -66,6 +66,7 @@ import java.util.concurrent.TimeUnit
 
 @Suppress("deprecation")
 class MainActivity : AppCompatActivity() {
+    private val logTag = "${Const.TAG}.MainActivity"
     private lateinit var preferences: MMKV
     private lateinit var privacyPolice: String
     private val gson = Gson()
@@ -260,7 +261,7 @@ class MainActivity : AppCompatActivity() {
             }
             call.enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    Log.e(Const.TAG, "onResponse: ${e.message}", e)
+                    Log.e(logTag, "onResponse: ${e.message}", e)
                     progressDialog.cancel()
                     runOnUiThread {
                         showErrorDialog("Get recent chat failed: " + e.message)
@@ -276,14 +277,14 @@ class MainActivity : AppCompatActivity() {
                             val resultObj = JsonParser.parseString(result).asJsonObject
                             runOnUiThread { showErrorDialog("${resultObj["description"].asString}") }
                         } catch (e: Exception) {
-                            Log.e(Const.TAG, "Failed to parse error response: ${e.message}", e)
+                            Log.e(logTag, "Failed to parse error response: ${e.message}", e)
                             runOnUiThread { showErrorDialog("Failed to parse error response: ${e.message}") }
                         }
                         return
                     }
 
                     val result = response.body.string()
-                    Log.d(Const.TAG, "onResponse: $result")
+                    Log.d(logTag, "onResponse: $result")
                     try {
                         val resultObj = JsonParser.parseString(result).asJsonObject
                         val chatList = resultObj.getAsJsonArray("result")
@@ -367,7 +368,7 @@ class MainActivity : AppCompatActivity() {
                                 .show()
                         }
                     } catch (e: Exception) {
-                        Log.e(Const.TAG, "onResponse: ${e.message}", e)
+                        Log.e(logTag, "onResponse: ${e.message}", e)
                         runOnUiThread { showErrorDialog("Failed to parse response: ${e.message}") }
                     }
                 }
@@ -488,7 +489,7 @@ class MainActivity : AppCompatActivity() {
             val call = okhttpObj.newCall(request)
             call.enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    Log.e(Const.TAG, "onResponse: ${e.message}", e)
+                    Log.e(logTag, "onResponse: ${e.message}", e)
                     progressDialog.cancel()
                     runOnUiThread {
                         showErrorDialog("Connection failed: " + e.message)
@@ -508,14 +509,14 @@ class MainActivity : AppCompatActivity() {
                                 showErrorDialog("${resultObj["description"].asString}")
                             }
                         } catch (e: Exception) {
-                            Log.e(Const.TAG, "Failed to parse error response: ${e.message}", e)
+                            Log.e(logTag, "Failed to parse error response: ${e.message}", e)
                             runOnUiThread { showErrorDialog("Failed to parse error response: ${e.message}") }
                         }
                         return
                     }
                     if (newBotToken != botTokenSave) {
                         Log.i(
-                            Const.TAG,
+                            logTag,
                             "onResponse: The current bot token does not match the saved bot token, clearing the message database."
                         )
                         MMKV.mmkvWithID(MMKVConst.CHAT_ID).clearAll()
@@ -579,7 +580,7 @@ class MainActivity : AppCompatActivity() {
             packageInfo = packageManager.getPackageInfo(applicationContext.packageName, 0)
             currentVersionCode = packageInfo.versionCode
         } catch (e: PackageManager.NameNotFoundException) {
-            Log.d(Const.TAG, "checkVersionUpgrade: $e")
+            Log.d(logTag, "checkVersionUpgrade: $e")
             return
         }
         if (versionCode != currentVersionCode) {
@@ -624,7 +625,7 @@ class MainActivity : AppCompatActivity() {
             try {
                 customTabsIntent.launchUrl(applicationContext, uri)
             } catch (e: ActivityNotFoundException) {
-                Log.d(Const.TAG, "showPrivacyDialog: $e")
+                Log.d(logTag, "showPrivacyDialog: $e")
                 Snackbar.make(
                     findViewById(R.id.bot_token_editview),
                     "Browser not found.",
@@ -715,7 +716,7 @@ class MainActivity : AppCompatActivity() {
             override fun onResponse(call: Call, response: Response) {
                 progressDialog.cancel()
                 if (!response.isSuccessful) {
-                    Log.e(Const.TAG, "Check update failed: ${response.code}")
+                    Log.e(logTag, "Check update failed: ${response.code}")
                     runOnUiThread {
                         showErrorDialog(getString(R.string.failed_to_check_for_updates))
                     }
@@ -744,7 +745,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call, e: IOException) {
-                Log.e(Const.TAG, "onFailure: ${e.message}", e)
+                Log.e(logTag, "onFailure: ${e.message}", e)
                 progressDialog.cancel()
                 runOnUiThread {
                     showErrorDialog("Failed to check for updates.")
@@ -765,7 +766,7 @@ class MainActivity : AppCompatActivity() {
             @Throws(IOException::class)
             override fun onResponse(call: Call, response: Response) {
                 if (!response.isSuccessful) {
-                    Log.e(Const.TAG, "Failed to download output-metadata.json: ${response.code}")
+                    Log.e(logTag, "Failed to download output-metadata.json: ${response.code}")
                     runOnUiThread {
                         showErrorDialog(getString(R.string.failed_to_download_update_metadata))
                     }
@@ -773,7 +774,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 val metadataJson = response.body.string()
-                Log.d(Const.TAG, "output-metadata.json: $metadataJson")
+                Log.d(logTag, "output-metadata.json: $metadataJson")
 
                 try {
                     val gson = Gson()
@@ -794,7 +795,7 @@ class MainActivity : AppCompatActivity() {
                                 )
                             }
                         } else {
-                            Log.e(Const.TAG, "No APK asset found in release")
+                            Log.e(logTag, "No APK asset found in release")
                             runOnUiThread {
                                 showErrorDialog(getString(R.string.no_apk_found_for_the_update))
                             }
@@ -808,14 +809,14 @@ class MainActivity : AppCompatActivity() {
                             ).show()
                         }
                         Log.i(
-                            Const.TAG,
+                            logTag,
                             "App is up to date. Current: ${BuildConfig.VERSION_CODE}, Remote: $remoteVersionCode"
                         )
 
 
                     }
                 } catch (e: Exception) {
-                    Log.e(Const.TAG, "Failed to parse output-metadata.json", e)
+                    Log.e(logTag, "Failed to parse output-metadata.json", e)
                     runOnUiThread {
                         showErrorDialog(getString(R.string.failed_to_parse_update_metadata))
                     }
@@ -824,7 +825,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call, e: IOException) {
-                Log.e(Const.TAG, "Failed to fetch output-metadata.json", e)
+                Log.e(logTag, "Failed to fetch output-metadata.json", e)
                 runOnUiThread {
                     showErrorDialog(getString(R.string.failed_to_fetch_update_metadata))
                 }
@@ -1020,7 +1021,7 @@ class MainActivity : AppCompatActivity() {
         try {
             customTabsIntent.launchUrl(this, uri)
         } catch (e: ActivityNotFoundException) {
-            Log.e(Const.TAG, "onOptionsItemSelected: ${e.message}", e)
+            Log.e(logTag, "onOptionsItemSelected: ${e.message}", e)
             showErrorDialog(getString(R.string.browser_not_found))
         }
         return true
@@ -1142,7 +1143,7 @@ class MainActivity : AppCompatActivity() {
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 progressDialog.cancel()
-                Log.e(Const.TAG, "checkAndLogout getMe onFailure: ", e)
+                Log.e(logTag, "checkAndLogout getMe onFailure: ", e)
                 runOnUiThread {
                     Snackbar.make(
                         findViewById(R.id.doh_switch),
@@ -1158,13 +1159,13 @@ class MainActivity : AppCompatActivity() {
                     val body = response.body.string()
                     val jsonObj = JsonParser.parseString(body).asJsonObject
                     if (jsonObj.get("ok").asBoolean) {
-                        Log.i(Const.TAG, "onResponse: Logged in, proceeding to logout")
+                        Log.i(logTag, "onResponse: Logged in, proceeding to logout")
                         // Bot token is still active on official API, need to logout
                         runOnUiThread {
                             logout(botToken)
                         }
                     } else {
-                        Log.i(Const.TAG, "onResponse: Already logged out")
+                        Log.i(logTag, "onResponse: Already logged out")
                         // Already logged out
                         runOnUiThread {
                             Snackbar.make(
@@ -1175,7 +1176,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 } else {
-                    Log.w(Const.TAG, "onResponse: ${response.code}")
+                    Log.w(logTag, "onResponse: ${response.code}")
                     // Not logged in or error, no need to logout
                     runOnUiThread {
                         Snackbar.make(
@@ -1211,7 +1212,7 @@ class MainActivity : AppCompatActivity() {
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 progressDialog.cancel()
-                Log.e(Const.TAG, "onFailure: ", e)
+                Log.e(logTag, "onFailure: ", e)
             }
 
             override fun onResponse(call: Call, response: Response) {

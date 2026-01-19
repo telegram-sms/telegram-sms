@@ -18,6 +18,7 @@ import com.qwe7002.telegram_sms.value.Const
 import kotlin.math.log
 
 class ScannerActivity : Activity() {
+    private val logTag = "${Const.TAG}.ScannerActivity"
     private lateinit var mCodeScanner: CodeScanner
     public override fun onCreate(state: Bundle?) {
         super.onCreate(state)

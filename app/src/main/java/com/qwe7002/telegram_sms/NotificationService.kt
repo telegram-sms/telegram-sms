@@ -18,6 +18,7 @@ import com.qwe7002.telegram_sms.value.Const
 
 class NotificationService : NotificationListenerService() {
     lateinit var preferences: MMKV
+    private val logTag = "${Const.TAG}.NotificationService"
 
     override fun onCreate() {
         super.onCreate()
@@ -27,10 +28,10 @@ class NotificationService : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         val packageName = sbn.packageName
-        Log.d(Const.TAG, "onNotificationPosted: $packageName")
+        Log.d(logTag, "onNotificationPosted: $packageName")
 
         if (!preferences.getBoolean("initialized", false)) {
-            Log.i(Const.TAG, "Uninitialized, Notification receiver is deactivated.")
+            Log.i(logTag, "Uninitialized, Notification receiver is deactivated.")
             return
         }
         val notifyMMKV = MMKV.mmkvWithID(MMKVConst.NOTIFY_ID)
@@ -39,12 +40,12 @@ class NotificationService : NotificationListenerService() {
             Gson().fromJson(notifyListStr, Array<String>::class.java).toList()
 
         if (!listenList.contains(packageName)) {
-            Log.i(Const.TAG, "[$packageName] Not in the list of listening packages.")
+            Log.i(logTag, "[$packageName] Not in the list of listening packages.")
             return
         }
         val extras = sbn.notification.extras!!
         var appName = "unknown"
-        Log.d(Const.TAG, "onNotificationPosted: $appNameList")
+        Log.d(logTag, "onNotificationPosted: $appNameList")
         if (appNameList.containsKey(packageName)) {
             appName = appNameList[packageName].toString()
         } else {
@@ -54,7 +55,7 @@ class NotificationService : NotificationListenerService() {
                 appName = pm.getApplicationLabel(applicationInfo) as String
                 appNameList[packageName] = appName
             } catch (e: PackageManager.NameNotFoundException) {
-                Log.e(Const.TAG, "onNotificationPosted: ", e)
+                Log.e(logTag, "onNotificationPosted: ", e)
             }
         }
 
