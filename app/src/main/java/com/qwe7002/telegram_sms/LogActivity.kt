@@ -165,11 +165,6 @@ class LogActivity : AppCompatActivity() {
                 var lastTag: String? = null
 
                 while (isActive) {
-                    if (reader.ready().not()) {
-                        // Avoid busy-waiting
-                        kotlinx.coroutines.delay(1000)
-                        continue
-                    }
                     val line = reader.readLine() ?: break
                     if (line.isNotEmpty() && !line.startsWith("------")) {
                         val parsed = parseLogLine(entryId, line)
@@ -275,10 +270,6 @@ data class LogEntry(
     var isExpanded: Boolean = false
 ) {
     fun hasContinuation(): Boolean = continuationLines.isNotEmpty()
-    /*
-        fun copy(expanded: Boolean): LogEntry {
-            return LogEntry(id, timestamp, level, tag, message, rawLine, continuationLines, expanded)
-        }*/
 }
 
 class LogAdapter : ListAdapter<LogEntry, LogAdapter.LogViewHolder>(LogDiffCallback()) {
