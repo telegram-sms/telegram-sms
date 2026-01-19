@@ -278,10 +278,6 @@ class ChatService : Service() {
                 val okhttpObj = getOkhttpObj(
                     sharedPreferences.getBoolean("doh_switch", false)
                 )
-                Log.d(
-                    Const.TAG,
-                    "doh switch status: " + sharedPreferences.getBoolean("doh_switch", false)
-                )
                 val request: Request =
                     Request.Builder().url(requestUri).method("POST", body).build()
                 val call = okhttpObj.newCall(request)
