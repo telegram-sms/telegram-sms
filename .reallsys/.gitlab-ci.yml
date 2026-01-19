@@ -262,7 +262,7 @@ build_debug:
   script:
     - |
       echo "==> Building Debug APK..."
-      ./gradlew assembleDebug --stacktrace --no-daemon
+      ./gradlew assembleDebug --no-daemon
   artifacts:
     name: "telegram-sms-debug-${CI_COMMIT_SHORT_SHA}"
     paths:
