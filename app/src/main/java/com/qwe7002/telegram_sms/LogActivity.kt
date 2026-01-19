@@ -149,13 +149,20 @@ class LogActivity : AppCompatActivity() {
             Log.d(Const.TAG, "startLogcat: Starting logcat process")
             try {
                 var level = "I"
-                if(BuildConfig.DEBUG) {
+                if (BuildConfig.DEBUG) {
                     level = "V" // Verbose in debug builds
                 }
-                val command = if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
-                    arrayOf("logcat", "${Const.TAG}:${level}","*:S","-v","time", "--pid=${android.os.Process.myPid()}")
-                }else{
-                    arrayOf("logcat", "${Const.TAG}:${level}","*:S","-v","time")
+                val command = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    arrayOf(
+                        "logcat",
+                        "${Const.TAG}:${level}",
+                        "*:S",
+                        "-v",
+                        "time",
+                        "--pid=${android.os.Process.myPid()}"
+                    )
+                } else {
+                    arrayOf("logcat", "${Const.TAG}:${level}", "*:S", "-v", "time")
                 }
                 logcatProcess = Runtime.getRuntime().exec(command)
 
@@ -326,7 +333,8 @@ class LogAdapter : ListAdapter<LogEntry, LogAdapter.LogViewHolder>(LogDiffCallba
         // Handle expand/collapse for continuation lines
         if (entry.hasContinuation()) {
             holder.expandIndicator.visibility = View.VISIBLE
-            holder.expandIndicator.text = if (entry.isExpanded) "▼ ${entry.continuationLines.size}" else "▶ ${entry.continuationLines.size}"
+            holder.expandIndicator.text =
+                if (entry.isExpanded) "▼ ${entry.continuationLines.size}" else "▶ ${entry.continuationLines.size}"
 
             if (entry.isExpanded) {
                 holder.detailsView.visibility = View.VISIBLE
