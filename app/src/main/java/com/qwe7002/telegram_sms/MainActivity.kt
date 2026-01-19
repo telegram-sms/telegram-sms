@@ -750,6 +750,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkVersionFromMetadata(
+
         release: GitHubRelease,
         metadataUrl: String,
         okhttpObj: OkHttpClient
@@ -795,7 +796,14 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                     } else {
-                        Log.d(
+                        runOnUiThread {
+                            Snackbar.make(
+                                findViewById(R.id.bot_token_editview),
+                                "App is up to date.",
+                                Snackbar.LENGTH_LONG
+                            ).show()
+                        }
+                        Log.i(
                             Const.TAG,
                             "App is up to date. Current: ${BuildConfig.VERSION_CODE}, Remote: $remoteVersionCode"
                         )
@@ -1008,7 +1016,7 @@ class MainActivity : AppCompatActivity() {
         try {
             customTabsIntent.launchUrl(this, uri)
         } catch (e: ActivityNotFoundException) {
-            Log.e(Const.TAG, "onOptionsItemSelected: ${e.message}",e)
+            Log.e(Const.TAG, "onOptionsItemSelected: ${e.message}", e)
             showErrorDialog(getString(R.string.browser_not_found))
         }
         return true
@@ -1163,7 +1171,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 } else {
-                    Log.w(Const.TAG, "onResponse: ${response.code}" )
+                    Log.w(Const.TAG, "onResponse: ${response.code}")
                     // Not logged in or error, no need to logout
                     runOnUiThread {
                         Snackbar.make(
