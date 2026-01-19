@@ -7,4 +7,8 @@
     <string name="failed_to_parse_update_metadata">Failed to parse update metadata.</string>
     <string name="failed_to_fetch_update_metadata">Failed to fetch update metadata.</string>
     <string name="failed_to_check_for_updates">Failed to check for updates.</string>
+    <string name="update_dialog_title">New Version Found</string>
+    <string name="update_dialog_body">%s is available for update.</string>
+    <string name="update_dialog_ok">Update now</string>
+    <string name="update_dialog_no">Talk to you later</string>
 </resources>

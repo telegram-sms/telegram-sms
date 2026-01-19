@@ -10,10 +10,6 @@
     <string name="visit_page">Visit the Privacy Terms page</string>
     <string name="about_title">About</string>
     <string name="about_content">"Developer: qwe7002 ous50\nEnglish translation: @tangbao @jixunmoe\nCurrent version: "</string>
-    <string name="update_dialog_title">New Version Found</string>
-    <string name="update_dialog_body">%s is available for update.</string>
-    <string name="update_dialog_ok">Update now</string>
-    <string name="update_dialog_no">Talk to you later</string>
     <string name="browser_not_found">Browser not found.</string>
 </resources>
 
