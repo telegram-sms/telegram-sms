@@ -156,7 +156,10 @@ build_nightly:
       chmod +x "${GHR_BIN}"
     - |
       echo "==> Syncing to GitHub..."
-      git push --set-upstream "https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}-nightly.git" \
+      # Use force push to ensure nightly branch sync succeeds even if remote has diverged.
+      # --force-with-lease is safer than --force because it prevents overwriting remote changes
+      # unless the remote branch hasn't changed since we last fetched.
+      git push --force-with-lease --set-upstream "https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}-nightly.git" \
         "HEAD:refs/heads/${CI_COMMIT_REF_NAME}" || {
           echo "WARNING: Failed to push to GitHub, continuing with release..."
         }
