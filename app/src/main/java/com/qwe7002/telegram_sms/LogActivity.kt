@@ -157,6 +157,7 @@ class LogActivity : AppCompatActivity() {
 
     private fun startLogcat() {
         logcatJob = lifecycleScope.launch(Dispatchers.IO) {
+            Log.d(Const.TAG, "startLogcat: Starting logcat process")
             try {
                 var level = "I"
                 if(BuildConfig.DEBUG) {
@@ -182,18 +183,18 @@ class LogActivity : AppCompatActivity() {
                         // Check if this is a continuation line (same timestamp, tag, and message is part of a stack trace)
                         val msg = parsed.message
                         val isContinuation = lastEntry != null &&
-                            lastTimestamp == parsed.timestamp &&
-                            lastTag == parsed.tag &&
-                            (msg.startsWith("\t") ||
-                             msg.startsWith("    ") ||
-                             msg.matches(Regex("^\\s*at\\s+.*")) ||
-                             msg.matches(Regex("^\\s*Caused by:.*")) ||
-                             msg.matches(Regex("^\\s*Suppressed:.*")) ||
-                             msg.matches(Regex("^\\s*\\.{3}\\s+\\d+\\s+more\\s*$")) ||
-                             msg.matches(Regex("""^[a-zA-Z]+(\.[a-zA-Z0-9_$]+)*Exception.*""")) ||
-                             msg.matches(Regex("""^[a-zA-Z]+(\.[a-zA-Z0-9_$]+)*Error.*""")) ||
-                             msg.matches(Regex("""^[a-zA-Z]+(\.[a-zA-Z0-9_$]+)*:\s+.*""")) ||
-                             (msg.trim().isEmpty() && msg.isNotEmpty()))
+                                lastTimestamp == parsed.timestamp &&
+                                lastTag == parsed.tag &&
+                                (msg.startsWith("\t") ||
+                                        msg.startsWith("    ") ||
+                                        msg.matches(Regex("^\\s*at\\s+.*")) ||
+                                        msg.matches(Regex("^\\s*Caused by:.*")) ||
+                                        msg.matches(Regex("^\\s*Suppressed:.*")) ||
+                                        msg.matches(Regex("^\\s*\\.{3}\\s+\\d+\\s+more\\s*$")) ||
+                                        msg.matches(Regex("""^[a-zA-Z]+(\.[a-zA-Z0-9_$]+)*Exception.*""")) ||
+                                        msg.matches(Regex("""^[a-zA-Z]+(\.[a-zA-Z0-9_$]+)*Error.*""")) ||
+                                        msg.matches(Regex("""^[a-zA-Z]+(\.[a-zA-Z0-9_$]+)*:\s+.*""")) ||
+                                        (msg.trim().isEmpty() && msg.isNotEmpty()))
 
                         if (isContinuation) {
                             // Add to the last entry's continuation lines
@@ -261,9 +262,9 @@ class LogActivity : AppCompatActivity() {
 
     private fun clearLogcat() {
         try {
-            // Clear the system log buffer
-            Runtime.getRuntime().exec("logcat -c")
-
+            // Stop current logcat reading
+            stopLogcat()
+            Runtime.getRuntime().exec("logcat -c").waitFor()
             // Clear our in-memory buffer and update adapter to empty state
             logBuffer.clear()
             logAdapter.submitList(emptyList())
@@ -274,6 +275,9 @@ class LogActivity : AppCompatActivity() {
 
             // Ensure UI reflects new state
             updateAdapter()
+
+            // Restart logcat reading to continue monitoring new logs
+            startLogcat()
 
         } catch (e: Exception) {
             Log.e(Const.TAG, "clearLogcat: ${e.message}", e)
@@ -298,10 +302,10 @@ data class LogEntry(
     var isExpanded: Boolean = false
 ) {
     fun hasContinuation(): Boolean = continuationLines.isNotEmpty()
-/*
-    fun copy(expanded: Boolean): LogEntry {
-        return LogEntry(id, timestamp, level, tag, message, rawLine, continuationLines, expanded)
-    }*/
+    /*
+        fun copy(expanded: Boolean): LogEntry {
+            return LogEntry(id, timestamp, level, tag, message, rawLine, continuationLines, expanded)
+        }*/
 }
 
 class LogAdapter : ListAdapter<LogEntry, LogAdapter.LogViewHolder>(LogDiffCallback()) {
