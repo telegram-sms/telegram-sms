@@ -79,7 +79,6 @@ class CcSendJob : JobService() {
         }
 
         private fun checkType(type: Int): Boolean {
-            Log.d(Const.TAG, "checkType: $type")
             val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
             val ccConfig = carbonCopyMMKV.getString("config", "{}") ?: "{}"
             val configType = object : TypeToken<CcConfig>() {}.type
