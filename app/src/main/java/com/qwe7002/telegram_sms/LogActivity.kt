@@ -1,3 +1,5 @@
+@file:OptIn(DelicateCoroutinesApi::class)
+
 package com.qwe7002.telegram_sms
 
 import android.graphics.Color
