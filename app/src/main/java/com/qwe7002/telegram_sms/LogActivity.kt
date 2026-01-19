@@ -4,11 +4,13 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -38,6 +40,7 @@ class LogActivity : AppCompatActivity() {
     private val logBuffer = CopyOnWriteArrayList<LogEntry>()
     private val logChannel = Channel<LogEntry>(Channel.UNLIMITED)
     private var entryId = 0L
+    private lateinit var emptyView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,7 +63,35 @@ class LogActivity : AppCompatActivity() {
         logAdapter.setHasStableIds(true)
         recyclerView.adapter = logAdapter
 
+        // Add the empty view to the activity's content child (the root FrameLayout from our layout)
+        val contentRoot = findViewById<ViewGroup>(android.R.id.content)
+        val activityRoot = (contentRoot.getChildAt(0) as? ViewGroup) ?: contentRoot
+
+        emptyView = TextView(this).apply {
+            text = getString(R.string.no_logs)
+            textSize = 16f
+            setTextColor(Color.GRAY)
+            visibility = View.GONE
+        }
+
+        val lp = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            Gravity.CENTER
+        )
+
+        activityRoot.addView(emptyView, lp)
+        // Ensure empty view is above other content
+        emptyView.post {
+            emptyView.bringToFront()
+            ViewCompat.setTranslationZ(emptyView, 100f)
+            emptyView.invalidate()
+        }
+
         this.setTitle(R.string.logcat)
+
+        // Ensure UI reflects current buffer state on open (show empty state if no logs)
+        updateAdapter()
 
         // Start consuming log entries
         startLogConsumer()
@@ -74,6 +105,8 @@ class LogActivity : AppCompatActivity() {
     public override fun onResume() {
         super.onResume()
         startLogcat()
+        // Refresh UI state in case logs changed while activity was paused
+        updateAdapter()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -107,6 +140,17 @@ class LogActivity : AppCompatActivity() {
                 recyclerView.post {
                     recyclerView.scrollToPosition(newList.size - 1)
                 }
+            }
+        }
+
+        // Toggle empty state view visibility
+        if (this::emptyView.isInitialized) {
+            if (newList.isEmpty()) {
+                emptyView.visibility = View.VISIBLE
+                recyclerView.visibility = View.GONE
+            } else {
+                emptyView.visibility = View.GONE
+                recyclerView.visibility = View.VISIBLE
             }
         }
     }
@@ -146,9 +190,9 @@ class LogActivity : AppCompatActivity() {
                              msg.matches(Regex("^\\s*Caused by:.*")) ||
                              msg.matches(Regex("^\\s*Suppressed:.*")) ||
                              msg.matches(Regex("^\\s*\\.{3}\\s+\\d+\\s+more\\s*$")) ||
-                             msg.matches(Regex("^[a-zA-Z]+(\\.[a-zA-Z0-9_\$]+)*Exception.*")) ||
-                             msg.matches(Regex("^[a-zA-Z]+(\\.[a-zA-Z0-9_\$]+)*Error.*")) ||
-                             msg.matches(Regex("^[a-zA-Z]+(\\.[a-zA-Z0-9_\$]+)*:\\s+.*")) ||
+                             msg.matches(Regex("""^[a-zA-Z]+(\.[a-zA-Z0-9_$]+)*Exception.*""")) ||
+                             msg.matches(Regex("""^[a-zA-Z]+(\.[a-zA-Z0-9_$]+)*Error.*""")) ||
+                             msg.matches(Regex("""^[a-zA-Z]+(\.[a-zA-Z0-9_$]+)*:\s+.*""")) ||
                              (msg.trim().isEmpty() && msg.isNotEmpty()))
 
                         if (isContinuation) {
@@ -217,9 +261,20 @@ class LogActivity : AppCompatActivity() {
 
     private fun clearLogcat() {
         try {
+            // Clear the system log buffer
             Runtime.getRuntime().exec("logcat -c")
+
+            // Clear our in-memory buffer and update adapter to empty state
             logBuffer.clear()
             logAdapter.submitList(emptyList())
+            if (this::emptyView.isInitialized) {
+                emptyView.visibility = View.VISIBLE
+                recyclerView.visibility = View.GONE
+            }
+
+            // Ensure UI reflects new state
+            updateAdapter()
+
         } catch (e: Exception) {
             Log.e(Const.TAG, "clearLogcat: ${e.message}", e)
         }
