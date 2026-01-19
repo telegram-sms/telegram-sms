@@ -716,6 +716,10 @@ class MainActivity : AppCompatActivity() {
                 progressDialog.cancel()
                 if (!response.isSuccessful) {
                     Log.e(Const.TAG, "Check update failed: ${response.code}")
+                    runOnUiThread {
+                        showErrorDialog(getString(R.string.failed_to_check_for_updates))
+                    }
+                    return
                 }
                 val jsonString = response.body.string()
                 val gson = Gson()
@@ -763,7 +767,7 @@ class MainActivity : AppCompatActivity() {
                 if (!response.isSuccessful) {
                     Log.e(Const.TAG, "Failed to download output-metadata.json: ${response.code}")
                     runOnUiThread {
-                        showErrorDialog("Failed to download update metadata.")
+                        showErrorDialog(getString(R.string.failed_to_download_update_metadata))
                     }
                     return
                 }
@@ -792,14 +796,14 @@ class MainActivity : AppCompatActivity() {
                         } else {
                             Log.e(Const.TAG, "No APK asset found in release")
                             runOnUiThread {
-                                showErrorDialog("No APK found for the update.")
+                                showErrorDialog(getString(R.string.no_apk_found_for_the_update))
                             }
                         }
                     } else {
                         runOnUiThread {
                             Snackbar.make(
                                 findViewById(R.id.bot_token_editview),
-                                "App is up to date.",
+                                getString(R.string.app_is_up_to_date),
                                 Snackbar.LENGTH_LONG
                             ).show()
                         }
@@ -813,7 +817,7 @@ class MainActivity : AppCompatActivity() {
                 } catch (e: Exception) {
                     Log.e(Const.TAG, "Failed to parse output-metadata.json", e)
                     runOnUiThread {
-                        showErrorDialog("Failed to parse update metadata.")
+                        showErrorDialog(getString(R.string.failed_to_parse_update_metadata))
                     }
 
                 }
@@ -822,7 +826,7 @@ class MainActivity : AppCompatActivity() {
             override fun onFailure(call: Call, e: IOException) {
                 Log.e(Const.TAG, "Failed to fetch output-metadata.json", e)
                 runOnUiThread {
-                    showErrorDialog("Failed to fetch update metadata.")
+                    showErrorDialog(getString(R.string.failed_to_fetch_update_metadata))
                 }
             }
         })
