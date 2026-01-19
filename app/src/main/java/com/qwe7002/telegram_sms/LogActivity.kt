@@ -109,15 +109,6 @@ class LogActivity : AppCompatActivity() {
         updateAdapter()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.logcat_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        clearLogcat()
-        return true
-    }
 
     private fun startLogConsumer() {
         lifecycleScope.launch(Dispatchers.Main) {
@@ -164,9 +155,9 @@ class LogActivity : AppCompatActivity() {
                     level = "V" // Verbose in debug builds
                 }
                 val command = if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
-                    arrayOf("logcat", "${Const.TAG}:${level}","*:S", "-d", "-t", "500","-v","time", "--pid=${android.os.Process.myPid()}")
+                    arrayOf("logcat", "${Const.TAG}:${level}","*:S","-v","time", "--pid=${android.os.Process.myPid()}")
                 }else{
-                    arrayOf("logcat", "${Const.TAG}:${level}","*:S", "-d", "-t", "500","-v","time")
+                    arrayOf("logcat", "${Const.TAG}:${level}","*:S","-v","time")
                 }
                 logcatProcess = Runtime.getRuntime().exec(command)
 
@@ -176,6 +167,11 @@ class LogActivity : AppCompatActivity() {
                 var lastTag: String? = null
 
                 while (isActive) {
+                    if (reader.ready().not()) {
+                        // Avoid busy-waiting
+                        kotlinx.coroutines.delay(1000)
+                        continue
+                    }
                     val line = reader.readLine() ?: break
                     if (line.isNotEmpty() && !line.startsWith("------")) {
                         val parsed = parseLogLine(entryId, line)
@@ -255,34 +251,13 @@ class LogActivity : AppCompatActivity() {
     }
 
     private fun stopLogcat() {
-        logcatJob?.cancel()
-        logcatProcess?.destroy()
-        logcatProcess = null
-    }
-
-    private fun clearLogcat() {
-        try {
-            // Stop current logcat reading
-            stopLogcat()
-            Runtime.getRuntime().exec("logcat -c").waitFor()
-            // Clear our in-memory buffer and update adapter to empty state
-            logBuffer.clear()
-            logAdapter.submitList(emptyList())
-            if (this::emptyView.isInitialized) {
-                emptyView.visibility = View.VISIBLE
-                recyclerView.visibility = View.GONE
-            }
-
-            // Ensure UI reflects new state
-            updateAdapter()
-
-            // Restart logcat reading to continue monitoring new logs
-            startLogcat()
-
-        } catch (e: Exception) {
-            Log.e(Const.TAG, "clearLogcat: ${e.message}", e)
+        lifecycleScope.launch {
+            logcatJob?.cancel()
+            logcatProcess?.destroy()
+            logcatProcess = null
         }
     }
+
 
     override fun onDestroy() {
         super.onDestroy()
@@ -408,3 +383,7 @@ class LogAdapter : ListAdapter<LogEntry, LogAdapter.LogViewHolder>(LogDiffCallba
         }
     }
 }
+
+
+
+
