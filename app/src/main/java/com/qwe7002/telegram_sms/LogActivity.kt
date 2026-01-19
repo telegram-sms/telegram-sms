@@ -108,6 +108,8 @@ class LogActivity : AppCompatActivity() {
     public override fun onResume() {
         super.onResume()
         startLogcat()
+        // Restart consumer to ensure it's properly connected after pause
+        startLogConsumer()
         // Refresh UI state in case logs changed while activity was paused
         updateAdapter()
     }
