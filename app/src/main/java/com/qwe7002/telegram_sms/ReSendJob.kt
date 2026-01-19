@@ -43,7 +43,7 @@ class ReSendJob : JobService() {
     }
 
     override fun onStartJob(params: JobParameters?): Boolean {
-        Log.d(Const.TAG, "startJob: Try resending the message.")
+        Log.d(Const.TAG, "ReSendJob: Try resending the message.")
         MMKV.initialize(applicationContext)
         resendMMKV = MMKV.mmkvWithID(MMKVConst.RESEND_ID)
 
@@ -55,7 +55,7 @@ class ReSendJob : JobService() {
             if (sendList.isNotEmpty()) {
                 Log.i(
                     Const.TAG,
-                    "startJob: Resend completed. ${sendList.size} messages have been resent."
+                    "ReSendJob: Resend completed. ${sendList.size} messages have been resent."
                 )
             }
             jobFinished(params, false)

@@ -97,7 +97,7 @@ class CcSendJob : JobService() {
     }
     
     override fun onStartJob(params: JobParameters?): Boolean {
-        Log.d(Const.TAG, "startJob: Trying to send message.")
+        Log.d(Const.TAG, "ccSendJob: Trying to send message.")
         
         val extras = params?.extras ?: return false
         val defaultTitle = getString(R.string.app_name)
@@ -142,7 +142,7 @@ class CcSendJob : JobService() {
         var successCount = 0
         for (item in enabledList) {
             if (item.har.log.entries.isEmpty()) {
-                Log.e(Const.TAG, "onStartJob: ${item.name} HAR is empty.")
+                Log.e(Const.TAG, "ccSendJob: ${item.name} HAR is empty.")
                 continue
             }
             
