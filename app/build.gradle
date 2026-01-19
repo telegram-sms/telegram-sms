@@ -87,8 +87,6 @@ android {
                 //noinspection ChromeOsAbiSupport
                 abiFilters "armeabi-v7a", "arm64-v8a"
             }
-            enableUnitTestCoverage true
-            enableAndroidTestCoverage true
         }
 
         debug {
