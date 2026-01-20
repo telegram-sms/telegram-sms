@@ -4,7 +4,7 @@ import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 
 object Const {
-    const val SYSTEM_CONFIG_VERSION: Int = 1
+    //const val SYSTEM_CONFIG_VERSION: Int = 1
     const val TAG: String = "Telegram-SMS"
     val TAG_FILTER = arrayOf("BatteryService","CcSendJob","ReSendJob","KeepAliveJob","NotificationService","ChatService")
     val JSON: MediaType? = "application/json; charset=utf-8".toMediaTypeOrNull()

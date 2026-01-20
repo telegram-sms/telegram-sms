@@ -30,7 +30,6 @@ import java.io.InputStreamReader
 import java.util.concurrent.CopyOnWriteArrayList
 
 class LogActivity : AppCompatActivity() {
-    private val logTag = "${Const.TAG}.LogActivity"
     private lateinit var recyclerView: RecyclerView
     private lateinit var logAdapter: LogAdapter
     private var logcatProcess: Process? = null
@@ -154,7 +153,7 @@ class LogActivity : AppCompatActivity() {
                 var level = "I"
                 if (BuildConfig.DEBUG) {
                     filterArray =
-                        filterArray.plus("MainActivity").plus("LogActivity").plus("CcActivity")
+                        filterArray.plus("MainActivity").plus("CcActivity")
                             .plus("NotifyActivity").plus("ScannerActivity")
                     level = "V" // Verbose in debug builds
                 }
