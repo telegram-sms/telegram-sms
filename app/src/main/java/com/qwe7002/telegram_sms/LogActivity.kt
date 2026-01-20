@@ -30,6 +30,7 @@ import java.io.InputStreamReader
 import java.util.concurrent.CopyOnWriteArrayList
 
 class LogActivity : AppCompatActivity() {
+    private val logTag = "${Const.TAG}.LogActivity"
     private lateinit var recyclerView: RecyclerView
     private lateinit var logAdapter: LogAdapter
     private var logcatProcess: Process? = null
@@ -149,21 +150,18 @@ class LogActivity : AppCompatActivity() {
             Log.d(Const.TAG, "startLogcat: Starting logcat process")
             try {
                 // Filters to pass to logcat (tag names only)
-                val filterArray = Const.TAG_FILTER
+                var filterArray = Const.TAG_FILTER
                 var level = "I"
                 if (BuildConfig.DEBUG) {
-                    filterArray.plus("MainActivity")
-                    filterArray.plus("LogActivity")
-                    filterArray.plus("CcActivity")
-                    filterArray.plus("NotifyActivity")
-                    filterArray.plus("ScannerActivity")
-
+                    filterArray =
+                        filterArray.plus("MainActivity").plus("LogActivity").plus("CcActivity")
+                            .plus("NotifyActivity").plus("ScannerActivity")
                     level = "V" // Verbose in debug builds
                 }
 
                 // Map tags to "Tag:LEVEL" strings for logcat arguments
-                val addFilterArray = filterArray.map { tag -> "${Const.TAG}.$tag:$level" }.toTypedArray()
-                addFilterArray.plus("${Const.TAG}:$level")
+                val addFilterArray =
+                    filterArray.map { tag -> "${Const.TAG}.$tag:$level" }.toTypedArray().plus("${Const.TAG}:$level")
                 val command = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     arrayOf(
                         "logcat",

@@ -84,8 +84,7 @@ class ChatService : Service() {
         private fun readLogcat(lines: Int): String {
             return try {
                 val level = "I"
-                val filterArray = Const.TAG_FILTER
-                val addFilterArray = filterArray.map { tag -> "${Const.TAG}.$tag:$level" }.toTypedArray()
+                val addFilterArray = Const.TAG_FILTER.map { tag -> "${Const.TAG}.$tag:$level" }.toTypedArray().plus("${Const.TAG}:$level")
                 val command = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     arrayOf(
                         "logcat",*addFilterArray, "*:S", "-d", "-t", lines
