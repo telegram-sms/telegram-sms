@@ -11,7 +11,7 @@ insert_final_newline = true
 # Set default charset
 
 # Matches the exact files either package.json or .travis.yml
-[{package.json, .travis.yml, .gitlab-ci.yml, android.yml}]
+[{package.json, .gitlab-ci.yml, android.yml}]
 indent_style = space
 indent_size = 4
 
