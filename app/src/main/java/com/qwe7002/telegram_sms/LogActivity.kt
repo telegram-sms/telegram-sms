@@ -168,13 +168,15 @@ class LogActivity : AppCompatActivity() {
                         "logcat",
                         *addFilterArray,
                         "*:S",
+                        "-d",
                         "-v",
                         "time",
                         "--pid=${android.os.Process.myPid()}"
                     )
                 } else {
-                    arrayOf("logcat", *addFilterArray, "*:S", "-v", "time")
+                    arrayOf("logcat", *addFilterArray, "*:S","-d", "-v", "time")
                 }
+                Log.d(TAG, "startLogcat: "+command.joinToString(" ") )
                 logcatProcess = Runtime.getRuntime().exec(command)
 
                 val reader = BufferedReader(InputStreamReader(logcatProcess?.inputStream))
