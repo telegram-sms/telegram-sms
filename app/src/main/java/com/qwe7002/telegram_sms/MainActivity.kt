@@ -670,7 +670,7 @@ class MainActivity : AppCompatActivity() {
             0 -> {
                 if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                     Log.d(
-                        this::class.simpleName,
+                        logTag,
                         "onRequestPermissionsResult: No camera permissions."
                     )
                     Snackbar.make(

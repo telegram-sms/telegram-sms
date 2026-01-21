@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 class KeepAliveJob : JobService() {
 
     companion object {
-        private val logTag = "${TAG}.${this::class.java.simpleName}"
+        private val logTag = "${TAG}.KeepAliveJob"
         private const val JOB_ID = 10
         private val MIN_LATENCY_MS = TimeUnit.SECONDS.toMillis(5)
 

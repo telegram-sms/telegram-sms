@@ -21,10 +21,12 @@ import com.tencent.mmkv.MMKV
 
 @Suppress("DEPRECATION")
 class CallReceiver : BroadcastReceiver() {
+    val logTag = "${TAG}.CallReceiver"
+
     @Suppress("DEPRECATION")
     override fun onReceive(context: Context, intent: Intent) {
         MMKV.initialize(context)
-        Log.d(TAG, "Receive action: " + intent.action)
+        Log.d(logTag, "Receive action: " + intent.action)
         // Removed local lateinit var incomingNumber
 
         when (intent.action) {
@@ -35,7 +37,7 @@ class CallReceiver : BroadcastReceiver() {
                 val telephony = context
                     .getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
                 // PhoneStatusListener constructor no longer takes incomingNumber
-                val customPhoneListener = PhoneStatusListener(context, slot)
+                val customPhoneListener = PhoneStatusListener(context, logTag, slot)
                 telephony.listen(customPhoneListener, PhoneStateListener.LISTEN_CALL_STATE)
             }
 
@@ -46,8 +48,8 @@ class CallReceiver : BroadcastReceiver() {
 
     internal class PhoneStatusListener(
         private val context: Context,
+        private val logTag: String,
         private val slot: Int
-        // Removed constructor parameter: incomingNumber: String?
     ) : PhoneStateListener() {
 
         @RequiresPermission(allOf = [Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE])
@@ -57,7 +59,7 @@ class CallReceiver : BroadcastReceiver() {
             // It can be an empty string if the number is unknown.
             val actualIncomingNumber = nowIncomingNumber.ifEmpty {
                 Log.w(
-                    context::class.simpleName,
+                    logTag,
                     "Incoming number from callback is null or empty. Using 'Unknown'."
                 )
                 // Consider using a string resource: context.getString(R.string.unknown_caller_id)
@@ -68,7 +70,7 @@ class CallReceiver : BroadcastReceiver() {
                 val preferences = MMKV.defaultMMKV()
                 if (!preferences.getBoolean("call_notify", true)) {
                     Log.i(
-                        context::class.simpleName,
+                        logTag,
                         "Call notifications are disabled by user setting."
                     )
                     return
@@ -102,7 +104,7 @@ class CallReceiver : BroadcastReceiver() {
                         )
                     } else {
                         Log.w(
-                            "CallReceiver",
+                            logTag,
                             "[$actualIncomingNumber] Not a regular phone number."
                         )
                     }
@@ -111,7 +113,7 @@ class CallReceiver : BroadcastReceiver() {
             if (lastReceiveStatus == TelephonyManager.CALL_STATE_RINGING && nowState == TelephonyManager.CALL_STATE_IDLE) {
                 val preferences = MMKV.defaultMMKV()
                 if (!preferences.getBoolean("initialized", false)) {
-                    Log.i(TAG, "Uninitialized, Phone receiver is deactivated.")
+                    Log.i(logTag, "Uninitialized, Phone receiver is deactivated.")
                     return
                 }
 
@@ -144,7 +146,7 @@ class CallReceiver : BroadcastReceiver() {
                         )
                     } else {
                         Log.w(
-                            "CallReceiver",
+                            logTag,
                             "[$actualIncomingNumber] Not a regular phone number."
                         )
                     }

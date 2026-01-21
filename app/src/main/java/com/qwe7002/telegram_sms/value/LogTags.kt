@@ -4,16 +4,19 @@ val TAG_FILTER = arrayOf(
     "BatteryService",
     "CcSendJob",
     "ReSendJob",
-    "KeepAliveJob",
     "NotificationService",
-    "ChatService"
+    "ChatService",
+    "BootReceiver",
+    "CallReceiver",
 )
 
 val DEBUG_TAG_FILTER = arrayOf(
     "MainActivity",
     "CcActivity",
     "NotifyActivity",
-    "ScannerActivity"
+    "ScannerActivity",
+    "KeepAliveJob",
+
 )
 
 const val TAG: String = "Telegram-SMS"

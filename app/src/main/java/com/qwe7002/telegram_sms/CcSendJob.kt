@@ -36,7 +36,7 @@ import java.util.concurrent.Executors
 class CcSendJob : JobService() {
     
     companion object {
-        private val logTag = "${TAG}.${this::class.java.simpleName}"
+        private val logTag = "${TAG}.CcSendJob"
         private const val EXTRA_TITLE = "title"
         private const val EXTRA_MESSAGE = "message"
         private const val EXTRA_VERIFICATION_CODE = "verification_code"

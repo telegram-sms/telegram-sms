@@ -50,7 +50,7 @@ import java.io.IOException
 
 @Suppress("NAME_SHADOWING")
 class CcActivity : AppCompatActivity() {
-    private val logTag = "${TAG}.${this::class.java.simpleName}"
+    private val logTag = "${TAG}.CcActivity"
     private lateinit var listAdapter: ArrayAdapter<CcSendService>
     private lateinit var serviceList: ArrayList<CcSendService>
     private val gson = Gson()

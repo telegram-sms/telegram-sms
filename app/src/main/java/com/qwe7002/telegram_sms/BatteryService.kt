@@ -28,7 +28,7 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 class BatteryService : Service() {
-    private val logTag = "${TAG}.${this::class.java.simpleName}"
+    private val logTag = "${TAG}.BatteryService"
     private lateinit var batteryReceiver: batteryChangeReceiver
 
     // Thread-safe map to store pending actions (key: action type, value: sendObj)

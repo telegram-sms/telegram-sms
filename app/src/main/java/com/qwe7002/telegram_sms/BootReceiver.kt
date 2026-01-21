@@ -10,14 +10,15 @@ import com.tencent.mmkv.MMKV
 
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(TAG, "Receive action: " + intent.action)
+        val logTag = "${TAG}.BootReceiver"
+        Log.d(logTag, "Receive action: " + intent.action)
         MMKV.initialize(context)
         val preferences = MMKV.defaultMMKV()
         if (preferences.getBoolean("initialized", false)) {
             KeepAliveJob.startJob(context)
             ReSendJob.startJob(context)
             Log.i(
-                TAG,
+                logTag,
                 "Received [" + intent.action + "] broadcast, starting background service."
             )
             Service.startService(

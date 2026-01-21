@@ -66,7 +66,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class ChatService : Service() {
     companion object {
-        private val logTag = "${TAG}.${this::class.java.simpleName}"
+        private val logTag = "${TAG}.ChatService"
         private var RequestOffset: Long = 0
         private lateinit var sharedPreferences: MMKV
         private var sendSmsNextStatus = SEND_SMS_STATUS.STANDBY_STATUS
