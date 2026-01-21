@@ -19,7 +19,7 @@ class FakeStatusBar {
         val fakeStatusBarView = View(window.context)
         fakeStatusBarView.layoutParams = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            getStatusBarHeight(window.context)
+            getStatusBarHeight(window.context)+5
         )
         fakeStatusBarView.setBackgroundColor(getColorCompat(context,R.color.colorPrimaryDark))
         rootView.addView(fakeStatusBarView, 0)
