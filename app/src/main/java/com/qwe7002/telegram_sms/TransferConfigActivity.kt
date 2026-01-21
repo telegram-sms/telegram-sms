@@ -38,6 +38,7 @@ import android.text.Editable
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import okio.IOException
 
@@ -143,7 +144,7 @@ class TransferConfigActivity : AppCompatActivity() {
                     val response = call.execute()
                     if (response.code == 200) {
                         val responseBody = response.body.string()
-                        Log.d(Const.TAG, "sendConfig: $responseBody")
+                        Log.d(TAG, "sendConfig: $responseBody")
                         val jsonObject = JsonParser.parseString(responseBody)
                             .asJsonObject
                         val key = jsonObject.get(
@@ -171,7 +172,7 @@ class TransferConfigActivity : AppCompatActivity() {
                     }
                 } catch (e: IOException) {
                     Log.e(
-                        Const.TAG,
+                        TAG,
                         "An error occurred while resending: " + e.message
                         ,e
                     )
@@ -228,7 +229,7 @@ class TransferConfigActivity : AppCompatActivity() {
                                     .show()
 
                             }
-                            Log.e(Const.TAG, "Decryption error", e)
+                            Log.e(TAG, "Decryption error", e)
                         }
                     } else {
                         runOnUiThread {
@@ -242,7 +243,7 @@ class TransferConfigActivity : AppCompatActivity() {
                     response.close()
                 } catch (e: IOException) {
                     Log.e(
-                        Const.TAG,
+                        TAG,
                         "An error occurred while getting configuration: " + e.message
                         ,e
                     )

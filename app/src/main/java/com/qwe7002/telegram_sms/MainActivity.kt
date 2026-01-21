@@ -54,6 +54,7 @@ import com.qwe7002.telegram_sms.static_class.Service.startService
 import com.qwe7002.telegram_sms.static_class.Service.stopAllService
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import okhttp3.Call
 import okhttp3.Callback
@@ -66,7 +67,7 @@ import java.util.concurrent.TimeUnit
 
 @Suppress("deprecation")
 class MainActivity : AppCompatActivity() {
-    private val logTag = "${Const.TAG}.MainActivity"
+    private val logTag = "${TAG}.MainActivity"
     private lateinit var preferences: MMKV
     private lateinit var privacyPolice: String
     private val gson = Gson()

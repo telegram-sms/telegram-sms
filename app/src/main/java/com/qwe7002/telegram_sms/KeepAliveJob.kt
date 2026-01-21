@@ -8,14 +8,14 @@ import android.content.ComponentName
 import android.content.Context
 import android.util.Log
 import com.qwe7002.telegram_sms.static_class.Service
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import java.util.concurrent.TimeUnit
 
 class KeepAliveJob : JobService() {
 
     companion object {
-        private const val logTag = "${Const.TAG}.KeepAliveJob"
+        private val logTag = "${TAG}.${this::class.java.simpleName}"
         private const val JOB_ID = 10
         private val MIN_LATENCY_MS = TimeUnit.SECONDS.toMillis(5)
 

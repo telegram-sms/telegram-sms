@@ -15,9 +15,10 @@ import com.google.gson.JsonParser
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.Result
 import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.TAG
 
 class ScannerActivity : Activity() {
-    private val logTag = "${Const.TAG}.ScannerActivity"
+    private val logTag = "${TAG}.ScannerActivity"
     private lateinit var mCodeScanner: CodeScanner
     public override fun onCreate(state: Bundle?) {
         super.onCreate(state)
@@ -39,7 +40,7 @@ class ScannerActivity : Activity() {
         mCodeScanner.decodeCallback = DecodeCallback { result: Result ->
             runOnUiThread {
                 Log.d(
-                    Const.TAG,
+                    TAG,
                     "format: " + result.barcodeFormat.toString() + " content: " + result.text
                 )
                 if (!jsonValidate(result.text)) {

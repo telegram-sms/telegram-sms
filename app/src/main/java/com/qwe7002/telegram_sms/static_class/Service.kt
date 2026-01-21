@@ -10,7 +10,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.qwe7002.telegram_sms.BatteryService
 import com.qwe7002.telegram_sms.NotificationService
 import com.qwe7002.telegram_sms.ChatService
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.TAG
 
 object Service {
     @JvmStatic
@@ -19,7 +19,7 @@ object Service {
             context.stopService(Intent(context, ChatService::class.java))
             context.stopService(Intent(context, BatteryService::class.java))
         } catch (e: Exception) {
-            Log.e(Const.TAG, "stopAllService: Failed to stop services", e)
+            Log.e(TAG, "stopAllService: Failed to stop services", e)
         }
     }
 
@@ -28,7 +28,7 @@ object Service {
         val batteryService = Intent(context, BatteryService::class.java)
         val chatLongPollingService = Intent(context, ChatService::class.java)
         if (isNotifyListener(context)) {
-            Log.d(Const.TAG, "Notification listener is enabled.")
+            Log.d(TAG, "Notification listener is enabled.")
             val thisComponent = ComponentName(context, NotificationService::class.java)
             val pm = context.packageManager
             pm.setComponentEnabledSetting(

@@ -41,6 +41,7 @@ import com.qwe7002.telegram_sms.static_class.Crypto
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -49,7 +50,7 @@ import java.io.IOException
 
 @Suppress("NAME_SHADOWING")
 class CcActivity : AppCompatActivity() {
-    private val logTag = "${Const.TAG}.CcActivity"
+    private val logTag = "${TAG}.${this::class.java.simpleName}"
     private lateinit var listAdapter: ArrayAdapter<CcSendService>
     private lateinit var serviceList: ArrayList<CcSendService>
     private val gson = Gson()

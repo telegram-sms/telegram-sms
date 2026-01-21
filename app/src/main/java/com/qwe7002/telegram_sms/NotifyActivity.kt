@@ -22,12 +22,12 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.MMKV.MMKVConst
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import java.util.Locale
 
 class NotifyActivity : AppCompatActivity() {
-    private val logTag = "${Const.TAG}.NotifyActivity"
+    private val logTag = "${TAG}.NotifyActivity"
     private lateinit var appAdapter: AppAdapter
 
     private fun scanAppList(packageManager: PackageManager): List<applicationInfo> {

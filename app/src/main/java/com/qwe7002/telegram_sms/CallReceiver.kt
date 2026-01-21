@@ -16,7 +16,7 @@ import com.qwe7002.telegram_sms.static_class.Phone
 import com.qwe7002.telegram_sms.static_class.TelegramApi
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.CcType
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 
 @Suppress("DEPRECATION")
@@ -24,7 +24,7 @@ class CallReceiver : BroadcastReceiver() {
     @Suppress("DEPRECATION")
     override fun onReceive(context: Context, intent: Intent) {
         MMKV.initialize(context)
-        Log.d(Const.TAG, "Receive action: " + intent.action)
+        Log.d(TAG, "Receive action: " + intent.action)
         // Removed local lateinit var incomingNumber
 
         when (intent.action) {
@@ -111,7 +111,7 @@ class CallReceiver : BroadcastReceiver() {
             if (lastReceiveStatus == TelephonyManager.CALL_STATE_RINGING && nowState == TelephonyManager.CALL_STATE_IDLE) {
                 val preferences = MMKV.defaultMMKV()
                 if (!preferences.getBoolean("initialized", false)) {
-                    Log.i(Const.TAG, "Uninitialized, Phone receiver is deactivated.")
+                    Log.i(TAG, "Uninitialized, Phone receiver is deactivated.")
                     return
                 }
 

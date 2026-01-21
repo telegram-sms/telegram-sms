@@ -21,7 +21,7 @@ import com.qwe7002.telegram_sms.static_class.CcSend
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.SnowFlake
 import com.qwe7002.telegram_sms.value.CcType
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import okhttp3.FormBody
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -36,7 +36,7 @@ import java.util.concurrent.Executors
 class CcSendJob : JobService() {
     
     companion object {
-        private const val logTag = "${Const.TAG}.CcSendJob"
+        private val logTag = "${TAG}.${this::class.java.simpleName}"
         private const val EXTRA_TITLE = "title"
         private const val EXTRA_MESSAGE = "message"
         private const val EXTRA_VERIFICATION_CODE = "verification_code"

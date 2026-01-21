@@ -8,17 +8,17 @@ import android.telephony.SmsManager
 import android.util.Log
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.TelegramApi
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 
 class SMSSendResultReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(Const.TAG, "Receive action: " + intent.action)
+        Log.d(TAG, "Receive action: " + intent.action)
         val extras = intent.extras!!
         val sub = extras.getInt("sub_id")
         val sharedPreferences = MMKV.defaultMMKV()
         if (!sharedPreferences.getBoolean("initialized", false)) {
-            Log.i(Const.TAG, "Uninitialized, SMS send receiver is deactivated.")
+            Log.i(TAG, "Uninitialized, SMS send receiver is deactivated.")
             return
         }
         context.applicationContext.unregisterReceiver(this)
@@ -27,8 +27,8 @@ class SMSSendResultReceiver : BroadcastReceiver() {
         var method = "sendMessage"
         val messageId = extras.getLong("message_id")
         if (messageId != -1L) {
-            Log.d(Const.TAG, "Find the message_id and switch to edit mode.")
-            Log.d(Const.TAG, "onReceive: $messageId")
+            Log.d(TAG, "Find the message_id and switch to edit mode.")
+            Log.d(TAG, "onReceive: $messageId")
             method = "editMessageText"
             requestBody.messageId = messageId
         }
@@ -53,7 +53,7 @@ class SMSSendResultReceiver : BroadcastReceiver() {
             method = method,
             fallbackSubId = sub
         ) { result ->
-            Log.d(Const.TAG, "onResponse: $result")
+            Log.d(TAG, "onResponse: $result")
         }
     }
 }

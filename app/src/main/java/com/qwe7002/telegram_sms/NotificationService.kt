@@ -14,11 +14,11 @@ import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.CcType
 import com.tencent.mmkv.MMKV
 import com.google.gson.Gson
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.TAG
 
 class NotificationService : NotificationListenerService() {
     lateinit var preferences: MMKV
-    private val logTag = "${Const.TAG}.NotificationService"
+    private val logTag = "${TAG}.NotificationService"
 
     override fun onCreate() {
         super.onCreate()

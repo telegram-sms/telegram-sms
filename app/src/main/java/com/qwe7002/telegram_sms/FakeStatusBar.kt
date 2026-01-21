@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat
 @Suppress("SameParameterValue")
 class FakeStatusBar {
     fun fakeStatusBar(context:Context,window: Window) {
+
         if(android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.VANILLA_ICE_CREAM){
             return
         }

@@ -17,7 +17,7 @@ import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Phone
 import com.qwe7002.telegram_sms.static_class.TelegramApi
 import com.qwe7002.telegram_sms.static_class.Template
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -72,7 +72,7 @@ class WAPReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         MMKV.initialize(context)
         val action = intent.action
-        Log.d(Const.TAG, "Receive action: $action")
+        Log.d(TAG, "Receive action: $action")
 
         if (action != "android.provider.Telephony.WAP_PUSH_RECEIVED" &&
             action != "android.provider.Telephony.WAP_PUSH_DELIVER") {
@@ -81,22 +81,22 @@ class WAPReceiver : BroadcastReceiver() {
 
         val preferences = MMKV.defaultMMKV()
         if (!preferences.getBoolean("initialized", false)) {
-            Log.i(Const.TAG, "Uninitialized, MMS receiver is deactivated.")
+            Log.i(TAG, "Uninitialized, MMS receiver is deactivated.")
             return
         }
 
         val contentType = intent.getStringExtra("contentType") ?: intent.type
         if (contentType != "application/vnd.wap.mms-message") {
-            Log.d(Const.TAG, "Not an MMS message, content type: $contentType")
+            Log.d(TAG, "Not an MMS message, content type: $contentType")
             return
         }
 
-        Log.i(Const.TAG, "MMS received, processing...")
+        Log.i(TAG, "MMS received, processing...")
 
         val extras = intent.extras ?: return
         val pdu = intent.getByteArrayExtra("data")
         if (pdu == null) {
-            Log.e(Const.TAG, "MMS PDU data is null")
+            Log.e(TAG, "MMS PDU data is null")
             return
         }
 
@@ -116,7 +116,7 @@ class WAPReceiver : BroadcastReceiver() {
                         intentSlot = info.simSlotIndex
                     }
                 } catch (e: Exception) {
-                    Log.e(Const.TAG, "Failed to get subscription info: ${e.message}",e)
+                    Log.e(TAG, "Failed to get subscription info: ${e.message}",e)
                 }
             }
         }
@@ -216,11 +216,11 @@ class WAPReceiver : BroadcastReceiver() {
             // Find the latest MMS
             val mmsId = findLatestMmsId(context, mmsInfo.transactionId)
             if (mmsId == null) {
-                Log.w(Const.TAG, "Could not find MMS in content provider")
+                Log.w(TAG, "Could not find MMS in content provider")
                 return mmsData
             }
 
-            Log.d(Const.TAG, "Found MMS ID: $mmsId")
+            Log.d(TAG, "Found MMS ID: $mmsId")
 
             // Get sender address
             mmsData.from = getMmsAddress(context, mmsId)
@@ -229,7 +229,7 @@ class WAPReceiver : BroadcastReceiver() {
             getMmsParts(context, mmsId, mmsData)
 
         } catch (e: Exception) {
-            Log.e(Const.TAG, "Error reading MMS from content provider: ${e.message}",e)
+            Log.e(TAG, "Error reading MMS from content provider: ${e.message}",e)
         }
 
         return mmsData
@@ -272,7 +272,7 @@ class WAPReceiver : BroadcastReceiver() {
                 }
             }
         } catch (e: Exception) {
-            Log.e(Const.TAG, "Error finding MMS ID: ${e.message}",e)
+            Log.e(TAG, "Error finding MMS ID: ${e.message}",e)
         } finally {
             cursor?.close()
         }
@@ -303,7 +303,7 @@ class WAPReceiver : BroadcastReceiver() {
                 }
             }
         } catch (e: Exception) {
-            Log.e(Const.TAG, "Error getting MMS address: ${e.message}",e)
+            Log.e(TAG, "Error getting MMS address: ${e.message}",e)
         } finally {
             cursor?.close()
         }
@@ -351,7 +351,7 @@ class WAPReceiver : BroadcastReceiver() {
                                 val extension = getImageExtensionFromMimeType(contentType)
                                 val fileName = if (name.contains(".")) name else "$name.$extension"
                                 mmsData.images.add(MmsMedia(fileName, contentType, imageData))
-                                Log.d(Const.TAG, "Found image: $fileName, size: ${imageData.size}")
+                                Log.d(TAG, "Found image: $fileName, size: ${imageData.size}")
                             }
                         }
                         contentType in AUDIO_CONTENT_TYPES -> {
@@ -361,7 +361,7 @@ class WAPReceiver : BroadcastReceiver() {
                                 val extension = getAudioExtensionFromMimeType(contentType)
                                 val fileName = if (name.contains(".")) name else "$name.$extension"
                                 mmsData.audios.add(MmsMedia(fileName, contentType, audioData))
-                                Log.d(Const.TAG, "Found audio: $fileName, size: ${audioData.size}")
+                                Log.d(TAG, "Found audio: $fileName, size: ${audioData.size}")
                             }
                         }
                         contentType in VIDEO_CONTENT_TYPES -> {
@@ -371,14 +371,14 @@ class WAPReceiver : BroadcastReceiver() {
                                 val extension = getVideoExtensionFromMimeType(contentType)
                                 val fileName = if (name.contains(".")) name else "$name.$extension"
                                 mmsData.videos.add(MmsMedia(fileName, contentType, videoData))
-                                Log.d(Const.TAG, "Found video: $fileName, size: ${videoData.size}")
+                                Log.d(TAG, "Found video: $fileName, size: ${videoData.size}")
                             }
                         }
                     }
                 }
             }
         } catch (e: Exception) {
-            Log.e(Const.TAG, "Error getting MMS parts: ${e.message}",e)
+            Log.e(TAG, "Error getting MMS parts: ${e.message}",e)
         } finally {
             cursor?.close()
         }
@@ -404,7 +404,7 @@ class WAPReceiver : BroadcastReceiver() {
                 text = buffer.toString("UTF-8")
             }
         } catch (e: Exception) {
-            Log.e(Const.TAG, "Error reading text from part: ${e.message}",e)
+            Log.e(TAG, "Error reading text from part: ${e.message}",e)
         } finally {
             inputStream?.close()
         }
@@ -431,7 +431,7 @@ class WAPReceiver : BroadcastReceiver() {
                 return buffer.toByteArray()
             }
         } catch (e: Exception) {
-            Log.e(Const.TAG, "Error reading image from part: ${e.message}",e)
+            Log.e(TAG, "Error reading image from part: ${e.message}",e)
         } finally {
             inputStream?.close()
         }
@@ -519,7 +519,7 @@ class WAPReceiver : BroadcastReceiver() {
             caption = caption,
             fallbackSubId = if (caption.isNotEmpty()) subId else -1
         ) {
-            Log.i(Const.TAG, "MMS image sent successfully")
+            Log.i(TAG, "MMS image sent successfully")
         }
     }
 
@@ -556,7 +556,7 @@ class WAPReceiver : BroadcastReceiver() {
             caption = caption,
             fallbackSubId = if (caption.isNotEmpty()) subId else -1
         ) {
-            Log.i(Const.TAG, "MMS audio sent successfully")
+            Log.i(TAG, "MMS audio sent successfully")
         }
     }
 
@@ -592,7 +592,7 @@ class WAPReceiver : BroadcastReceiver() {
             caption = caption,
             fallbackSubId = if (caption.isNotEmpty()) subId else -1
         ) {
-            Log.i(Const.TAG, "MMS video sent successfully")
+            Log.i(TAG, "MMS video sent successfully")
         }
     }
 
@@ -612,7 +612,7 @@ class WAPReceiver : BroadcastReceiver() {
             requestBody = requestBody,
             fallbackSubId = subId
         ) {
-            Log.i(Const.TAG, "MMS text message forwarded successfully")
+            Log.i(TAG, "MMS text message forwarded successfully")
         }
     }
 
@@ -711,7 +711,7 @@ class WAPReceiver : BroadcastReceiver() {
                 }
             }
         } catch (e: Exception) {
-            Log.e(Const.TAG, "Error parsing MMS PDU: ${e.message}",e)
+            Log.e(TAG, "Error parsing MMS PDU: ${e.message}",e)
         }
 
         // Clean up from address

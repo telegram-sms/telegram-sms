@@ -10,12 +10,12 @@ import android.util.Log
 import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.TelegramApi
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import java.util.concurrent.TimeUnit
 
 class ReSendJob : JobService() {
-    private val logTag = "${Const.TAG}.ReSendJob"
+    private val logTag = "${TAG}.ReSendJob"
     private lateinit var resendMMKV: MMKV
 
     private fun networkProgressHandle(message: String) {

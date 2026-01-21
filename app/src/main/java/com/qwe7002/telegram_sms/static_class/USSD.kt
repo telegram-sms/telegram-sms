@@ -15,6 +15,7 @@ import com.qwe7002.telegram_sms.R
 import com.qwe7002.telegram_sms.USSDCallBack
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -38,7 +39,7 @@ object USSD {
                 Manifest.permission.CALL_PHONE
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            Log.i(Const.TAG, "send_ussd: No permission.")
+            Log.i(TAG, "send_ussd: No permission.")
         }
 
         val botToken = preferences.getString("bot_token", "")!!
@@ -74,13 +75,13 @@ object USSD {
                         Objects.requireNonNull(response.body).string()
                     )
                 } catch (e: IOException) {
-                    Log.e(Const.TAG, "send_ussd: Send USSD message failed: " + e.message, e)
+                    Log.e(TAG, "send_ussd: Send USSD message failed: " + e.message, e)
                 }
             } else {
                 try {
                     call.execute()
                 } catch (e: IOException) {
-                    Log.e(Const.TAG, "send_ussd: Edit USSD message failed: " + e.message, e)
+                    Log.e(TAG, "send_ussd: Edit USSD message failed: " + e.message, e)
                 }
             }
             if (ActivityCompat.checkSelfPermission(

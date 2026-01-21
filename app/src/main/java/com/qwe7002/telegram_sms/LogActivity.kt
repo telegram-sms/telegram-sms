@@ -19,7 +19,9 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.DEBUG_TAG_FILTER
+import com.qwe7002.telegram_sms.value.TAG
+import com.qwe7002.telegram_sms.value.TAG_FILTER
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -146,21 +148,21 @@ class LogActivity : AppCompatActivity() {
 
     private fun startLogcat() {
         logcatJob = lifecycleScope.launch(Dispatchers.IO) {
-            Log.d(Const.TAG, "startLogcat: Starting logcat process")
+            Log.d(TAG, "startLogcat: Starting logcat process")
             try {
                 // Filters to pass to logcat (tag names only)
-                var filterArray = Const.TAG_FILTER
+                var filterArray = TAG_FILTER
                 var level = "I"
                 if (BuildConfig.DEBUG) {
-                    filterArray =
-                        filterArray.plus("MainActivity").plus("CcActivity")
-                            .plus("NotifyActivity").plus("ScannerActivity")
+
+                    filterArray = filterArray.plus(DEBUG_TAG_FILTER)
                     level = "V" // Verbose in debug builds
                 }
 
                 // Map tags to "Tag:LEVEL" strings for logcat arguments
                 val addFilterArray =
-                    filterArray.map { tag -> "${Const.TAG}.$tag:$level" }.toTypedArray().plus("${Const.TAG}:$level")
+                    filterArray.map { tag -> "${TAG}.$tag:$level" }.toTypedArray()
+                        .plus("${TAG}:$level")
                 val command = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     arrayOf(
                         "logcat",
@@ -223,7 +225,7 @@ class LogActivity : AppCompatActivity() {
                     logChannel.trySend(lastEntry)
                 }
             } catch (e: Exception) {
-                Log.e(Const.TAG, "startLogcat: ${e.message}", e)
+                Log.e(TAG, "startLogcat: ${e.message}", e)
             }
         }
     }

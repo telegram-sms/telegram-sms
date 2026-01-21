@@ -9,7 +9,7 @@ import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import com.qwe7002.telegram_sms.static_class.Other.getActiveCard
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 
 object Phone {
@@ -23,12 +23,12 @@ object Phone {
             checkNotNull(context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager)
         var info = subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(slot)
         if (info == null) {
-            Log.d(Const.TAG, "The active card is in the second card slot.")
+            Log.d(TAG, "The active card is in the second card slot.")
             if (getActiveCard(context) == 1 && slot == 0) {
                 info = subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(1)
             }
             if (info == null) {
-                Log.d(Const.TAG, "The active card is not found.")
+                Log.d(TAG, "The active card is not found.")
                 return ""
             }
         }

@@ -16,6 +16,7 @@ import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import okhttp3.Call
 import okhttp3.Callback
@@ -24,7 +25,6 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
-import java.util.Objects
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 class USSDCallBack(
@@ -90,7 +90,7 @@ class USSDCallBack(
         val call = okhttpClient.newCall(requestObj)
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.e(Const.TAG, "onFailure: ${e.message}",e )
+                Log.e(TAG, "onFailure: ${e.message}",e )
                 if (ActivityCompat.checkSelfPermission(
                         context,
                         Manifest.permission.SEND_SMS
@@ -106,7 +106,7 @@ class USSDCallBack(
             override fun onResponse(call: Call, response: Response) {
                 if (response.code != 200) {
                     Log.e(
-                        Const.TAG,
+                        TAG,
                         "onResponse: USSD message send failed with response code ${response.code}"
                     )
                     if (ActivityCompat.checkSelfPermission(

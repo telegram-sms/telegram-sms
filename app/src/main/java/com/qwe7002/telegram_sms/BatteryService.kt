@@ -18,8 +18,8 @@ import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.TelegramApi
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.CcType
-import com.qwe7002.telegram_sms.value.Const
 import com.qwe7002.telegram_sms.value.Notify
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import java.util.Objects
 import java.util.concurrent.ConcurrentHashMap
@@ -28,7 +28,7 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 class BatteryService : Service() {
-    private val logTag = "${Const.TAG}.BatteryService"
+    private val logTag = "${TAG}.${this::class.java.simpleName}"
     private lateinit var batteryReceiver: batteryChangeReceiver
 
     // Thread-safe map to store pending actions (key: action type, value: sendObj)
