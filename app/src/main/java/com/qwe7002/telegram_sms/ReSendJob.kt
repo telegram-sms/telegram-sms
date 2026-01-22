@@ -7,7 +7,7 @@ import android.app.job.JobService
 import android.content.ComponentName
 import android.content.Context
 import android.util.Log
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.MMKV.RESEND_ID
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.TelegramApi
 import com.qwe7002.telegram_sms.value.TAG
@@ -19,7 +19,7 @@ class ReSendJob : JobService() {
     private lateinit var resendMMKV: MMKV
 
     private fun networkProgressHandle(message: String) {
-        resendMMKV = MMKV.mmkvWithID(MMKVConst.RESEND_ID)
+        resendMMKV = MMKV.mmkvWithID(RESEND_ID)
         val requestBody = RequestMessage()
         requestBody.text = message
         if (message.contains("<code>") && message.contains("</code>")) {
@@ -46,7 +46,7 @@ class ReSendJob : JobService() {
     override fun onStartJob(params: JobParameters?): Boolean {
         Log.d(logTag, "ReSendJob: Try resending the message.")
         MMKV.initialize(applicationContext)
-        resendMMKV = MMKV.mmkvWithID(MMKVConst.RESEND_ID)
+        resendMMKV = MMKV.mmkvWithID(RESEND_ID)
 
         Thread {
             val sendList = resendMMKV.decodeStringSet("resend_list", setOf())?.toMutableList() ?: mutableListOf()

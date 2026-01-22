@@ -15,7 +15,7 @@ import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.static_class.Template
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.JSON
 import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import okhttp3.Call
@@ -82,7 +82,7 @@ class USSDCallBack(
     private fun networkProgressHandle(message: String) {
         requestBody.text = message
         val requestBodyJson = Gson().toJson(requestBody)
-        val body: RequestBody = requestBodyJson.toRequestBody(Const.JSON)
+        val body: RequestBody = requestBodyJson.toRequestBody(JSON)
         val okhttpClient = Network.getOkhttpObj(
             dohSwitch
         )

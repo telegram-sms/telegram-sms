@@ -21,7 +21,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.gson.Gson
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.MMKV.NOTIFY_ID
 import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import java.util.Locale
@@ -101,7 +101,7 @@ class NotifyActivity : AppCompatActivity() {
         private var listenList: List<String>
         var appInfoList: List<applicationInfo> = ArrayList()
         var viewAppInfoList: List<applicationInfo> = ArrayList()
-        var notifyMMKV = MMKV.mmkvWithID(MMKVConst.NOTIFY_ID)
+        var notifyMMKV = MMKV.mmkvWithID(NOTIFY_ID)
 
         @Suppress("UNCHECKED_CAST")
         private val filter: Filter = object : Filter() {
@@ -187,7 +187,7 @@ class NotifyActivity : AppCompatActivity() {
             viewHolderObject.appCheckbox.setOnClickListener {
                 val itemInfo = getItem(position) as applicationInfo
                 val packageName = itemInfo.packageName
-                val notifyMMKV = MMKV.mmkvWithID(MMKVConst.NOTIFY_ID)
+                val notifyMMKV = MMKV.mmkvWithID(NOTIFY_ID)
                 val notifyListStr = notifyMMKV.getString("listen_list", "[]")
                 val listenListTemp: MutableList<String> =
                     Gson().fromJson(notifyListStr, Array<String>::class.java).toMutableList()

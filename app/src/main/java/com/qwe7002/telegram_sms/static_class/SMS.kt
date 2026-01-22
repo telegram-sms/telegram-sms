@@ -16,7 +16,6 @@ import com.google.gson.Gson
 import com.qwe7002.telegram_sms.R
 import com.qwe7002.telegram_sms.SMSSendResultReceiver
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
-import com.qwe7002.telegram_sms.value.Const
 import com.tencent.mmkv.MMKV
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -27,6 +26,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.Objects
 import androidx.core.net.toUri
+import com.qwe7002.telegram_sms.value.JSON
 import com.qwe7002.telegram_sms.value.TAG
 
 data class SmsInfo(
@@ -192,7 +192,7 @@ object SMS {
         requestBody.messageThreadId = messageThreadId
         val gson = Gson()
         val requestBodyRaw = gson.toJson(requestBody)
-        val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
+        val body: RequestBody = requestBodyRaw.toRequestBody(JSON)
         val okhttpClient = Network.getOkhttpObj(
             preferences.getBoolean("doh_switch", true)
         )

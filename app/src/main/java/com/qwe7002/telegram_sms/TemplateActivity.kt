@@ -15,7 +15,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.MMKV.TEMPLATE_ID
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.Template.getStringByName
 import com.tencent.mmkv.MMKV
@@ -112,7 +112,7 @@ class TemplateActivity : AppCompatActivity() {
                 val dialogView = inflater.inflate(R.layout.set_template, null)
 
                 val editText = dialogView.findViewById<EditText>(R.id.template_editview)
-                val templateMMKV = MMKV.mmkvWithID(MMKVConst.TEMPLATE_ID)
+                val templateMMKV = MMKV.mmkvWithID(TEMPLATE_ID)
                 val result =
                     templateMMKV.decodeString(
                         message.template,

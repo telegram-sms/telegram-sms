@@ -2,7 +2,15 @@ package com.qwe7002.telegram_sms.migration
 
 import android.content.Context
 import android.util.Log
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.MMKV.CARBON_COPY_ID
+import com.qwe7002.telegram_sms.MMKV.CHAT_ID
+import com.qwe7002.telegram_sms.MMKV.CHAT_INFO_ID
+import com.qwe7002.telegram_sms.MMKV.LOG_ID
+import com.qwe7002.telegram_sms.MMKV.NOTIFY_ID
+import com.qwe7002.telegram_sms.MMKV.PROXY_ID
+import com.qwe7002.telegram_sms.MMKV.RESEND_ID
+import com.qwe7002.telegram_sms.MMKV.TEMPLATE_ID
+import com.qwe7002.telegram_sms.MMKV.UPDATE_ID
 import com.tencent.mmkv.MMKV
 
 /**
@@ -226,15 +234,15 @@ object DataMigrationManager {
 
             // Backup all other MMKV instances
             val mmkvIds = listOf(
-                MMKVConst.PROXY_ID,
-                MMKVConst.CHAT_ID,
-                MMKVConst.CHAT_INFO_ID,
-                MMKVConst.RESEND_ID,
-                MMKVConst.CARBON_COPY_ID,
-                MMKVConst.UPDATE_ID,
-                MMKVConst.NOTIFY_ID,
-                MMKVConst.TEMPLATE_ID,
-                MMKVConst.LOG_ID
+                PROXY_ID,
+                CHAT_ID,
+                CHAT_INFO_ID,
+                RESEND_ID,
+                CARBON_COPY_ID,
+                UPDATE_ID,
+                NOTIFY_ID,
+                TEMPLATE_ID,
+                LOG_ID
             )
 
             for (id in mmkvIds) {

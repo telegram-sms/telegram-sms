@@ -7,7 +7,7 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.JSON
 import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import okhttp3.Call
@@ -89,7 +89,7 @@ object TelegramApi {
 
         val requestUri = Network.getUrl(botToken, method)
         val requestBodyJson = gson.toJson(requestBody)
-        val body: RequestBody = requestBodyJson.toRequestBody(Const.JSON)
+        val body: RequestBody = requestBodyJson.toRequestBody(JSON)
         val okhttpClient = Network.getOkhttpObj(dohSwitch)
 
         val request = Request.Builder()
@@ -155,7 +155,7 @@ object TelegramApi {
 
         val requestUri = Network.getUrl(botToken, method)
         val requestBodyJson = gson.toJson(requestBody)
-        val body: RequestBody = requestBodyJson.toRequestBody(Const.JSON)
+        val body: RequestBody = requestBodyJson.toRequestBody(JSON)
         val okhttpClient = Network.getOkhttpObj(dohSwitch)
 
         val request = Request.Builder()

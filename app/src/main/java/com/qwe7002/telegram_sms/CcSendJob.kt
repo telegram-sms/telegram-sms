@@ -12,7 +12,7 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import com.google.gson.reflect.TypeToken
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.MMKV.CARBON_COPY_ID
 import com.qwe7002.telegram_sms.data_structure.config.CcConfig
 import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.data_structure.Entry
@@ -81,7 +81,7 @@ class CcSendJob : JobService() {
 
         private fun checkType(type: Int): Boolean {
 
-            val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+            val carbonCopyMMKV = MMKV.mmkvWithID(CARBON_COPY_ID)
             val ccConfig = carbonCopyMMKV.getString("config", "{}") ?: "{}"
             val configType = object : TypeToken<CcConfig>() {}.type
             val config: CcConfig = gson.fromJson(ccConfig, configType)
@@ -128,7 +128,7 @@ class CcSendJob : JobService() {
     private fun processSendJob(title: String, message: String, verificationCode: String) {
         MMKV.initialize(applicationContext)
         val preferences = MMKV.defaultMMKV()
-        val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+        val carbonCopyMMKV = MMKV.mmkvWithID(CARBON_COPY_ID)
         
         val sendList = getSendList(carbonCopyMMKV)
         if (sendList.isEmpty()) return

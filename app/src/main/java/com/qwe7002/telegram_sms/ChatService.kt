@@ -19,7 +19,8 @@ import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.MMKV.CHAT_ID
+import com.qwe7002.telegram_sms.MMKV.CHAT_INFO_ID
 import com.qwe7002.telegram_sms.data_structure.SMSRequestInfo
 import com.qwe7002.telegram_sms.data_structure.telegram.PollingBody
 import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.KeyboardMarkup
@@ -46,7 +47,7 @@ import com.qwe7002.telegram_sms.static_class.SMS.send
 import com.qwe7002.telegram_sms.static_class.SmsInfo
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.USSD.sendUssd
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.JSON
 import com.qwe7002.telegram_sms.value.Notify
 import com.qwe7002.telegram_sms.value.TAG
 import com.qwe7002.telegram_sms.value.TAG_FILTER
@@ -158,8 +159,8 @@ class ChatService : Service() {
     private lateinit var botUsername: String
     private val isRunning = AtomicBoolean(false)
 
-    private val chatMMKV = MMKV.mmkvWithID(MMKVConst.CHAT_ID)
-    private val chatInfoMMKV = MMKV.mmkvWithID(MMKVConst.CHAT_INFO_ID)
+    private val chatMMKV = MMKV.mmkvWithID(CHAT_ID)
+    private val chatInfoMMKV = MMKV.mmkvWithID(CHAT_INFO_ID)
 
     private fun receiveHandle(resultObj: JsonObject, getIdOnly: Boolean) {
         val updateId = resultObj["update_id"].asLong
@@ -214,7 +215,7 @@ class ChatService : Service() {
                     requestBody.messageId = callbackMessageId
                     val gson = Gson()
                     val requestBodyRaw = gson.toJson(requestBody)
-                    val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
+                    val body: RequestBody = requestBodyRaw.toRequestBody(JSON)
                     val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
                     val request: Request =
                         Request.Builder().url(requestUri).method("POST", body).build()
@@ -241,7 +242,7 @@ class ChatService : Service() {
                     requestBody.messageId = callbackMessageId
                     val gson = Gson()
                     val requestBodyRaw = gson.toJson(requestBody)
-                    val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
+                    val body: RequestBody = requestBodyRaw.toRequestBody(JSON)
                     val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
                     val request: Request =
                         Request.Builder().url(requestUri).method("POST", body).build()
@@ -278,7 +279,7 @@ class ChatService : Service() {
                 requestBody.messageId = messageId
                 val gson = Gson()
                 val requestBodyRaw = gson.toJson(requestBody)
-                val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
+                val body: RequestBody = requestBodyRaw.toRequestBody(JSON)
                 val okhttpObj = getOkhttpObj(
                     sharedPreferences.getBoolean("doh_switch", false)
                 )
@@ -307,7 +308,7 @@ class ChatService : Service() {
             requestBody.messageId = messageId
             val gson = Gson()
             val requestBodyRaw = gson.toJson(requestBody)
-            val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
+            val body: RequestBody = requestBodyRaw.toRequestBody(JSON)
             val okhttpObj = getOkhttpObj(
                 sharedPreferences.getBoolean("doh_switch", false)
             )
@@ -355,7 +356,7 @@ class ChatService : Service() {
                     requestBody.messageId = callbackMessageId
                     val gson = Gson()
                     val requestBodyRaw = gson.toJson(requestBody)
-                    val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
+                    val body: RequestBody = requestBodyRaw.toRequestBody(JSON)
                     val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
                     val request: Request =
                         Request.Builder().url(requestUri).method("POST", body).build()
@@ -382,7 +383,7 @@ class ChatService : Service() {
                     requestBody.messageId = callbackMessageId
                     val gson = Gson()
                     val requestBodyRaw = gson.toJson(requestBody)
-                    val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
+                    val body: RequestBody = requestBodyRaw.toRequestBody(JSON)
                     val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
                     val request: Request =
                         Request.Builder().url(requestUri).method("POST", body).build()
@@ -424,7 +425,7 @@ class ChatService : Service() {
                 requestBody.messageId = messageId
                 val gson = Gson()
                 val requestBodyRaw = gson.toJson(requestBody)
-                val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
+                val body: RequestBody = requestBodyRaw.toRequestBody(JSON)
                 val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
                 val request: Request =
                     Request.Builder().url(requestUri).method("POST", body).build()
@@ -455,7 +456,7 @@ class ChatService : Service() {
             requestBody.messageId = messageId
             val gson = Gson()
             val requestBodyRaw = gson.toJson(requestBody)
-            val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
+            val body: RequestBody = requestBodyRaw.toRequestBody(JSON)
             val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
             val request: Request =
                 Request.Builder().url(requestUri).method("POST", body).build()
@@ -1087,7 +1088,7 @@ class ChatService : Service() {
         val requestUri = getUrl(
             botToken, "sendMessage"
         )
-        val body: RequestBody = Gson().toJson(requestBody).toRequestBody(Const.JSON)
+        val body: RequestBody = Gson().toJson(requestBody).toRequestBody(JSON)
         val sendRequest: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okHttpClient.newCall(sendRequest)
         call.enqueue(object : Callback {
@@ -1357,7 +1358,7 @@ ${sms.body}
         val requestUri = getUrl(botToken, "editMessageText")
         requestBody.messageId = messageId
 
-        val body: RequestBody = Gson().toJson(requestBody).toRequestBody(Const.JSON)
+        val body: RequestBody = Gson().toJson(requestBody).toRequestBody(JSON)
         val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
 
         okHttpClient.newCall(request).enqueue(object : Callback {
@@ -1403,7 +1404,7 @@ ${sms.body}
                     this.offset = RequestOffset
                     this.timeout = if (firstRequest) 0 else 60
                 }
-                val body = Gson().toJson(requestBody).toRequestBody(Const.JSON)
+                val body = Gson().toJson(requestBody).toRequestBody(JSON)
                 val request = Request.Builder().url(requestUri).post(body).build()
 
                 try {

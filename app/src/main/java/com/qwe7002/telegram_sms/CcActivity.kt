@@ -33,14 +33,14 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.MMKV.CARBON_COPY_ID
 import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.data_structure.HAR
 import com.qwe7002.telegram_sms.data_structure.config.CcConfig
 import com.qwe7002.telegram_sms.static_class.Crypto
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Template
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.RESULT_CONFIG_JSON
 import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import okhttp3.HttpUrl
@@ -69,7 +69,7 @@ class CcActivity : AppCompatActivity() {
         val fab = findViewById<FloatingActionButton>(R.id.cc_fab)
         val ccList = findViewById<ListView>(R.id.cc_list)
 
-        val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+        val carbonCopyMMKV = MMKV.mmkvWithID(CARBON_COPY_ID)
         val serviceListJson = carbonCopyMMKV.getString("service", "[]")
         val type = object : TypeToken<ArrayList<CcSendService>>() {}.type
         serviceList = gson.fromJson(serviceListJson, type)
@@ -205,7 +205,7 @@ class CcActivity : AppCompatActivity() {
         listAdapter: ArrayAdapter<CcSendService>
     ) {
         Log.d(logTag, serviceList.toString())
-        val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+        val carbonCopyMMKV = MMKV.mmkvWithID(CARBON_COPY_ID)
         carbonCopyMMKV.putString("service", gson.toJson(serviceList))
         listAdapter.notifyDataSetChanged()
     }
@@ -217,7 +217,7 @@ class CcActivity : AppCompatActivity() {
 
     @SuppressLint("NonConstantResourceId", "SetTextI18n")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+        val carbonCopyMMKV = MMKV.mmkvWithID(CARBON_COPY_ID)
         return when (item.itemId) {
             R.id.scan_menu_item -> {
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 0)
@@ -432,7 +432,7 @@ class CcActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         Log.d(logTag, "onActivityResult: $resultCode")
         if (requestCode == 1) {
-            if (resultCode == Const.RESULT_CONFIG_JSON) {
+            if (resultCode == RESULT_CONFIG_JSON) {
                 val jsonConfig = gson.fromJson(
                     data!!.getStringExtra("config_json"),
                     CcSendService::class.java

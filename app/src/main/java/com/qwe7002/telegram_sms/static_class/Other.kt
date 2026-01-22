@@ -12,7 +12,7 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.google.gson.JsonParser
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.MMKV.CHAT_INFO_ID
 import com.qwe7002.telegram_sms.R
 import com.qwe7002.telegram_sms.data_structure.SMSRequestInfo
 import com.qwe7002.telegram_sms.value.TAG
@@ -164,7 +164,7 @@ object Other {
         item.card = slot
         val gson = Gson()
         val itemString = gson.toJson(item)
-        val chatInfoMMKV = MMKV.mmkvWithID(MMKVConst.CHAT_INFO_ID)
+        val chatInfoMMKV = MMKV.mmkvWithID(CHAT_INFO_ID)
         chatInfoMMKV.putString(messageId.toString(), itemString)
         Log.d(TAG, "add_message_list: $messageId")
     }

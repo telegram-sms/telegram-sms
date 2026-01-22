@@ -28,7 +28,6 @@ import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.data_structure.ScannerJson
 import com.qwe7002.telegram_sms.static_class.Crypto
 import com.qwe7002.telegram_sms.static_class.Network
-import com.qwe7002.telegram_sms.value.Const
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Request
@@ -37,7 +36,8 @@ import android.text.TextWatcher
 import android.text.Editable
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.MMKV.CARBON_COPY_ID
+import com.qwe7002.telegram_sms.value.RESULT_CONFIG_JSON
 import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import okio.IOException
@@ -99,7 +99,7 @@ class TransferConfigActivity : AppCompatActivity() {
     }
 
     private fun getConfigJson(): String {
-        val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+        val carbonCopyMMKV = MMKV.mmkvWithID(CARBON_COPY_ID)
         val serviceListJson = carbonCopyMMKV.getString("CC_service_list", "[]")
         val gson = Gson()
         val type = object : TypeToken<ArrayList<CcSendService>>() {}.type
@@ -214,7 +214,7 @@ class TransferConfigActivity : AppCompatActivity() {
                             val decryptConfig =
                                 Crypto.decrypt(responseBody, Crypto.getKeyFromString(password))
                             val intent = Intent().putExtra("config_json", decryptConfig)
-                            setResult(Const.RESULT_CONFIG_JSON, intent)
+                            setResult(RESULT_CONFIG_JSON, intent)
                             finish()
                         } catch (e: Exception) {
                             Log.e(

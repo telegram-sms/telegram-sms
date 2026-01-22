@@ -38,7 +38,11 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.JsonParser
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.MMKV.CARBON_COPY_ID
+import com.qwe7002.telegram_sms.MMKV.CHAT_ID
+import com.qwe7002.telegram_sms.MMKV.PROXY_ID
+import com.qwe7002.telegram_sms.MMKV.RESEND_ID
+import com.qwe7002.telegram_sms.MMKV.UPDATE_ID
 import com.qwe7002.telegram_sms.migration.DataMigrationManager
 import com.qwe7002.telegram_sms.data_structure.GitHubRelease
 import com.qwe7002.telegram_sms.data_structure.OutputMetadata
@@ -53,7 +57,8 @@ import com.qwe7002.telegram_sms.static_class.Service.isNotifyListener
 import com.qwe7002.telegram_sms.static_class.Service.startService
 import com.qwe7002.telegram_sms.static_class.Service.stopAllService
 import com.qwe7002.telegram_sms.static_class.Template
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.JSON
+import com.qwe7002.telegram_sms.value.RESULT_CONFIG_JSON
 import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import okhttp3.Call
@@ -251,7 +256,7 @@ class MainActivity : AppCompatActivity() {
                 .build()
             val requestBody = PollingBody()
             requestBody.timeout = 60
-            val body: RequestBody = RequestBody.create(Const.JSON, gson.toJson(requestBody))
+            val body: RequestBody = RequestBody.create(JSON, gson.toJson(requestBody))
             val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
             val call = okhttpClient.newCall(request)
             progressDialog.setOnKeyListener { _: DialogInterface?, _: Int, keyEvent: KeyEvent ->
@@ -482,7 +487,7 @@ class MainActivity : AppCompatActivity() {
                 requestBody.replyMarkup = ReplyMarkupKeyboard.ReplyKeyboardRemove()
             }
             val requestBodyRaw = gson.toJson(requestBody)
-            val body: RequestBody = RequestBody.create(Const.JSON, requestBodyRaw)
+            val body: RequestBody = RequestBody.create(JSON, requestBodyRaw)
             val okhttpObj = getOkhttpObj(
                 dohSwitch.isChecked
             )
@@ -520,9 +525,9 @@ class MainActivity : AppCompatActivity() {
                             logTag,
                             "onResponse: The current bot token does not match the saved bot token, clearing the message database."
                         )
-                        MMKV.mmkvWithID(MMKVConst.CHAT_ID).clearAll()
+                        MMKV.mmkvWithID(CHAT_ID).clearAll()
                     }
-                    MMKV.mmkvWithID(MMKVConst.RESEND_ID).clearAll()
+                    MMKV.mmkvWithID(RESEND_ID).clearAll()
                     checkVersionUpgrade()
                     preferences.clearAll()
                     preferences.putString("bot_token", newBotToken)
@@ -650,7 +655,7 @@ class MainActivity : AppCompatActivity() {
                 startActivity(Intent(this@MainActivity, NotifyActivity::class.java))
             }
         }
-        val updateMMKV = MMKV.mmkvWithID(MMKVConst.UPDATE_ID)
+        val updateMMKV = MMKV.mmkvWithID(UPDATE_ID)
         val lastCheck = updateMMKV.getLong("last_check", 0)
         if (lastCheck == 0L) {
             updateMMKV.putLong("last_check", System.currentTimeMillis())
@@ -695,7 +700,7 @@ class MainActivity : AppCompatActivity() {
         if (BuildConfig.VERSION_NAME.contains("nightly")) {
             appIdentifier += "-nightly"
         }
-        val updateMMKV = MMKV.mmkvWithID(MMKVConst.UPDATE_ID)
+        val updateMMKV = MMKV.mmkvWithID(UPDATE_ID)
         updateMMKV.putLong("last_check", System.currentTimeMillis())
 
         val progressDialog = ProgressDialog(this@MainActivity)
@@ -909,7 +914,7 @@ class MainActivity : AppCompatActivity() {
                 val proxyPort = view.findViewById<EditText>(R.id.proxy_port_editview)
                 val proxyUsername = view.findViewById<EditText>(R.id.proxy_username_editview)
                 val proxyPassword = view.findViewById<EditText>(R.id.proxy_password_editview)
-                val proxyMMKV = MMKV.mmkvWithID(MMKVConst.PROXY_ID)
+                val proxyMMKV = MMKV.mmkvWithID(PROXY_ID)
                 proxyEnable.isChecked = proxyMMKV.getBoolean("enable", false)
                 proxyHost.setText(proxyMMKV.getString("host", ""))
                 proxyPort.setText(proxyMMKV.getInt("port", 100).toString())
@@ -1032,7 +1037,7 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 1) {
-            if (resultCode == Const.RESULT_CONFIG_JSON) {
+            if (resultCode == RESULT_CONFIG_JSON) {
                 val gson = Gson()
                 val jsonConfig = gson.fromJson(
                     data!!.getStringExtra("config_json"),
@@ -1088,7 +1093,7 @@ class MainActivity : AppCompatActivity() {
                 val topicIdView = findViewById<EditText>(R.id.message_thread_id_editview)
                 topicIdView.setText(jsonConfig.topicID)
                 if (jsonConfig.ccService != null) {
-                    val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+                    val carbonCopyMMKV = MMKV.mmkvWithID(CARBON_COPY_ID)
                     carbonCopyMMKV.putString("service", gson.toJson(jsonConfig.ccService))
                 }
             }
@@ -1206,7 +1211,7 @@ class MainActivity : AppCompatActivity() {
         okhttpClient = okhttpClient.newBuilder().build()
         val requestBody = PollingBody()
         val body: RequestBody =
-            RequestBody.create(Const.JSON, Gson().toJson(requestBody))
+            RequestBody.create(JSON, Gson().toJson(requestBody))
         val request: Request =
             Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpClient.newCall(request)

@@ -7,13 +7,13 @@ import android.os.IBinder
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.TelegramApi
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.CcType
 import com.tencent.mmkv.MMKV
 import com.google.gson.Gson
+import com.qwe7002.telegram_sms.MMKV.NOTIFY_ID
 import com.qwe7002.telegram_sms.value.TAG
 
 class NotificationService : NotificationListenerService() {
@@ -34,7 +34,7 @@ class NotificationService : NotificationListenerService() {
             Log.i(logTag, "Uninitialized, Notification receiver is deactivated.")
             return
         }
-        val notifyMMKV = MMKV.mmkvWithID(MMKVConst.NOTIFY_ID)
+        val notifyMMKV = MMKV.mmkvWithID(NOTIFY_ID)
         val notifyListStr = notifyMMKV.getString("listen_list", "[]")
         val listenList: List<String> =
             Gson().fromJson(notifyListStr, Array<String>::class.java).toList()

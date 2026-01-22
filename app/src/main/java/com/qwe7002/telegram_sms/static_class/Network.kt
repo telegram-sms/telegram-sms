@@ -7,7 +7,7 @@ import android.os.Build
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import android.util.Log
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.MMKV.PROXY_ID
 import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -52,7 +52,7 @@ object Network {
 
     @JvmStatic
     fun getOkhttpObj(dohSwitch: Boolean): OkHttpClient {
-        val proxyMMKV = MMKV.mmkvWithID(MMKVConst.PROXY_ID)
+        val proxyMMKV = MMKV.mmkvWithID(PROXY_ID)
         val okhttp = OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
