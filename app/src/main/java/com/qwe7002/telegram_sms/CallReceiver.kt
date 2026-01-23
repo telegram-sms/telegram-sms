@@ -55,8 +55,6 @@ class CallReceiver : BroadcastReceiver() {
         @RequiresPermission(allOf = [Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE])
         @Deprecated("Deprecated in Java")
         override fun onCallStateChanged(nowState: Int, nowIncomingNumber: String) {
-            // Use nowIncomingNumber from the callback parameter directly.
-            // It can be an empty string if the number is unknown.
             val actualIncomingNumber = nowIncomingNumber.ifEmpty {
                 Log.w(
                     logTag,
@@ -77,7 +75,6 @@ class CallReceiver : BroadcastReceiver() {
                 }
                 val requestBody = RequestMessage()
                 val dualSim = Phone.getSimDisplayName(context, slot)
-                // Use actualIncomingNumber from the callback
                 requestBody.text = Template.render(
                     context,
                     "TPL_receiving_call",
