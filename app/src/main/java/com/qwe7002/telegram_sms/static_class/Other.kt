@@ -69,7 +69,7 @@ object Other {
         while (--i >= 0) {
             val c = str[i]
             if (c == '+') {
-                Log.d(TAG, "is_phone_number: found +.")
+                Log.d(TAG, "isPhoneNumber: found +.")
                 continue
             }
             if (!Character.isDigit(c)) {
@@ -100,7 +100,7 @@ object Other {
                 manager.createNotificationChannel(channel)
             }
             notification = Notification.Builder(context, notificationName)
-        } else { //Notification generation method for pre-O versions
+        } else {
             @Suppress("DEPRECATION")
             notification = Notification.Builder(context).setPriority(Notification.PRIORITY_MIN)
         }
@@ -166,6 +166,6 @@ object Other {
         val itemString = gson.toJson(item)
         val chatInfoMMKV = MMKV.mmkvWithID(CHAT_INFO_ID)
         chatInfoMMKV.putString(messageId.toString(), itemString)
-        Log.d(TAG, "add_message_list: $messageId")
+        Log.d(TAG, "addMessageList: $messageId")
     }
 }
