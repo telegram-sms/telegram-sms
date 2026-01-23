@@ -265,7 +265,6 @@ class CcActivity : AppCompatActivity() {
                     dialog.findViewById<SwitchMaterial>(R.id.cc_notify_switch)
                 val receiverBatterySwitch =
                     dialog.findViewById<SwitchMaterial>(R.id.cc_battery_switch)
-                //val ccConfig = Paper.book("carbon_copy").read("cc_config", "{}").toString()
                 val ccConfig = carbonCopyMMKV.getString("config", "{}").toString()
                 val type = object : TypeToken<CcConfig>() {}.type
                 val config: CcConfig = gson.fromJson(ccConfig, type)
@@ -284,7 +283,6 @@ class CcActivity : AppCompatActivity() {
                             receiverNotificationSwitch.isChecked,
                             receiverBatterySwitch.isChecked
                         )
-                        //Paper.book("carbon_copy").write("cc_config", gson.toJson(ccConfig))
                         carbonCopyMMKV.putString("config", gson.toJson(ccConfig))
                     }
                     .setNeutralButton(R.string.cancel_button, null)
@@ -356,7 +354,7 @@ class CcActivity : AppCompatActivity() {
                     }
                 } catch (e: IOException) {
                     Log.e(
-                        "CcActivity",
+                        logTag,
                         "An error occurred while resending: " + e.message,e
                     )
                 } finally {
