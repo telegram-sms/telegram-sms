@@ -7,21 +7,23 @@ Fetches Git commit history and uses AI to generate a structured changelog.
 import os
 import sys
 import subprocess
-import json
-import requests
 from typing import Optional
+from google import genai
+from google.genai import types
 
 
 class ChangelogGenerator:
-    """Generate changelog from Git commits using AI API"""
+    """Generate changelog from Git commits using Gemini AI API"""
 
     def __init__(self):
-        self.api_base_url = os.getenv("ONEAPI_BASE_URL")
-        self.api_key = os.getenv("ONEAPI_API_KEY")
-        self.model = "gpt-5-mini"
+        self.api_key = os.getenv("GEMINI_API_KEY")
+        self.model = "gemini-3-flash-preview"
 
-        if not self.api_base_url or not self.api_key:
-            raise ValueError("ONEAPI_BASE_URL and ONEAPI_API_KEY environment variables must be set")
+        if not self.api_key:
+            raise ValueError("GEMINI_API_KEY environment variable must be set")
+
+        # Initialize Gemini client
+        self.client = genai.Client(api_key=self.api_key)
 
     def get_latest_tag(self, repo_path: str = ".") -> str:
         """
@@ -226,7 +228,7 @@ class ChangelogGenerator:
 
     def summarize_changelog(self, commits: str) -> str:
         """
-        Call OneAPI to summarize commits
+        Call Gemini API to summarize commits
 
         Args:
             commits: Commit history
@@ -237,49 +239,22 @@ class ChangelogGenerator:
         Raises:
             RuntimeError: If API request fails
         """
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}"
-        }
-
-        payload = {
-            "model": self.model,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "You are a changelog generator. Output only the formatted changelog without any additional commentary."
-                },
-                {
-                    "role": "user",
-                    "content": self.build_prompt(commits)
-                }
-            ],
-            "max_completion_tokens": 100000,
-            "top_p": 1,
-            "presence_penalty": 0,
-            "frequency_penalty": 0,
-            "stream": False
-        }
-
         try:
-            response = requests.post(
-                self.api_base_url,
-                headers=headers,
-                json=payload,
-                timeout=60
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=self.build_prompt(commits),
+                config=types.GenerateContentConfig(
+                    temperature=0,
+                    top_p=1,
+                    max_output_tokens=100000,
+                    candidate_count=1,
+                )
             )
-            response.raise_for_status()
 
-            data = response.json()
+            return response.text
 
-            # Extract content from response
-            if "choices" in data and len(data["choices"]) > 0:
-                return data["choices"][0]["message"]["content"]
-            else:
-                return data.get("content", str(data))
-
-        except requests.exceptions.RequestException as e:
-            raise RuntimeError(f"API request failed: {e}")
+        except Exception as e:
+            raise RuntimeError(f"Gemini API request failed: {e}")
 
     def generate(self, repo_path: str = ".") -> str:
         """
@@ -310,7 +285,7 @@ class ChangelogGenerator:
         else:
             print("\n✓ No breaking changes detected in commit messages.\n")
 
-        print("Calling OneAPI for summarization...")
+        print("Calling Gemini API for summarization...")
 
         summary = self.summarize_changelog(commits)
 
@@ -352,4 +327,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
