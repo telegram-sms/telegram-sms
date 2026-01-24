@@ -210,7 +210,6 @@ class BatteryService : Service() {
             val obj = sendObj()
             obj.action = action!!
             obj.content = result
-            // Using action as key automatically deduplicates - only keeps the latest message for each action type
             pendingActions[action] = obj
         }
     }

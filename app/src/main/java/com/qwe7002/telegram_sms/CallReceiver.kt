@@ -52,15 +52,14 @@ class CallReceiver : BroadcastReceiver() {
         private val slot: Int
     ) : PhoneStateListener() {
 
-        @RequiresPermission(allOf = [Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE])
         @Deprecated("Deprecated in Java")
+        @RequiresPermission(allOf = [Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE])
         override fun onCallStateChanged(nowState: Int, nowIncomingNumber: String) {
             val actualIncomingNumber = nowIncomingNumber.ifEmpty {
                 Log.w(
                     logTag,
                     "Incoming number from callback is null or empty. Using 'Unknown'."
                 )
-                // Consider using a string resource: context.getString(R.string.unknown_caller_id)
                 "Unknown"
             }
 
