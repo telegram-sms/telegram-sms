@@ -16,6 +16,7 @@ val DEBUG_TAG_FILTER = arrayOf(
     "NotifyActivity",
     "ScannerActivity",
     "KeepAliveJob",
+    "LogActivity"
 
 )
 

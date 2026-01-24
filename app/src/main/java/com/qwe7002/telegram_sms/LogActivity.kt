@@ -32,6 +32,7 @@ import java.io.InputStreamReader
 import java.util.concurrent.CopyOnWriteArrayList
 
 class LogActivity : AppCompatActivity() {
+    private val logTag = "${TAG}.LogActivity"
     private lateinit var recyclerView: RecyclerView
     private lateinit var logAdapter: LogAdapter
     private var logcatProcess: Process? = null
@@ -148,7 +149,7 @@ class LogActivity : AppCompatActivity() {
 
     private fun startLogcat() {
         logcatJob = lifecycleScope.launch(Dispatchers.IO) {
-            Log.d(TAG, "startLogcat: Starting logcat process")
+            Log.d(logTag, "startLogcat: Starting logcat process")
             try {
                 // Filters to pass to logcat (tag names only)
                 var filterArray = TAG_FILTER
@@ -176,7 +177,7 @@ class LogActivity : AppCompatActivity() {
                 } else {
                     arrayOf("logcat", *addFilterArray, "*:S","-d", "-v", "time")
                 }
-                Log.d(TAG, "startLogcat: "+command.joinToString(" ") )
+                Log.d(logTag, command.joinToString(" ") )
                 logcatProcess = Runtime.getRuntime().exec(command)
 
                 val reader = BufferedReader(InputStreamReader(logcatProcess?.inputStream))
@@ -227,7 +228,7 @@ class LogActivity : AppCompatActivity() {
                     logChannel.trySend(lastEntry)
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "startLogcat: ${e.message}", e)
+                Log.e(logTag, "startLogcat: ${e.message}", e)
             }
         }
     }
@@ -335,7 +336,7 @@ class LogAdapter : ListAdapter<LogEntry, LogAdapter.LogViewHolder>(LogDiffCallba
         holder.levelView.setTextColor(getLevelColor(entry.level))
 
         // Set tag (without emoji, but with level color)
-        holder.tagView.text = entry.tag.ifEmpty { "Unknown" }
+        holder.tagView.text =entry.tag.ifEmpty { "Unknown" }.removePrefix("${TAG}.")
 
         // Set timestamp
         holder.timestampView.text = entry.timestamp
