@@ -290,7 +290,7 @@ class ChangelogGenerator:
         summary = self.summarize_changelog(commits)
 
         # Verify if AI detected breaking changes
-        if "Breaking Changes" in summary or "⚠️" in summary:
+        if summary and ("Breaking Changes" in summary or "⚠️" in summary):
             print("\n⚠️  BREAKING CHANGES DETECTED IN CHANGELOG!")
             print("    This release contains breaking changes that may affect users.\n")
 
