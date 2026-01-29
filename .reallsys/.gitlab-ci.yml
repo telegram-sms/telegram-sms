@@ -56,11 +56,6 @@ cache:
         exit 1
       fi
     - |
-      echo "==> Configuring git..."
-      git config --global user.email "ci-bot@telegram-sms.com"
-      git config --global user.name "GitLab CI Bot"
-      git config --global http.postBuffer 524288000
-    - |
       echo "==> Setting up Gradle..."
       mkdir -p "${GRADLE_USER_HOME}"
       cat >> "${GRADLE_USER_HOME}/gradle.properties" << EOF
