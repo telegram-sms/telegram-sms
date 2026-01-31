@@ -44,15 +44,12 @@ android {
         targetSdk = 36
         versionCode = System.getenv("VERSION_CODE")?.toIntOrNull() ?: 1
         versionName = System.getenv("VERSION_NAME") ?: "Debug"
-
-        // Configure locale filters for resource filtering
-        // Using androidResources.localeFilters instead of resourceConfigurations
     }
     
-    androidResources {
+/*    androidResources {
         generateLocaleConfig = true
         localeFilters.addAll(listOf("en", "zh-rCN", "zh-rTW", "zh-rHK", "yue-rCN", "yue-rHK", "ja-rJP", "es-rES", "ru", "vi"))
-    }
+    }*/
     
     buildFeatures {
         buildConfig = true
@@ -62,10 +59,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
-
-/*    kotlin {
-        jvmToolchain(21)
-    }*/
 
     signingConfigs {
         register("release") {
