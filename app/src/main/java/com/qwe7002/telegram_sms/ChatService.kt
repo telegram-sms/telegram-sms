@@ -156,7 +156,10 @@ class ChatService : Service() {
     private lateinit var pollingHttpClient: OkHttpClient
     private lateinit var wakelock: WakeLock
     private lateinit var wifiLock: WifiLock
-    private lateinit var botUsername: String
+    // Plain default (not lateinit) so that any unexpected access before onCreate finishes
+    // — e.g. due to a service-restart race — degrades to "no privacy-mode match" rather than
+    // crashing with UninitializedPropertyAccessException (issue #49).
+    private var botUsername: String = ""
     private val isRunning = AtomicBoolean(false)
 
     private val chatMMKV = MMKV.mmkvWithID(CHAT_ID)

@@ -17,9 +17,17 @@ import com.qwe7002.telegram_sms.R
 import com.qwe7002.telegram_sms.data_structure.SMSRequestInfo
 import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 object Other {
+    @JvmStatic
+    fun formatTimestamp(timestampMillis: Long): String {
+        return SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            .format(Date(timestampMillis))
+    }
+
     private val NINE_KEY_MAP = mapOf(
         'A' to 2, 'B' to 2, 'C' to 2,
         'D' to 3, 'E' to 3, 'F' to 3,

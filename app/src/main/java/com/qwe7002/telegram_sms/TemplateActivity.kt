@@ -16,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.qwe7002.telegram_sms.MMKV.TEMPLATE_ID
+import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.Template.getStringByName
 import com.tencent.mmkv.MMKV
@@ -37,16 +38,17 @@ class TemplateActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
+        val sampleTime = Other.formatTimestamp(System.currentTimeMillis())
         val messages = listOf(
             Message(
                 getString(R.string.receive_sms_title),
                 "TPL_received_sms",
-                mapOf("SIM" to "SIM1 ", "From" to "+16505551212", "Content" to "Hello, World!")
+                mapOf("SIM" to "SIM1 ", "From" to "+16505551212", "Content" to "Hello, World!", "Time" to sampleTime)
             ),
             Message(
                 getString(R.string.receive_mms_title),
                 "TPL_received_mms",
-                mapOf("SIM" to "SIM1 ", "From" to "+16505551212", "Subject" to "MMS Subject", "Content" to "Hello from MMS!")
+                mapOf("SIM" to "SIM1 ", "From" to "+16505551212", "Subject" to "MMS Subject", "Content" to "Hello from MMS!", "Time" to sampleTime)
             ),
             Message(
                 getString(R.string.send_sms_title),

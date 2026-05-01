@@ -171,7 +171,8 @@ class WAPReceiver : BroadcastReceiver() {
             "Subject" to mmsInfo.subject,
             "Content" to mmsInfo.textContent.ifEmpty { "(No text content)" },
             "ContentType" to mmsInfo.contentType,
-            "Size" to mmsInfo.messageSize
+            "Size" to mmsInfo.messageSize,
+            "Time" to Other.formatTimestamp(System.currentTimeMillis())
         )
 
         val messageText = Template.render(context, "TPL_received_mms", values)

@@ -83,6 +83,10 @@ class SMSReceiver : BroadcastReceiver() {
         val textContent = messageBodyBuilder.toString()
 
         val messageAddress = messages[0]!!.originatingAddress!!
+        // Some carriers ship SMS with a 0/garbage SMSC timestamp; in that case fall back to the
+        // local receive time so the {{Time}} placeholder is never empty.
+        val smsTimestamp = messages[0]!!.timestampMillis.takeIf { it > 0 } ?: System.currentTimeMillis()
+        val messageTime = Other.formatTimestamp(smsTimestamp)
         val trustedPhoneNumber = preferences.getString("trusted_phone_number", null)
         var isTrustedPhone = false
         if (!trustedPhoneNumber.isNullOrEmpty()) {
@@ -224,9 +228,9 @@ class SMSReceiver : BroadcastReceiver() {
         }
 
         val values =
-            mapOf("SIM" to dualSim, "From" to messageAddress, "Content" to textContentHTML)
+            mapOf("SIM" to dualSim, "From" to messageAddress, "Content" to textContentHTML, "Time" to messageTime)
         val rawValues =
-            mapOf("SIM" to dualSim, "From" to messageAddress, "Content" to textContent)
+            mapOf("SIM" to dualSim, "From" to messageAddress, "Content" to textContent, "Time" to messageTime)
         requestBody.text = Template.render(context, "TPL_received_sms", values)
         val requestBodyText = Template.render(context, "TPL_received_sms", rawValues)
         CcSendJob.startJob(

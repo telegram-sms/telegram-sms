@@ -59,6 +59,7 @@ object TelegramApi {
      * @param method Telegram API method (default: "sendMessage", can be "editMessageText")
      * @param fallbackSubId Subscription ID for SMS fallback (-1 to disable)
      * @param enableResend Whether to add to resend loop on failure (default: true)
+     * @param onFailure Optional callback fired on network error or non-200 response
      * @param onSuccess Optional callback when request succeeds, receives response body string
      */
     @JvmStatic
@@ -69,6 +70,7 @@ object TelegramApi {
         method: String = "sendMessage",
         fallbackSubId: Int = -1,
         enableResend: Boolean = true,
+        onFailure: (() -> Unit)? = null,
         onSuccess: ((String) -> Unit)? = null
     ) {
         val preferences = MMKV.defaultMMKV()
@@ -102,14 +104,22 @@ object TelegramApi {
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Log.e(TAG, "Request failed: ${e.message}",e)
-                handleFailure(context, requestBody.text, fallbackSubId, enableResend)
+                try {
+                    handleFailure(context, requestBody.text, fallbackSubId, enableResend)
+                } finally {
+                    onFailure?.invoke()
+                }
             }
 
             override fun onResponse(call: Call, response: Response) {
                 val result = response.body.string()
                 if (response.code != 200) {
                     Log.e(TAG, "Request error: ${response.code} $result")
-                    handleFailure(context, requestBody.text, fallbackSubId, enableResend)
+                    try {
+                        handleFailure(context, requestBody.text, fallbackSubId, enableResend)
+                    } finally {
+                        onFailure?.invoke()
+                    }
                 } else {
                     onSuccess?.invoke(result)
                 }
