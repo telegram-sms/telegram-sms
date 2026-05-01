@@ -24,7 +24,9 @@ import java.util.Locale
 object Other {
     @JvmStatic
     fun formatTimestamp(timestampMillis: Long): String {
-        return SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        // Locale.US — keep digits ASCII regardless of device locale (e.g. fa-IR / ar-* would otherwise
+        // emit non-Western numerals into the Telegram message).
+        return SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
             .format(Date(timestampMillis))
     }
 
