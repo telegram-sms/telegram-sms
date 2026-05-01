@@ -26,13 +26,11 @@ variables:
 cache:
     key:
         files:
-            - .reallsys/scripts/requirements.txt
-            - app/build.gradle
+            - app/build.gradle.kts
         prefix: ${CI_PROJECT_ID}
     paths:
         - .gradle/caches/
         - .gradle/wrapper/
-        - .cache/pip/
     policy: pull-push
 
 # ------------------------------------------------------------------------------
@@ -190,13 +188,13 @@ build_release:
               echo "ERROR: Keystore file not found at app/keys.jks"
               exit 1
             fi
-            
+
             # Verify keystore is valid and not corrupted
             if ! keytool -list -keystore app/keys.jks -storepass "${KEYSTORE_PASSWORD}" > /dev/null 2>&1; then
               echo "ERROR: Keystore validation failed - file may be corrupted or password incorrect"
               exit 1
             fi
-            
+
             echo "✓ Keystore validation passed"
         - |
             echo "==> Copying language pack..."
@@ -209,32 +207,95 @@ build_release:
               exit 1
             fi
         - |
-            echo "==> Downloading ghr..."
-            GHR_URL="https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz"
-            wget -q --retry-connrefused --waitretry=5 --timeout=30 -t 3 "${GHR_URL}" -O ghr.tar.gz
-            tar -xzf ghr.tar.gz
-            GHR_BIN="./ghr_v${GHR_VERSION}_linux_amd64/ghr"
-            chmod +x "${GHR_BIN}"
-        - |
             echo "==> Syncing to GitHub..."
             git push --set-upstream "https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git" \
               "HEAD:refs/heads/${CI_COMMIT_REF_NAME}" || {
                 echo "WARNING: Failed to push to GitHub, continuing with release..."
               }
         - |
-            echo "==> Generating changelog with One API..."
+            echo "==> Saving release metadata for downstream job..."
+            cat > release.env <<EOF
+            RELEASE_TAG=${RELEASE_TAG}
+            VERSION_NAME=${VERSION_NAME}
+            VERSION_CODE=${VERSION_CODE}
+            EOF
+            cat release.env
+    artifacts:
+        name: "telegram-sms-release-${CI_COMMIT_SHORT_SHA}"
+        paths:
+            - app/build/outputs/apk/release/
+        reports:
+            dotenv: release.env
+        expire_in: 1 week
+
+# ------------------------------------------------------------------------------
+# Release Publish Job (Gemini-tagged shell runner)
+# ------------------------------------------------------------------------------
+release_publish:
+    stage: deploy
+    tags:
+        - gemini
+    retry:
+        max: 2
+        when:
+            - runner_system_failure
+            - stuck_or_timeout_failure
+    rules:
+        -   if: $CI_COMMIT_BRANCH == "master"
+    needs:
+        -   job: build_release
+            artifacts: true
+    cache: {}
+    variables:
+        GIT_STRATEGY: clone
+    before_script:
+        - set -euo pipefail
+    script:
+        - |
+            echo "==> Validating credentials..."
+            if [ -z "${GITHUB_ACCESS_KEY:-}" ]; then
+              echo "ERROR: GITHUB_ACCESS_KEY is not set"
+              exit 1
+            fi
+            if [ -z "${RELEASE_TAG:-}" ]; then
+              echo "ERROR: RELEASE_TAG not received from build_release dotenv"
+              exit 1
+            fi
+            echo "Release tag: ${RELEASE_TAG}"
+        - |
+            echo "==> Generating changelog with Gemini CLI..."
             git remote add source https://github.com/telegram-sms/telegram-sms || true
             git fetch source --tags
-            echo "==> Installing Python dependencies..."
-            apk add --no-cache python3 py3-pip
-            export PIP_CACHE_DIR="${CI_PROJECT_DIR}/.cache/pip"
-            mkdir -p "${PIP_CACHE_DIR}"
-            pip3 install --cache-dir="${PIP_CACHE_DIR}" -r .reallsys/scripts/requirements.txt
-            echo "==> Running Python changelog generator..."
-            python3 .reallsys/scripts/changelogGenerate.py
-            RELEASE_CHANGELOG=$(cat CHANGELOG.md)
+            LATEST_TAG=$(git describe --tags --abbrev=0)
+            echo "Latest tag: ${LATEST_TAG}"
+            COMMITS=$(git log "${LATEST_TAG}..HEAD" --pretty=format:'%h | %an | %ad | %s' --date=short)
+            if [ -z "${COMMITS}" ]; then
+              echo "ERROR: No commits found between ${LATEST_TAG} and HEAD"
+              exit 1
+            fi
+            echo "==> Commits:"
+            echo "${COMMITS}"
+
+            PROMPT="$(cat .reallsys/scripts/changelog-prompt.txt)
+
+            Commit History:
+            ${COMMITS}"
+
+            gemini -p "${PROMPT}" > CHANGELOG.md
+
+            if [ ! -s CHANGELOG.md ]; then
+              echo "ERROR: Gemini returned empty changelog"
+              exit 1
+            fi
             echo "==> Generated changelog:"
-            echo "${RELEASE_CHANGELOG}"
+            cat CHANGELOG.md
+        - |
+            echo "==> Downloading ghr..."
+            GHR_URL="https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz"
+            curl -sSL --retry 3 --retry-delay 5 -o ghr.tar.gz "${GHR_URL}"
+            tar -xzf ghr.tar.gz
+            GHR_BIN="./ghr_v${GHR_VERSION}_linux_amd64/ghr"
+            chmod +x "${GHR_BIN}"
         - |
             echo "==> Creating GitHub release..."
             "${GHR_BIN}" \
@@ -242,7 +303,7 @@ build_release:
               -u "${OWNER}" \
               -r "${REPO}" \
               -n "${RELEASE_TAG}" \
-              -b "${RELEASE_CHANGELOG}" \
+              -b "$(cat CHANGELOG.md)" \
               -prerelease \
               "${RELEASE_TAG}" \
               "./app/build/outputs/apk/release/"
