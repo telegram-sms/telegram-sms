@@ -546,27 +546,41 @@ class ChatService : Service() {
             }
         }
         val hasReplyToMessage = jsonObject.has("reply_to_message")
+        var isReplyToBot = false
         var isSmsReply = false
         var smsReplyContent = ""
-        if (hasReplyToMessage && requestMsg.isNotEmpty()) {
-            val saveItemString = chatInfoMMKV.getString(
-                jsonObject["reply_to_message"].asJsonObject["message_id"].asString,
-                null
-            )
-            if (saveItemString != null) {
-                smsReplyContent = stripBotEntities(requestMsg, jsonObject)
-                if (smsReplyContent.isNotEmpty()) {
-                    val saveItem =
-                        Gson().fromJson(saveItemString, SMSRequestInfo::class.java)
-                    sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
-                    chatMMKV.putInt("slot", saveItem.card)
-                    chatMMKV.putString("to", saveItem.phone)
-                    chatMMKV.putString("content", smsReplyContent)
-                    isSmsReply = true
+        if (hasReplyToMessage) {
+            val replyToMessage = jsonObject["reply_to_message"].asJsonObject
+            if (replyToMessage.has("from")) {
+                val replyFrom = replyToMessage["from"].asJsonObject
+                val replyFromUsername =
+                    if (replyFrom.has("username")) replyFrom["username"].asString else ""
+                if (botUsername.isNotEmpty() &&
+                    replyFromUsername.equals(botUsername, ignoreCase = true)
+                ) {
+                    isReplyToBot = true
+                }
+            }
+            if (requestMsg.isNotEmpty()) {
+                val saveItemString = chatInfoMMKV.getString(
+                    replyToMessage["message_id"].asString,
+                    null
+                )
+                if (saveItemString != null) {
+                    smsReplyContent = stripBotEntities(requestMsg, jsonObject)
+                    if (smsReplyContent.isNotEmpty()) {
+                        val saveItem =
+                            Gson().fromJson(saveItemString, SMSRequestInfo::class.java)
+                        sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
+                        chatMMKV.putInt("slot", saveItem.card)
+                        chatMMKV.putString("to", saveItem.phone)
+                        chatMMKV.putString("content", smsReplyContent)
+                        isSmsReply = true
+                    }
                 }
             }
         }
-        if (!isPrivate && currentBotUsername != botUsername && !isSmsReply) {
+        if (!isPrivate && currentBotUsername != botUsername && !isReplyToBot) {
             Log.d(logTag, "Privacy mode: Bot username not matched, ignoring message")
             return
         }
@@ -715,7 +729,7 @@ class ChatService : Service() {
                 } else {
                     requestBody.text = Template.render(
                         applicationContext, "TPL_system_message",
-                        mapOf("Content" to getString(R.string.unknown_command))
+                        mapOf("Message" to getString(R.string.unknown_command))
                     )
                     hasCommand = true
                 }
@@ -896,7 +910,10 @@ class ChatService : Service() {
             }
 
             else -> {
-                if (!isPrivate && sendSmsNextStatus == -1) {
+                if (!isPrivate &&
+                    sendSmsNextStatus == SEND_SMS_STATUS.STANDBY_STATUS &&
+                    sendUssdNextStatus == SEND_USSD_STATUS.STANDBY_STATUS
+                ) {
                     if (messageType != "supergroup" || messageThreadId.isEmpty()) {
                         Log.d(logTag, "Non-private conversation without topic, ignoring message")
                         return
@@ -926,7 +943,7 @@ class ChatService : Service() {
                 setUssdSendStatusStandby()
             }
         }
-        if (!hasCommand && sendSmsNextStatus != -1) {
+        if (!hasCommand && sendSmsNextStatus != SEND_SMS_STATUS.STANDBY_STATUS) {
             Log.d(logTag, "Entering interactive SMS sending mode, status=$sendSmsNextStatus")
             val sendSlotTemp = chatMMKV.getInt("slot", -1)
             val dualSim = if (sendSlotTemp != -1) "SIM${sendSlotTemp + 1} " else ""
