@@ -526,23 +526,6 @@ class ChatService : Service() {
         if (jsonObject.has("text")) {
             requestMsg = jsonObject["text"].asString
         }
-        val hasReplyToMessage = jsonObject.has("reply_to_message")
-        if (hasReplyToMessage) {
-            val saveItemString = chatInfoMMKV.getString(
-                jsonObject["reply_to_message"].asJsonObject["message_id"].asString,
-                null
-            )
-            if (saveItemString != null && requestMsg.isNotEmpty()) {
-                val saveItem =
-                    Gson().fromJson(saveItemString, SMSRequestInfo::class.java)
-                val phoneNumber = saveItem.phone
-                val cardSlot = saveItem.card
-                sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
-                chatMMKV.putInt("slot", cardSlot)
-                chatMMKV.putString("to", phoneNumber)
-                chatMMKV.putString("content", requestMsg)
-            }
-        }
         if (jsonObject.has("entities")) {
             val tempCommand: String
             val tempCommandLowercase: String
@@ -562,7 +545,28 @@ class ChatService : Service() {
                 }
             }
         }
-        if (!isPrivate && currentBotUsername != botUsername) {
+        val hasReplyToMessage = jsonObject.has("reply_to_message")
+        var isSmsReply = false
+        var smsReplyContent = ""
+        if (hasReplyToMessage && requestMsg.isNotEmpty()) {
+            val saveItemString = chatInfoMMKV.getString(
+                jsonObject["reply_to_message"].asJsonObject["message_id"].asString,
+                null
+            )
+            if (saveItemString != null) {
+                smsReplyContent = stripBotEntities(requestMsg, jsonObject)
+                if (smsReplyContent.isNotEmpty()) {
+                    val saveItem =
+                        Gson().fromJson(saveItemString, SMSRequestInfo::class.java)
+                    sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
+                    chatMMKV.putInt("slot", saveItem.card)
+                    chatMMKV.putString("to", saveItem.phone)
+                    chatMMKV.putString("content", smsReplyContent)
+                    isSmsReply = true
+                }
+            }
+        }
+        if (!isPrivate && currentBotUsername != botUsername && !isSmsReply) {
             Log.d(logTag, "Privacy mode: Bot username not matched, ignoring message")
             return
         }
@@ -993,7 +997,7 @@ class ChatService : Service() {
                             )
                         )
                     } else {
-                        if (sendSmsNextStatus == SEND_SMS_STATUS.WAITING_TO_SEND_STATUS) {
+                        if (sendSmsNextStatus == SEND_SMS_STATUS.WAITING_TO_SEND_STATUS && !isSmsReply) {
                             chatMMKV.putString("content", requestMsg)
                         }
                         val keyboardMarkup = KeyboardMarkup().apply {
@@ -1199,6 +1203,26 @@ class ChatService : Service() {
         // They can contain digits, *, and #
         val ussdPattern = Regex("^[*#][0-9*#]+#?\$")
         return code.isNotEmpty() && ussdPattern.matches(code)
+    }
+
+    private fun stripBotEntities(text: String, jsonObject: JsonObject): String {
+        if (!jsonObject.has("entities")) return text.trim()
+        val entities = jsonObject["entities"].asJsonArray
+        val ranges = entities.mapNotNull { entity ->
+            val obj = entity.asJsonObject
+            val type = obj["type"].asString
+            if (type == "bot_command" || type == "mention") {
+                val offset = obj["offset"].asInt
+                offset to offset + obj["length"].asInt
+            } else null
+        }.sortedByDescending { it.first }
+        var result = text
+        for ((start, end) in ranges) {
+            if (start in 0..result.length && end in start..result.length) {
+                result = result.substring(0, start) + result.substring(end)
+            }
+        }
+        return result.trim()
     }
 
     @SuppressLint("MissingPermission")
