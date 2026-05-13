@@ -821,6 +821,13 @@ class ChatService : Service() {
                     // Interactive mode
                     Log.d(logTag, "Entering interactive SMS sending mode")
 
+                    // Anchor every interactive prompt in this session to the original
+                    // /sendsms command — keeps the force-reply UI targeted at the right
+                    // user (selective=true) and prevents stale replies from driving the
+                    // state machine.
+                    val commandMessageId = jsonObject["message_id"].asLong
+                    chatMMKV.putLong("command_message_id", commandMessageId)
+
                     // If dual SIM and no specific SIM selected, show SIM selection
                     if (isDualSim && sendSlot == -1) {
                         sendSmsNextStatus = SEND_SMS_STATUS.SIM_SELECT_STATUS
@@ -854,6 +861,8 @@ class ChatService : Service() {
                             )
                         )
                         requestBody.replyMarkup = ForceReply()
+                        requestBody.replyToMessageId = commandMessageId
+                        requestBody.allowSendingWithoutReply = true
                         sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
                     }
                     hasCommand = true
@@ -909,6 +918,8 @@ class ChatService : Service() {
                 SEND_SMS_STATUS.PHONE_INPUT_STATUS -> {
                     sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
                     requestBody.replyMarkup = ForceReply()
+                    requestBody.replyToMessageId = jsonObject["message_id"].asLong
+                    requestBody.allowSendingWithoutReply = true
                     Template.render(
                         applicationContext,
                         "TPL_send_sms_chat",
@@ -933,6 +944,8 @@ class ChatService : Service() {
                             chatMMKV.putString("to", tempTo)
                             sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
                             requestBody.replyMarkup = ForceReply()
+                            requestBody.replyToMessageId = jsonObject["message_id"].asLong
+                            requestBody.allowSendingWithoutReply = true
                             Template.render(
                                 applicationContext,
                                 "TPL_send_sms_chat",
@@ -1159,6 +1172,7 @@ class ChatService : Service() {
         chatMMKV.remove("to")
         chatMMKV.remove("content")
         chatMMKV.remove("message_id")
+        chatMMKV.remove("command_message_id")
     }
 
     private fun handleSmsSimSelected(slot: Int, simLabel: String, callbackMessageId: Long) {
@@ -1179,6 +1193,9 @@ class ChatService : Service() {
         callTelegramApi("editMessageText", ackBody)
 
         // Send a follow-up prompt with force_reply so the input field auto-binds to it.
+        // Anchor the prompt to the original /sendsms command so selective=true forces
+        // only that user to reply, blocking stale/cross-user input from advancing state.
+        val commandMessageId = chatMMKV.getLong("command_message_id", 0L)
         val promptBody = RequestMessage().apply {
             chatId = this@ChatService.chatId
             messageThreadId = this@ChatService.messageThreadId
@@ -1188,6 +1205,10 @@ class ChatService : Service() {
                 mapOf("SIM" to simLabel, "Content" to getString(R.string.enter_reply_number))
             )
             replyMarkup = ForceReply()
+            if (commandMessageId != 0L) {
+                replyToMessageId = commandMessageId
+                allowSendingWithoutReply = true
+            }
         }
         callTelegramApi("sendMessage", promptBody)
     }

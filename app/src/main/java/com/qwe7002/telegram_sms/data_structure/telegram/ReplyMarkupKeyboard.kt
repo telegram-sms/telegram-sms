@@ -170,6 +170,10 @@ object ReplyMarkupKeyboard {
      * Telegram clients will display a reply interface to the user (as if the user
      * had selected the bot's message and tapped 'Reply'). Used for step-by-step
      * interactive prompts such as the SMS phone-number / content input flow.
+     *
+     * `selective` defaults to true: combined with a `reply_to_message_id` pointing at
+     * the triggering user's message, only that user is forced to reply — which keeps
+     * the interactive state machine from being driven by unrelated chat members.
      */
     class ForceReply {
         @SerializedName("force_reply")
@@ -179,6 +183,6 @@ object ReplyMarkupKeyboard {
         var inputFieldPlaceholder: String? = null
 
         @SerializedName("selective")
-        var selective: Boolean = false
+        var selective: Boolean = true
     }
 }

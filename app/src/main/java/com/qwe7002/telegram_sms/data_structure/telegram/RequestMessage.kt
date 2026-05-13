@@ -22,4 +22,10 @@ class RequestMessage {
 
     @SerializedName(value = "disable_notification")
     var disableNotification: Boolean = false
+
+    @SerializedName(value = "reply_to_message_id")
+    var replyToMessageId: Long? = null
+
+    @SerializedName(value = "allow_sending_without_reply")
+    var allowSendingWithoutReply: Boolean? = null
 }
