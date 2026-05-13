@@ -42,4 +42,4 @@ strings.xml
 template.xml
 reference_strings.xml
 translation_report.txt
-
+/logs/*

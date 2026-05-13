@@ -23,6 +23,7 @@ import com.qwe7002.telegram_sms.MMKV.CHAT_ID
 import com.qwe7002.telegram_sms.MMKV.CHAT_INFO_ID
 import com.qwe7002.telegram_sms.data_structure.SMSRequestInfo
 import com.qwe7002.telegram_sms.data_structure.telegram.PollingBody
+import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.ForceReply
 import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.KeyboardMarkup
 import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.getInlineKeyboardObj
 import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.createSmsListKeyboard
@@ -206,59 +207,8 @@ class ChatService : Service() {
         // Handle SMS SIM selection callback
         if (messageType == "callback_query" && sendSmsNextStatus == SEND_SMS_STATUS.SIM_SELECT_STATUS) {
             when (callbackData) {
-                CALLBACK_DATA_VALUE.SIM1 -> {
-                    chatMMKV.putInt("slot", 0)
-                    sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
-                    val requestUri = getUrl(botToken, "editMessageText")
-                    requestBody.text = Template.render(
-                        applicationContext,
-                        "TPL_send_sms_chat",
-                        mapOf("SIM" to "SIM1 ", "Content" to getString(R.string.enter_reply_number))
-                    )
-                    requestBody.messageId = callbackMessageId
-                    val gson = Gson()
-                    val requestBodyRaw = gson.toJson(requestBody)
-                    val body: RequestBody = requestBodyRaw.toRequestBody(JSON)
-                    val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
-                    val request: Request =
-                        Request.Builder().url(requestUri).method("POST", body).build()
-                    val call = okhttpObj.newCall(request)
-                    try {
-                        val response = call.execute()
-                        if (response.code != 200) {
-                            throw IOException(response.code.toString())
-                        }
-                    } catch (e: IOException) {
-                        Log.e(logTag, "Failed to edit message: ${e.message}", e)
-                    }
-                }
-
-                CALLBACK_DATA_VALUE.SIM2 -> {
-                    chatMMKV.putInt("slot", 1)
-                    sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
-                    val requestUri = getUrl(botToken, "editMessageText")
-                    requestBody.text = Template.render(
-                        applicationContext,
-                        "TPL_send_sms_chat",
-                        mapOf("SIM" to "SIM2 ", "Content" to getString(R.string.enter_reply_number))
-                    )
-                    requestBody.messageId = callbackMessageId
-                    val gson = Gson()
-                    val requestBodyRaw = gson.toJson(requestBody)
-                    val body: RequestBody = requestBodyRaw.toRequestBody(JSON)
-                    val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
-                    val request: Request =
-                        Request.Builder().url(requestUri).method("POST", body).build()
-                    val call = okhttpObj.newCall(request)
-                    try {
-                        val response = call.execute()
-                        if (response.code != 200) {
-                            throw IOException(response.code.toString())
-                        }
-                    } catch (e: IOException) {
-                        Log.e(logTag, "Failed to edit message: ${e.message}", e)
-                    }
-                }
+                CALLBACK_DATA_VALUE.SIM1 -> handleSmsSimSelected(0, "SIM1 ", callbackMessageId)
+                CALLBACK_DATA_VALUE.SIM2 -> handleSmsSimSelected(1, "SIM2 ", callbackMessageId)
             }
             return
         }
@@ -903,6 +853,7 @@ class ChatService : Service() {
                                 "Content" to getString(R.string.enter_reply_number)
                             )
                         )
+                        requestBody.replyMarkup = ForceReply()
                         sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
                     }
                     hasCommand = true
@@ -957,6 +908,7 @@ class ChatService : Service() {
             resultSend = when (sendSmsNextStatus) {
                 SEND_SMS_STATUS.PHONE_INPUT_STATUS -> {
                     sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
+                    requestBody.replyMarkup = ForceReply()
                     Template.render(
                         applicationContext,
                         "TPL_send_sms_chat",
@@ -980,6 +932,7 @@ class ChatService : Service() {
                         if (isPhoneNumber(tempTo)) {
                             chatMMKV.putString("to", tempTo)
                             sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
+                            requestBody.replyMarkup = ForceReply()
                             Template.render(
                                 applicationContext,
                                 "TPL_send_sms_chat",
@@ -1206,6 +1159,53 @@ class ChatService : Service() {
         chatMMKV.remove("to")
         chatMMKV.remove("content")
         chatMMKV.remove("message_id")
+    }
+
+    private fun handleSmsSimSelected(slot: Int, simLabel: String, callbackMessageId: Long) {
+        chatMMKV.putInt("slot", slot)
+        sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
+
+        // Acknowledge the SIM choice on the original message (also clears the inline keyboard).
+        val ackBody = RequestMessage().apply {
+            chatId = this@ChatService.chatId
+            messageThreadId = this@ChatService.messageThreadId
+            messageId = callbackMessageId
+            text = Template.render(
+                applicationContext,
+                "TPL_send_sms_chat",
+                mapOf("SIM" to simLabel, "Content" to "✅")
+            )
+        }
+        callTelegramApi("editMessageText", ackBody)
+
+        // Send a follow-up prompt with force_reply so the input field auto-binds to it.
+        val promptBody = RequestMessage().apply {
+            chatId = this@ChatService.chatId
+            messageThreadId = this@ChatService.messageThreadId
+            text = Template.render(
+                applicationContext,
+                "TPL_send_sms_chat",
+                mapOf("SIM" to simLabel, "Content" to getString(R.string.enter_reply_number))
+            )
+            replyMarkup = ForceReply()
+        }
+        callTelegramApi("sendMessage", promptBody)
+    }
+
+    private fun callTelegramApi(method: String, requestBody: RequestMessage) {
+        val requestUri = getUrl(botToken, method)
+        val body: RequestBody = Gson().toJson(requestBody).toRequestBody(JSON)
+        val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
+        val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
+        try {
+            okhttpObj.newCall(request).execute().use { response ->
+                if (response.code != 200) {
+                    throw IOException(response.code.toString())
+                }
+            }
+        } catch (e: IOException) {
+            Log.e(logTag, "Failed to call Telegram API $method: ${e.message}", e)
+        }
     }
 
     private fun setUssdSendStatusStandby() {

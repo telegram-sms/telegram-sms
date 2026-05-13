@@ -165,4 +165,20 @@ object ReplyMarkupKeyboard {
         @SerializedName("selective")
         var selective: Boolean = false
     }
+
+    /**
+     * Telegram clients will display a reply interface to the user (as if the user
+     * had selected the bot's message and tapped 'Reply'). Used for step-by-step
+     * interactive prompts such as the SMS phone-number / content input flow.
+     */
+    class ForceReply {
+        @SerializedName("force_reply")
+        val forceReply: Boolean = true
+
+        @SerializedName("input_field_placeholder")
+        var inputFieldPlaceholder: String? = null
+
+        @SerializedName("selective")
+        var selective: Boolean = false
+    }
 }
