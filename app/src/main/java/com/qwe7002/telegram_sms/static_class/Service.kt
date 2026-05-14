@@ -13,13 +13,15 @@ import com.qwe7002.telegram_sms.ChatService
 import com.qwe7002.telegram_sms.value.TAG
 
 object Service {
+    private const val logTag = "${TAG}.Service"
+
     @JvmStatic
     fun stopAllService(context: Context) {
         try {
             context.stopService(Intent(context, ChatService::class.java))
             context.stopService(Intent(context, BatteryService::class.java))
         } catch (e: Exception) {
-            Log.e(TAG, "stopAllService: Failed to stop services", e)
+            Log.e(logTag, "stopAllService: Failed to stop services", e)
         }
     }
 
@@ -28,7 +30,7 @@ object Service {
         val batteryService = Intent(context, BatteryService::class.java)
         val chatLongPollingService = Intent(context, ChatService::class.java)
         if (isNotifyListener(context)) {
-            Log.d(TAG, "Notification listener is enabled.")
+            Log.d(logTag, "Notification listener is enabled.")
             val thisComponent = ComponentName(context, NotificationService::class.java)
             val pm = context.packageManager
             pm.setComponentEnabledSetting(

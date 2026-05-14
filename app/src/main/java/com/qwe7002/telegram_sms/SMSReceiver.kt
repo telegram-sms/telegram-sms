@@ -26,19 +26,21 @@ import com.tencent.mmkv.MMKV
 import java.util.Locale
 
 class SMSReceiver : BroadcastReceiver() {
+    private val logTag = "${TAG}.SMSReceiver"
+
     @Suppress("DEPRECATION")
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(TAG, "Receive action: " + intent.action)
+        Log.d(logTag, "Receive action: " + intent.action)
         val extras = intent.extras!!
         val preferences = MMKV.defaultMMKV()
         if (!preferences.getBoolean("initialized", false)) {
-            Log.i(TAG, "Uninitialized, SMS receiver is deactivated.")
+            Log.i(logTag, "Uninitialized, SMS receiver is deactivated.")
             return
         }
         val isDefaultSmsApp = Telephony.Sms.getDefaultSmsPackage(context) == context.packageName
         if (intent.action == "android.provider.Telephony.SMS_RECEIVED" && isDefaultSmsApp) {
             //When it is the default application, it will receive two broadcasts.
-            Log.i(TAG, "reject: android.provider.Telephony.SMS_RECEIVED.")
+            Log.i(logTag, "reject: android.provider.Telephony.SMS_RECEIVED.")
             return
         }
 
@@ -59,7 +61,7 @@ class SMSReceiver : BroadcastReceiver() {
         val dualSim = try {
             Phone.getSimDisplayName(context, slot)
         } catch (e: SecurityException) {
-            Log.e(TAG, "Failed to get SIM display name due to missing permission: ${e.message}",e)
+            Log.e(logTag, "Failed to get SIM display name due to missing permission: ${e.message}",e)
             ""
         }
 
@@ -72,7 +74,7 @@ class SMSReceiver : BroadcastReceiver() {
                 SmsMessage.createFromPdu(pdus[i] as ByteArray, extras.getString("format"))
         }
         if (messages.isEmpty()) {
-            Log.w(TAG, "Message length is equal to 0.")
+            Log.w(logTag, "Message length is equal to 0.")
             return
         }
 
@@ -111,7 +113,7 @@ class SMSReceiver : BroadcastReceiver() {
             }
         }
         if (isTrustedPhone) {
-            Log.i(TAG, "SMS from trusted mobile phone detected")
+            Log.i(logTag, "SMS from trusted mobile phone detected")
             val messageCommand =
                 textContent.lowercase(Locale.getDefault()).replace("_", "").replace("-", "")
             val commandList = messageCommand.split("\n").filter { it.isNotEmpty() }.toTypedArray()
@@ -206,7 +208,7 @@ class SMSReceiver : BroadcastReceiver() {
                                 return
                             }
                         } else {
-                            Log.i(TAG, "send_ussd: No permission.")
+                            Log.i(logTag, "send_ussd: No permission.")
                             return
                         }
                     }
@@ -221,7 +223,7 @@ class SMSReceiver : BroadcastReceiver() {
                     ?: mutableListOf()
             for (blackListItem in blackListArray) {
                 if (textContent.contains(blackListItem)) {
-                    Log.i(TAG, "Detected message contains blacklist keywords")
+                    Log.i(logTag, "Detected message contains blacklist keywords")
                     requestBody.disableNotification = true
                 }
             }
@@ -249,7 +251,7 @@ class SMSReceiver : BroadcastReceiver() {
             if (Other.isPhoneNumber(messageAddress)) {
                 Other.addMessageList(Other.getMessageId(result), messageAddress, slot)
             } else {
-                Log.w(TAG, "[$messageAddress] Not a regular phone number.")
+                Log.w(logTag, "[$messageAddress] Not a regular phone number.")
             }
         }
     }

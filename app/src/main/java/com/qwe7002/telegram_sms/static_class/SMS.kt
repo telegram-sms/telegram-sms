@@ -44,6 +44,7 @@ data class SmsInfo(
 }
 
 object SMS {
+    private const val logTag = "${TAG}.SMS"
 
     @JvmStatic
     fun isDefaultSmsApp(context: Context): Boolean {
@@ -125,7 +126,7 @@ object SMS {
     @JvmStatic
     fun deleteSmsById(context: Context, id: Long): Boolean {
         if (!isDefaultSmsApp(context)) {
-            Log.w(TAG, "Cannot delete SMS: not default SMS app")
+            Log.w(logTag, "Cannot delete SMS: not default SMS app")
             return false
         }
         return try {
@@ -136,7 +137,7 @@ object SMS {
             )
             rowsDeleted > 0
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to delete SMS: ${e.message}", e)
+            Log.e(logTag, "Failed to delete SMS: ${e.message}", e)
             false
         }
     }
@@ -160,7 +161,7 @@ object SMS {
     ) {
         var messageId = contextId
         if (!Other.isPhoneNumber(sendTo)) {
-            Log.w(TAG, "[$sendTo] is an illegal phone number")
+            Log.w(logTag, "[$sendTo] is an illegal phone number")
             return
         }
         val preferences = MMKV.defaultMMKV()
@@ -169,7 +170,7 @@ object SMS {
         val messageThreadId = preferences.getString("message_thread_id", "")!!
         var requestUri = Network.getUrl(botToken, "sendMessage")
         if (messageId != -1L) {
-            Log.d(TAG, "Find the message_id and switch to edit mode.")
+            Log.d(logTag, "Find the message_id and switch to edit mode.")
             requestUri = Network.getUrl(botToken, "editMessageText")
         }
         val requestBody = RequestMessage()
@@ -207,7 +208,7 @@ object SMS {
                 messageId = Other.getMessageId(Objects.requireNonNull(response.body).string())
             }
         } catch (e: IOException) {
-            Log.e(TAG, "failed to send message:" + e.message,e)
+            Log.e(logTag, "failed to send message:" + e.message,e)
         }
         val divideContents = smsManager.divideMessage(content)
         val sendReceiverList = ArrayList<PendingIntent>()
@@ -218,7 +219,7 @@ object SMS {
         } else {
             context.registerReceiver(receiver, filter)
         }
-        Log.d(TAG, "onReceive: $messageId")
+        Log.d(logTag, "onReceive: $messageId")
         val intent = Intent("send_sms")
         intent.putExtra("message_id", messageId)
         intent.putExtra("message_text", sendContent)
@@ -248,11 +249,11 @@ object SMS {
         val preferences = MMKV.defaultMMKV()
         val trustNumber = preferences.getString("trusted_phone_number", null)
         if (trustNumber == null) {
-            Log.i(TAG, "The trusted number is empty.")
+            Log.i(logTag, "The trusted number is empty.")
             return
         }
         if (!preferences.getBoolean("fallback_sms", false)) {
-            Log.i(TAG, "SMS fallback is not turned on.")
+            Log.i(logTag, "SMS fallback is not turned on.")
             return
         }
         val smsManager = if (subId == -1) {

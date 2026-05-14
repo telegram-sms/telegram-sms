@@ -23,6 +23,8 @@ import com.qwe7002.telegram_sms.value.TAG
 
 @Suppress("DEPRECATION")
 object ChatCommand {
+    private const val logTag = "${TAG}.ChatCommand"
+
     @JvmStatic
     fun getCommandList(
         context: Context,
@@ -127,7 +129,7 @@ object ChatCommand {
         var batteryLevel = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
         if (batteryLevel > 100) {
             Log.i(
-                TAG,
+                logTag,
                 "The previous battery is over 100%, and the correction is 100%."
             )
             batteryLevel = 100
@@ -173,7 +175,7 @@ object ChatCommand {
                 networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> return "WIFI"
                 networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
                     if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-                        Log.d(TAG, "No permission.")
+                        Log.d(logTag, "No permission.")
                         continue
                     }
                     return checkCellularNetworkType(telephonyManager.dataNetworkType)
@@ -196,7 +198,7 @@ object ChatCommand {
 
     @SuppressLint("LongLogTag")
     private fun checkCellularNetworkType(type: Int): String {
-        Log.d(TAG, "checkCellularNetworkType: $type")
+        Log.d(logTag, "checkCellularNetworkType: $type")
         return when (type) {
             TelephonyManager.NETWORK_TYPE_NR -> "NR"
             TelephonyManager.NETWORK_TYPE_LTE -> "LTE"

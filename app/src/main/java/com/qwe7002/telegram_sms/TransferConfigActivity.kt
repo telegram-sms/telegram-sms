@@ -44,6 +44,7 @@ import okio.IOException
 
 
 class TransferConfigActivity : AppCompatActivity() {
+    private val logTag = "${TAG}.TransferConfigActivity"
     lateinit var okhttpObject: okhttp3.OkHttpClient
     lateinit var preferences: android.content.SharedPreferences
     val url = "https://api.telegram-sms.com/config"
@@ -144,7 +145,7 @@ class TransferConfigActivity : AppCompatActivity() {
                     val response = call.execute()
                     if (response.code == 200) {
                         val responseBody = response.body.string()
-                        Log.d(TAG, "sendConfig: $responseBody")
+                        Log.d(logTag, "sendConfig: $responseBody")
                         val jsonObject = JsonParser.parseString(responseBody)
                             .asJsonObject
                         val key = jsonObject.get(
@@ -172,7 +173,7 @@ class TransferConfigActivity : AppCompatActivity() {
                     }
                 } catch (e: IOException) {
                     Log.e(
-                        TAG,
+                        logTag,
                         "An error occurred while resending: " + e.message
                         ,e
                     )
@@ -229,7 +230,7 @@ class TransferConfigActivity : AppCompatActivity() {
                                     .show()
 
                             }
-                            Log.e(TAG, "Decryption error", e)
+                            Log.e(logTag, "Decryption error", e)
                         }
                     } else {
                         runOnUiThread {
@@ -243,7 +244,7 @@ class TransferConfigActivity : AppCompatActivity() {
                     response.close()
                 } catch (e: IOException) {
                     Log.e(
-                        TAG,
+                        logTag,
                         "An error occurred while getting configuration: " + e.message
                         ,e
                     )

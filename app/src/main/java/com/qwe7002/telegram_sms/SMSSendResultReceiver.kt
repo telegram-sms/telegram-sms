@@ -12,13 +12,15 @@ import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 
 class SMSSendResultReceiver : BroadcastReceiver() {
+    private val logTag = "${TAG}.SMSSendResultReceiver"
+
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(TAG, "Receive action: " + intent.action)
+        Log.d(logTag, "Receive action: " + intent.action)
         val extras = intent.extras!!
         val sub = extras.getInt("sub_id")
         val sharedPreferences = MMKV.defaultMMKV()
         if (!sharedPreferences.getBoolean("initialized", false)) {
-            Log.i(TAG, "Uninitialized, SMS send receiver is deactivated.")
+            Log.i(logTag, "Uninitialized, SMS send receiver is deactivated.")
             return
         }
         context.applicationContext.unregisterReceiver(this)
@@ -27,8 +29,8 @@ class SMSSendResultReceiver : BroadcastReceiver() {
         var method = "sendMessage"
         val messageId = extras.getLong("message_id")
         if (messageId != -1L) {
-            Log.d(TAG, "Find the message_id and switch to edit mode.")
-            Log.d(TAG, "onReceive: $messageId")
+            Log.d(logTag, "Find the message_id and switch to edit mode.")
+            Log.d(logTag, "onReceive: $messageId")
             method = "editMessageText"
             requestBody.messageId = messageId
         }
@@ -53,7 +55,7 @@ class SMSSendResultReceiver : BroadcastReceiver() {
             method = method,
             fallbackSubId = sub
         ) { result ->
-            Log.d(TAG, "onResponse: $result")
+            Log.d(logTag, "onResponse: $result")
         }
     }
 }

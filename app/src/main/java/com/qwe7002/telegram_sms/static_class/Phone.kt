@@ -13,6 +13,7 @@ import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 
 object Phone {
+    private const val logTag = "${TAG}.Phone"
     val preferences = MMKV.defaultMMKV()
     @RequiresPermission(allOf = [Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_PHONE_NUMBERS])
     @JvmStatic
@@ -23,12 +24,12 @@ object Phone {
             checkNotNull(context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager)
         var info = subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(slot)
         if (info == null) {
-            Log.d(TAG, "The active card is in the second card slot.")
+            Log.d(logTag, "The active card is in the second card slot.")
             if (getActiveCard(context) == 1 && slot == 0) {
                 info = subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(1)
             }
             if (info == null) {
-                Log.d(TAG, "The active card is not found.")
+                Log.d(logTag, "The active card is not found.")
                 return ""
             }
         }

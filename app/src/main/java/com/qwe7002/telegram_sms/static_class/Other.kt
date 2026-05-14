@@ -22,6 +22,8 @@ import java.util.Date
 import java.util.Locale
 
 object Other {
+    private const val logTag = "${TAG}.Other"
+
     @JvmStatic
     fun formatTimestamp(timestampMillis: Long): String {
         // Locale.US — keep digits ASCII regardless of device locale (e.g. fa-IR / ar-* would otherwise
@@ -79,7 +81,7 @@ object Other {
         while (--i >= 0) {
             val c = str[i]
             if (c == '+') {
-                Log.d(TAG, "isPhoneNumber: found +.")
+                Log.d(logTag, "isPhoneNumber: found +.")
                 continue
             }
             if (!Character.isDigit(c)) {
@@ -159,7 +161,7 @@ object Other {
                 Manifest.permission.READ_PHONE_STATE
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            Log.d(TAG, "No permission.")
+            Log.d(logTag, "No permission.")
             return -1
         }
         val subscriptionManager =
@@ -176,6 +178,6 @@ object Other {
         val itemString = gson.toJson(item)
         val chatInfoMMKV = MMKV.mmkvWithID(CHAT_INFO_ID)
         chatInfoMMKV.putString(messageId.toString(), itemString)
-        Log.d(TAG, "addMessageList: $messageId")
+        Log.d(logTag, "addMessageList: $messageId")
     }
 }

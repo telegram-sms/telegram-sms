@@ -22,6 +22,7 @@ import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 
 object Network {
+    private const val logTag = "${TAG}.Network"
     private const val DNS_OVER_HTTP_ADDRSS = "https://1.1.1.1/dns-query"
 
     @Suppress("DEPRECATION")
@@ -111,7 +112,7 @@ object Network {
         try {
             return InetAddress.getByName(host)
         } catch (e: UnknownHostException) {
-            Log.e(TAG, "get_by_ip: ", e.fillInStackTrace())
+            Log.e(logTag, "get_by_ip: ", e.fillInStackTrace())
             throw RuntimeException(e)
         }
     }

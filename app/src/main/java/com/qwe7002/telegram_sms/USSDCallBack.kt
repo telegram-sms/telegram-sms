@@ -31,6 +31,7 @@ class USSDCallBack(
     private val context: Context,
     messageId: Long
 ) : UssdResponseCallback() {
+    private val logTag = "${TAG}.USSDCallBack"
     private val dohSwitch: Boolean
     private var requestUri: String
     private val requestBody: RequestMessage
@@ -90,7 +91,7 @@ class USSDCallBack(
         val call = okhttpClient.newCall(requestObj)
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.e(TAG, "onFailure: ${e.message}",e )
+                Log.e(logTag, "onFailure: ${e.message}",e )
                 if (ActivityCompat.checkSelfPermission(
                         context,
                         Manifest.permission.SEND_SMS
@@ -106,7 +107,7 @@ class USSDCallBack(
             override fun onResponse(call: Call, response: Response) {
                 if (response.code != 200) {
                     Log.e(
-                        TAG,
+                        logTag,
                         "onResponse: USSD message send failed with response code ${response.code}"
                     )
                     if (ActivityCompat.checkSelfPermission(

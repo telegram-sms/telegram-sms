@@ -11,6 +11,7 @@ import com.qwe7002.telegram_sms.MMKV.PROXY_ID
 import com.qwe7002.telegram_sms.MMKV.RESEND_ID
 import com.qwe7002.telegram_sms.MMKV.TEMPLATE_ID
 import com.qwe7002.telegram_sms.MMKV.UPDATE_ID
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 
 /**
@@ -27,7 +28,7 @@ object DataMigrationManager {
     const val CURRENT_DATA_VERSION = 1
 
     private const val DATA_VERSION_KEY = "data_structure_version"
-    private const val TAG = "DataMigration"
+    private const val logTag = "${TAG}.DataMigrationManager"
 
     /**
      * Check and perform necessary data migrations
@@ -38,40 +39,40 @@ object DataMigrationManager {
         val savedVersion = preferences.getInt(DATA_VERSION_KEY, 0)
 
         if (savedVersion == CURRENT_DATA_VERSION) {
-            Log.d(TAG, "Data structure is up to date (version $CURRENT_DATA_VERSION)")
+            Log.d(logTag, "Data structure is up to date (version $CURRENT_DATA_VERSION)")
             return
         }
 
         if (savedVersion == 0) {
-            Log.i(TAG, "First time initialization or legacy data detected")
+            Log.i(logTag, "First time initialization or legacy data detected")
             // Handle legacy data or first installation
             handleLegacyData(context, preferences)
         } else {
-            Log.i(TAG, "Data structure upgrade needed: $savedVersion -> $CURRENT_DATA_VERSION")
+            Log.i(logTag, "Data structure upgrade needed: $savedVersion -> $CURRENT_DATA_VERSION")
             performMigration(context, savedVersion, CURRENT_DATA_VERSION)
         }
 
         // Update to current version
         preferences.putInt(DATA_VERSION_KEY, CURRENT_DATA_VERSION)
-        Log.i(TAG, "Data structure version updated to $CURRENT_DATA_VERSION")
+        Log.i(logTag, "Data structure version updated to $CURRENT_DATA_VERSION")
     }
 
     /**
      * Handle legacy data from versions before data structure versioning was implemented
      */
     private fun handleLegacyData(context: Context, preferences: MMKV) {
-        Log.d(TAG, "Processing legacy data...")
+        Log.d(logTag, "Processing legacy data...")
 
         // Check if this is an existing installation with data
         val isInitialized = preferences.getBoolean("initialized", false)
 
         if (isInitialized) {
-            Log.i(TAG, "Legacy installation detected, applying compatibility layer")
+            Log.i(logTag, "Legacy installation detected, applying compatibility layer")
             // Legacy data exists, mark as version 1 (current baseline)
             // No migration needed as version 1 is our baseline
             migrateToVersion1(context, preferences)
         } else {
-            Log.d(TAG, "New installation, no legacy data to migrate")
+            Log.d(logTag, "New installation, no legacy data to migrate")
         }
     }
 
@@ -79,14 +80,14 @@ object DataMigrationManager {
      * Perform migration from old version to new version
      */
     private fun performMigration(context: Context, fromVersion: Int, toVersion: Int) {
-        Log.i(TAG, "Starting migration from version $fromVersion to $toVersion")
+        Log.i(logTag, "Starting migration from version $fromVersion to $toVersion")
 
         // Apply migrations sequentially
         var currentVersion = fromVersion
 
         while (currentVersion < toVersion) {
             val nextVersion = currentVersion + 1
-            Log.d(TAG, "Applying migration: $currentVersion -> $nextVersion")
+            Log.d(logTag, "Applying migration: $currentVersion -> $nextVersion")
 
             when (nextVersion) {
                 1 -> migrateToVersion1(context, MMKV.defaultMMKV())
@@ -94,14 +95,14 @@ object DataMigrationManager {
                 3 -> migrateToVersion3(context, MMKV.defaultMMKV())
                 // Add more migration cases as needed
                 else -> {
-                    Log.w(TAG, "No migration handler for version $nextVersion")
+                    Log.w(logTag, "No migration handler for version $nextVersion")
                 }
             }
 
             currentVersion = nextVersion
         }
 
-        Log.i(TAG, "Migration completed successfully")
+        Log.i(logTag, "Migration completed successfully")
     }
 
     /**
@@ -109,7 +110,7 @@ object DataMigrationManager {
      * This represents the current data structure
      */
     private fun migrateToVersion1(context: Context, preferences: MMKV) {
-        Log.d(TAG, "Migrating to version 1 (baseline)")
+        Log.d(logTag, "Migrating to version 1 (baseline)")
 
         // Version 1 structure includes:
         // - bot_token (String)
@@ -158,7 +159,7 @@ object DataMigrationManager {
             preferences.putString("api_address", "api.telegram.org")
         }
 
-        Log.d(TAG, "Version 1 data validation completed")
+        Log.d(logTag, "Version 1 data validation completed")
     }
 
     /**
@@ -166,7 +167,7 @@ object DataMigrationManager {
      * Add your migration logic here when you need to upgrade to version 2
      */
     private fun migrateToVersion2(context: Context, preferences: MMKV) {
-        Log.d(TAG, "Migrating to version 2")
+        Log.d(logTag, "Migrating to version 2")
 
         // Example migration tasks:
         // 1. Add new fields with default values
@@ -191,7 +192,7 @@ object DataMigrationManager {
      * Migration to version 3 (example for future use)
      */
     private fun migrateToVersion3(context: Context, preferences: MMKV) {
-        Log.d(TAG, "Migrating to version 3")
+        Log.d(logTag, "Migrating to version 3")
 
         // Add your version 3 migration logic here
     }
@@ -215,7 +216,7 @@ object DataMigrationManager {
      * Force reset data structure version (use with caution)
      */
     fun resetDataVersion() {
-        Log.w(TAG, "Resetting data structure version - this may cause data inconsistency!")
+        Log.w(logTag, "Resetting data structure version - this may cause data inconsistency!")
         MMKV.defaultMMKV().remove(DATA_VERSION_KEY)
     }
 
@@ -225,7 +226,7 @@ object DataMigrationManager {
      */
     fun backupData(context: Context): Boolean {
         return try {
-            Log.i(TAG, "Creating data backup...")
+            Log.i(logTag, "Creating data backup...")
 
             // Backup default MMKV
             val defaultMMKV = MMKV.defaultMMKV()
@@ -251,10 +252,10 @@ object DataMigrationManager {
                 copyMMKVData(sourceMMKV, backupInstanceMMKV)
             }
 
-            Log.i(TAG, "Data backup completed successfully")
+            Log.i(logTag, "Data backup completed successfully")
             true
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to backup data: ${e.message}", e)
+            Log.e(logTag, "Failed to backup data: ${e.message}", e)
             false
         }
     }
@@ -281,7 +282,7 @@ object DataMigrationManager {
                     continue
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "copyMMKVData: ${e.message}",e )
+                Log.e(logTag, "copyMMKVData: ${e.message}",e )
             }
 
             try {
@@ -291,14 +292,14 @@ object DataMigrationManager {
                     continue
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "copyMMKVData: ${e.message}",e )
+                Log.e(logTag, "copyMMKVData: ${e.message}",e )
             }
 
             try {
                 val boolVal = source.decodeBool(key)
                 destination.encode(key, boolVal)
             } catch (e: Exception) {
-                Log.e(TAG, "copyMMKVData: ${e.message}",e )
+                Log.e(logTag, "copyMMKVData: ${e.message}",e )
             }
         }
     }

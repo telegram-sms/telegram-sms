@@ -24,6 +24,8 @@ import java.io.IOException
 import java.util.Objects
 
 object USSD {
+    private const val logTag = "${TAG}.USSD"
+
     @JvmStatic
     @RequiresApi(api = Build.VERSION_CODES.O)
     fun sendUssd(context: Context, ussdRaw: String, subId: Int, messageId: Long = -1L) {
@@ -39,7 +41,7 @@ object USSD {
                 Manifest.permission.CALL_PHONE
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            Log.i(TAG, "send_ussd: No permission.")
+            Log.i(logTag, "send_ussd: No permission.")
         }
 
         val botToken = preferences.getString("bot_token", "")!!
@@ -75,13 +77,13 @@ object USSD {
                         Objects.requireNonNull(response.body).string()
                     )
                 } catch (e: IOException) {
-                    Log.e(TAG, "send_ussd: Send USSD message failed: " + e.message, e)
+                    Log.e(logTag, "send_ussd: Send USSD message failed: " + e.message, e)
                 }
             } else {
                 try {
                     call.execute()
                 } catch (e: IOException) {
-                    Log.e(TAG, "send_ussd: Edit USSD message failed: " + e.message, e)
+                    Log.e(logTag, "send_ussd: Edit USSD message failed: " + e.message, e)
                 }
             }
             if (ActivityCompat.checkSelfPermission(
