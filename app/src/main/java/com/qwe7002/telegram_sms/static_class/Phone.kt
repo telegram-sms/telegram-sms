@@ -42,16 +42,15 @@ object Phone {
                 @Suppress("DEPRECATION")
                 info.number
             }
-            if (preferences.getBoolean("hide_phone_number",false)){
-                if (tm.simOperatorName == info.displayName) {
-                    tm.simOperatorName + " "
-                } else {
-                    info.displayName.toString() + " "
-                }
-            } else if (tm.simOperatorName == info.displayName) {
-                tm.simOperatorName + " (" + phoneNumber + ")"
+            val displayName = if (tm.simOperatorName == info.displayName) {
+                tm.simOperatorName.toString()
             } else {
-                info.displayName.toString() + " (" + phoneNumber + ")"
+                info.displayName.toString()
+            }
+            if (preferences.getBoolean("hide_phone_number", false) || phoneNumber.isNullOrBlank()) {
+                "$displayName "
+            } else {
+                "$displayName ($phoneNumber)"
             }
         } else {
             info.carrierName.toString()
