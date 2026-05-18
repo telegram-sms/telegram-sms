@@ -14,7 +14,9 @@ import com.tencent.mmkv.MMKV
 
 object Phone {
     private const val logTag = "${TAG}.Phone"
-    val preferences = MMKV.defaultMMKV()
+    // Lazy so that pure helpers (e.g. formatSimDisplayName) are unit-testable
+    // without requiring MMKV native init / an Android context at object load.
+    val preferences by lazy { MMKV.defaultMMKV() }
     @RequiresPermission(allOf = [Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_PHONE_NUMBERS])
     @JvmStatic
     fun getSimDisplayName(context: Context, slot: Int): String {
@@ -42,18 +44,33 @@ object Phone {
                 @Suppress("DEPRECATION")
                 info.number
             }
-            val displayName = if (tm.simOperatorName == info.displayName) {
-                tm.simOperatorName.toString()
-            } else {
-                info.displayName.toString()
-            }
-            if (preferences.getBoolean("hide_phone_number", false) || phoneNumber.isNullOrBlank()) {
-                "$displayName "
-            } else {
-                "$displayName ($phoneNumber)"
-            }
+            formatSimDisplayName(
+                operatorName = tm.simOperatorName,
+                displayName = info.displayName?.toString(),
+                phoneNumber = phoneNumber,
+                hidePhoneNumber = preferences.getBoolean("hide_phone_number", false)
+            )
         } else {
             info.carrierName.toString()
+        }
+    }
+
+    @JvmStatic
+    fun formatSimDisplayName(
+        operatorName: String?,
+        displayName: String?,
+        phoneNumber: String?,
+        hidePhoneNumber: Boolean
+    ): String {
+        val name = when {
+            !displayName.isNullOrBlank() -> displayName
+            !operatorName.isNullOrBlank() -> operatorName
+            else -> ""
+        }
+        return if (hidePhoneNumber || phoneNumber.isNullOrBlank()) {
+            "$name "
+        } else {
+            "$name ($phoneNumber)"
         }
     }
 

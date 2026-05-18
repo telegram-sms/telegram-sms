@@ -99,6 +99,10 @@ android {
     }
     namespace = "com.qwe7002.telegram_sms"
     buildToolsVersion = "36.1.0"
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -120,6 +124,8 @@ dependencies {
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("com.goterl:lazysodium-android:5.2.0@aar")
     implementation("net.java.dev.jna:jna:5.18.1@aar")
+
+    testImplementation("junit:junit:4.13.2")
 }
 
 tasks.register<Copy>("copy_language_pack") {
