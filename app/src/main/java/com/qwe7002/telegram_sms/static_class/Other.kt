@@ -44,8 +44,10 @@ object Other {
     )
 
     fun getNineKeyMapConvert(input: String): String {
+        // Locale.ROOT — Turkish locale would otherwise uppercase 'i' to 'İ' (U+0130),
+        // which isn't in NINE_KEY_MAP and would pass through unmapped.
         val result = StringBuilder(input.length)
-        val phoneNumberCharArray = input.uppercase(Locale.getDefault()).toCharArray()
+        val phoneNumberCharArray = input.uppercase(Locale.ROOT).toCharArray()
         for (c in phoneNumberCharArray) {
             result.append(NINE_KEY_MAP[c] ?: c)
         }
@@ -77,24 +79,35 @@ object Other {
 
 
     fun isPhoneNumber(str: String): Boolean {
-        var i = str.length
-        while (--i >= 0) {
-            val c = str[i]
-            if (c == '+') {
-                Log.d(logTag, "isPhoneNumber: found +.")
-                continue
-            }
-            if (!Character.isDigit(c)) {
-                return false
+        if (str.isEmpty()) return false
+        var hasDigit = false
+        for ((i, c) in str.withIndex()) {
+            when {
+                c == '+' -> if (i != 0) return false
+                Character.isDigit(c) -> hasDigit = true
+                else -> return false
             }
         }
-        return true
+        return hasDigit
     }
 
 
     @JvmStatic
     fun getMessageId(result: String): Long {
-        return JsonParser.parseString(result).asJsonObject["result"].asJsonObject["message_id"].asLong
+        return try {
+            val root = JsonParser.parseString(result).asJsonObject
+            val resultObj = root["result"]?.asJsonObject ?: run {
+                Log.w(logTag, "getMessageId: no 'result' object in $result")
+                return 0L
+            }
+            resultObj["message_id"]?.asLong ?: 0L
+        } catch (e: Exception) {
+            // Telegram error responses (ok:false), HTML/proxy bodies, or other
+            // non-Telegram payloads land here. Returning 0 keeps callers alive;
+            // they already treat 0 as "no message id" via MMKV defaults.
+            Log.w(logTag, "getMessageId: failed to parse response: $result", e)
+            0L
+        }
     }
 
     @JvmStatic
