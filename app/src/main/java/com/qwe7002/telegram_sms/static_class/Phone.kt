@@ -38,8 +38,17 @@ object Phone {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             val subId1 = info.subscriptionId
             val tm = telephonyManager.createForSubscriptionId(subId1)
+            // READ_PHONE_NUMBERS is a runtime-revocable dangerous permission and
+            // can disappear after an upgrade (issue #82). Degrade to name-only
+            // instead of bubbling the SecurityException up to the receiver,
+            // which would otherwise collapse {{SIM}} to an empty string.
             val phoneNumber = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                subscriptionManager.getPhoneNumber(subId1)
+                try {
+                    subscriptionManager.getPhoneNumber(subId1)
+                } catch (e: SecurityException) {
+                    Log.w(logTag, "getPhoneNumber denied; rendering SIM name only: ${e.message}")
+                    null
+                }
             } else {
                 @Suppress("DEPRECATION")
                 info.number
