@@ -188,10 +188,22 @@ build_release:
               echo "ERROR: Keystore file not found at app/keys.jks"
               exit 1
             fi
+            missing=0
+            for v in KEYSTORE_PASS ALIAS_NAME ALIAS_PASS; do
+              eval "val=\${$v:-}"
+              if [ -z "${val}" ]; then
+                echo "ERROR: ${v} CI/CD variable is not set"
+                missing=1
+              fi
+            done
+            if [ "${missing}" -ne 0 ]; then
+              echo "Set the missing variables under Settings → CI/CD → Variables (Protected + Masked)."
+              exit 1
+            fi
 
             # Verify keystore is valid and not corrupted
-            if ! keytool -list -keystore app/keys.jks -storepass "${KEYSTORE_PASSWORD}" > /dev/null 2>&1; then
-              echo "ERROR: Keystore validation failed - file may be corrupted or password incorrect"
+            if ! keytool -list -keystore app/keys.jks -storepass "${KEYSTORE_PASS}" > /dev/null 2>&1; then
+              echo "ERROR: Keystore validation failed - file may be corrupted or KEYSTORE_PASS incorrect"
               exit 1
             fi
 
