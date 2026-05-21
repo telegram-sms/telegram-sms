@@ -9,8 +9,14 @@ object Template {
     @JvmStatic
     fun render(context: Context, template: String, values: Map<String, String>): String {
         val templateMMKV = MMKV.mmkvWithID(TEMPLATE_ID)
-        var result = templateMMKV.decodeString(template, getStringByName(context, template))
-            ?: getStringByName(context, template)
+        val default = getStringByName(context, template)
+        val source = templateMMKV.decodeString(template, default) ?: default
+        return substitute(source, values)
+    }
+
+    @JvmStatic
+    fun substitute(source: String, values: Map<String, String>): String {
+        var result = source
         for ((key, value) in values) {
             result = result.replace("{{${key}}}", value)
         }
