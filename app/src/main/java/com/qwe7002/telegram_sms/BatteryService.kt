@@ -19,6 +19,7 @@ import com.qwe7002.telegram_sms.static_class.TelegramApi
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.CcType
 import com.qwe7002.telegram_sms.value.Notify
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import java.util.Objects
 import java.util.concurrent.ConcurrentHashMap
@@ -27,6 +28,7 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 class BatteryService : Service() {
+    private val logTag = "${TAG}.BatteryService"
     private lateinit var batteryReceiver: batteryChangeReceiver
 
     // Thread-safe map to store pending actions (key: action type, value: sendObj)
@@ -111,7 +113,7 @@ class BatteryService : Service() {
                 }
             }
         } catch (e: Exception) {
-            Log.e("BatteryService", "Error processing message: $e")
+            Log.e(logTag, "Error processing message: $e")
         } finally {
             isProcessing = false
         }
@@ -125,7 +127,7 @@ class BatteryService : Service() {
         if ((System.currentTimeMillis() - lastReceiveTime) <= 5000L && lastReceiveMessageId != -1L) {
             method = "editMessageText"
             requestMessage.messageId = lastReceiveMessageId
-            Log.d(this::class.java.simpleName, "onReceive: edit_mode")
+            Log.d(logTag, "onReceive: edit_mode")
         }
         lastReceiveTime = System.currentTimeMillis()
 
@@ -136,7 +138,6 @@ class BatteryService : Service() {
             context = this,
             requestBody = requestMessage,
             method = method,
-            errorTag = "BatteryService",
             fallbackSubId = if (enableFallback) 0 else -1,  // Use default sub for fallback
             enableResend = false  // Battery service handles its own retry logic
         )
@@ -173,7 +174,7 @@ class BatteryService : Service() {
 
     internal inner class batteryChangeReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            Log.d(this::class.simpleName, "Receive action: " + intent.action)
+            Log.d(logTag, "Receive action: " + intent.action)
 
             val action = intent.action
             val batteryManager = context.getSystemService(BATTERY_SERVICE) as BatteryManager
@@ -183,14 +184,14 @@ class BatteryService : Service() {
                 Intent.ACTION_POWER_CONNECTED -> context.getString(R.string.charger_connect)
                 Intent.ACTION_POWER_DISCONNECTED -> context.getString(R.string.charger_disconnect)
                 else -> {
-                    Log.e(this::class.simpleName, "Unknown action: $action")
+                    Log.e(logTag, "Unknown action: $action")
                     return
                 }
             }
             var batteryLevel =
                 batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
             if (batteryLevel > 100) {
-                Log.d(this::class.simpleName, "The previous battery is over 100%, and the correction is 100%.")
+                Log.d(logTag, "The previous battery is over 100%, and the correction is 100%.")
                 batteryLevel = 100
             }
             val result = Template.render(
@@ -209,7 +210,6 @@ class BatteryService : Service() {
             val obj = sendObj()
             obj.action = action!!
             obj.content = result
-            // Using action as key automatically deduplicates - only keeps the latest message for each action type
             pendingActions[action] = obj
         }
     }

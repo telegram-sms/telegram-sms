@@ -21,23 +21,26 @@ import com.qwe7002.telegram_sms.static_class.TelegramApi
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.USSD
 import com.qwe7002.telegram_sms.value.CcType
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import java.util.Locale
 
 class SMSReceiver : BroadcastReceiver() {
+    private val logTag = "${TAG}.SMSReceiver"
+
     @Suppress("DEPRECATION")
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(this::class.simpleName, "Receive action: " + intent.action)
+        Log.d(logTag, "Receive action: " + intent.action)
         val extras = intent.extras!!
         val preferences = MMKV.defaultMMKV()
         if (!preferences.getBoolean("initialized", false)) {
-            Log.i(this::class.simpleName, "Uninitialized, SMS receiver is deactivated.")
+            Log.i(logTag, "Uninitialized, SMS receiver is deactivated.")
             return
         }
         val isDefaultSmsApp = Telephony.Sms.getDefaultSmsPackage(context) == context.packageName
         if (intent.action == "android.provider.Telephony.SMS_RECEIVED" && isDefaultSmsApp) {
             //When it is the default application, it will receive two broadcasts.
-            Log.i(this::class.simpleName, "reject: android.provider.Telephony.SMS_RECEIVED.")
+            Log.i(logTag, "reject: android.provider.Telephony.SMS_RECEIVED.")
             return
         }
 
@@ -55,15 +58,11 @@ class SMSReceiver : BroadcastReceiver() {
             }
         }
         val slot = intentSlot
-        /* val dualSim = Other.getDualSimCardDisplay(
-             context,
-             intentSlot,
-         )*/
         val dualSim = try {
             Phone.getSimDisplayName(context, slot)
         } catch (e: SecurityException) {
-            Log.e(this::class.simpleName, "Failed to get SIM display name due to missing permission: ${e.message}")
-            "Unknown"
+            Log.e(logTag, "Failed to get SIM display name due to missing permission: ${e.message}",e)
+            ""
         }
 
         val pdus = (extras["pdus"] as Array<*>?)!!
@@ -75,7 +74,7 @@ class SMSReceiver : BroadcastReceiver() {
                 SmsMessage.createFromPdu(pdus[i] as ByteArray, extras.getString("format"))
         }
         if (messages.isEmpty()) {
-            Log.w("SMSReceiver", "Message length is equal to 0.")
+            Log.w(logTag, "Message length is equal to 0.")
             return
         }
 
@@ -86,6 +85,10 @@ class SMSReceiver : BroadcastReceiver() {
         val textContent = messageBodyBuilder.toString()
 
         val messageAddress = messages[0]!!.originatingAddress!!
+        // Some carriers ship SMS with a 0/garbage SMSC timestamp; in that case fall back to the
+        // local receive time so the {{Time}} placeholder is never empty.
+        val smsTimestamp = messages[0]!!.timestampMillis.takeIf { it > 0 } ?: System.currentTimeMillis()
+        val messageTime = Other.formatTimestamp(smsTimestamp)
         val trustedPhoneNumber = preferences.getString("trusted_phone_number", null)
         var isTrustedPhone = false
         if (!trustedPhoneNumber.isNullOrEmpty()) {
@@ -110,28 +113,48 @@ class SMSReceiver : BroadcastReceiver() {
             }
         }
         if (isTrustedPhone) {
-            Log.i("SMSReceiver", "SMS from trusted mobile phone detected")
+            Log.i(logTag, "SMS from trusted mobile phone detected")
             val messageCommand =
                 textContent.lowercase(Locale.getDefault()).replace("_", "").replace("-", "")
             val commandList = messageCommand.split("\n").filter { it.isNotEmpty() }.toTypedArray()
             if (commandList.isNotEmpty()) {
                 val messageList = textContent.split("\n").filter { it.isNotEmpty() }.toTypedArray()
                 when (commandList[0].trim()) {
-                    "/sendsms", "/sendsms1", "/sendsms2" -> {
+                    "/sendsms" -> {
                         val messageInfo =
                             messageList[0].split(" ").filter { it.isNotEmpty() }.toTypedArray()
-                        if (messageInfo.size == 2) {
-                            val msgSendTo = Other.getSendPhoneNumber(messageInfo[1])
-                            if (Other.isPhoneNumber(msgSendTo)) {
-                                val msgSendContent = messageList.drop(2).joinToString("\n")
-                                var sendSlot = slot
-                                if (Other.getActiveCard(context) > 1) {
-                                    sendSlot = when (commandList[0].trim()) {
-                                        "/sendsms1" -> 0
-                                        "/sendsms2" -> 1
-                                        else -> sendSlot
+
+                        // Determine which element contains the phone number
+                        // Format can be: /sendsms phone or /sendsms 1 phone or /sendsms1 phone
+                        val baseCommand = commandList[0].trim()
+                        var phoneIndex = 1
+                        var sendSlot = slot
+
+                        if (Other.getActiveCard(context) > 1) {
+                            when (baseCommand) {
+                                "/sendsms" -> {
+                                    // Check if SIM card number is specified
+                                    if (messageInfo.size >= 3) {
+                                        when (messageInfo[1]) {
+                                            "1" -> {
+                                                sendSlot = 0
+                                                phoneIndex = 2
+                                            }
+                                            "2" -> {
+                                                sendSlot = 1
+                                                phoneIndex = 2
+                                            }
+                                        }
                                     }
                                 }
+                            }
+                        }
+
+                        if (messageInfo.size > phoneIndex) {
+                            val msgSendTo = Other.getSendPhoneNumber(messageInfo[phoneIndex])
+                            if (Other.isPhoneNumber(msgSendTo)) {
+                                val contentStartLine = if (phoneIndex == 2) 2 else 1
+                                val msgSendContent = messageList.drop(contentStartLine + 1).joinToString("\n")
                                 Thread {
                                     SMS.sendSms(
                                         context,
@@ -152,12 +175,40 @@ class SMSReceiver : BroadcastReceiver() {
                                 Manifest.permission.CALL_PHONE
                             ) == PackageManager.PERMISSION_GRANTED
                         ) {
-                            if (messageList.size == 2) {
-                                USSD.sendUssd(context, messageList[1], subId)
+                            val messageInfo =
+                                messageList[0].split(" ").filter { it.isNotEmpty() }.toTypedArray()
+
+                            val baseCommand = commandList[0].trim()
+                            var codeIndex = 1
+                            var ussdSlot = slot
+
+                            if (Other.getActiveCard(context) > 1) {
+                                when (baseCommand) {
+                                    "/sendussd" -> {
+                                        // Check if SIM card number is specified
+                                        if (messageInfo.size >= 3) {
+                                            when (messageInfo[1]) {
+                                                "1" -> {
+                                                    ussdSlot = 0
+                                                    codeIndex = 2
+                                                }
+                                                "2" -> {
+                                                    ussdSlot = 1
+                                                    codeIndex = 2
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (messageInfo.size > codeIndex) {
+                                val ussdCode = messageInfo[codeIndex]
+                                USSD.sendUssd(context, ussdCode, Other.getSubId(context, ussdSlot))
                                 return
                             }
                         } else {
-                            Log.i(this::class.simpleName, "send_ussd: No permission.")
+                            Log.i(logTag, "send_ussd: No permission.")
                             return
                         }
                     }
@@ -172,16 +223,16 @@ class SMSReceiver : BroadcastReceiver() {
                     ?: mutableListOf()
             for (blackListItem in blackListArray) {
                 if (textContent.contains(blackListItem)) {
-                    Log.i(this::class.simpleName, "Detected message contains blacklist keywords")
+                    Log.i(logTag, "Detected message contains blacklist keywords")
                     requestBody.disableNotification = true
                 }
             }
         }
 
         val values =
-            mapOf("SIM" to dualSim, "From" to messageAddress, "Content" to textContentHTML)
+            mapOf("SIM" to dualSim, "From" to messageAddress, "Content" to textContentHTML, "Time" to messageTime)
         val rawValues =
-            mapOf("SIM" to dualSim, "From" to messageAddress, "Content" to textContent)
+            mapOf("SIM" to dualSim, "From" to messageAddress, "Content" to textContent, "Time" to messageTime)
         requestBody.text = Template.render(context, "TPL_received_sms", values)
         val requestBodyText = Template.render(context, "TPL_received_sms", rawValues)
         CcSendJob.startJob(
@@ -195,13 +246,12 @@ class SMSReceiver : BroadcastReceiver() {
         TelegramApi.sendMessage(
             context = context,
             requestBody = requestBody,
-            errorTag = "SMSReceiver",
             fallbackSubId = subId
         ) { result ->
             if (Other.isPhoneNumber(messageAddress)) {
                 Other.addMessageList(Other.getMessageId(result), messageAddress, slot)
             } else {
-                Log.w("SMSReceiver", "[$messageAddress] Not a regular phone number.")
+                Log.w(logTag, "[$messageAddress] Not a regular phone number.")
             }
         }
     }

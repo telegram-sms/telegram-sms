@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="scan_title">Scan QR code</string>
+    <string name="no_camera_permission">Please allow camera access for QR code scanning.</string>
+    <string name="transfer_configuration">Transfer Configuration</string>
+    <string name="qrcode_notice">Keep this QR code safe!\nPlease don\'t share it with others.</string>
+    <string name="an_error_occurred_while_decrypting_the_configuration">An error occurred while decrypting the configuration</string>
+    <string name="an_error_occurred_while_getting_the_configuration">"An error occurred while getting the configuration: "</string>
+    <string name="error_id_cannot_be_empty">ID cannot be empty</string>
+    <string name="error_password_cannot_be_empty">Password cannot be empty</string>
+    <string name="error_id_must_be_9_characters">ID must be 9 characters</string>
+    <string name="configuration_sent_successfully">"Configuration sent successfully.\nID: "</string>
+    <string name="please_enter_your_info">Please enter your configuration information</string>
+    <string name="getting_configuration">Getting configuration</string>
+    <string name="sending_configuration">Sending configuration</string>
+    <string name="please_enter_your_password">Please enter your password</string>
+    <string name="error_password_must_be_6_characters">Password length needs to be greater than 6 characters</string>
+    <string name="invalid_json_structure">Invalid JSON structure</string>
+    <string name="no_entries_available">No entries available</string>
+</resources>
+

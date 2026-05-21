@@ -9,7 +9,6 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -34,14 +33,15 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
-import com.qwe7002.telegram_sms.data_structure.config.CcConfig
+import com.qwe7002.telegram_sms.MMKV.CARBON_COPY_ID
 import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.data_structure.HAR
+import com.qwe7002.telegram_sms.data_structure.config.CcConfig
 import com.qwe7002.telegram_sms.static_class.Crypto
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Template
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.RESULT_CONFIG_JSON
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -50,6 +50,7 @@ import java.io.IOException
 
 @Suppress("NAME_SHADOWING")
 class CcActivity : AppCompatActivity() {
+    private val logTag = "${TAG}.CcActivity"
     private lateinit var listAdapter: ArrayAdapter<CcSendService>
     private lateinit var serviceList: ArrayList<CcSendService>
     private val gson = Gson()
@@ -63,11 +64,12 @@ class CcActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        FakeStatusBar().fakeStatusBar(this, window)
         val inflater = this.layoutInflater
         val fab = findViewById<FloatingActionButton>(R.id.cc_fab)
         val ccList = findViewById<ListView>(R.id.cc_list)
 
-        val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+        val carbonCopyMMKV = MMKV.mmkvWithID(CARBON_COPY_ID)
         val serviceListJson = carbonCopyMMKV.getString("service", "[]")
         val type = object : TypeToken<ArrayList<CcSendService>>() {}.type
         serviceList = gson.fromJson(serviceListJson, type)
@@ -202,8 +204,8 @@ class CcActivity : AppCompatActivity() {
         serviceList: ArrayList<CcSendService>,
         listAdapter: ArrayAdapter<CcSendService>
     ) {
-        Log.d("save_and_flush", serviceList.toString())
-        val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+        Log.d(logTag, serviceList.toString())
+        val carbonCopyMMKV = MMKV.mmkvWithID(CARBON_COPY_ID)
         carbonCopyMMKV.putString("service", gson.toJson(serviceList))
         listAdapter.notifyDataSetChanged()
     }
@@ -215,7 +217,7 @@ class CcActivity : AppCompatActivity() {
 
     @SuppressLint("NonConstantResourceId", "SetTextI18n")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+        val carbonCopyMMKV = MMKV.mmkvWithID(CARBON_COPY_ID)
         return when (item.itemId) {
             R.id.scan_menu_item -> {
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 0)
@@ -263,7 +265,6 @@ class CcActivity : AppCompatActivity() {
                     dialog.findViewById<SwitchMaterial>(R.id.cc_notify_switch)
                 val receiverBatterySwitch =
                     dialog.findViewById<SwitchMaterial>(R.id.cc_battery_switch)
-                //val ccConfig = Paper.book("carbon_copy").read("cc_config", "{}").toString()
                 val ccConfig = carbonCopyMMKV.getString("config", "{}").toString()
                 val type = object : TypeToken<CcConfig>() {}.type
                 val config: CcConfig = gson.fromJson(ccConfig, type)
@@ -282,7 +283,6 @@ class CcActivity : AppCompatActivity() {
                             receiverNotificationSwitch.isChecked,
                             receiverBatterySwitch.isChecked
                         )
-                        //Paper.book("carbon_copy").write("cc_config", gson.toJson(ccConfig))
                         carbonCopyMMKV.putString("config", gson.toJson(ccConfig))
                     }
                     .setNeutralButton(R.string.cancel_button, null)
@@ -314,7 +314,7 @@ class CcActivity : AppCompatActivity() {
                 val httpUrlBuilder: HttpUrl.Builder = url.newBuilder()
                 httpUrlBuilder.addQueryParameter("key", id)
                 val httpUrl = httpUrlBuilder.build()
-                Log.d("config", "getConfig: $httpUrl")
+                Log.d(logTag, "getConfig: $httpUrl")
                 val requestObj = Request.Builder().url(httpUrl).method("GET", null)
                 val call = okhttpObject.newCall(requestObj.build())
                 try {
@@ -331,8 +331,8 @@ class CcActivity : AppCompatActivity() {
                             }
                         } catch (e: Exception) {
                             Log.e(
-                                "CcActivity",
-                                "An error occurred while resending: " + e.message
+                                logTag,
+                                "An error occurred while resending: " + e.message,e
                             )
                             runOnUiThread {
                                 AlertDialog.Builder(this)
@@ -342,7 +342,6 @@ class CcActivity : AppCompatActivity() {
                                     .show()
 
                             }
-                            e.printStackTrace()
                         }
                     } else {
                         runOnUiThread {
@@ -355,10 +354,9 @@ class CcActivity : AppCompatActivity() {
                     }
                 } catch (e: IOException) {
                     Log.e(
-                        "CcActivity",
-                        "An error occurred while resending: " + e.message
+                        logTag,
+                        "An error occurred while resending: " + e.message,e
                     )
-                    e.printStackTrace()
                 } finally {
                     progressDialog.dismiss()
                 }
@@ -411,8 +409,8 @@ class CcActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             0 -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                    Log.d("CcActivity", "onRequestPermissionsResult: No camera permissions.")
+                if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                    Log.d(logTag, "onRequestPermissionsResult: No camera permissions.")
                     Snackbar.make(
                         findViewById(R.id.bot_token_editview),
                         R.string.no_camera_permission,
@@ -430,14 +428,14 @@ class CcActivity : AppCompatActivity() {
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        Log.d("onActivityResult", "onActivityResult: $resultCode")
+        Log.d(logTag, "onActivityResult: $resultCode")
         if (requestCode == 1) {
-            if (resultCode == Const.RESULT_CONFIG_JSON) {
+            if (resultCode == RESULT_CONFIG_JSON) {
                 val jsonConfig = gson.fromJson(
                     data!!.getStringExtra("config_json"),
                     CcSendService::class.java
                 )
-                Log.d("onActivityResult", "onActivityResult: $jsonConfig")
+                Log.d(logTag, "onActivityResult: $jsonConfig")
                 serviceList.add(jsonConfig)
                 saveAndFlush(serviceList, listAdapter)
             }

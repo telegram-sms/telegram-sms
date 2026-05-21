@@ -7,7 +7,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.net.Uri
 import android.os.Build
 import android.provider.Telephony
 import android.telephony.SmsManager
@@ -17,7 +16,6 @@ import com.google.gson.Gson
 import com.qwe7002.telegram_sms.R
 import com.qwe7002.telegram_sms.SMSSendResultReceiver
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
-import com.qwe7002.telegram_sms.value.Const
 import com.tencent.mmkv.MMKV
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -27,6 +25,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.Objects
+import androidx.core.net.toUri
+import com.qwe7002.telegram_sms.value.JSON
+import com.qwe7002.telegram_sms.value.TAG
 
 data class SmsInfo(
     val id: Long,
@@ -35,7 +36,7 @@ data class SmsInfo(
     val date: Long,
     val type: Int // 1=inbox, 2=sent
 ) {
-    fun getTypeString(): String = if (type == 1) "inbox" else "sent"
+/*    fun getTypeString(): String = if (type == 1) "inbox" else "sent"*/
     fun getFormattedDate(): String {
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
         return sdf.format(Date(date))
@@ -43,7 +44,7 @@ data class SmsInfo(
 }
 
 object SMS {
-    private const val TAG = "SMS"
+    private const val logTag = "${TAG}.SMS"
 
     @JvmStatic
     fun isDefaultSmsApp(context: Context): Boolean {
@@ -61,9 +62,9 @@ object SMS {
     ): Pair<List<SmsInfo>, Int> {
         val smsList = mutableListOf<SmsInfo>()
         val uri = when (type.lowercase()) {
-            "inbox" -> Uri.parse("content://sms/inbox")
-            "sent" -> Uri.parse("content://sms/sent")
-            else -> Uri.parse("content://sms")
+            "inbox" -> "content://sms/inbox".toUri()
+            "sent" -> "content://sms/sent".toUri()
+            else -> "content://sms".toUri()
         }
 
         val cursor = context.contentResolver.query(
@@ -101,7 +102,7 @@ object SMS {
     @RequiresPermission(Manifest.permission.READ_SMS)
     fun getSmsById(context: Context, id: Long): SmsInfo? {
         val cursor = context.contentResolver.query(
-            Uri.parse("content://sms"),
+            "content://sms".toUri(),
             arrayOf("_id", "address", "body", "date", "type"),
             "_id = ?",
             arrayOf(id.toString()),
@@ -125,31 +126,31 @@ object SMS {
     @JvmStatic
     fun deleteSmsById(context: Context, id: Long): Boolean {
         if (!isDefaultSmsApp(context)) {
-            Log.w(TAG, "Cannot delete SMS: not default SMS app")
+            Log.w(logTag, "Cannot delete SMS: not default SMS app")
             return false
         }
         return try {
             val rowsDeleted = context.contentResolver.delete(
-                Uri.parse("content://sms"),
+                "content://sms".toUri(),
                 "_id = ?",
                 arrayOf(id.toString())
             )
             rowsDeleted > 0
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to delete SMS: ${e.message}", e)
+            Log.e(logTag, "Failed to delete SMS: ${e.message}", e)
             false
         }
     }
 
     @JvmStatic
-    @RequiresPermission(allOf = [Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE])
+    @RequiresPermission(allOf = [Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE])
     fun sendSms(context: Context, sendTo: String, content: String, slot: Int, subId: Int) {
         send(context, sendTo, content, slot, subId, -1)
     }
 
     @JvmStatic
     @SuppressLint("UnspecifiedImmutableFlag", "UnspecifiedRegisterReceiverFlag")
-    @RequiresPermission(allOf = [Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE])
+    @RequiresPermission(allOf = [Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE])
     fun send(
         context: Context,
         sendTo: String,
@@ -160,7 +161,7 @@ object SMS {
     ) {
         var messageId = contextId
         if (!Other.isPhoneNumber(sendTo)) {
-            Log.w("SMS", "[$sendTo] is an illegal phone number")
+            Log.w(logTag, "[$sendTo] is an illegal phone number")
             return
         }
         val preferences = MMKV.defaultMMKV()
@@ -169,7 +170,7 @@ object SMS {
         val messageThreadId = preferences.getString("message_thread_id", "")!!
         var requestUri = Network.getUrl(botToken, "sendMessage")
         if (messageId != -1L) {
-            Log.d(this::class.simpleName, "Find the message_id and switch to edit mode.")
+            Log.d(logTag, "Find the message_id and switch to edit mode.")
             requestUri = Network.getUrl(botToken, "editMessageText")
         }
         val requestBody = RequestMessage()
@@ -192,7 +193,7 @@ object SMS {
         requestBody.messageThreadId = messageThreadId
         val gson = Gson()
         val requestBodyRaw = gson.toJson(requestBody)
-        val body: RequestBody = requestBodyRaw.toRequestBody(Const.JSON)
+        val body: RequestBody = requestBodyRaw.toRequestBody(JSON)
         val okhttpClient = Network.getOkhttpObj(
             preferences.getBoolean("doh_switch", true)
         )
@@ -207,8 +208,7 @@ object SMS {
                 messageId = Other.getMessageId(Objects.requireNonNull(response.body).string())
             }
         } catch (e: IOException) {
-            e.printStackTrace()
-            Log.e("SMS", "failed to send message:" + e.message)
+            Log.e(logTag, "failed to send message:" + e.message,e)
         }
         val divideContents = smsManager.divideMessage(content)
         val sendReceiverList = ArrayList<PendingIntent>()
@@ -219,7 +219,7 @@ object SMS {
         } else {
             context.registerReceiver(receiver, filter)
         }
-        Log.d(context::class.simpleName, "onReceive: $messageId")
+        Log.d(logTag, "onReceive: $messageId")
         val intent = Intent("send_sms")
         intent.putExtra("message_id", messageId)
         intent.putExtra("message_text", sendContent)
@@ -249,11 +249,11 @@ object SMS {
         val preferences = MMKV.defaultMMKV()
         val trustNumber = preferences.getString("trusted_phone_number", null)
         if (trustNumber == null) {
-            Log.i(this::class.simpleName, "The trusted number is empty.")
+            Log.i(logTag, "The trusted number is empty.")
             return
         }
         if (!preferences.getBoolean("fallback_sms", false)) {
-            Log.i(this::class.simpleName, "SMS fallback is not turned on.")
+            Log.i(logTag, "SMS fallback is not turned on.")
             return
         }
         val smsManager = if (subId == -1) {

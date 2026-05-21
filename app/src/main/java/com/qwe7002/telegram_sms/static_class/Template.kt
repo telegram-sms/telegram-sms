@@ -2,13 +2,13 @@ package com.qwe7002.telegram_sms.static_class
 
 import android.annotation.SuppressLint
 import android.content.Context
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.MMKV.TEMPLATE_ID
 import com.tencent.mmkv.MMKV
 
 object Template {
     @JvmStatic
     fun render(context: Context, template: String, values: Map<String, String>): String {
-        val templateMMKV = MMKV.mmkvWithID(MMKVConst.TEMPLATE_ID)
+        val templateMMKV = MMKV.mmkvWithID(TEMPLATE_ID)
         var result = templateMMKV.decodeString(template, getStringByName(context, template))
             ?: getStringByName(context, template)
         for ((key, value) in values) {
@@ -30,7 +30,7 @@ object Template {
 
     @JvmStatic
     fun save(template: String, inputText: String) {
-        val templateMMKV = MMKV.mmkvWithID(MMKVConst.TEMPLATE_ID)
+        val templateMMKV = MMKV.mmkvWithID(TEMPLATE_ID)
         templateMMKV.encode(template, inputText)
     }
 }

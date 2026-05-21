@@ -28,25 +28,36 @@ import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.data_structure.ScannerJson
 import com.qwe7002.telegram_sms.static_class.Crypto
 import com.qwe7002.telegram_sms.static_class.Network
-import com.qwe7002.telegram_sms.value.Const
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import android.text.TextWatcher
 import android.text.Editable
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import com.qwe7002.telegram_sms.MMKV.CARBON_COPY_ID
+import com.qwe7002.telegram_sms.value.RESULT_CONFIG_JSON
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import okio.IOException
 
 
-class QrcodeActivity : AppCompatActivity() {
+class TransferConfigActivity : AppCompatActivity() {
+    private val logTag = "${TAG}.TransferConfigActivity"
     lateinit var okhttpObject: okhttp3.OkHttpClient
     lateinit var preferences: android.content.SharedPreferences
     val url = "https://api.telegram-sms.com/config"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_qrcode)
+        // Handle window insets for edge-to-edge
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.qrcode_container)) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+        FakeStatusBar().fakeStatusBar(this, window)
         preferences = MMKV.defaultMMKV()
         okhttpObject = Network.getOkhttpObj(
             preferences.getBoolean("doh_switch", true)
@@ -89,9 +100,7 @@ class QrcodeActivity : AppCompatActivity() {
     }
 
     private fun getConfigJson(): String {
-/*        val serviceListJson =
-            Paper.book("system_config").read("CC_service_list", "[]").toString()*/
-        val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+        val carbonCopyMMKV = MMKV.mmkvWithID(CARBON_COPY_ID)
         val serviceListJson = carbonCopyMMKV.getString("CC_service_list", "[]")
         val gson = Gson()
         val type = object : TypeToken<ArrayList<CcSendService>>() {}.type
@@ -106,9 +115,8 @@ class QrcodeActivity : AppCompatActivity() {
             preferences.getBoolean("chat_command", false),
             preferences.getBoolean("fallback_sms", false),
             preferences.getBoolean("privacy_mode", false),
-            preferences.getBoolean("call_notify", false),
-            preferences.getBoolean("display_dual_sim_display_name", false),
             preferences.getBoolean("verification_code", false),
+            preferences.getBoolean("call_notify", false),
             preferences.getString("message_thread_id", "")!!,
             sendList,
             preferences.getBoolean("hide_phone_number", false)
@@ -137,7 +145,7 @@ class QrcodeActivity : AppCompatActivity() {
                     val response = call.execute()
                     if (response.code == 200) {
                         val responseBody = response.body.string()
-                        Log.d("networkProgressHandle", "sendConfig: $responseBody")
+                        Log.d(logTag, "sendConfig: $responseBody")
                         val jsonObject = JsonParser.parseString(responseBody)
                             .asJsonObject
                         val key = jsonObject.get(
@@ -165,10 +173,10 @@ class QrcodeActivity : AppCompatActivity() {
                     }
                 } catch (e: IOException) {
                     Log.e(
-                        "QrcodeActivity",
+                        logTag,
                         "An error occurred while resending: " + e.message
+                        ,e
                     )
-                    e.printStackTrace()
                 } finally {
                     progressDialog.dismiss()
                 }
@@ -207,7 +215,7 @@ class QrcodeActivity : AppCompatActivity() {
                             val decryptConfig =
                                 Crypto.decrypt(responseBody, Crypto.getKeyFromString(password))
                             val intent = Intent().putExtra("config_json", decryptConfig)
-                            setResult(Const.RESULT_CONFIG_JSON, intent)
+                            setResult(RESULT_CONFIG_JSON, intent)
                             finish()
                         } catch (e: Exception) {
                             Log.e(
@@ -222,7 +230,7 @@ class QrcodeActivity : AppCompatActivity() {
                                     .show()
 
                             }
-                            e.printStackTrace()
+                            Log.e(logTag, "Decryption error", e)
                         }
                     } else {
                         runOnUiThread {
@@ -236,10 +244,10 @@ class QrcodeActivity : AppCompatActivity() {
                     response.close()
                 } catch (e: IOException) {
                     Log.e(
-                        "QrcodeActivity",
+                        logTag,
                         "An error occurred while getting configuration: " + e.message
+                        ,e
                     )
-                    e.printStackTrace()
                 } finally {
                     progressDialog.dismiss()
                 }

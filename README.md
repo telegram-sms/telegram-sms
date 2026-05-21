@@ -1,18 +1,20 @@
 # Telegram SMS
 
-<p align="center">
+<div align="center">
 <img src="https://github.com/user-attachments/assets/7a283d15-52fe-42cd-a782-4984427db234" alt="Telegram SMS">
-</p>
+</div>
 
-![Min Android Version](https://img.shields.io/badge/Min%20Android%20Version-5.1-orange.svg?style=flat-square)
+![Min Android Version](https://img.shields.io/badge/Min%20Android%20Version-6.0-orange.svg?style=flat-square)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg?style=flat-square)](https://github.com/telegram-sms/telegram-sms/blob/master/LICENSE)
 [![GitHub Releases](https://img.shields.io/github/downloads/telegram-sms/telegram-sms/latest/app-release.apk?style=flat-square)](https://github.com/telegram-sms/telegram-sms/releases/latest)
+![GitHub Sponsors](https://img.shields.io/github/sponsors/qwe7002?style=flat-square)
+
 
 ## News, Questions and Contributions
 
 You can follow the Telegram channel Telegram SMS Change Log for the latest news. [English](https://t.me/tg_sms_changelog_eng), [简体中文](https://t.me/tg_sms_changelog)
 
-**Please visit [https://reall.uk](https://reall.uk) to submit and discuss issues regarding this project.**
+**For bug reports and feature requests, please use [GitHub Issues](https://github.com/telegram-sms/telegram-sms/issues).**
 
 The primary language used for commit messages is Simplified Chinese. However, you're welcome to use English in commit messages when making contributions.
 
@@ -24,13 +26,11 @@ If you want to generate the configuration QR code in a fast way, please visit [c
 
 [Latest Release Download](https://github.com/telegram-sms/telegram-sms/releases/latest)
 
-[Pre-release Verison](https://github.com/qwe7002/telegram-sms) [Download](https://github.com/qwe7002/telegram-sms/actions?query=actor%3Areall-network+branch%3Anightly+is%3Asuccess+event%3Apush)
+[Pre-release Version](https://github.com/telegram-sms/telegram-sms-nightly)
 
 **NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK!**
 
-[Telegram SMS compat](https://github.com/telegram-sms/telegram-sms-compat)
-
-Android 5.0 or lower? Click [![Github Release](https://img.shields.io/github/downloads/telegram-sms/telegram-sms-compat/latest/app-release.apk?style=flat-square)](https://github.com/telegram-sms/telegram-sms-compat/releases/latest) to download the latest and greatest.
+**[Telegram SMS compat](https://github.com/telegram-sms/telegram-sms-compat)** - For older Android devices (Android 5.0 or lower). [![Github Release](https://img.shields.io/github/downloads/telegram-sms/telegram-sms-compat/latest/app-release.apk?style=flat-square)](https://github.com/telegram-sms/telegram-sms-compat/releases/latest)
 
 
 ## Features
@@ -40,7 +40,7 @@ Android 5.0 or lower? Click [![Github Release](https://img.shields.io/github/dow
 - Notification regarding device battery power changes;
 - Carbon Copy - a new way to configure the forward destination(e.g. bark, pushdeer, gotify, etc.).
 - Remote control via chat command or SMS.
-- Set self-hosted bot API address(See [instructions](./docs/self_hosted_bot_api.md)).
+- Set self-hosted bot API address(See [instructions](./document/docs/develop/self_hosted_bot_api.md)).
 
 ## Permission
 
@@ -76,9 +76,7 @@ Artwork Use free fonts licensed by the whole society: [Refrigerator Deluxe](http
 
 Copyright of the artwork belongs to [@walliant](https://www.pixiv.net/member.php?id=5600144). Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
-Cover Author: [@YJBeetle](https://github.com/yjbeetle)
-
-Download resource file of the artwork: [mega.nz](https://mega.nz/#F!TmwQSYjD!XN-uVfciajwy3okjIdpCAQ)
+Download resource file: [Google Drive](https://drive.google.com/drive/folders/1Rg_MaJk0dnIN5GtKKmfvHPPCxjys8A0A?usp=drive_link)
 
 Character set：
 
@@ -96,7 +94,6 @@ This APP uses the following open source libraries:
 - [okhttp](https://github.com/square/okhttp)
 - [Gson](https://github.com/google/gson)
 - [CodeauxLib](https://github.com/telegram-sms/CodeauxLibPortable)
-- [Paper](https://github.com/pilgr/Paper)
 - [AwesomeQRCode](https://github.com/SumiMakito/AwesomeQRCode)
 - [code-scanner](https://github.com/yuriy-budiyev/code-scanner)
 - [MMKV](https://github.com/Tencent/MMKV)
@@ -112,6 +109,7 @@ I would also like to thank the following people for their hard work to localise 
 - English
     - [@tangbao](https://github.com/tangbao)
     - [@jixunmoe](https://github.com/jixunmoe) ([Donate](https://paypal.me/jixun))
+    - [@ous50](https://github.com/ous50)
 - Japanese
     - [@Lollycc](https://github.com/lollycc)
     - [@AisakaMk2](https://github.com/AisakaMk2)
@@ -138,7 +136,7 @@ Your donation will make me work better for this project.
 
 ## Contributors
 <a href="https://github.com/telegram-sms/telegram-sms/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=telegram-sms/telegram-sms" />
+  <img src="https://contrib.rocks/image?repo=telegram-sms/telegram-sms" alt="Contributors" />
 </a>
 
 Made with [contrib.rocks](https://contrib.rocks).

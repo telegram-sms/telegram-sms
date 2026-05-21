@@ -7,7 +7,8 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.JSON
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import okhttp3.Call
 import okhttp3.Callback
@@ -25,7 +26,7 @@ import java.io.IOException
  */
 @Suppress("unused")
 object TelegramApi {
-    private const val TAG = "TelegramApi"
+    private const val logTag = "${TAG}.TelegramApi"
     private val gson = Gson()
 
     /**
@@ -57,9 +58,9 @@ object TelegramApi {
      * @param context Android context
      * @param requestBody The RequestMessage object containing chat_id, text, etc.
      * @param method Telegram API method (default: "sendMessage", can be "editMessageText")
-     * @param errorTag Tag for error logging
      * @param fallbackSubId Subscription ID for SMS fallback (-1 to disable)
      * @param enableResend Whether to add to resend loop on failure (default: true)
+     * @param onFailure Optional callback fired on network error or non-200 response
      * @param onSuccess Optional callback when request succeeds, receives response body string
      */
     @JvmStatic
@@ -68,9 +69,9 @@ object TelegramApi {
         context: Context,
         requestBody: RequestMessage,
         method: String = "sendMessage",
-        errorTag: String = TAG,
         fallbackSubId: Int = -1,
         enableResend: Boolean = true,
+        onFailure: (() -> Unit)? = null,
         onSuccess: ((String) -> Unit)? = null
     ) {
         val preferences = MMKV.defaultMMKV()
@@ -91,7 +92,7 @@ object TelegramApi {
 
         val requestUri = Network.getUrl(botToken, method)
         val requestBodyJson = gson.toJson(requestBody)
-        val body: RequestBody = requestBodyJson.toRequestBody(Const.JSON)
+        val body: RequestBody = requestBodyJson.toRequestBody(JSON)
         val okhttpClient = Network.getOkhttpObj(dohSwitch)
 
         val request = Request.Builder()
@@ -103,16 +104,23 @@ object TelegramApi {
 
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-                Log.e(errorTag, "Request failed: ${e.message}")
-                handleFailure(context, requestBody.text, fallbackSubId, enableResend)
+                Log.e(logTag, "Request failed: ${e.message}",e)
+                try {
+                    handleFailure(context, requestBody.text, fallbackSubId, enableResend)
+                } finally {
+                    onFailure?.invoke()
+                }
             }
 
             override fun onResponse(call: Call, response: Response) {
                 val result = response.body.string()
                 if (response.code != 200) {
-                    Log.e(errorTag, "Request error: ${response.code} $result")
-                    handleFailure(context, requestBody.text, fallbackSubId, enableResend)
+                    Log.e(logTag, "Request error: ${response.code} $result")
+                    try {
+                        handleFailure(context, requestBody.text, fallbackSubId, enableResend)
+                    } finally {
+                        onFailure?.invoke()
+                    }
                 } else {
                     onSuccess?.invoke(result)
                 }
@@ -127,7 +135,6 @@ object TelegramApi {
      * @param context Android context
      * @param requestBody The RequestMessage object
      * @param method Telegram API method
-     * @param errorTag Tag for error logging
      * @param fallbackSubId Subscription ID for SMS fallback
      * @param enableResend Whether to add to resend loop on failure
      * @return Response body string on success, null on failure
@@ -138,7 +145,6 @@ object TelegramApi {
         context: Context,
         requestBody: RequestMessage,
         method: String = "sendMessage",
-        errorTag: String = TAG,
         fallbackSubId: Int = -1,
         enableResend: Boolean = true
     ): String? {
@@ -160,7 +166,7 @@ object TelegramApi {
 
         val requestUri = Network.getUrl(botToken, method)
         val requestBodyJson = gson.toJson(requestBody)
-        val body: RequestBody = requestBodyJson.toRequestBody(Const.JSON)
+        val body: RequestBody = requestBodyJson.toRequestBody(JSON)
         val okhttpClient = Network.getOkhttpObj(dohSwitch)
 
         val request = Request.Builder()
@@ -174,13 +180,12 @@ object TelegramApi {
             if (response.code == 200) {
                 result
             } else {
-                Log.e(errorTag, "Request error: ${response.code} $result")
+                Log.e(logTag, "Request error: ${response.code} $result")
                 handleFailure(context, requestBody.text, fallbackSubId, enableResend)
                 null
             }
         } catch (e: IOException) {
-            e.printStackTrace()
-            Log.e(errorTag, "Request failed: ${e.message}")
+            Log.e(logTag, "Request failed: ${e.message}",e)
             handleFailure(context, requestBody.text, fallbackSubId, enableResend)
             null
         }
@@ -193,7 +198,6 @@ object TelegramApi {
      * @param mediaType Type of media: "photo", "audio", or "video"
      * @param media MediaData containing file name, content type, and data bytes
      * @param caption Optional caption text
-     * @param errorTag Tag for error logging
      * @param fallbackSubId Subscription ID for SMS fallback
      * @param enableResend Whether to add caption to resend loop on failure
      * @param onSuccess Optional callback when request succeeds
@@ -205,7 +209,6 @@ object TelegramApi {
         mediaType: String,
         media: MediaData,
         caption: String = "",
-        errorTag: String = TAG,
         fallbackSubId: Int = -1,
         enableResend: Boolean = true,
         onSuccess: ((String) -> Unit)? = null
@@ -253,8 +256,7 @@ object TelegramApi {
 
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-                Log.e(errorTag, "Media upload failed: ${e.message}")
+                Log.e(logTag, "Media upload failed: ${e.message}",e)
                 if (caption.isNotEmpty()) {
                     handleFailure(context, caption, fallbackSubId, enableResend)
                 }
@@ -263,12 +265,12 @@ object TelegramApi {
             override fun onResponse(call: Call, response: Response) {
                 val result = response.body.string()
                 if (response.code != 200) {
-                    Log.e(errorTag, "Media upload error: ${response.code} $result")
+                    Log.e(logTag, "Media upload error: ${response.code} $result")
                     if (caption.isNotEmpty()) {
                         handleFailure(context, caption, fallbackSubId, enableResend)
                     }
                 } else {
-                    Log.i(errorTag, "Media uploaded successfully")
+                    Log.i(logTag, "Media uploaded successfully")
                     onSuccess?.invoke(result)
                 }
             }

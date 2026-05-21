@@ -15,7 +15,8 @@ import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
 import com.qwe7002.telegram_sms.static_class.Template
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.JSON
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import okhttp3.Call
 import okhttp3.Callback
@@ -24,13 +25,13 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
-import java.util.Objects
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 class USSDCallBack(
     private val context: Context,
     messageId: Long
 ) : UssdResponseCallback() {
+    private val logTag = "${TAG}.USSDCallBack"
     private val dohSwitch: Boolean
     private var requestUri: String
     private val requestBody: RequestMessage
@@ -82,17 +83,15 @@ class USSDCallBack(
     private fun networkProgressHandle(message: String) {
         requestBody.text = message
         val requestBodyJson = Gson().toJson(requestBody)
-        val body: RequestBody = requestBodyJson.toRequestBody(Const.JSON)
+        val body: RequestBody = requestBodyJson.toRequestBody(JSON)
         val okhttpClient = Network.getOkhttpObj(
             dohSwitch
         )
         val requestObj: Request = Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpClient.newCall(requestObj)
-        val errorHead = "Send USSD failed:"
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-                Log.e("USSDCallBack", errorHead + e.message)
+                Log.e(logTag, "onFailure: ${e.message}",e )
                 if (ActivityCompat.checkSelfPermission(
                         context,
                         Manifest.permission.SEND_SMS
@@ -108,9 +107,8 @@ class USSDCallBack(
             override fun onResponse(call: Call, response: Response) {
                 if (response.code != 200) {
                     Log.e(
-                        "USSDCallBack",
-                        errorHead + response.code + " " + Objects.requireNonNull(response.body)
-                            .string()
+                        logTag,
+                        "onResponse: USSD message send failed with response code ${response.code}"
                     )
                     if (ActivityCompat.checkSelfPermission(
                             context,

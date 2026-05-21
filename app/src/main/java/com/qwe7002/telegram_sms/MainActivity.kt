@@ -23,6 +23,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabColorSchemeParams
@@ -30,15 +31,24 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.JsonParser
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.MMKV.CARBON_COPY_ID
+import com.qwe7002.telegram_sms.MMKV.CHAT_ID
+import com.qwe7002.telegram_sms.MMKV.PROXY_ID
+import com.qwe7002.telegram_sms.MMKV.RESEND_ID
+import com.qwe7002.telegram_sms.MMKV.UPDATE_ID
+import com.qwe7002.telegram_sms.migration.DataMigrationManager
 import com.qwe7002.telegram_sms.data_structure.GitHubRelease
+import com.qwe7002.telegram_sms.data_structure.OutputMetadata
 import com.qwe7002.telegram_sms.data_structure.ScannerJson
 import com.qwe7002.telegram_sms.data_structure.telegram.PollingBody
+import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
 import com.qwe7002.telegram_sms.static_class.Network.getOkhttpObj
 import com.qwe7002.telegram_sms.static_class.Network.getUrl
@@ -47,10 +57,13 @@ import com.qwe7002.telegram_sms.static_class.Service.isNotifyListener
 import com.qwe7002.telegram_sms.static_class.Service.startService
 import com.qwe7002.telegram_sms.static_class.Service.stopAllService
 import com.qwe7002.telegram_sms.static_class.Template
-import com.qwe7002.telegram_sms.value.Const
+import com.qwe7002.telegram_sms.value.JSON
+import com.qwe7002.telegram_sms.value.RESULT_CONFIG_JSON
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import okhttp3.Call
 import okhttp3.Callback
+import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
@@ -59,15 +72,30 @@ import java.util.concurrent.TimeUnit
 
 @Suppress("deprecation")
 class MainActivity : AppCompatActivity() {
+    private val logTag = "${TAG}.MainActivity"
     private lateinit var preferences: MMKV
     private lateinit var privacyPolice: String
     private val gson = Gson()
     private var setPermissionBack = false
 
-    @SuppressLint("BatteryLife", "UseKtx")
+    @SuppressLint("BatteryLife", "UseKtx", "GestureBackNavigation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        // Handle window insets for edge-to-edge on ScrollView
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_scroll_view)) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById<ImageView>(R.id.character_set)) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+        FakeStatusBar().fakeStatusBar(this, window)
+
+
         MMKV.initialize(this)
         preferences = MMKV.defaultMMKV()
         val oldSharedPreferences = getSharedPreferences("data", MODE_PRIVATE)
@@ -75,6 +103,10 @@ class MainActivity : AppCompatActivity() {
             preferences.importFromSharedPreferences(oldSharedPreferences)
             oldSharedPreferences.edit().clear().apply()
         }
+
+        // Check and perform data structure migration
+        DataMigrationManager.checkAndMigrate(this)
+
         privacyPolice = "/privacy-policy"
 
         val chatIdEditView = findViewById<EditText>(R.id.chat_id_editview)
@@ -179,12 +211,6 @@ class MainActivity : AppCompatActivity() {
         verificationCodeSwitch.isChecked = preferences.getBoolean("verification_code", false)
 
         dohSwitch.isChecked = preferences.getBoolean("doh_switch", true)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            val proxyMMKV = MMKV.mmkvWithID("proxy")
-            dohSwitch.isEnabled = proxyMMKV.getBoolean("enable", false)
-            /*            dohSwitch.isEnabled =
-                            !Paper.book("system_config").read("proxy_config", proxy())!!.enable*/
-        }
 
 
         chatIdEditView.addTextChangedListener(object : TextWatcher {
@@ -230,7 +256,7 @@ class MainActivity : AppCompatActivity() {
                 .build()
             val requestBody = PollingBody()
             requestBody.timeout = 60
-            val body: RequestBody = RequestBody.create(Const.JSON, gson.toJson(requestBody))
+            val body: RequestBody = RequestBody.create(JSON, gson.toJson(requestBody))
             val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
             val call = okhttpClient.newCall(request)
             progressDialog.setOnKeyListener { _: DialogInterface?, _: Int, keyEvent: KeyEvent ->
@@ -239,15 +265,12 @@ class MainActivity : AppCompatActivity() {
                 }
                 false
             }
-            val errorHead = "Get chat ID failed: "
             call.enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    Log.d(this::class.simpleName, "onFailure: $e")
+                    Log.e(logTag, "onResponse: ${e.message}", e)
                     progressDialog.cancel()
-                    val message = errorHead + e.message
-                    Log.e("MainActivity", message)
                     runOnUiThread {
-                        showErrorDialog(message)
+                        showErrorDialog("Get recent chat failed: " + e.message)
                     }
                 }
 
@@ -258,24 +281,20 @@ class MainActivity : AppCompatActivity() {
                         val result = response.body.string()
                         try {
                             val resultObj = JsonParser.parseString(result).asJsonObject
-                            val errorMessage = errorHead + resultObj["description"].asString
-                            Log.e("MainActivity", errorMessage)
-                            runOnUiThread { showErrorDialog(errorMessage) }
+                            runOnUiThread { showErrorDialog("${resultObj["description"].asString}") }
                         } catch (e: Exception) {
-                            e.printStackTrace()
-                            val errorMessage = errorHead + "Failed to parse error response"
-                            Log.e("MainActivity", errorMessage)
-                            runOnUiThread { showErrorDialog(errorMessage) }
+                            Log.e(logTag, "Failed to parse error response: ${e.message}", e)
+                            runOnUiThread { showErrorDialog("Failed to parse error response: ${e.message}") }
                         }
                         return
                     }
 
                     val result = response.body.string()
-                    Log.d(this::class.simpleName, "onResponse: $result")
+                    Log.d(logTag, "onResponse: $result")
                     try {
                         val resultObj = JsonParser.parseString(result).asJsonObject
                         val chatList = resultObj.getAsJsonArray("result")
-                        if (chatList.isEmpty) {
+                        if (chatList == null || chatList.isEmpty) {
                             runOnUiThread { showErrorDialog(getString(R.string.unable_get_recent)) }
                             return
                         }
@@ -286,6 +305,23 @@ class MainActivity : AppCompatActivity() {
                             val itemObj = item.asJsonObject
                             if (itemObj.has("message")) {
                                 val messageObj = itemObj["message"].asJsonObject
+                                // Handle chat migration to supergroup
+                                if (messageObj.has("migrate_to_chat_id")) {
+                                    val newChatId = messageObj["migrate_to_chat_id"].asString
+                                    if (!chatIdList.contains(newChatId)) {
+                                        val chatObj = messageObj["chat"].asJsonObject
+                                        var username = StringBuilder()
+                                        if (chatObj.has("title")) {
+                                            username = StringBuilder(chatObj["title"].asString)
+                                        } else if (chatObj.has("username")) {
+                                            username = StringBuilder(chatObj["username"].asString)
+                                        }
+                                        chatNameList.add("$username(supergroup)")
+                                        chatIdList.add(newChatId)
+                                        chatTopicIdList.add("")
+                                    }
+                                    continue
+                                }
                                 val chatObj = messageObj["chat"].asJsonObject
                                 if (!chatIdList.contains(chatObj["id"].asString)) {
                                     var username = ""
@@ -338,9 +374,8 @@ class MainActivity : AppCompatActivity() {
                                 .show()
                         }
                     } catch (e: Exception) {
-                        val errorMessage = errorHead + "Failed to parse response: ${e.message}"
-                        Log.e("MainActivity", errorMessage)
-                        runOnUiThread { showErrorDialog(errorMessage) }
+                        Log.e(logTag, "onResponse: ${e.message}", e)
+                        runOnUiThread { showErrorDialog("Failed to parse response: ${e.message}") }
                     }
                 }
             })
@@ -362,14 +397,26 @@ class MainActivity : AppCompatActivity() {
                 showPrivacyDialog()
                 return@setOnClickListener
             }
-            var permissionList = arrayOf<String?>(
-                Manifest.permission.READ_SMS,
-                Manifest.permission.SEND_SMS,
-                Manifest.permission.RECEIVE_SMS,
-                Manifest.permission.CALL_PHONE,
-                Manifest.permission.READ_PHONE_STATE,
-                Manifest.permission.READ_CALL_LOG
-            )
+            var permissionList = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                arrayOf<String?>(
+                    Manifest.permission.READ_SMS,
+                    Manifest.permission.SEND_SMS,
+                    Manifest.permission.RECEIVE_SMS,
+                    Manifest.permission.CALL_PHONE,
+                    Manifest.permission.READ_PHONE_STATE,
+                    Manifest.permission.READ_CALL_LOG,
+                    Manifest.permission.READ_PHONE_NUMBERS
+                )
+            } else {
+                arrayOf<String?>(
+                    Manifest.permission.READ_SMS,
+                    Manifest.permission.SEND_SMS,
+                    Manifest.permission.RECEIVE_SMS,
+                    Manifest.permission.CALL_PHONE,
+                    Manifest.permission.READ_PHONE_STATE,
+                    Manifest.permission.READ_CALL_LOG
+                )
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 val permissionArrayList = ArrayList(
                     listOf(*permissionList)
@@ -399,6 +446,14 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                 }
             }
+            if (preferences.getString(
+                    "api_address",
+                    "api.telegram.org"
+                ) != "api.telegram.org"
+            ) {
+                checkAndLogout(botTokenEditView.text.toString().trim { it <= ' ' })
+            }
+
 
             val progressDialog = ProgressDialog(this@MainActivity)
             progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
@@ -408,13 +463,6 @@ class MainActivity : AppCompatActivity() {
             progressDialog.setCancelable(false)
             progressDialog.show()
 
-            if (preferences.contains("initialized") && preferences.getString(
-                    "api_address",
-                    "api.telegram.org"
-                ) != "api.telegram.org"
-            ) {
-                logout(preferences.getString("bot_token", "").toString())
-            }
 
             val requestUri = getUrl(
                 botTokenEditView.text.toString().trim { it <= ' ' },
@@ -428,22 +476,29 @@ class MainActivity : AppCompatActivity() {
                 "TPL_system_message",
                 mapOf("Message" to getString(R.string.success_connect))
             )
+            // Add command keyboard if chat command is enabled
+            if (chatCommandSwitch.isChecked) {
+                requestBody.replyMarkup =
+                    com.qwe7002.telegram_sms.static_class.ChatCommand.getCommandKeyboard(
+                        applicationContext
+                    )
+            } else {
+                // Remove keyboard when chat command is disabled
+                requestBody.replyMarkup = ReplyMarkupKeyboard.ReplyKeyboardRemove()
+            }
             val requestBodyRaw = gson.toJson(requestBody)
-            val body: RequestBody = RequestBody.create(Const.JSON, requestBodyRaw)
+            val body: RequestBody = RequestBody.create(JSON, requestBodyRaw)
             val okhttpObj = getOkhttpObj(
                 dohSwitch.isChecked
             )
             val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
             val call = okhttpObj.newCall(request)
-            val errorHead = "Send message failed: "
             call.enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    Log.d(this::class.simpleName, "onFailure: $e")
+                    Log.e(logTag, "onResponse: ${e.message}", e)
                     progressDialog.cancel()
-                    val errorMessage = errorHead + e.message
-                    Log.e("MainActivity", errorMessage)
                     runOnUiThread {
-                        showErrorDialog(errorMessage)
+                        showErrorDialog("Connection failed: " + e.message)
                     }
                 }
 
@@ -456,27 +511,23 @@ class MainActivity : AppCompatActivity() {
                         val result = response.body.string()
                         try {
                             val resultObj = JsonParser.parseString(result).asJsonObject
-                            val errorMessage = errorHead + resultObj["description"]
-                            Log.e("MainActivity", errorMessage)
                             runOnUiThread {
-                                showErrorDialog(errorMessage)
+                                showErrorDialog("${resultObj["description"].asString}")
                             }
                         } catch (e: Exception) {
-                            e.printStackTrace()
-                            val errorMessage = errorHead + "Failed to parse error response"
-                            Log.e("MainActivity", errorMessage)
-                            runOnUiThread { showErrorDialog(errorMessage) }
+                            Log.e(logTag, "Failed to parse error response: ${e.message}", e)
+                            runOnUiThread { showErrorDialog("Failed to parse error response: ${e.message}") }
                         }
                         return
                     }
                     if (newBotToken != botTokenSave) {
                         Log.i(
-                            this::class.simpleName,
+                            logTag,
                             "onResponse: The current bot token does not match the saved bot token, clearing the message database."
                         )
-                        MMKV.mmkvWithID(MMKVConst.CHAT_ID).clearAll()
+                        MMKV.mmkvWithID(CHAT_ID).clearAll()
                     }
-                    MMKV.mmkvWithID(MMKVConst.RESEND_ID).clearAll()
+                    MMKV.mmkvWithID(RESEND_ID).clearAll()
                     checkVersionUpgrade()
                     preferences.clearAll()
                     preferences.putString("bot_token", newBotToken)
@@ -535,7 +586,7 @@ class MainActivity : AppCompatActivity() {
             packageInfo = packageManager.getPackageInfo(applicationContext.packageName, 0)
             currentVersionCode = packageInfo.versionCode
         } catch (e: PackageManager.NameNotFoundException) {
-            Log.d(this::class.simpleName, "checkVersionUpgrade: $e")
+            Log.d(logTag, "checkVersionUpgrade: $e")
             return
         }
         if (versionCode != currentVersionCode) {
@@ -580,7 +631,7 @@ class MainActivity : AppCompatActivity() {
             try {
                 customTabsIntent.launchUrl(applicationContext, uri)
             } catch (e: ActivityNotFoundException) {
-                Log.d(this::class.simpleName, "showPrivacyDialog: $e")
+                Log.d(logTag, "showPrivacyDialog: $e")
                 Snackbar.make(
                     findViewById(R.id.bot_token_editview),
                     "Browser not found.",
@@ -604,7 +655,7 @@ class MainActivity : AppCompatActivity() {
                 startActivity(Intent(this@MainActivity, NotifyActivity::class.java))
             }
         }
-        val updateMMKV = MMKV.mmkvWithID(MMKVConst.UPDATE_ID)
+        val updateMMKV = MMKV.mmkvWithID(UPDATE_ID)
         val lastCheck = updateMMKV.getLong("last_check", 0)
         if (lastCheck == 0L) {
             updateMMKV.putLong("last_check", System.currentTimeMillis())
@@ -624,7 +675,7 @@ class MainActivity : AppCompatActivity() {
             0 -> {
                 if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                     Log.d(
-                        this::class.simpleName,
+                        logTag,
                         "onRequestPermissionsResult: No camera permissions."
                     )
                     Snackbar.make(
@@ -641,21 +692,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkUpdate() {
-        var versionName = "unknown"
-        val packageManager = applicationContext.packageManager
-        val packageInfo: PackageInfo
-        try {
-            packageInfo = packageManager.getPackageInfo(applicationContext.packageName, 0)
-            versionName = packageInfo.versionName.toString()
-        } catch (e: PackageManager.NameNotFoundException) {
-            Log.d(this::class.simpleName, "onOptionsItemSelected: $e")
-        }
-        if (versionName == "unknown" || versionName == "Debug" || versionName.startsWith("nightly")) {
+        if (BuildConfig.DEBUG) {
             showErrorDialog("Debug version can not check update.")
             return
         }
-        /*Paper.book("update").write("last_check", System.currentTimeMillis())*/
-        val updateMMKV = MMKV.mmkvWithID(MMKVConst.UPDATE_ID)
+        var appIdentifier = applicationContext.getString(R.string.app_identifier)
+        if (BuildConfig.VERSION_NAME.contains("nightly")) {
+            appIdentifier += "-nightly"
+        }
+        val updateMMKV = MMKV.mmkvWithID(UPDATE_ID)
         updateMMKV.putLong("last_check", System.currentTimeMillis())
 
         val progressDialog = ProgressDialog(this@MainActivity)
@@ -668,40 +713,127 @@ class MainActivity : AppCompatActivity() {
         val okhttpObj = getOkhttpObj(false)
         val requestUri = String.format(
             "https://api.github.com/repos/telegram-sms/%s/releases/latest",
-            applicationContext.getString(R.string.app_identifier)
+            appIdentifier
         )
         val request: Request = Request.Builder().url(requestUri).build()
         val call = okhttpObj.newCall(request)
-        val errorHead = "Send message failed: "
         call.enqueue(object : Callback {
             @Throws(IOException::class)
             override fun onResponse(call: Call, response: Response) {
                 progressDialog.cancel()
                 if (!response.isSuccessful) {
-                    val errorMessage = errorHead + response.code
-                    Log.e("MainActivity", errorMessage)
+                    Log.e(logTag, "Check update failed: ${response.code}")
+                    runOnUiThread {
+                        showErrorDialog(getString(R.string.failed_to_check_for_updates))
+                    }
+                    return
                 }
                 val jsonString = response.body.string()
-                Log.d(this::class.simpleName, "onResponse: $jsonString")
                 val gson = Gson()
                 val release = gson.fromJson(jsonString, GitHubRelease::class.java)
-                if (release.tagName != versionName) {
-                    runOnUiThread {
-                        showUpdateDialog(
-                            release.tagName,
-                            release.assets[0].browserDownloadUrl
-                        )
+
+                // Find output-metadata.json in release assets
+                val metadataAsset = release.assets.find { it.name == "output-metadata.json" }
+                if (metadataAsset != null) {
+                    // Download and parse output-metadata.json
+                    checkVersionFromMetadata(release, metadataAsset.browserDownloadUrl, okhttpObj)
+                } else {
+                    // Fallback to tagName comparison for older releases
+                    if (release.tagName != BuildConfig.VERSION_NAME) {
+                        runOnUiThread {
+                            showUpdateDialog(
+                                release.tagName,
+                                release.assets[0].browserDownloadUrl
+                            )
+                        }
                     }
                 }
             }
 
             override fun onFailure(call: Call, e: IOException) {
-                Log.d(this::class.simpleName, "onFailure: $e")
+                Log.e(logTag, "onFailure: ${e.message}", e)
                 progressDialog.cancel()
-                val errorMessage = errorHead + e.message
-                Log.e("MainActivity", errorMessage)
                 runOnUiThread {
-                    showErrorDialog(errorMessage)
+                    showErrorDialog("Failed to check for updates.")
+                }
+            }
+        })
+    }
+
+    private fun checkVersionFromMetadata(
+
+        release: GitHubRelease,
+        metadataUrl: String,
+        okhttpObj: OkHttpClient
+    ) {
+        val request: Request = Request.Builder().url(metadataUrl).build()
+        val call = okhttpObj.newCall(request)
+        call.enqueue(object : Callback {
+            @Throws(IOException::class)
+            override fun onResponse(call: Call, response: Response) {
+                if (!response.isSuccessful) {
+                    Log.e(logTag, "Failed to download output-metadata.json: ${response.code}")
+                    runOnUiThread {
+                        showErrorDialog(getString(R.string.failed_to_download_update_metadata))
+                    }
+                    return
+                }
+
+                val metadataJson = response.body.string()
+                Log.d(logTag, "output-metadata.json: $metadataJson")
+
+                try {
+                    val gson = Gson()
+                    val metadata = gson.fromJson(metadataJson, OutputMetadata::class.java)
+
+                    // Get the versionCode from metadata (first element)
+                    val remoteVersionCode = metadata.elements.firstOrNull()?.versionCode
+                    if (remoteVersionCode != null && remoteVersionCode > BuildConfig.VERSION_CODE) {
+                        // Find the APK asset
+                        val apkAsset = release.assets.find {
+                            it.name.endsWith(".apk") && !it.name.contains("output-metadata")
+                        }
+                        if (apkAsset != null) {
+                            runOnUiThread {
+                                showUpdateDialog(
+                                    release.tagName,
+                                    apkAsset.browserDownloadUrl
+                                )
+                            }
+                        } else {
+                            Log.e(logTag, "No APK asset found in release")
+                            runOnUiThread {
+                                showErrorDialog(getString(R.string.no_apk_found_for_the_update))
+                            }
+                        }
+                    } else {
+                        runOnUiThread {
+                            Snackbar.make(
+                                findViewById(R.id.bot_token_editview),
+                                getString(R.string.app_is_up_to_date),
+                                Snackbar.LENGTH_LONG
+                            ).show()
+                        }
+                        Log.i(
+                            logTag,
+                            "App is up to date. Current: ${BuildConfig.VERSION_CODE}, Remote: $remoteVersionCode"
+                        )
+
+
+                    }
+                } catch (e: Exception) {
+                    Log.e(logTag, "Failed to parse output-metadata.json", e)
+                    runOnUiThread {
+                        showErrorDialog(getString(R.string.failed_to_parse_update_metadata))
+                    }
+
+                }
+            }
+
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e(logTag, "Failed to fetch output-metadata.json", e)
+                runOnUiThread {
+                    showErrorDialog(getString(R.string.failed_to_fetch_update_metadata))
                 }
             }
         })
@@ -727,18 +859,9 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.about_menu_item -> {
-                val packageManager = applicationContext.packageManager
-                val packageInfo: PackageInfo
-                var versionName: String? = "unknown"
-                try {
-                    packageInfo = packageManager.getPackageInfo(applicationContext.packageName, 0)
-                    versionName = packageInfo.versionName
-                } catch (e: PackageManager.NameNotFoundException) {
-                    Log.d(this::class.simpleName, "onOptionsItemSelected: $e")
-                }
                 val builder = AlertDialog.Builder(this)
                 builder.setTitle(R.string.about_title)
-                builder.setMessage(getString(R.string.about_content) + versionName)
+                builder.setMessage(getString(R.string.about_content) + BuildConfig.VERSION_NAME)
                 builder.setCancelable(false)
                 builder.setPositiveButton(R.string.ok_button, null)
                 builder.show()
@@ -757,7 +880,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.config_qrcode_menu_item -> {
-                val intent = Intent(this, QrcodeActivity::class.java)
+                val intent = Intent(this, TransferConfigActivity::class.java)
                 startActivityForResult(intent, 1)
                 return true
             }
@@ -786,25 +909,42 @@ class MainActivity : AppCompatActivity() {
 
             R.id.set_proxy_menu_item -> {
                 val view = inflater.inflate(R.layout.set_proxy_layout, null)
-                val dohSwitch = findViewById<SwitchMaterial>(R.id.doh_switch)
                 val proxyEnable = view.findViewById<SwitchMaterial>(R.id.proxy_enable_switch)
                 val proxyHost = view.findViewById<EditText>(R.id.proxy_host_editview)
                 val proxyPort = view.findViewById<EditText>(R.id.proxy_port_editview)
                 val proxyUsername = view.findViewById<EditText>(R.id.proxy_username_editview)
                 val proxyPassword = view.findViewById<EditText>(R.id.proxy_password_editview)
-                val proxyMMKV = MMKV.mmkvWithID(MMKVConst.PROXY_ID)
-                proxyEnable.isChecked = proxyMMKV.getBoolean("proxy_enable", false)
+                val proxyMMKV = MMKV.mmkvWithID(PROXY_ID)
+                proxyEnable.isChecked = proxyMMKV.getBoolean("enable", false)
                 proxyHost.setText(proxyMMKV.getString("host", ""))
-                proxyPort.setText(proxyMMKV.getInt("port", 0).toString())
+                proxyPort.setText(proxyMMKV.getInt("port", 100).toString())
                 proxyUsername.setText(proxyMMKV.getString("username", ""))
                 proxyPassword.setText(proxyMMKV.getString("password", ""))
-                AlertDialog.Builder(this).setTitle(R.string.proxy_dialog_title)
+                val dialog = AlertDialog.Builder(this).setTitle(R.string.proxy_dialog_title)
                     .setView(view)
-                    .setPositiveButton(R.string.ok_button) { _: DialogInterface?, _: Int ->
-                        if (!dohSwitch.isChecked) {
-                            dohSwitch.isChecked = true
+                    .setPositiveButton(R.string.ok_button, null)
+                    .show()
+                val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                positiveButton.setOnClickListener({
+                    var hasError = false
+                    if (proxyEnable.isChecked) {
+                        if (proxyHost.text.toString().isEmpty()) {
+                            view.findViewById<TextInputLayout>(R.id.proxy_host_layout).error =
+                                "Proxy host can not be empty."
+                            hasError = true
                         }
-                        dohSwitch.isEnabled = !proxyEnable.isChecked
+                        val portLayout = view.findViewById<TextInputLayout>(R.id.proxy_port_layout)
+                        if (proxyPort.text.toString().isEmpty()) {
+                            portLayout.error = "Proxy port can not be empty."
+                            hasError = true
+                        }
+                        val port = proxyPort.text.toString().toInt()
+                        if (port !in 1..65535) {
+                            portLayout.error = "Proxy port must be between 1 and 65535."
+                            hasError = true
+                        }
+                    }
+                    if (!hasError) {
                         proxyMMKV.putBoolean("enable", proxyEnable.isChecked)
                         proxyMMKV.putString("host", proxyHost.text.toString())
                         proxyMMKV.putInt("port", proxyPort.text.toString().toInt())
@@ -823,8 +963,10 @@ class MainActivity : AppCompatActivity() {
                                 )
                             }
                         }.start()
+                        dialog.dismiss()
                     }
-                    .show()
+                })
+
                 return true
             }
 
@@ -850,7 +992,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     preferences.putString("api_address", apiAddressText)
                     if (preferences.contains("initialized") && apiAddressText != "api.telegram.org") {
-                        logout(preferences.getString("bot_token", "").toString())
+                        checkAndLogout(preferences.getString("bot_token", "").toString())
                     }
                 }
                 apiDialog.setNegativeButton("Cancel", null)
@@ -885,7 +1027,7 @@ class MainActivity : AppCompatActivity() {
         try {
             customTabsIntent.launchUrl(this, uri)
         } catch (e: ActivityNotFoundException) {
-            Log.d(this::class.simpleName, "onOptionsItemSelected: $e")
+            Log.e(logTag, "onOptionsItemSelected: ${e.message}", e)
             showErrorDialog(getString(R.string.browser_not_found))
         }
         return true
@@ -895,7 +1037,7 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 1) {
-            if (resultCode == Const.RESULT_CONFIG_JSON) {
+            if (resultCode == RESULT_CONFIG_JSON) {
                 val gson = Gson()
                 val jsonConfig = gson.fromJson(
                     data!!.getStringExtra("config_json"),
@@ -929,10 +1071,11 @@ class MainActivity : AppCompatActivity() {
                 val callNotifySwitch = findViewById<SwitchMaterial>(R.id.call_notify_switch)
                 callNotifySwitch.isChecked = jsonConfig.callNotifySwitch
 
-                val hidePhoneNumberSwitch = findViewById<SwitchMaterial>(R.id.hide_phone_number_switch)
+                val hidePhoneNumberSwitch =
+                    findViewById<SwitchMaterial>(R.id.hide_phone_number_switch)
                 hidePhoneNumberSwitch.isChecked = jsonConfig.hidePhoneNumber
 
-                if (!jsonConfig.apiAddress.isNullOrEmpty()) {
+                if (jsonConfig.apiAddress.isNotEmpty()) {
                     preferences.putString("api_address", jsonConfig.apiAddress)
                 }
                 (findViewById<View>(R.id.bot_token_editview) as EditText).setText(jsonConfig.botToken)
@@ -950,7 +1093,7 @@ class MainActivity : AppCompatActivity() {
                 val topicIdView = findViewById<EditText>(R.id.message_thread_id_editview)
                 topicIdView.setText(jsonConfig.topicID)
                 if (jsonConfig.ccService != null) {
-                    val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+                    val carbonCopyMMKV = MMKV.mmkvWithID(CARBON_COPY_ID)
                     carbonCopyMMKV.putString("service", gson.toJson(jsonConfig.ccService))
                 }
             }
@@ -987,11 +1130,77 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    fun logout(chatId: String) {
+    fun checkAndLogout(botToken: String) {
         val progressDialog = ProgressDialog(this)
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
         progressDialog.setTitle(getString(R.string.get_recent_chat_title))
         progressDialog.setMessage(getString(R.string.get_recent_chat_message))
+        progressDialog.isIndeterminate = false
+        progressDialog.setCancelable(false)
+        progressDialog.show()
+
+        val getMeUri = "https://api.telegram.org/bot$botToken/getMe"
+        var okhttpClient = getOkhttpObj(
+            preferences.getBoolean("doh_switch", false)
+        )
+        okhttpClient = okhttpClient.newBuilder().build()
+        val request: Request = Request.Builder().url(getMeUri).get().build()
+        val call = okhttpClient.newCall(request)
+        call.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                progressDialog.cancel()
+                Log.e(logTag, "checkAndLogout getMe onFailure: ", e)
+                runOnUiThread {
+                    Snackbar.make(
+                        findViewById(R.id.doh_switch),
+                        getString(R.string.set_api_success),
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                progressDialog.cancel()
+                if (response.isSuccessful) {
+                    val body = response.body.string()
+                    val jsonObj = JsonParser.parseString(body).asJsonObject
+                    if (jsonObj.get("ok").asBoolean) {
+                        Log.i(logTag, "onResponse: Logged in, proceeding to logout")
+                        // Bot token is still active on official API, need to logout
+                        runOnUiThread {
+                            logout(botToken)
+                        }
+                    } else {
+                        Log.i(logTag, "onResponse: Already logged out")
+                        // Already logged out
+                        runOnUiThread {
+                            Snackbar.make(
+                                findViewById(R.id.doh_switch),
+                                getString(R.string.set_api_success),
+                                Snackbar.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                } else {
+                    Log.w(logTag, "onResponse: ${response.code}")
+                    // Not logged in or error, no need to logout
+                    runOnUiThread {
+                        Snackbar.make(
+                            findViewById(R.id.doh_switch),
+                            getString(R.string.set_api_success),
+                            Snackbar.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            }
+        })
+    }
+
+    fun logout(chatId: String) {
+        val progressDialog = ProgressDialog(this)
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
+        progressDialog.setTitle(getString(R.string.logout_progress_title))
+        progressDialog.setMessage(getString(R.string.logout_progress_message))
         progressDialog.isIndeterminate = false
         progressDialog.setCancelable(false)
         progressDialog.show()
@@ -1002,31 +1211,31 @@ class MainActivity : AppCompatActivity() {
         okhttpClient = okhttpClient.newBuilder().build()
         val requestBody = PollingBody()
         val body: RequestBody =
-            RequestBody.create(Const.JSON, Gson().toJson(requestBody))
+            RequestBody.create(JSON, Gson().toJson(requestBody))
         val request: Request =
             Request.Builder().url(requestUri).method("POST", body).build()
         val call = okhttpClient.newCall(request)
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 progressDialog.cancel()
-                Log.e(this::class.simpleName, "onFailure: ", e)
+                Log.e(logTag, "onFailure: ", e)
             }
 
             override fun onResponse(call: Call, response: Response) {
                 progressDialog.cancel()
                 if (!response.isSuccessful) {
-                    showErrorDialog("Logout failed.")
+                    showErrorDialog(getString(R.string.logout_failed))
                 } else {
                     val body = response.body.string()
                     val jsonObj = JsonParser.parseString(body).asJsonObject
                     if (jsonObj.get("ok").asBoolean) {
                         Snackbar.make(
                             findViewById(R.id.doh_switch),
-                            "Set API address successful.",
+                            getString(R.string.set_api_success),
                             Snackbar.LENGTH_LONG
                         ).show()
                     } else {
-                        showErrorDialog("Set API address failed.")
+                        showErrorDialog(getString(R.string.set_api_failed))
                     }
 
                 }

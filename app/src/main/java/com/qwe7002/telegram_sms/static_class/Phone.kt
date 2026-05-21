@@ -9,11 +9,15 @@ import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import com.qwe7002.telegram_sms.static_class.Other.getActiveCard
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 
 object Phone {
-    val preferences = MMKV.defaultMMKV()
-    @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
+    private const val logTag = "${TAG}.Phone"
+    // Lazy so that pure helpers (e.g. formatSimDisplayName) are unit-testable
+    // without requiring MMKV native init / an Android context at object load.
+    val preferences by lazy { MMKV.defaultMMKV() }
+    @RequiresPermission(allOf = [Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_PHONE_NUMBERS])
     @JvmStatic
     fun getSimDisplayName(context: Context, slot: Int): String {
         val telephonyManager =
@@ -22,13 +26,13 @@ object Phone {
             checkNotNull(context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager)
         var info = subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(slot)
         if (info == null) {
-            Log.d(this::class.simpleName, "The active card is in the second card slot.")
+            Log.d(logTag, "The active card is in the second card slot.")
             if (getActiveCard(context) == 1 && slot == 0) {
                 info = subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(1)
             }
             if (info == null) {
-                Log.d(this::class.simpleName, "The active card is not found.")
-                return "Unknown"
+                Log.d(logTag, "The active card is not found.")
+                return ""
             }
         }
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -40,15 +44,33 @@ object Phone {
                 @Suppress("DEPRECATION")
                 info.number
             }
-            if (preferences.getBoolean("hide_phone_number",false)){
-                tm.simOperatorName + " "
-            } else if (tm.simOperatorName == info.displayName) {
-                tm.simOperatorName + " (" + phoneNumber + ")"
-            } else {
-                info.displayName.toString() + " (" + phoneNumber + ")"
-            }
+            formatSimDisplayName(
+                operatorName = tm.simOperatorName,
+                displayName = info.displayName?.toString(),
+                phoneNumber = phoneNumber,
+                hidePhoneNumber = preferences.getBoolean("hide_phone_number", false)
+            )
         } else {
             info.carrierName.toString()
+        }
+    }
+
+    @JvmStatic
+    fun formatSimDisplayName(
+        operatorName: String?,
+        displayName: String?,
+        phoneNumber: String?,
+        hidePhoneNumber: Boolean
+    ): String {
+        val name = when {
+            !displayName.isNullOrBlank() -> displayName
+            !operatorName.isNullOrBlank() -> operatorName
+            else -> ""
+        }
+        return if (hidePhoneNumber || phoneNumber.isNullOrBlank()) {
+            "$name "
+        } else {
+            "$name ($phoneNumber)"
         }
     }
 

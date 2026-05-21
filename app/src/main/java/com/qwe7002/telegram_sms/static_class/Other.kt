@@ -12,13 +12,26 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.google.gson.JsonParser
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.MMKV.CHAT_INFO_ID
 import com.qwe7002.telegram_sms.R
 import com.qwe7002.telegram_sms.data_structure.SMSRequestInfo
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 object Other {
+    private const val logTag = "${TAG}.Other"
+
+    @JvmStatic
+    fun formatTimestamp(timestampMillis: Long): String {
+        // Locale.US — keep digits ASCII regardless of device locale (e.g. fa-IR / ar-* would otherwise
+        // emit non-Western numerals into the Telegram message).
+        return SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
+            .format(Date(timestampMillis))
+    }
+
     private val NINE_KEY_MAP = mapOf(
         'A' to 2, 'B' to 2, 'C' to 2,
         'D' to 3, 'E' to 3, 'F' to 3,
@@ -31,8 +44,10 @@ object Other {
     )
 
     fun getNineKeyMapConvert(input: String): String {
+        // Locale.ROOT — Turkish locale would otherwise uppercase 'i' to 'İ' (U+0130),
+        // which isn't in NINE_KEY_MAP and would pass through unmapped.
         val result = StringBuilder(input.length)
-        val phoneNumberCharArray = input.uppercase(Locale.getDefault()).toCharArray()
+        val phoneNumberCharArray = input.uppercase(Locale.ROOT).toCharArray()
         for (c in phoneNumberCharArray) {
             result.append(NINE_KEY_MAP[c] ?: c)
         }
@@ -64,24 +79,35 @@ object Other {
 
 
     fun isPhoneNumber(str: String): Boolean {
-        var i = str.length
-        while (--i >= 0) {
-            val c = str[i]
-            if (c == '+') {
-                Log.d(this::class.simpleName, "is_phone_number: found +.")
-                continue
-            }
-            if (!Character.isDigit(c)) {
-                return false
+        if (str.isEmpty()) return false
+        var hasDigit = false
+        for ((i, c) in str.withIndex()) {
+            when {
+                c == '+' -> if (i != 0) return false
+                Character.isDigit(c) -> hasDigit = true
+                else -> return false
             }
         }
-        return true
+        return hasDigit
     }
 
 
     @JvmStatic
     fun getMessageId(result: String): Long {
-        return JsonParser.parseString(result).asJsonObject["result"].asJsonObject["message_id"].asLong
+        return try {
+            val root = JsonParser.parseString(result).asJsonObject
+            val resultObj = root["result"]?.asJsonObject ?: run {
+                Log.w(logTag, "getMessageId: no 'result' object in $result")
+                return 0L
+            }
+            resultObj["message_id"]?.asLong ?: 0L
+        } catch (e: Exception) {
+            // Telegram error responses (ok:false), HTML/proxy bodies, or other
+            // non-Telegram payloads land here. Returning 0 keeps callers alive;
+            // they already treat 0 as "no message id" via MMKV defaults.
+            Log.w(logTag, "getMessageId: failed to parse response: $result", e)
+            0L
+        }
     }
 
     @JvmStatic
@@ -99,7 +125,7 @@ object Other {
                 manager.createNotificationChannel(channel)
             }
             notification = Notification.Builder(context, notificationName)
-        } else { //Notification generation method for pre-O versions
+        } else {
             @Suppress("DEPRECATION")
             notification = Notification.Builder(context).setPriority(Notification.PRIORITY_MIN)
         }
@@ -148,7 +174,7 @@ object Other {
                 Manifest.permission.READ_PHONE_STATE
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            Log.d(this::class.simpleName, "No permission.")
+            Log.d(logTag, "No permission.")
             return -1
         }
         val subscriptionManager =
@@ -163,8 +189,8 @@ object Other {
         item.card = slot
         val gson = Gson()
         val itemString = gson.toJson(item)
-        val chatInfoMMKV = MMKV.mmkvWithID(MMKVConst.CHAT_INFO_ID)
+        val chatInfoMMKV = MMKV.mmkvWithID(CHAT_INFO_ID)
         chatInfoMMKV.putString(messageId.toString(), itemString)
-        Log.d(this::class.simpleName, "add_message_list: $messageId")
+        Log.d(logTag, "addMessageList: $messageId")
     }
 }

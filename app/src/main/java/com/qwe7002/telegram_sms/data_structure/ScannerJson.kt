@@ -37,9 +37,6 @@ data class ScannerJson(
     @SerializedName("call_notify")
     val callNotifySwitch: Boolean,
 
-    @SerializedName("display_dual_sim_display_name")
-    val dualSimDisplayNameSwitch: Boolean,
-
     @SerializedName("topic_id")
     val topicID: String,
 

@@ -3,11 +3,13 @@
     <string name="TPL_received_sms">[{{SIM}}Receive SMS]\nFrom: {{From}}\nContent: {{Content}}</string>
     <string name="TPL_received_mms">[{{SIM}}Receive MMS]\nFrom: {{From}}\nSubject: {{Subject}}\nContent: {{Content}}</string>
     <string name="TPL_send_sms">[{{SIM}}Send SMS]\nTo: {{To}}\nContent: {{Content}}</string>
-    <string name="TPL_send_sms_chat">[{{SIM}}Send SMS]\n{{Content}}</string>
     <string name="TPL_missed_call">[{{SIM}}Missed Call]\nFrom: {{From}}</string>
     <string name="TPL_notification">[Receive Notification]\nApp: {{APP}}\nTitle: {{Title}}\nDescription: {{Description}}</string>
     <string name="TPL_send_USSD">[Send USSD]\nRequest: {{Request}}\nResponse: {{Response}}</string>
     <string name="TPL_system_message">[System Information]\n{{Message}}</string>
     <string name="TPL_battery">[Battery Monitoring]\nBattery level: {{BatteryLevel}}%\n{{Message}}</string>
-    <string name="TPL_receiving_call">[{{SIM}}Receiving Call]  From: {{From}}</string>
+    <string name="TPL_receiving_call">[{{SIM}}Receiving Call]\nFrom: {{From}}</string>
+    <!-- Chat Templates -->
+    <string name="TPL_send_sms_chat">[{{SIM}}Send SMS]\n{{Content}}</string>
+    <string name="TPL_send_USSD_chat">[Send USSD]\n{{Content}}</string>
 </resources>

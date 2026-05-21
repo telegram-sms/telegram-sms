@@ -1,0 +1,44 @@
+name: Check Translation Completeness
+
+on:
+  pull_request:
+    paths:
+      - 'app/language_pack/**'
+      - 'app/src/main/res/values/strings.xml'
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - 'app/language_pack/**'
+      - 'app/src/main/res/values/strings.xml'
+  workflow_dispatch:
+
+jobs:
+  check-translations:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install lxml
+
+      - name: Check translation completeness
+        run: |
+          python .github/scripts/check_translations.py
+
+      - name: Upload translation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: translation-report
+          path: translation_report.txt
+

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="trusted_phone_number">Trusted phone number</string>
+    <string name="network_error_falls_back_to_sms">Forward SMS to trusted number when network unavailable</string>
+    <string name="trusted_phone_number_empty">Trusted phone number cannot be empty.</string>
+
+    <string name="using_verification_code_identification">Verification code automatic extraction (Alpha)</string>
+    <string name="enter_reply_number">Please reply the receiver\'s number.</string>
+    <string name="enter_reply_content">Please reply the message to be sent.</string>
+    <string name="unable_get_phone_number">Unable to get phone number.</string>
+    <string name="failed_resend">"Resending failed SMS"</string>
+    <string name="keywords">Keywords</string>
+    <string name="spam_sms_keyword_title">SMS blocklist</string>
+    <string name="spam_keyword_edit_title">Edit Keyword</string>
+    <string name="spam_keyword_add_title">Add Keyword</string>
+    <string name="unable_to_obtain_information">Unable to get message</string>
+    <string name="template_title">Template</string>
+    <string name="send_sms_title">Send SMS</string>
+    <string name="receive_sms_title">Receive SMS</string>
+    <string name="receive_mms_title">Receive MMS</string>
+    <string name="verification_code">" (Verification Code)"</string>
+    <string name="this_is_a_test_message">This is a test message.</string>
+    <string name="please_reply_to_continue">Please reply to the previous message to continue.</string>
+</resources>
+

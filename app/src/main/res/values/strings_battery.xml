@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="battery_title">Battery Monitoring</string>
+    <string name="not_charging">Not charging</string>
+    <string name="charging">Charging</string>
+    <string name="charger_status">Monitor charger status</string>
+    <string name="battery_monitoring_notify">"Battery monitor "</string>
+    <string name="battery_monitoring">Monitor battery level change</string>
+    <string name="low_battery_status_end">Battery has been charged to a safe level.</string>
+    <string name="current_battery_level">"Battery level: "</string>
+    <string name="charger_disconnect">Charger disconnected.</string>
+    <string name="charger_connect">Charger connected.</string>
+    <string name="battery_low">Battery is low.</string>
+</resources>
+

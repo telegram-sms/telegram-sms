@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,12 +18,16 @@ import android.widget.ProgressBar
 import android.widget.SearchView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.google.gson.Gson
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.MMKV.NOTIFY_ID
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import java.util.Locale
 
 class NotifyActivity : AppCompatActivity() {
+    private val logTag = "${TAG}.NotifyActivity"
     private lateinit var appAdapter: AppAdapter
 
     private fun scanAppList(packageManager: PackageManager): List<applicationInfo> {
@@ -44,7 +49,7 @@ class NotifyActivity : AppCompatActivity() {
                 appInfoList.add(appInfo)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(logTag, "scanAppList: ${e.message}", e)
         }
         return appInfoList
     }
@@ -54,6 +59,17 @@ class NotifyActivity : AppCompatActivity() {
         MMKV.initialize(applicationContext)
         this.title = getString(R.string.app_list)
         setContentView(R.layout.activity_notify_apps_list)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.notify_linear_layout)) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.progress_view)) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(insets.left, insets.top, insets.right, insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+        FakeStatusBar().fakeStatusBar(this, window)
         val appList = findViewById<ListView>(R.id.app_listview)
         val filterEdit = findViewById<SearchView>(R.id.filter_searchview)
         filterEdit.isIconifiedByDefault = false
@@ -85,7 +101,7 @@ class NotifyActivity : AppCompatActivity() {
         private var listenList: List<String>
         var appInfoList: List<applicationInfo> = ArrayList()
         var viewAppInfoList: List<applicationInfo> = ArrayList()
-        var notifyMMKV = MMKV.mmkvWithID(MMKVConst.NOTIFY_ID)
+        var notifyMMKV = MMKV.mmkvWithID(NOTIFY_ID)
 
         @Suppress("UNCHECKED_CAST")
         private val filter: Filter = object : Filter() {
@@ -171,7 +187,7 @@ class NotifyActivity : AppCompatActivity() {
             viewHolderObject.appCheckbox.setOnClickListener {
                 val itemInfo = getItem(position) as applicationInfo
                 val packageName = itemInfo.packageName
-                val notifyMMKV = MMKV.mmkvWithID(MMKVConst.NOTIFY_ID)
+                val notifyMMKV = MMKV.mmkvWithID(NOTIFY_ID)
                 val notifyListStr = notifyMMKV.getString("listen_list", "[]")
                 val listenListTemp: MutableList<String> =
                     Gson().fromJson(notifyListStr, Array<String>::class.java).toMutableList()

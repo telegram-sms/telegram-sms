@@ -12,7 +12,7 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import com.google.gson.reflect.TypeToken
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.MMKV.CARBON_COPY_ID
 import com.qwe7002.telegram_sms.data_structure.config.CcConfig
 import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.data_structure.Entry
@@ -21,6 +21,7 @@ import com.qwe7002.telegram_sms.static_class.CcSend
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.SnowFlake
 import com.qwe7002.telegram_sms.value.CcType
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 import okhttp3.FormBody
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -35,7 +36,7 @@ import java.util.concurrent.Executors
 class CcSendJob : JobService() {
     
     companion object {
-        private const val TAG = "CcSendJob"
+        private val logTag = "${TAG}.CcSendJob"
         private const val EXTRA_TITLE = "title"
         private const val EXTRA_MESSAGE = "message"
         private const val EXTRA_VERIFICATION_CODE = "verification_code"
@@ -79,8 +80,8 @@ class CcSendJob : JobService() {
         }
 
         private fun checkType(type: Int): Boolean {
-            Log.d(TAG, "checkType: $type")
-            val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+
+            val carbonCopyMMKV = MMKV.mmkvWithID(CARBON_COPY_ID)
             val ccConfig = carbonCopyMMKV.getString("config", "{}") ?: "{}"
             val configType = object : TypeToken<CcConfig>() {}.type
             val config: CcConfig = gson.fromJson(ccConfig, configType)
@@ -97,7 +98,7 @@ class CcSendJob : JobService() {
     }
     
     override fun onStartJob(params: JobParameters?): Boolean {
-        Log.d(TAG, "startJob: Trying to send message.")
+        Log.d(logTag, "ccSendJob: Trying to send message.")
         
         val extras = params?.extras ?: return false
         val defaultTitle = getString(R.string.app_name)
@@ -127,7 +128,7 @@ class CcSendJob : JobService() {
     private fun processSendJob(title: String, message: String, verificationCode: String) {
         MMKV.initialize(applicationContext)
         val preferences = MMKV.defaultMMKV()
-        val carbonCopyMMKV = MMKV.mmkvWithID(MMKVConst.CARBON_COPY_ID)
+        val carbonCopyMMKV = MMKV.mmkvWithID(CARBON_COPY_ID)
         
         val sendList = getSendList(carbonCopyMMKV)
         if (sendList.isEmpty()) return
@@ -142,7 +143,7 @@ class CcSendJob : JobService() {
         var successCount = 0
         for (item in enabledList) {
             if (item.har.log.entries.isEmpty()) {
-                Log.e(TAG, "onStartJob: ${item.name} HAR is empty.")
+                Log.e(logTag, "ccSendJob: ${item.name} HAR is empty.")
                 continue
             }
             
@@ -153,7 +154,7 @@ class CcSendJob : JobService() {
             }
         }
         
-        Log.i(TAG, "CC sending completed. Success: $successCount/${enabledList.size}")
+        Log.i(logTag, "CC sending completed. Success: $successCount/${enabledList.size}")
     }
     
     private fun getSendList(mmkv: MMKV): List<CcSendService> {
@@ -192,7 +193,7 @@ class CcSendJob : JobService() {
         val request = entry.request
         
         val httpUrl = CcSend.render(request.url, encodeMapper).toHttpUrlOrNull() ?: run {
-            Log.e(TAG, "Invalid URL: ${request.url}")
+            Log.e(logTag, "Invalid URL: ${request.url}")
             return false
         }
         
@@ -235,11 +236,9 @@ class CcSendJob : JobService() {
         mapper: Map<String, String>
     ): RequestBody? {
         val postData = request.postData ?: return null
-        val mimeType = postData.mimeType.toMediaTypeOrNull()
-        
-        return when (mimeType) {
+        return when (val mimeType = postData.mimeType.toMediaTypeOrNull()) {
             null -> {
-                Log.w(TAG, "MIME type is null or invalid: ${postData.mimeType}")
+                Log.w(logTag, "MIME type is null or invalid: ${postData.mimeType}")
                 null
             }
             
@@ -258,7 +257,7 @@ class CcSendJob : JobService() {
                         val jsonElement = JsonParser.parseString(value)
                         gson.toJson(jsonElement).toRequestBody(mimeType)
                     } catch (e: Exception) {
-                        Log.e(TAG, "Failed to parse JSON: ${e.message}")
+                        Log.e(logTag, "Failed to parse JSON: ${e.message}")
                         "{}".toRequestBody(mimeType)
                     }
                 } else {
@@ -267,7 +266,7 @@ class CcSendJob : JobService() {
             }
             
             else -> {
-                Log.w(TAG, "Unsupported MIME type: ${postData.mimeType}")
+                Log.w(logTag, "Unsupported MIME type: ${postData.mimeType}")
                 null
             }
         }
@@ -278,7 +277,7 @@ class CcSendJob : JobService() {
             "GET" -> null
             "POST", "PUT" -> FormBody.Builder().build()
             else -> {
-                Log.w(TAG, "Unsupported request method: $method")
+                Log.w(logTag, "Unsupported request method: $method")
                 null
             }
         }
@@ -288,15 +287,15 @@ class CcSendJob : JobService() {
         return try {
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
-                    Log.i(TAG, "Message sent successfully.")
+                    Log.i(logTag, "Message sent successfully.")
                     true
                 } else {
-                    Log.e(TAG, "Send message failed: ${response.code} ${response.body.string()}")
+                    Log.e(logTag, "Send message failed: ${response.code} ${response.body.string()}")
                     false
                 }
             }
         } catch (e: IOException) {
-            Log.e(TAG, "An error occurred while sending: ${e.message}", e)
+            Log.e(logTag, "An error occurred while sending: ${e.message}", e)
             false
         }
     }

@@ -15,7 +15,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.qwe7002.telegram_sms.MMKV.MMKVConst
+import com.qwe7002.telegram_sms.MMKV.TEMPLATE_ID
+import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.static_class.Template.getStringByName
 import com.tencent.mmkv.MMKV
@@ -33,24 +34,31 @@ class TemplateActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        FakeStatusBar().fakeStatusBar(this, window)
         val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
+        val sampleTime = Other.formatTimestamp(System.currentTimeMillis())
         val messages = listOf(
             Message(
                 getString(R.string.receive_sms_title),
                 "TPL_received_sms",
-                mapOf("SIM" to "SIM1 ", "From" to "+16505551212", "Content" to "Hello, World!")
+                mapOf("SIM" to "SIM1 ", "From" to "+16505551212", "Content" to "Hello, World!", "Time" to sampleTime)
             ),
             Message(
                 getString(R.string.receive_mms_title),
                 "TPL_received_mms",
-                mapOf("SIM" to "SIM1 ", "From" to "+16505551212", "Subject" to "MMS Subject", "Content" to "Hello from MMS!")
+                mapOf("SIM" to "SIM1 ", "From" to "+16505551212", "Subject" to "MMS Subject", "Content" to "Hello from MMS!", "Time" to sampleTime)
             ),
             Message(
                 getString(R.string.send_sms_title),
                 "TPL_send_sms",
                 mapOf("SIM" to "SIM1 ", "To" to "+16505551212", "Content" to "Hello, World!")
+            ),
+            Message(
+                getString(R.string.receive_call_title),
+                "TPL_receiving_call",
+                mapOf("SIM" to "SIM1 ", "From" to "+16505551212")
             ),
             Message(
                 getString(R.string.missed_call_title),
@@ -73,12 +81,7 @@ class TemplateActivity : AppCompatActivity() {
                     "Message" to applicationContext.getString(R.string.battery_low),
                     "BatteryLevel" to "10"
                 )
-            ),
-            Message(
-                getString(R.string.missed_call_title),
-                "TPL_receiving_call",
-                mapOf("SIM" to "SIM1 ", "From" to "+16505551212")
-            ),
+            )
         )
 
         val adapter = MessageAdapter(this, messages)
@@ -111,7 +114,7 @@ class TemplateActivity : AppCompatActivity() {
                 val dialogView = inflater.inflate(R.layout.set_template, null)
 
                 val editText = dialogView.findViewById<EditText>(R.id.template_editview)
-                val templateMMKV = MMKV.mmkvWithID(MMKVConst.TEMPLATE_ID)
+                val templateMMKV = MMKV.mmkvWithID(TEMPLATE_ID)
                 val result =
                     templateMMKV.decodeString(
                         message.template,

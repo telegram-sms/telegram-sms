@@ -16,14 +16,17 @@ import com.qwe7002.telegram_sms.static_class.Phone
 import com.qwe7002.telegram_sms.static_class.TelegramApi
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.CcType
+import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
 
 @Suppress("DEPRECATION")
 class CallReceiver : BroadcastReceiver() {
+    val logTag = "${TAG}.CallReceiver"
+
     @Suppress("DEPRECATION")
     override fun onReceive(context: Context, intent: Intent) {
         MMKV.initialize(context)
-        Log.d(this::class.simpleName, "Receive action: " + intent.action)
+        Log.d(logTag, "Receive action: " + intent.action)
         // Removed local lateinit var incomingNumber
 
         when (intent.action) {
@@ -34,7 +37,7 @@ class CallReceiver : BroadcastReceiver() {
                 val telephony = context
                     .getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
                 // PhoneStatusListener constructor no longer takes incomingNumber
-                val customPhoneListener = PhoneStatusListener(context, slot)
+                val customPhoneListener = PhoneStatusListener(context, logTag, slot)
                 telephony.listen(customPhoneListener, PhoneStateListener.LISTEN_CALL_STATE)
             }
 
@@ -45,21 +48,18 @@ class CallReceiver : BroadcastReceiver() {
 
     internal class PhoneStatusListener(
         private val context: Context,
+        private val logTag: String,
         private val slot: Int
-        // Removed constructor parameter: incomingNumber: String?
     ) : PhoneStateListener() {
 
-        @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
         @Deprecated("Deprecated in Java")
+        @RequiresPermission(allOf = [Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_PHONE_NUMBERS, Manifest.permission.READ_PHONE_STATE])
         override fun onCallStateChanged(nowState: Int, nowIncomingNumber: String) {
-            // Use nowIncomingNumber from the callback parameter directly.
-            // It can be an empty string if the number is unknown.
             val actualIncomingNumber = nowIncomingNumber.ifEmpty {
                 Log.w(
-                    context::class.simpleName,
+                    logTag,
                     "Incoming number from callback is null or empty. Using 'Unknown'."
                 )
-                // Consider using a string resource: context.getString(R.string.unknown_caller_id)
                 "Unknown"
             }
 
@@ -67,14 +67,13 @@ class CallReceiver : BroadcastReceiver() {
                 val preferences = MMKV.defaultMMKV()
                 if (!preferences.getBoolean("call_notify", true)) {
                     Log.i(
-                        context::class.simpleName,
+                        logTag,
                         "Call notifications are disabled by user setting."
                     )
                     return
                 }
                 val requestBody = RequestMessage()
                 val dualSim = Phone.getSimDisplayName(context, slot)
-                // Use actualIncomingNumber from the callback
                 requestBody.text = Template.render(
                     context,
                     "TPL_receiving_call",
@@ -90,7 +89,6 @@ class CallReceiver : BroadcastReceiver() {
                 TelegramApi.sendMessage(
                     context = context,
                     requestBody = requestBody,
-                    errorTag = "CallReceiver",
                     fallbackSubId = Other.getSubId(context, slot)
                 ) { responseBodyStr ->
                     // Use actualIncomingNumber from the callback
@@ -102,7 +100,7 @@ class CallReceiver : BroadcastReceiver() {
                         )
                     } else {
                         Log.w(
-                            "CallReceiver",
+                            logTag,
                             "[$actualIncomingNumber] Not a regular phone number."
                         )
                     }
@@ -111,7 +109,7 @@ class CallReceiver : BroadcastReceiver() {
             if (lastReceiveStatus == TelephonyManager.CALL_STATE_RINGING && nowState == TelephonyManager.CALL_STATE_IDLE) {
                 val preferences = MMKV.defaultMMKV()
                 if (!preferences.getBoolean("initialized", false)) {
-                    Log.i("call_status_listener", "Uninitialized, Phone receiver is deactivated.")
+                    Log.i(logTag, "Uninitialized, Phone receiver is deactivated.")
                     return
                 }
 
@@ -133,7 +131,6 @@ class CallReceiver : BroadcastReceiver() {
                 TelegramApi.sendMessage(
                     context = context,
                     requestBody = requestBody,
-                    errorTag = "CallReceiver",
                     fallbackSubId = Other.getSubId(context, slot)
                 ) { responseBodyStr ->
                     // Use actualIncomingNumber from the callback
@@ -145,7 +142,7 @@ class CallReceiver : BroadcastReceiver() {
                         )
                     } else {
                         Log.w(
-                            "CallReceiver",
+                            logTag,
                             "[$actualIncomingNumber] Not a regular phone number."
                         )
                     }

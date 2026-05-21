@@ -15,9 +15,16 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import com.qwe7002.telegram_sms.R
+import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.ReplyKeyboardMarkup
+import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.ReplyKeyboardButton
+import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.createReplyButton
+import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.createReplyButtonRow
+import com.qwe7002.telegram_sms.value.TAG
 
 @Suppress("DEPRECATION")
 object ChatCommand {
+    private const val logTag = "${TAG}.ChatCommand"
+
     @JvmStatic
     fun getCommandList(
         context: Context,
@@ -29,7 +36,6 @@ object ChatCommand {
         if (Other.getActiveCard(context) == 2) {
             smsCommand = context.getString(R.string.sendsms_dual)
         }
-        smsCommand += "\n" + context.getString(R.string.get_spam_sms)
 
         // Add SMS management commands when app is default SMS app
         if (SMS.isDefaultSmsApp(context)) {
@@ -74,13 +80,56 @@ object ChatCommand {
 
     }
 
+    /**
+     * Generate a ReplyKeyboardMarkup with available commands
+     */
+    @JvmStatic
+    fun getCommandKeyboard(context: Context): ReplyKeyboardMarkup {
+        val keyboard = ArrayList<ArrayList<ReplyKeyboardButton>>()
+
+        // First row: Info command
+        keyboard.add(createReplyButtonRow(
+            createReplyButton("/getinfo")
+        ))
+
+        // Second row: SMS commands
+        keyboard.add(createReplyButtonRow(
+            createReplyButton("/sendsms")
+        ))
+
+        // Third row: SMS list command (if app is default SMS app)
+        if (SMS.isDefaultSmsApp(context)) {
+            keyboard.add(createReplyButtonRow(
+                createReplyButton("/listsms")
+            ))
+        }
+
+        // Fourth row: USSD commands (if available)
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                keyboard.add(createReplyButtonRow(
+                    createReplyButton("/sendussd")
+                ))
+            }
+        }
+
+
+
+        return ReplyKeyboardMarkup().apply {
+            this.keyboard = keyboard
+            this.resizeKeyboard = true
+            this.oneTimeKeyboard = false
+            this.isPersistent = true
+        }
+    }
+
     private fun batteryInfo(context: Context): String {
         val batteryManager =
             checkNotNull(context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager)
         var batteryLevel = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
         if (batteryLevel > 100) {
             Log.i(
-                this::class.simpleName,
+                logTag,
                 "The previous battery is over 100%, and the correction is 100%."
             )
             batteryLevel = 100
@@ -126,7 +175,7 @@ object ChatCommand {
                 networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> return "WIFI"
                 networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
                     if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-                        Log.d(this::class.simpleName, "No permission.")
+                        Log.d(logTag, "No permission.")
                         continue
                     }
                     return checkCellularNetworkType(telephonyManager.dataNetworkType)
@@ -149,7 +198,7 @@ object ChatCommand {
 
     @SuppressLint("LongLogTag")
     private fun checkCellularNetworkType(type: Int): String {
-        Log.d(this::class.simpleName, "checkCellularNetworkType: $type")
+        Log.d(logTag, "checkCellularNetworkType: $type")
         return when (type) {
             TelephonyManager.NETWORK_TYPE_NR -> "NR"
             TelephonyManager.NETWORK_TYPE_LTE -> "LTE"

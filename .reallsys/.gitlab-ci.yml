@@ -1,290 +1,332 @@
 # GitLab CI/CD Configuration for Telegram SMS
 
 stages:
-  - build
-  - deploy
+    - build
+    - deploy
 
 # ------------------------------------------------------------------------------
 # Global Configuration
 # ------------------------------------------------------------------------------
 default:
-  image: alvrme/alpine-android:android-35-jdk17
-  timeout: 30m
-  interruptible: true
+    image: alvrme/alpine-android:android-36-jdk21
+    timeout: 30m
+    interruptible: true
 
 variables:
-  OWNER: telegram-sms
-  REPO: telegram-sms
-  GIT_DEPTH: 0
-  GIT_SUBMODULE_STRATEGY: recursive
-  GHR_VERSION: "0.17.0"
-  # Gradle settings
-  GRADLE_USER_HOME: "${CI_PROJECT_DIR}/.gradle"
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
+    OWNER: telegram-sms
+    REPO: telegram-sms
+    GIT_DEPTH: 0
+    GIT_SUBMODULE_STRATEGY: recursive
+    GHR_VERSION: "0.17.0"
+    # Gradle settings
+    GRADLE_USER_HOME: "${CI_PROJECT_DIR}/.gradle"
+    GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
 
 # Cache configuration for faster builds
 cache:
-  key:
-    files:
-      - gradle/wrapper/gradle-wrapper.properties
-      - app/build.gradle
-    prefix: ${CI_PROJECT_ID}
-  paths:
-    - .gradle/caches/
-    - .gradle/wrapper/
-  policy: pull-push
+    key:
+        files:
+            - app/build.gradle.kts
+        prefix: ${CI_PROJECT_ID}
+    paths:
+        - .gradle/caches/
+        - .gradle/wrapper/
+    policy: pull-push
 
 # ------------------------------------------------------------------------------
 # Job Templates (Hidden jobs for reuse)
 # ------------------------------------------------------------------------------
 .setup_environment: &setup_environment
-  before_script:
-    - |
-      set -euo pipefail
-      echo "==> Installing dependencies..."
-      apk --update --no-cache add git openssl bash curl wget ca-certificates zip unzip
-    - |
-      echo "==> Setting up keystore..."
-      if [ -z "${KEYSTORE:-}" ]; then
-        echo "ERROR: KEYSTORE variable is not set"
-        exit 1
-      fi
-      echo -n "${KEYSTORE}" | base64 -d > app/keys.jks
-      if [ ! -s app/keys.jks ]; then
-        echo "ERROR: Failed to decode keystore"
-        exit 1
-      fi
-    - |
-      echo "==> Setting up Android NDK..."
-      NDK_VERSION="27.2.12479018"
-      if [ ! -d "${ANDROID_SDK_ROOT}/ndk/${NDK_VERSION}" ]; then
-        echo "Installing NDK ${NDK_VERSION}..."
-        yes | sdkmanager --install "ndk;${NDK_VERSION}" || true
-      fi
-      export ANDROID_NDK_HOME="${ANDROID_SDK_ROOT}/ndk/${NDK_VERSION}"
-      export PATH="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin:${PATH}"
-      echo "NDK installed at: ${ANDROID_NDK_HOME}"
-    - |
-      echo "==> Configuring git..."
-      git config --global user.email "ci-bot@telegram-sms.com"
-      git config --global user.name "GitLab CI Bot"
-      git config --global http.postBuffer 524288000
-    - |
-      echo "==> Setting up Gradle..."
-      mkdir -p "${GRADLE_USER_HOME}"
-      cat >> "${GRADLE_USER_HOME}/gradle.properties" << EOF
-      org.gradle.jvmargs=-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError
-      org.gradle.parallel=true
-      org.gradle.caching=true
-      org.gradle.configureondemand=true
-      android.ndkVersion=${NDK_VERSION}
-      EOF
-      chmod +x ./gradlew
-    - |
-      echo "==> Generating release tag..."
-      export RELEASE_TAG="$(date +%Y%m%d%H%M)-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}"
-      export VERSION_CODE="${CI_PIPELINE_ID}"
-      export VERSION_NAME="${RELEASE_TAG}"
-      echo "Release Tag: ${RELEASE_TAG}"
-      echo "Version Code: ${VERSION_CODE}"
+    before_script:
+        - |
+            set -euo pipefail
+            echo "==> Installing dependencies..."
+            apk --summary --no-cache add git openssl bash curl wget ca-certificates zip unzip
+        - |
+            echo "==> Setting up keystore..."
+            if [ -z "${KEYSTORE:-}" ]; then
+              echo "ERROR: KEYSTORE variable is not set"
+              exit 1
+            fi
+            echo -n "${KEYSTORE}" | base64 -d > app/keys.jks
+            if [ ! -s app/keys.jks ]; then
+              echo "ERROR: Failed to decode keystore"
+              exit 1
+            fi
+        - |
+            echo "==> Setting up Gradle..."
+            mkdir -p "${GRADLE_USER_HOME}"
+            cat >> "${GRADLE_USER_HOME}/gradle.properties" << EOF
+            org.gradle.jvmargs=-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError
+            org.gradle.parallel=true 
+            org.gradle.caching=true
+            org.gradle.configureondemand=true
+            EOF
+            chmod +x ./gradlew
+        - |
+            echo "==> Generating release tag..."
+            if [ "${CI_COMMIT_REF_NAME}" = "master" ]; then
+              # Ubuntu-style versioning: YY.MM format with patch number
+              UBUNTU_VERSION="$(date +%y.%m)"
+            
+              # Fetch all tags to check for existing versions this month
+              git fetch --tags 2>/dev/null || true
+            
+              # Find the highest patch number for this month
+              PATCH_NUM=0
+              EXISTING_TAGS=$(git tag -l "${UBUNTU_VERSION}*" 2>/dev/null || echo "")
+            
+              if [ -n "${EXISTING_TAGS}" ]; then
+                for tag in ${EXISTING_TAGS}; do
+                  # Extract patch number if exists (e.g., 26.01.1 -> 1)
+                  if echo "${tag}" | grep -qE "^${UBUNTU_VERSION}\.[0-9]+$"; then
+                    CURRENT_PATCH=$(echo "${tag}" | sed "s/${UBUNTU_VERSION}\.//")
+                    if [ "${CURRENT_PATCH}" -ge "${PATCH_NUM}" ]; then
+                      PATCH_NUM=$((CURRENT_PATCH + 1))
+                    fi
+                  elif [ "${tag}" = "${UBUNTU_VERSION}" ]; then
+                    # Base version exists, start with .1
+                    if [ "${PATCH_NUM}" -eq 0 ]; then
+                      PATCH_NUM=1
+                    fi
+                  fi
+                done
+              fi
+            
+              # Generate final version
+              if [ "${PATCH_NUM}" -gt 0 ]; then
+                export RELEASE_TAG="${UBUNTU_VERSION}.${PATCH_NUM}-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}"
+                export VERSION_NAME="${UBUNTU_VERSION}.${PATCH_NUM}"
+              else
+                export RELEASE_TAG="${UBUNTU_VERSION}"
+                export VERSION_NAME="${UBUNTU_VERSION}"
+              fi
+              export VERSION_CODE="${CI_PIPELINE_ID}"
+            else
+              # Nightly or other branches: timestamp-based
+              export RELEASE_TAG="$(date +%Y%m%d%H%M)-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}"
+              export VERSION_CODE="${CI_PIPELINE_ID}"
+              export VERSION_NAME="${RELEASE_TAG}"
+            fi
+            echo "Release Tag: ${RELEASE_TAG}"
+            echo "Version Code: ${VERSION_CODE}"
 
-.build_apk: &build_apk
-  script:
-    - |
-      echo "==> Building APK..."
-      ./gradlew clean assembleRelease --stacktrace --no-daemon
+.build_apk:
+    script:
+        - |
+            echo "==> Building APK..."
+            ./gradlew clean assembleRelease --no-daemon
 
-.deploy_to_github: &deploy_to_github
-  script:
-    - |
-      echo "==> Validating GitHub credentials..."
-      if [ -z "${GITHUB_ACCESS_KEY:-}" ]; then
-        echo "ERROR: GITHUB_ACCESS_KEY is not set"
-        exit 1
-      fi
-    - |
-      echo "==> Downloading ghr..."
-      GHR_URL="https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz"
-      wget -q --retry-connrefused --waitretry=5 --timeout=30 -t 3 "${GHR_URL}" -O ghr.tar.gz
-      tar -xzf ghr.tar.gz
-      GHR_BIN="./ghr_v${GHR_VERSION}_linux_amd64/ghr"
-      chmod +x "${GHR_BIN}"
-    - |
-      echo "==> Syncing to GitHub..."
-      git push --set-upstream "https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git" \
-        "HEAD:refs/heads/${CI_COMMIT_REF_NAME}" || {
-          echo "WARNING: Failed to push to GitHub, continuing with release..."
-        }
 
 # ------------------------------------------------------------------------------
 # Nightly Build Job
 # ------------------------------------------------------------------------------
 build_nightly:
-  stage: build
-  retry:
-    max: 2
-    when:
-      - runner_system_failure
-      - stuck_or_timeout_failure
-      - script_failure
-  rules:
-    - if: $CI_COMMIT_BRANCH == "nightly"
-  <<: *setup_environment
-  script:
-    - !reference [.build_apk, script]
-    - !reference [.deploy_to_github, script]
-    - |
-      echo "==> Creating GitHub pre-release..."
-      "${GHR_BIN}" \
-        -t "${GITHUB_ACCESS_KEY}" \
-        -u "${OWNER}" \
-        -r "${REPO}" \
-        -c "nightly" \
-        -n "Nightly Build ${RELEASE_TAG}" \
-        -generatenotes \
-        -prerelease \
-        -replace \
-        "${RELEASE_TAG}" \
-        "./app/build/outputs/apk/release/"
+    stage: build
+    retry:
+        max: 2
+        when:
+            - runner_system_failure
+            - stuck_or_timeout_failure
+            - script_failure
+    rules:
+        -   if: $CI_COMMIT_BRANCH == "nightly"
+    <<: *setup_environment
+    script:
+        - !reference [ .build_apk, script ]
+        - |
+            echo "==> Validating GitHub credentials..."
+            if [ -z "${GITHUB_ACCESS_KEY:-}" ]; then
+              echo "ERROR: GITHUB_ACCESS_KEY is not set"
+              exit 1
+            fi
+        - |
+            echo "==> Downloading ghr..."
+            GHR_URL="https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz"
+            wget -q --retry-connrefused --waitretry=5 --timeout=30 -t 3 "${GHR_URL}" -O ghr.tar.gz
+            tar -xzf ghr.tar.gz
+            GHR_BIN="./ghr_v${GHR_VERSION}_linux_amd64/ghr"
+            chmod +x "${GHR_BIN}"
+        - |
+            echo "==> Syncing to GitHub..."
+            # Use force push to ensure nightly branch sync succeeds even if remote has diverged.
+            # --force-with-lease is safer than --force because it prevents overwriting remote changes
+            # unless the remote branch hasn't changed since we last fetched.
+            git push --force-with-lease --set-upstream "https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}-nightly.git" \
+              "HEAD:refs/heads/${CI_COMMIT_REF_NAME}" || {
+                echo "WARNING: Failed to push to GitHub, continuing with release..."
+              }
+        - |
+            echo "==> Creating GitHub pre-release..."
+            "${GHR_BIN}" \
+              -t "${GITHUB_ACCESS_KEY}" \
+              -u "${OWNER}" \
+              -r "${REPO}-nightly" \
+              -c "nightly" \
+              -n "${RELEASE_TAG}" \
+              -generatenotes \
+              "${RELEASE_TAG}" \
+              "./app/build/outputs/apk/release/"
 
 # ------------------------------------------------------------------------------
 # Release Build Job
 # ------------------------------------------------------------------------------
 build_release:
-  stage: build
-  retry:
-    max: 2
-    when:
-      - runner_system_failure
-      - stuck_or_timeout_failure
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master"
-  <<: *setup_environment
-  script:
-    - |
-      echo "==> Copying language pack..."
-      ./gradlew app:copy_language_pack --no-daemon
-    - !reference [.build_apk, script]
-    - !reference [.deploy_to_github, script]
-    - |
-      echo "==> Generating changelog with Gemini API..."
-      
-      # Install jq for JSON parsing
-      apk add --no-cache jq
-      
-      # Get git log for changelog generation
-      LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-      if [ -n "${LAST_TAG}" ]; then
-        GIT_LOG=$(git log "${LAST_TAG}"..HEAD --pretty=format:"- %s (%h)" --no-merges)
-      else
-        GIT_LOG=$(git log -20 --pretty=format:"- %s (%h)" --no-merges)
-      fi
-      
-      # Check if GEMINI_API_KEY is set
-      if [ -z "${GEMINI_API_KEY:-}" ]; then
-        echo "WARNING: GEMINI_API_KEY is not set, using git log as changelog"
-        export RELEASE_CHANGELOG="${GIT_LOG}"
-      else
-        # Build prompt for Gemini API
-        PROMPT="Based on the following git commit log, generate a concise and user-friendly changelog in English. Group changes by category (Features, Bug Fixes, Improvements, etc.). Keep it brief and professional. Do not include commit hashes in the output.
-
-      Git commits:
-      ${GIT_LOG}
-
-      Output format:
-      ## What's New
-      - Feature or change description
-
-      ## Bug Fixes
-      - Bug fix description (if any)
-
-      ## Improvements
-      - Improvement description (if any)"
-
-        # Build JSON payload using jq for proper escaping
-        JSON_PAYLOAD=$(jq -n \
-          --arg prompt "$PROMPT" \
-          '{
-            contents: [{
-              parts: [{
-                text: $prompt
-              }]
-            }]
-          }')
-        
-        # Call Gemini REST API
-        GEMINI_API_URL="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}"
-        
-        API_RESPONSE=$(curl -s -X POST "${GEMINI_API_URL}" \
-          -H "Content-Type: application/json" \
-          -d "${JSON_PAYLOAD}" \
-          --max-time 60 \
-          --retry 3 \
-          --retry-delay 5) || {
-            echo "WARNING: Gemini API request failed, using git log as changelog"
-            export RELEASE_CHANGELOG="${GIT_LOG}"
-            API_RESPONSE=""
-          }
-        
-        if [ -n "${API_RESPONSE}" ]; then
-          # Check for API error
-          if echo "${API_RESPONSE}" | jq -e '.error' > /dev/null 2>&1; then
-            echo "WARNING: Gemini API returned error:"
-            echo "${API_RESPONSE}" | jq '.error'
-            export RELEASE_CHANGELOG="${GIT_LOG}"
-          else
-            # Extract text from response
-            CHANGELOG_CONTENT=$(echo "${API_RESPONSE}" | jq -r '.candidates[0].content.parts[0].text // empty')
-            
-            if [ -z "${CHANGELOG_CONTENT}" ]; then
-              echo "WARNING: Failed to extract changelog from API response"
-              export RELEASE_CHANGELOG="${GIT_LOG}"
-            else
-              export RELEASE_CHANGELOG="${CHANGELOG_CONTENT}"
+    stage: build
+    retry:
+        max: 2
+        when:
+            - runner_system_failure
+            - stuck_or_timeout_failure
+    rules:
+        -   if: $CI_COMMIT_BRANCH == "master"
+    <<: *setup_environment
+    script:
+        - |
+            echo "==> Validating keystore for release build..."
+            if [ ! -f app/keys.jks ]; then
+              echo "ERROR: Keystore file not found at app/keys.jks"
+              exit 1
             fi
-          fi
-        fi
-      fi
-      
-      # Fallback if changelog is empty
-      if [ -z "${RELEASE_CHANGELOG}" ]; then
-        echo "WARNING: Generated changelog is empty, using default message"
-        export RELEASE_CHANGELOG="Release ${RELEASE_TAG}"
-      fi
-      
-      echo "==> Generated changelog:"
-      echo "${RELEASE_CHANGELOG}"
-    - |
-      echo "==> Creating GitHub release..."
-      "${GHR_BIN}" \
-        -t "${GITHUB_ACCESS_KEY}" \
-        -u "${OWNER}" \
-        -r "${REPO}" \
-        -n "Release ${RELEASE_TAG}" \
-        -b "${RELEASE_CHANGELOG}" \
-        -replace \
-        "${RELEASE_TAG}" \
-        "./app/build/outputs/apk/release/"
+
+            # Verify keystore is valid and not corrupted
+            if ! keytool -list -keystore app/keys.jks -storepass "${KEYSTORE_PASSWORD}" > /dev/null 2>&1; then
+              echo "ERROR: Keystore validation failed - file may be corrupted or password incorrect"
+              exit 1
+            fi
+
+            echo "✓ Keystore validation passed"
+        - |
+            echo "==> Copying language pack..."
+            ./gradlew app:copy_language_pack --no-daemon
+        - !reference [ .build_apk, script ]
+        - |
+            echo "==> Validating GitHub credentials..."
+            if [ -z "${GITHUB_ACCESS_KEY:-}" ]; then
+              echo "ERROR: GITHUB_ACCESS_KEY is not set"
+              exit 1
+            fi
+        - |
+            echo "==> Syncing to GitHub..."
+            git push --set-upstream "https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git" \
+              "HEAD:refs/heads/${CI_COMMIT_REF_NAME}" || {
+                echo "WARNING: Failed to push to GitHub, continuing with release..."
+              }
+        - |
+            echo "==> Saving release metadata for downstream job..."
+            cat > release.env <<EOF
+            RELEASE_TAG=${RELEASE_TAG}
+            VERSION_NAME=${VERSION_NAME}
+            VERSION_CODE=${VERSION_CODE}
+            EOF
+            cat release.env
+    artifacts:
+        name: "telegram-sms-release-${CI_COMMIT_SHORT_SHA}"
+        paths:
+            - app/build/outputs/apk/release/
+        reports:
+            dotenv: release.env
+        expire_in: 1 week
+
+# ------------------------------------------------------------------------------
+# Release Publish Job (Gemini-tagged shell runner)
+# ------------------------------------------------------------------------------
+release_publish:
+    stage: deploy
+    tags:
+        - gemini
+    retry:
+        max: 2
+        when:
+            - runner_system_failure
+            - stuck_or_timeout_failure
+    rules:
+        -   if: $CI_COMMIT_BRANCH == "master"
+    needs:
+        -   job: build_release
+            artifacts: true
+    cache: {}
+    variables:
+        GIT_STRATEGY: clone
+    before_script:
+        - set -euo pipefail
+    script:
+        - |
+            echo "==> Validating credentials..."
+            if [ -z "${GITHUB_ACCESS_KEY:-}" ]; then
+              echo "ERROR: GITHUB_ACCESS_KEY is not set"
+              exit 1
+            fi
+            if [ -z "${RELEASE_TAG:-}" ]; then
+              echo "ERROR: RELEASE_TAG not received from build_release dotenv"
+              exit 1
+            fi
+            echo "Release tag: ${RELEASE_TAG}"
+        - |
+            echo "==> Generating changelog with Gemini CLI..."
+            git remote add source https://github.com/telegram-sms/telegram-sms || true
+            git fetch source --tags
+            LATEST_TAG=$(git describe --tags --abbrev=0)
+            echo "Latest tag: ${LATEST_TAG}"
+            COMMITS=$(git log "${LATEST_TAG}..HEAD" --pretty=format:'%h | %an | %ad | %s' --date=short)
+            if [ -z "${COMMITS}" ]; then
+              echo "ERROR: No commits found between ${LATEST_TAG} and HEAD"
+              exit 1
+            fi
+            echo "==> Commits:"
+            echo "${COMMITS}"
+
+            PROMPT="$(cat .reallsys/scripts/changelog-prompt.txt)
+
+            Commit History:
+            ${COMMITS}"
+
+            gemini -p "${PROMPT}" > CHANGELOG.md
+
+            if [ ! -s CHANGELOG.md ]; then
+              echo "ERROR: Gemini returned empty changelog"
+              exit 1
+            fi
+            echo "==> Generated changelog:"
+            cat CHANGELOG.md
+        - |
+            echo "==> Downloading ghr..."
+            GHR_URL="https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz"
+            curl -sSL --retry 3 --retry-delay 5 -o ghr.tar.gz "${GHR_URL}"
+            tar -xzf ghr.tar.gz
+            GHR_BIN="./ghr_v${GHR_VERSION}_linux_amd64/ghr"
+            chmod +x "${GHR_BIN}"
+        - |
+            echo "==> Creating GitHub release..."
+            "${GHR_BIN}" \
+              -t "${GITHUB_ACCESS_KEY}" \
+              -u "${OWNER}" \
+              -r "${REPO}" \
+              -n "${RELEASE_TAG}" \
+              -b "$(cat CHANGELOG.md)" \
+              -prerelease \
+              "${RELEASE_TAG}" \
+              "./app/build/outputs/apk/release/"
 
 
 # ------------------------------------------------------------------------------
 # Manual Debug Build (for testing)
 # ------------------------------------------------------------------------------
 build_debug:
-  stage: build
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "web"
-      when: manual
-  <<: *setup_environment
-  script:
-    - |
-      echo "==> Building Debug APK..."
-      ./gradlew assembleDebug --stacktrace --no-daemon
-  artifacts:
-    name: "telegram-sms-debug-${CI_COMMIT_SHORT_SHA}"
-    paths:
-      - app/build/outputs/apk/debug/*.apk
-    expire_in: 3 days
-    when: on_success
-  cache:
-    policy: pull
+    stage: build
+    rules:
+        -   if: $CI_PIPELINE_SOURCE == "web"
+            when: manual
+    <<: *setup_environment
+    script:
+        - |
+            echo "==> Building Debug APK..."
+            ./gradlew assembleDebug --no-daemon
+    artifacts:
+        name: "telegram-sms-debug-${CI_COMMIT_SHORT_SHA}"
+        paths:
+            - app/build/outputs/apk/debug/*.apk
+        expire_in: 3 days
+        when: on_success
+    cache:
+        policy: pull

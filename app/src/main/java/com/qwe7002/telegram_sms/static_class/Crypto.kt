@@ -54,24 +54,15 @@ object Crypto {
     }
 
     fun getKeyFromString(keyString: String): ByteArray {
-        // 使用 SHA-256 哈希並擴展到 32 bytes 作為密鑰
         val sha256 = MessageDigest.getInstance("SHA-256")
-
-        // 結合 keyString 和 SnowFlake 種子值來增加熵
-        val snowFlakeSeed = SnowFlake.generate()
-        val combinedInput = keyString + snowFlakeSeed.toString()
-
-        // 第一次哈希
         val firstHash = sha256.digest(keyString.toByteArray(Charsets.UTF_8))
 
-        // 使用 HKDF 風格的密鑰派生
         sha256.reset()
         sha256.update(firstHash)
         sha256.update(keyString.toByteArray(Charsets.UTF_8))
 
         val key = sha256.digest()
 
-        // 確保密鑰長度為 32 bytes
         return if (key.size >= KEY_LENGTH) {
             key.copyOf(KEY_LENGTH)
         } else {

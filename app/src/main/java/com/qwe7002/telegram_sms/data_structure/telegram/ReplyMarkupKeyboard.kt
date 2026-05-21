@@ -115,5 +115,74 @@ object ReplyMarkupKeyboard {
         @SerializedName("callback_data")
         lateinit var callbackData: String
     }
-}
 
+    /**
+     * Reply keyboard markup for displaying command buttons
+     */
+    class ReplyKeyboardMarkup {
+        @SerializedName("keyboard")
+        lateinit var keyboard: ArrayList<ArrayList<ReplyKeyboardButton>>
+
+        @SerializedName("resize_keyboard")
+        var resizeKeyboard: Boolean = true
+
+        @SerializedName("one_time_keyboard")
+        var oneTimeKeyboard: Boolean = false
+
+        @SerializedName("is_persistent")
+        var isPersistent: Boolean = true
+    }
+
+    class ReplyKeyboardButton {
+        lateinit var text: String
+    }
+
+    /**
+     * Create a ReplyKeyboardButton with the given text
+     */
+    @JvmStatic
+    fun createReplyButton(text: String): ReplyKeyboardButton {
+        return ReplyKeyboardButton().apply {
+            this.text = text
+        }
+    }
+
+    /**
+     * Create a row of reply keyboard buttons
+     */
+    @JvmStatic
+    fun createReplyButtonRow(vararg buttons: ReplyKeyboardButton): ArrayList<ReplyKeyboardButton> {
+        return ArrayList(buttons.toList())
+    }
+
+    /**
+     * Remove the current custom keyboard and display the default letter-keyboard
+     */
+    class ReplyKeyboardRemove {
+        @SerializedName("remove_keyboard")
+        var removeKeyboard: Boolean = true
+
+        @SerializedName("selective")
+        var selective: Boolean = false
+    }
+
+    /**
+     * Telegram clients will display a reply interface to the user (as if the user
+     * had selected the bot's message and tapped 'Reply'). Used for step-by-step
+     * interactive prompts such as the SMS phone-number / content input flow.
+     *
+     * `selective` defaults to true: combined with a `reply_to_message_id` pointing at
+     * the triggering user's message, only that user is forced to reply — which keeps
+     * the interactive state machine from being driven by unrelated chat members.
+     */
+    class ForceReply {
+        @SerializedName("force_reply")
+        val forceReply: Boolean = true
+
+        @SerializedName("input_field_placeholder")
+        var inputFieldPlaceholder: String? = null
+
+        @SerializedName("selective")
+        var selective: Boolean = true
+    }
+}

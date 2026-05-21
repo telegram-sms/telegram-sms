@@ -6,6 +6,7 @@
         tools:context=".MainActivity">
 
     <ImageView
+        android:id="@+id/character_set"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:alpha="@dimen/alpha"
@@ -14,6 +15,7 @@
         tools:ignore="ContentDescription" />
 
     <ScrollView
+            android:id="@+id/main_scroll_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:ignore="UselessParent">
