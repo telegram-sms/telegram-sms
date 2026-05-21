@@ -290,6 +290,37 @@ release_publish:
             echo "==> Generated changelog:"
             cat CHANGELOG.md
         - |
+            echo "==> Extracting English summary from CHANGELOG.md..."
+            SUMMARY_EN=$(awk '
+              /^## Summary[[:space:]]*$/ { flag = 1; next }
+              /^## / { flag = 0 }
+              flag { print }
+            ' CHANGELOG.md | sed '/^[[:space:]]*$/d')
+            if [ -z "${SUMMARY_EN}" ]; then
+              echo "ERROR: Could not extract Summary section from CHANGELOG.md"
+              exit 1
+            fi
+            printf '%s\n' "${SUMMARY_EN}" > SUMMARY_EN.txt
+            echo "EN summary:"
+            cat SUMMARY_EN.txt
+        - |
+            echo "==> Translating summary to Traditional Chinese via Gemini..."
+            TRANSLATE_PROMPT="You are translating release notes for an Android SMS-to-Telegram app.
+            Translate the following short release summary into Traditional Chinese (繁體中文).
+            Keep it concise (around 100 characters). Preserve technical terms (Telegram, SMS, APK, MMKV, etc.) in their original form.
+            Output ONLY the translated text — no explanations, no quotes, no markdown.
+
+            English summary:
+            ${SUMMARY_EN}"
+
+            gemini -p "${TRANSLATE_PROMPT}" > SUMMARY_ZH.txt
+            if [ ! -s SUMMARY_ZH.txt ]; then
+              echo "ERROR: Gemini returned empty Chinese summary"
+              exit 1
+            fi
+            echo "ZH summary:"
+            cat SUMMARY_ZH.txt
+        - |
             echo "==> Downloading ghr..."
             GHR_URL="https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz"
             curl -sSL --retry 3 --retry-delay 5 -o ghr.tar.gz "${GHR_URL}"
@@ -307,6 +338,147 @@ release_publish:
               -prerelease \
               "${RELEASE_TAG}" \
               "./app/build/outputs/apk/release/"
+    artifacts:
+        name: "telegram-sms-changelog-${CI_COMMIT_SHORT_SHA}"
+        paths:
+            - CHANGELOG.md
+            - SUMMARY_EN.txt
+            - SUMMARY_ZH.txt
+        expire_in: 1 week
+
+
+# ------------------------------------------------------------------------------
+# Telegram Channel Notification (publishes EN + ZH summaries to two channels)
+# ------------------------------------------------------------------------------
+# Required CI/CD variables (mark Protected + Masked):
+#   TELEGRAM_BOT_TOKEN         — bot token from @BotFather
+#   TELEGRAM_CHANNEL_ID_EN     — English channel, e.g. @ts_en or -100xxxxxxxxxx
+#   TELEGRAM_CHANNEL_ID_ZH     — Chinese channel, e.g. @ts_zh or -100xxxxxxxxxx
+telegram_notify:
+    stage: deploy
+    image: alpine:latest
+    rules:
+        -   if: $CI_COMMIT_BRANCH == "master"
+    needs:
+        -   job: build_release
+            artifacts: true
+        -   job: release_publish
+            artifacts: true
+    allow_failure: true
+    cache: {}
+    before_script:
+        - set -euo pipefail
+        - apk --no-cache add bash curl jq
+    script:
+        - |
+            echo "==> Validating Telegram credentials..."
+            missing=0
+            for v in TELEGRAM_BOT_TOKEN TELEGRAM_CHANNEL_ID_EN TELEGRAM_CHANNEL_ID_ZH; do
+              eval "val=\${$v:-}"
+              if [ -z "${val}" ]; then
+                echo "ERROR: ${v} is not set"
+                missing=1
+              fi
+            done
+            [ "${missing}" -eq 0 ] || exit 1
+            if [ -z "${RELEASE_TAG:-}" ]; then
+              echo "ERROR: RELEASE_TAG not received from build_release dotenv"
+              exit 1
+            fi
+            echo "Release tag: ${RELEASE_TAG}"
+        - |
+            echo "==> Loading summaries..."
+            if [ ! -s SUMMARY_EN.txt ] || [ ! -s SUMMARY_ZH.txt ]; then
+              echo "ERROR: SUMMARY_EN.txt or SUMMARY_ZH.txt missing from release_publish artifacts"
+              exit 1
+            fi
+            SUMMARY_EN=$(cat SUMMARY_EN.txt)
+            SUMMARY_ZH=$(cat SUMMARY_ZH.txt)
+            echo "EN: ${SUMMARY_EN}"
+            echo "ZH: ${SUMMARY_ZH}"
+        - |
+            echo "==> Locating release APK..."
+            APK_FILE=$(ls -1 app/build/outputs/apk/release/*.apk 2>/dev/null | head -n 1)
+            if [ -z "${APK_FILE}" ]; then
+              echo "ERROR: No APK found under app/build/outputs/apk/release/"
+              exit 1
+            fi
+            APK_NAME=$(basename "${APK_FILE}")
+            echo "APK: ${APK_NAME}"
+        - |
+            echo "==> Building Telegram payloads..."
+            RELEASE_URL="https://github.com/${OWNER}/${REPO}/releases/tag/${RELEASE_TAG}"
+            APK_URL="https://github.com/${OWNER}/${REPO}/releases/download/${RELEASE_TAG}/${APK_NAME}"
+
+            html_escape() {
+              printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g'
+            }
+            ESC_TAG=$(html_escape "${RELEASE_TAG}")
+            ESC_SUMMARY_EN=$(html_escape "${SUMMARY_EN}")
+            ESC_SUMMARY_ZH=$(html_escape "${SUMMARY_ZH}")
+
+            MESSAGE_EN=$(printf '<b>🚀 New Release: %s</b>\n\n%s' "${ESC_TAG}" "${ESC_SUMMARY_EN}")
+            MESSAGE_ZH=$(printf '<b>🚀 新版本發佈：%s</b>\n\n%s' "${ESC_TAG}" "${ESC_SUMMARY_ZH}")
+
+            REPLY_MARKUP_EN=$(jq -nc \
+              --arg apk_url "${APK_URL}" \
+              --arg release_url "${RELEASE_URL}" \
+              '{
+                inline_keyboard: [[
+                  {text: "📥 Download APK", url: $apk_url},
+                  {text: "📖 Release Notes", url: $release_url}
+                ]]
+              }')
+
+            REPLY_MARKUP_ZH=$(jq -nc \
+              --arg apk_url "${APK_URL}" \
+              --arg release_url "${RELEASE_URL}" \
+              '{
+                inline_keyboard: [[
+                  {text: "📥 下載 APK", url: $apk_url},
+                  {text: "📖 發佈說明", url: $release_url}
+                ]]
+              }')
+        - |
+            echo "==> Sending to Telegram channels..."
+            send_to_channel() {
+              local chat_id="$1"
+              local message="$2"
+              local reply_markup="$3"
+              local payload
+              payload=$(jq -nc \
+                --arg chat_id "${chat_id}" \
+                --arg text "${message}" \
+                --argjson reply_markup "${reply_markup}" \
+                '{
+                  chat_id: $chat_id,
+                  text: $text,
+                  parse_mode: "HTML",
+                  disable_web_page_preview: false,
+                  reply_markup: $reply_markup
+                }')
+
+              local response
+              response=$(curl -sS --max-time 30 --retry 3 --retry-delay 5 \
+                -X POST \
+                -H 'Content-Type: application/json' \
+                -d "${payload}" \
+                "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage")
+
+              local ok
+              ok=$(printf '%s' "${response}" | jq -r '.ok // "false"')
+              if [ "${ok}" != "true" ]; then
+                echo "ERROR: Telegram API rejected message for ${chat_id}"
+                printf '%s\n' "${response}" | jq .
+                return 1
+              fi
+              echo "✓ Sent to ${chat_id}"
+            }
+
+            fail=0
+            send_to_channel "${TELEGRAM_CHANNEL_ID_EN}" "${MESSAGE_EN}" "${REPLY_MARKUP_EN}" || fail=1
+            send_to_channel "${TELEGRAM_CHANNEL_ID_ZH}" "${MESSAGE_ZH}" "${REPLY_MARKUP_ZH}" || fail=1
+            exit "${fail}"
 
 
 # ------------------------------------------------------------------------------
