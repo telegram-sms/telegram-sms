@@ -275,11 +275,24 @@ release_publish:
             fi
             echo "Release tag: ${RELEASE_TAG}"
         - |
+            echo "==> Syncing tags from GitHub source repository..."
+            git remote add source https://github.com/telegram-sms/telegram-sms 2>/dev/null || \
+              git remote set-url source https://github.com/telegram-sms/telegram-sms
+
+            # Wipe local tags so `git describe` only sees GitHub's tags
+            # (otherwise stale GitLab-origin tags can shadow the real release tags).
+            git tag -l | while IFS= read -r t; do
+              [ -n "${t}" ] && git tag -d "${t}" > /dev/null
+            done
+            git fetch source --tags --force
+
             echo "==> Generating changelog with Gemini CLI..."
-            git remote add source https://github.com/telegram-sms/telegram-sms || true
-            git fetch source --tags
-            LATEST_TAG=$(git describe --tags --abbrev=0)
-            echo "Latest tag: ${LATEST_TAG}"
+            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+            if [ -z "${LATEST_TAG}" ]; then
+              echo "ERROR: No reachable tags after syncing from GitHub source"
+              exit 1
+            fi
+            echo "Latest GitHub tag: ${LATEST_TAG}"
             COMMITS=$(git log "${LATEST_TAG}..HEAD" --pretty=format:'%h | %an | %ad | %s' --date=short)
             if [ -z "${COMMITS}" ]; then
               echo "ERROR: No commits found between ${LATEST_TAG} and HEAD"
