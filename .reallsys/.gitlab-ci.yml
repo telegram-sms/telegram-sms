@@ -220,8 +220,49 @@ build_release:
             fi
         - |
             echo "==> Syncing to GitHub..."
-            git push --set-upstream "https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git" \
-              "HEAD:refs/heads/${CI_COMMIT_REF_NAME}" || {
+            GITHUB_URL="https://${GITHUB_ACCESS_KEY}@github.com/${OWNER}/${REPO}.git"
+
+            # Identity for any merge commit produced by the divergence handler below
+            git config user.email "${GIT_AUTHOR_EMAIL:-ci@telegram-sms.local}"
+            git config user.name "${GIT_AUTHOR_NAME:-GitLab CI}"
+
+            # GitHub master is a protected branch — force-push is rejected. If GitHub
+            # has commits we don't have (e.g. README edits made directly on GitHub),
+            # the plain push below would be rejected as non-fast-forward. Detect that
+            # case and merge GitHub's changes in with -X ours (GitLab content wins on
+            # conflict) so our push remains a fast-forward.
+            if git fetch "${GITHUB_URL}" "+refs/heads/${CI_COMMIT_REF_NAME}:refs/remotes/github_sync/${CI_COMMIT_REF_NAME}"; then
+              GH_REF="refs/remotes/github_sync/${CI_COMMIT_REF_NAME}"
+              GH_AHEAD=$(git rev-list --count "HEAD..${GH_REF}" 2>/dev/null || echo 0)
+              if [ "${GH_AHEAD}" -gt 0 ]; then
+                echo "GitHub has ${GH_AHEAD} commit(s) ahead of local; merging with -X ours..."
+                git merge -X ours --no-ff "${GH_REF}" \
+                  -m "Sync GitHub master mirror (keep GitLab content) [skip ci]"
+
+                # Push the merge back to GitLab so future CI runs see a linear history.
+                # Requires GITLAB_PUSH_TOKEN — a Personal Access Token with
+                # `write_repository` scope from a user allowed to push to the protected
+                # master branch (Settings → Repository → Protected branches).
+                if [ -n "${GITLAB_PUSH_TOKEN:-}" ]; then
+                  GITLAB_PUSH_URL="https://oauth2:${GITLAB_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+                  echo "Pushing merge commit back to GitLab origin..."
+                  git push "${GITLAB_PUSH_URL}" "HEAD:refs/heads/${CI_COMMIT_REF_NAME}" || {
+                    echo "WARNING: Could not push merge commit to GitLab origin"
+                  }
+                else
+                  echo "WARNING: GITLAB_PUSH_TOKEN not set — merge commit only in this CI run."
+                  echo "         Next run will re-detect divergence and merge again."
+                  echo "         Set a PAT (write_repository) as GITLAB_PUSH_TOKEN to fix this."
+                fi
+              else
+                echo "GitHub master is at or behind local; no merge needed"
+              fi
+            else
+              echo "INFO: Could not fetch from GitHub (branch may not exist yet)"
+            fi
+
+            echo "==> Pushing to GitHub..."
+            git push --set-upstream "${GITHUB_URL}" "HEAD:refs/heads/${CI_COMMIT_REF_NAME}" || {
                 echo "WARNING: Failed to push to GitHub, continuing with release..."
               }
         - |
