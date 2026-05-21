@@ -126,4 +126,45 @@ class PhoneTest {
         )
         assertEquals(" ", result)
     }
+
+    // Regression for issue #82: dual-SIM China Mobile, hide_phone_number=true.
+    // This is the exact configuration the bug reporter was on; the result must
+    // remain a visible non-blank marker so the {{SIM}} placeholder does not
+    // collapse to nothing in the rendered Telegram message.
+    @Test
+    fun formatSimDisplayName_issue82_chinaMobile_hidesPhoneNumber() {
+        val result = Phone.formatSimDisplayName(
+            operatorName = "中国移动",
+            displayName = "中国移动",
+            phoneNumber = "+8613800138000",
+            hidePhoneNumber = true
+        )
+        assertEquals("中国移动 ", result)
+    }
+
+    // Regression for issue #82: dual-SIM China Mobile, hide_phone_number=false.
+    @Test
+    fun formatSimDisplayName_issue82_chinaMobile_showsPhoneNumber() {
+        val result = Phone.formatSimDisplayName(
+            operatorName = "中国移动",
+            displayName = "中国移动",
+            phoneNumber = "+8613800138000",
+            hidePhoneNumber = false
+        )
+        assertEquals("中国移动 (+8613800138000)", result)
+    }
+
+    // Regression for issue #82: device exposes only operatorName (some OEMs
+    // report a blank displayName for the second SIM slot). The function must
+    // still surface a non-blank marker rather than degrade to a bare " ".
+    @Test
+    fun formatSimDisplayName_issue82_displayNameMissing_fallsBackToOperator() {
+        val result = Phone.formatSimDisplayName(
+            operatorName = "中国移动",
+            displayName = "",
+            phoneNumber = null,
+            hidePhoneNumber = true
+        )
+        assertEquals("中国移动 ", result)
+    }
 }

@@ -11,7 +11,16 @@ object Template {
         val templateMMKV = MMKV.mmkvWithID(TEMPLATE_ID)
         val source = templateMMKV.decodeString(template, getStringByName(context, template))
             ?: getStringByName(context, template)
-        return Mustache.render(source, values)
+        return substitute(source, values)
+    }
+
+    @JvmStatic
+    fun substitute(source: String, values: Map<String, String>): String {
+        var result = source
+        for ((key, value) in values) {
+            result = result.replace("{{${key}}}", value)
+        }
+        return result
     }
 
     @SuppressLint("DiscouragedApi")
