@@ -167,4 +167,20 @@ class PhoneTest {
         )
         assertEquals("中国移动 ", result)
     }
+
+    // Pins the contract relied on by the issue #82 fix in Phone.getSimDisplayName:
+    // when subscriptionManager.getPhoneNumber() throws SecurityException because
+    // READ_PHONE_NUMBERS was revoked after an upgrade, the call site catches it
+    // and passes phoneNumber=null here. The result must still expose the carrier
+    // so {{SIM}} renders as a visible "中国移动 " instead of collapsing.
+    @Test
+    fun formatSimDisplayName_issue82_phoneNumberPermissionDenied_stillShowsCarrier() {
+        val result = Phone.formatSimDisplayName(
+            operatorName = "中国移动",
+            displayName = "中国移动",
+            phoneNumber = null,
+            hidePhoneNumber = false
+        )
+        assertEquals("中国移动 ", result)
+    }
 }
