@@ -46,7 +46,7 @@ object Phone {
                 try {
                     subscriptionManager.getPhoneNumber(subId1)
                 } catch (e: SecurityException) {
-                    Log.w(logTag, "getPhoneNumber denied; rendering SIM name only: ${e.message}")
+                    Log.w(logTag, "getPhoneNumber denied; rendering SIM name only", e)
                     null
                 }
             } else {

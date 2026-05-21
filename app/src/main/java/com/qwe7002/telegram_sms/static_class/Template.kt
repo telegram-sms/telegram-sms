@@ -9,8 +9,8 @@ object Template {
     @JvmStatic
     fun render(context: Context, template: String, values: Map<String, String>): String {
         val templateMMKV = MMKV.mmkvWithID(TEMPLATE_ID)
-        val source = templateMMKV.decodeString(template, getStringByName(context, template))
-            ?: getStringByName(context, template)
+        val default = getStringByName(context, template)
+        val source = templateMMKV.decodeString(template, default) ?: default
         return substitute(source, values)
     }
 
