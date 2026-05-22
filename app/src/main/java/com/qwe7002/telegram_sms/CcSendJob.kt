@@ -46,6 +46,7 @@ class CcSendJob : JobService() {
         
         private val FORM_URLENCODED_TYPE = "application/x-www-form-urlencoded".toMediaTypeOrNull()
         private val JSON_TYPE = "application/json".toMediaTypeOrNull()
+        private val SUPPORTED_METHODS = setOf("GET", "POST", "PUT")
         
         fun startJob(
             context: Context,
@@ -116,8 +117,13 @@ class CcSendJob : JobService() {
         val finalVerificationCode = verificationCode
         
         executor.execute {
-            processSendJob(finalTitle, message, finalVerificationCode)
-            jobFinished(params, false)
+            try {
+                processSendJob(finalTitle, message, finalVerificationCode)
+            } catch (e: Exception) {
+                Log.e(logTag, "ccSendJob: unexpected error while sending.", e)
+            } finally {
+                jobFinished(params, false)
+            }
         }
         
         return true
@@ -126,7 +132,6 @@ class CcSendJob : JobService() {
     override fun onStopJob(params: JobParameters?): Boolean = false
     
     private fun processSendJob(title: String, message: String, verificationCode: String) {
-        MMKV.initialize(applicationContext)
         val preferences = MMKV.defaultMMKV()
         val carbonCopyMMKV = MMKV.mmkvWithID(CARBON_COPY_ID)
         
@@ -197,38 +202,49 @@ class CcSendJob : JobService() {
             return false
         }
         
+        // addQueryParameter percent-encodes values itself, so feed it the raw mapper
+        // (encodeMapper is only for {{placeholders}} substituted directly into the URL string).
         val httpUrlBuilder = httpUrl.newBuilder().apply {
             request.queryString.forEach { query ->
-                val value = CcSend.render(query.value, encodeMapper)
-                addQueryParameter(query.name, value)
+                addQueryParameter(query.name, CcSend.render(query.value, mapper))
             }
         }
-        
+
         val body = buildRequestBody(request, mapper) ?: run {
-            if (request.postData != null || request.method !in listOf("GET", "POST", "PUT")) {
+            if (request.postData != null || request.method !in SUPPORTED_METHODS) {
                 return false
             }
             getDefaultBody(request.method)
         }
-        
-        val sendUrl = CcSend.render(httpUrlBuilder.build().toString(), encodeMapper)
-        
+
         val requestBuilder = Request.Builder()
-            .url(sendUrl)
+            .url(httpUrlBuilder.build())
             .method(request.method, body)
         
-        // Add cookies
+        // Add cookies (render placeholders so {{Code}} etc. work in cookie values too)
         if (request.cookies.isNotEmpty()) {
-            val cookieHeader = request.cookies.joinToString("; ") { "${it.name}=${it.value}" }
-            requestBuilder.addHeader("Cookie", cookieHeader)
+            val cookieHeader = request.cookies.joinToString("; ") {
+                "${it.name}=${CcSend.render(it.value, mapper)}"
+            }
+            addHeaderSafely(requestBuilder, "Cookie", cookieHeader)
         }
-        
+
         // Add headers
         request.headers.forEach { header ->
-            requestBuilder.addHeader(header.name, header.value)
+            addHeaderSafely(requestBuilder, header.name, CcSend.render(header.value, mapper))
         }
-        
+
         return executeRequest(client, requestBuilder.build())
+    }
+
+    // OkHttp rejects non-ASCII header names/values with IllegalArgumentException; skip the
+    // offending header instead of letting it abort the whole delivery.
+    private fun addHeaderSafely(builder: Request.Builder, name: String, value: String) {
+        try {
+            builder.addHeader(name, value)
+        } catch (e: IllegalArgumentException) {
+            Log.w(logTag, "Skipping invalid header '$name': ${e.message}")
+        }
     }
     
     private fun buildRequestBody(
