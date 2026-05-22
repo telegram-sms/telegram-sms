@@ -9,12 +9,9 @@ object Template {
     @JvmStatic
     fun render(context: Context, template: String, values: Map<String, String>): String {
         val templateMMKV = MMKV.mmkvWithID(TEMPLATE_ID)
-        var result = templateMMKV.decodeString(template, getStringByName(context, template))
+        val source = templateMMKV.decodeString(template, getStringByName(context, template))
             ?: getStringByName(context, template)
-        for ((key, value) in values) {
-            result = result.replace("{{${key}}}", value)
-        }
-        return result
+        return Mustache.render(source, values)
     }
 
     @SuppressLint("DiscouragedApi")
