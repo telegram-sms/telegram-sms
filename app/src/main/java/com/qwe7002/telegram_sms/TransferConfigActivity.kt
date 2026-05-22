@@ -1,24 +1,25 @@
-@file:Suppress("DEPRECATION")
-
 package com.qwe7002.telegram_sms
 
 import android.annotation.SuppressLint
-import android.app.ProgressDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.github.sumimakito.awesomeqrcode.AwesomeQrRenderer
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.JsonParser
@@ -37,11 +38,21 @@ import android.text.Editable
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.qwe7002.telegram_sms.MMKV.CARBON_COPY_ID
+import com.qwe7002.telegram_sms.value.JSON
 import com.qwe7002.telegram_sms.value.RESULT_CONFIG_JSON
 import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
-import okio.IOException
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
+
+/**
+ * Thrown when the config relay server replies with a non-200 status, so the
+ * coroutine can surface the HTTP code to the user without crashing.
+ */
+private class HttpStatusException(val code: Int) : Exception("HTTP status $code")
 
 class TransferConfigActivity : AppCompatActivity() {
     private val logTag = "${TAG}.TransferConfigActivity"
@@ -101,7 +112,9 @@ class TransferConfigActivity : AppCompatActivity() {
 
     private fun getConfigJson(): String {
         val carbonCopyMMKV = MMKV.mmkvWithID(CARBON_COPY_ID)
-        val serviceListJson = carbonCopyMMKV.getString("CC_service_list", "[]")
+        // Must match the key used by CcActivity / CcSendJob ("service"); the old
+        // "CC_service_list" key never existed, so CC services were silently dropped.
+        val serviceListJson = carbonCopyMMKV.getString("service", "[]")
         val gson = Gson()
         val type = object : TypeToken<ArrayList<CcSendService>>() {}.type
         val sendList: ArrayList<CcSendService> = gson.fromJson(serviceListJson, type)
@@ -121,66 +134,55 @@ class TransferConfigActivity : AppCompatActivity() {
             sendList,
             preferences.getBoolean("hide_phone_number", false)
         )
-        return Gson().toJson(config)
+        return gson.toJson(config)
     }
 
-    @Suppress("DEPRECATION")
     private fun sendConfig() {
-        showSendDialog(this, getString(R.string.please_enter_your_password)) { userInput ->
-            val progressDialog = ProgressDialog(this)
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
-            progressDialog.setTitle(getString(R.string.sending_configuration))
-            progressDialog.setMessage(getString(R.string.connect_wait_message))
-            progressDialog.isIndeterminate = false
-            progressDialog.setCancelable(false)
+        showSendDialog(this, getString(R.string.please_enter_your_password)) { password ->
+            val progressDialog = buildProgressDialog(
+                getString(R.string.sending_configuration),
+                getString(R.string.connect_wait_message)
+            )
             progressDialog.show()
-            Thread {
-                val encryptConfig = Crypto.encrypt(getConfigJson(), Crypto.getKeyFromString(userInput))
-                val requestBody = Gson().toJson(mapOf("encrypt" to encryptConfig)).toRequestBody()
-                val requestObj =
-                    Request.Builder().url(url)
-                        .method("PUT", requestBody)
-                val call = okhttpObject.newCall(requestObj.build())
+            lifecycleScope.launch {
                 try {
-                    val response = call.execute()
-                    if (response.code == 200) {
-                        val responseBody = response.body.string()
-                        Log.d(logTag, "sendConfig: $responseBody")
-                        val jsonObject = JsonParser.parseString(responseBody)
-                            .asJsonObject
-                        val key = jsonObject.get(
-                            "key"
-                        ).asString
-                        runOnUiThread {
-                            copyKeyToClipboard(applicationContext, key)
-                            AlertDialog.Builder(this)
-                                .setTitle(R.string.success)
-                                .setMessage(
-                                    getString(R.string.configuration_sent_successfully) + key
-                                )
-                                .setPositiveButton("OK") { _, _ -> }
-                                .show()
-
-                        }
-                    } else {
-                        runOnUiThread {
-                            AlertDialog.Builder(this)
-                                .setTitle(R.string.error_title)
-                                .setMessage(getString(R.string.an_error_occurred_while_getting_the_configuration) + response.code)
-                                .setPositiveButton("OK") { _, _ -> }
-                                .show()
+                    val key = withContext(Dispatchers.IO) {
+                        val encryptConfig =
+                            Crypto.encrypt(getConfigJson(), Crypto.getKeyFromString(password))
+                        val requestBody =
+                            Gson().toJson(mapOf("encrypt" to encryptConfig)).toRequestBody(JSON)
+                        val request = Request.Builder().url(url).put(requestBody).build()
+                        okhttpObject.newCall(request).execute().use { response ->
+                            if (response.code != 200) {
+                                throw HttpStatusException(response.code)
+                            }
+                            val responseBody = response.body.string()
+                            Log.d(logTag, "sendConfig: $responseBody")
+                            JsonParser.parseString(responseBody).asJsonObject
+                                .get("key").asString
                         }
                     }
-                } catch (e: IOException) {
-                    Log.e(
-                        logTag,
-                        "An error occurred while resending: " + e.message
-                        ,e
-                    )
+                    copyKeyToClipboard(applicationContext, key)
+                    if (!isFinishing && !isDestroyed) {
+                        AlertDialog.Builder(this@TransferConfigActivity)
+                            .setTitle(R.string.success)
+                            .setMessage(getString(R.string.configuration_sent_successfully) + key)
+                            .setPositiveButton(R.string.ok_button, null)
+                            .show()
+                    }
+                } catch (e: HttpStatusException) {
+                    showErrorDialog(getString(R.string.an_error_occurred_while_getting_the_configuration) + e.code)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.e(logTag, "An error occurred while sending configuration: ${e.message}", e)
+                    showErrorDialog(getString(R.string.an_error_occurred_while_getting_the_configuration) + e.message)
                 } finally {
-                    progressDialog.dismiss()
+                    // Activity may already be destroyed when a cancelled coroutine
+                    // unwinds here; dismissing a detached dialog can throw.
+                    runCatching { progressDialog.dismiss() }
                 }
-            }.start()
+            }
         }
     }
 
@@ -188,71 +190,93 @@ class TransferConfigActivity : AppCompatActivity() {
         val clipboard = context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText("Key", key)
         clipboard.setPrimaryClip(clip)
-        Toast.makeText(context, "Key copied to clipboard", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, R.string.key_copied_to_clipboard, Toast.LENGTH_SHORT).show()
     }
 
-    @Suppress("DEPRECATION")
     private fun getConfig() {
         showGetDialog(this, getString(R.string.please_enter_your_info)) { id, password ->
-            val progressDialog = ProgressDialog(this)
-            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
-            progressDialog.setTitle(getString(R.string.getting_configuration))
-            progressDialog.setMessage(getString(R.string.connect_wait_message))
-            progressDialog.isIndeterminate = false
-            progressDialog.setCancelable(false)
+            val progressDialog = buildProgressDialog(
+                getString(R.string.getting_configuration),
+                getString(R.string.connect_wait_message)
+            )
             progressDialog.show()
-            Thread {
-                val httpUrlBuilder: HttpUrl.Builder = url.toHttpUrlOrNull()!!.newBuilder()
-                httpUrlBuilder.addQueryParameter("key", id)
-                val httpUrl = httpUrlBuilder.build()
-                val requestObj = Request.Builder().url(httpUrl).method("GET", null)
-                val call = okhttpObject.newCall(requestObj.build())
+            lifecycleScope.launch {
                 try {
-                    val response = call.execute()
-                    if (response.code == 200) {
-                        val responseBody = response.body.string()
-                        try {
-                            val decryptConfig =
-                                Crypto.decrypt(responseBody, Crypto.getKeyFromString(password))
-                            val intent = Intent().putExtra("config_json", decryptConfig)
-                            setResult(RESULT_CONFIG_JSON, intent)
-                            finish()
-                        } catch (e: Exception) {
-                            Log.e(
-                                "QrcodeActivity",
-                                "An error occurred while decrypting configuration: " + e.message
-                            )
-                            runOnUiThread {
-                                AlertDialog.Builder(this)
-                                    .setTitle(R.string.error_title)
-                                    .setMessage(getString(R.string.an_error_occurred_while_decrypting_the_configuration))
-                                    .setPositiveButton(R.string.ok_button) { _, _ -> getConfig() }
-                                    .show()
-
+                    val responseBody = withContext(Dispatchers.IO) {
+                        val httpUrl: HttpUrl = url.toHttpUrlOrNull()!!.newBuilder()
+                            .addQueryParameter("key", id)
+                            .build()
+                        val request = Request.Builder().url(httpUrl).get().build()
+                        okhttpObject.newCall(request).execute().use { response ->
+                            if (response.code != 200) {
+                                throw HttpStatusException(response.code)
                             }
-                            Log.e(logTag, "Decryption error", e)
-                        }
-                    } else {
-                        runOnUiThread {
-                            AlertDialog.Builder(this)
-                                .setTitle(R.string.error_title)
-                                .setMessage(getString(R.string.an_error_occurred_while_getting_the_configuration) + response.code)
-                                .setPositiveButton(R.string.ok_button) { _, _ -> }
-                                .show()
+                            response.body.string()
                         }
                     }
-                    response.close()
-                } catch (e: IOException) {
-                    Log.e(
-                        logTag,
-                        "An error occurred while getting configuration: " + e.message
-                        ,e
+                    val decryptConfig = withContext(Dispatchers.Default) {
+                        Crypto.decrypt(responseBody, Crypto.getKeyFromString(password))
+                    }
+                    setResult(
+                        RESULT_CONFIG_JSON,
+                        Intent().putExtra("config_json", decryptConfig)
                     )
+                    finish()
+                } catch (e: HttpStatusException) {
+                    showErrorDialog(getString(R.string.an_error_occurred_while_getting_the_configuration) + e.code)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: IllegalArgumentException) {
+                    // Crypto.decrypt throws this on a wrong password or corrupt payload.
+                    Log.e(logTag, "An error occurred while decrypting configuration: ${e.message}", e)
+                    showErrorDialog(getString(R.string.an_error_occurred_while_decrypting_the_configuration)) { getConfig() }
+                } catch (e: Exception) {
+                    Log.e(logTag, "An error occurred while getting configuration: ${e.message}", e)
+                    showErrorDialog(getString(R.string.an_error_occurred_while_getting_the_configuration) + e.message)
                 } finally {
-                    progressDialog.dismiss()
+                    // Activity may already be destroyed when a cancelled coroutine
+                    // unwinds here; dismissing a detached dialog can throw.
+                    runCatching { progressDialog.dismiss() }
                 }
-            }.start()
+            }
         }
+    }
+
+    /**
+     * Builds a non-cancelable indeterminate progress dialog using a Material
+     * [CircularProgressIndicator] (replaces the deprecated ProgressDialog).
+     */
+    private fun buildProgressDialog(title: String, message: String): AlertDialog {
+        val padding = (24 * resources.displayMetrics.density).toInt()
+        val container = FrameLayout(this).apply {
+            setPadding(padding, padding, padding, padding)
+            addView(
+                CircularProgressIndicator(this@TransferConfigActivity).apply {
+                    isIndeterminate = true
+                },
+                FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+                ).apply { gravity = Gravity.CENTER }
+            )
+        }
+        return AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setView(container)
+            .setCancelable(false)
+            .create()
+    }
+
+    private fun showErrorDialog(message: String, onPositive: () -> Unit = {}) {
+        if (isFinishing || isDestroyed) {
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.error_title)
+            .setMessage(message)
+            .setPositiveButton(R.string.ok_button) { _, _ -> onPositive() }
+            .show()
     }
 
     @SuppressLint("CutPasteId")
@@ -297,7 +321,7 @@ class TransferConfigActivity : AppCompatActivity() {
         builder.setView(dialogView)
         val idInput = dialogView.findViewById<EditText>(R.id.config_id_editview)
         val passwordInput = dialogView.findViewById<EditText>(R.id.config_password_editview)
-        
+
         builder.setPositiveButton("OK", null)
         builder.setNegativeButton("Cancel") { dialog, _ ->
             if (!preferences.getBoolean("initialized", false)) {
@@ -314,13 +338,13 @@ class TransferConfigActivity : AppCompatActivity() {
                 val passwordView = dialogView.findViewById<TextInputLayout>(R.id.config_password_layout)
                 val id = idInput.text.toString()
                 val password = passwordInput.text.toString()
-                
+
                 // Clear previous errors
                 idView.error = null
                 passwordView.error = null
-                
+
                 var isValid = true
-                
+
                 if (id.isEmpty()) {
                     idView.error = getString(R.string.error_id_cannot_be_empty)
                     isValid = false
@@ -328,41 +352,40 @@ class TransferConfigActivity : AppCompatActivity() {
                     idView.error = getString(R.string.error_id_must_be_9_characters)
                     isValid = false
                 }
-                
+
                 if (password.isEmpty()) {
                     passwordView.error = getString(R.string.error_password_cannot_be_empty)
                     isValid = false
                 }
-                
+
                 if (isValid) {
                     button.isEnabled = false // Prevent multiple clicks
                     callback(id, password)
                     dialog.dismiss()
                 }
             }
-            
+
             // Clear errors when user starts typing
             idInput.addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                
+
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                     dialogView.findViewById<TextInputLayout>(R.id.config_id_layout).error = null
                 }
-                
+
                 override fun afterTextChanged(s: Editable?) {}
             })
-            
+
             passwordInput.addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                
+
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                     dialogView.findViewById<TextInputLayout>(R.id.config_password_layout).error = null
                 }
-                
+
                 override fun afterTextChanged(s: Editable?) {}
             })
         }
         dialog.show()
     }
 }
-   
