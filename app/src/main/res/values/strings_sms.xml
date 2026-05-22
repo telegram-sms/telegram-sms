@@ -21,5 +21,8 @@
     <string name="verification_code">" (Verification Code)"</string>
     <string name="this_is_a_test_message">This is a test message.</string>
     <string name="please_reply_to_continue">Please reply to the previous message to continue.</string>
+    <string name="premium_sms_access_title">Premium SMS access</string>
+    <string name="premium_sms_access_message">If the app needs to send SMS to premium or short-code numbers, Android requires you to grant Premium SMS access manually.\n\nGo to: Settings → Apps → Special app access → Premium SMS access, then set this app to \"Always allow\".\n\nThe exact path may differ depending on your device.</string>
+    <string name="premium_sms_open_settings">Open settings</string>
 </resources>
 

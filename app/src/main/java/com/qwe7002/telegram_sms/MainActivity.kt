@@ -839,6 +839,31 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    /**
+     * There is no public intent for the system "Premium SMS access" screen
+     * (Settings -> Apps -> Special app access -> Premium SMS access), and its
+     * exact location varies by manufacturer. Open the app details page as the
+     * closest reliable anchor, falling back to the top-level settings screen.
+     */
+    private fun openPremiumSmsSettings() {
+        val appDetails = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            "package:$packageName".toUri()
+        )
+        try {
+            if (appDetails.resolveActivityInfo(packageManager, PackageManager.MATCH_DEFAULT_ONLY) != null) {
+                startActivity(appDetails)
+            } else {
+                startActivity(Intent(Settings.ACTION_SETTINGS))
+            }
+        } catch (e: Exception) {
+            // Some heavily modified ROMs / MDM policies can still throw
+            // ActivityNotFoundException or SecurityException here.
+            Log.e(logTag, "openPremiumSmsSettings: ${e.message}", e)
+            showErrorDialog(getString(R.string.premium_sms_access_message))
+        }
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
@@ -894,6 +919,18 @@ class MainActivity : AppCompatActivity() {
                     return false
                 }
                 startActivity(Intent(this, NotifyActivity::class.java))
+                return true
+            }
+
+            R.id.premium_sms_menu_item -> {
+                AlertDialog.Builder(this)
+                    .setTitle(R.string.premium_sms_access_title)
+                    .setMessage(R.string.premium_sms_access_message)
+                    .setPositiveButton(R.string.premium_sms_open_settings) { _, _ ->
+                        openPremiumSmsSettings()
+                    }
+                    .setNegativeButton(R.string.cancel_button, null)
+                    .show()
                 return true
             }
 

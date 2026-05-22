@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"/c/Users/qwe7002/StudioProjects/document/docs\")",
+      "Bash(echo '===== __TRACKED_VAR__/Q&A.md =====')",
+      "Bash(grep -nE 'API|api' '__TRACKED_VAR__/Q&A.md')",
+      "WebSearch",
+      "Bash(./gradlew.bat :app:assembleDebug --console=plain)"
+    ]
+  }
+}
