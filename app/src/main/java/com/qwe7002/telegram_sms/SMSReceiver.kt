@@ -92,7 +92,11 @@ class SMSReceiver : BroadcastReceiver() {
         val trustedPhoneNumber = preferences.getString("trusted_phone_number", null)
         var isTrustedPhone = false
         if (!trustedPhoneNumber.isNullOrEmpty()) {
-            isTrustedPhone = messageAddress.contains(trustedPhoneNumber)
+            // Use a strict E.164-normalized comparison instead of a substring match: SMS
+            // originating addresses are spoofable, and `contains()` would treat any sender whose
+            // address merely embeds the trusted number (or an alphanumeric sender ID containing
+            // it) as trusted, allowing unconfirmed remote /sendsms and /sendussd execution.
+            isTrustedPhone = Phone.isSameTrustedNumber(context, messageAddress, trustedPhoneNumber)
         }
         val requestBody = RequestMessage()
 
