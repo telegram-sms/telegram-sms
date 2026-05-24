@@ -7,8 +7,9 @@ import android.app.job.JobService
 import android.content.ComponentName
 import android.content.Context
 import android.util.Log
-import com.qwe7002.telegram_sms.MMKV.RESEND_ID
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
+import com.qwe7002.telegram_sms.static_class.JobIds
+import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.TelegramApi
 import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
@@ -16,10 +17,14 @@ import java.util.concurrent.TimeUnit
 
 class ReSendJob : JobService() {
     private val logTag = "${TAG}.ReSendJob"
-    private lateinit var resendMMKV: MMKV
+
+    @Volatile
+    private var workerThread: Thread? = null
+
+    @Volatile
+    private var stopped = false
 
     private fun networkProgressHandle(message: String) {
-        resendMMKV = MMKV.mmkvWithID(RESEND_ID)
         val requestBody = RequestMessage()
         requestBody.text = message
         if (message.contains("<code>") && message.contains("</code>")) {
@@ -34,10 +39,8 @@ class ReSendJob : JobService() {
         )
 
         if (result != null) {
-            // Successfully sent, remove from resend list
-            val resendListLocal = resendMMKV.decodeStringSet("resend_list", setOf())?.toMutableList() ?: mutableListOf()
-            resendListLocal.remove(message)
-            resendMMKV.encode("resend_list", resendListLocal.toSet())
+            // Successfully sent: atomically drop just this message so a concurrent add isn't lost.
+            Resend.removeFromResendList(message)
         } else {
             Log.e(logTag, "Failed to resend message, will retry later")
         }
@@ -46,27 +49,44 @@ class ReSendJob : JobService() {
     override fun onStartJob(params: JobParameters?): Boolean {
         Log.d(logTag, "ReSendJob: Try resending the message.")
         MMKV.initialize(applicationContext)
-        resendMMKV = MMKV.mmkvWithID(RESEND_ID)
 
-        Thread {
-            val sendList = resendMMKV.decodeStringSet("resend_list", setOf())?.toMutableList() ?: mutableListOf()
+        stopped = false
+        workerThread = Thread {
+            val self = Thread.currentThread()
+            val sendList = Resend.getResendList()
             for (item in sendList) {
+                // Stop on OS preemption: check both the interrupt flag (OkHttp may clear it after a
+                // cancelled call) and that we're still the active worker.
+                if (stopped || self.isInterrupted || workerThread !== self) {
+                    Log.w(logTag, "ReSendJob: stopped, aborting remaining resends.")
+                    break
+                }
                 networkProgressHandle(item)
             }
-            if (sendList.isNotEmpty()) {
-                Log.i(
-                    logTag,
-                    "ReSendJob: Resend completed. ${sendList.size} messages have been resent."
-                )
+            // Only finish (and clear our slot) if we completed normally. If onStopJob ran, it already
+            // requested a reschedule via return-true; calling jobFinished(false) here would cancel it.
+            if (!stopped && workerThread === self) {
+                if (sendList.isNotEmpty()) {
+                    Log.i(
+                        logTag,
+                        "ReSendJob: Resend completed. ${sendList.size} messages have been processed."
+                    )
+                }
+                workerThread = null
+                jobFinished(params, false)
             }
-            jobFinished(params, false)
-        }.start()
+        }.also { it.start() }
 
         return true
     }
 
     override fun onStopJob(params: JobParameters?): Boolean {
-        return false
+        // The OS is reclaiming the job (e.g. Doze / network loss). Interrupt the worker so we stop
+        // running network requests without a WakeLock; return true so the job is rescheduled.
+        stopped = true
+        workerThread?.interrupt()
+        workerThread = null
+        return true
     }
 
     companion object {
@@ -76,7 +96,7 @@ class ReSendJob : JobService() {
                 context.getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
 
             val jobInfoBuilder = JobInfo.Builder(
-                20,
+                JobIds.RESEND,
                 ComponentName(context.packageName, ReSendJob::class.java.getName())
             )
                 .setPersisted(true)
@@ -90,7 +110,7 @@ class ReSendJob : JobService() {
             val jobScheduler =
                 context.getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
 
-            jobScheduler.cancel(20)
+            jobScheduler.cancel(JobIds.RESEND)
         }
     }
 }

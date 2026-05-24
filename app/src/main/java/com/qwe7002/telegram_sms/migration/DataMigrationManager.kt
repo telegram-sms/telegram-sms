@@ -25,7 +25,7 @@ object DataMigrationManager {
      * Current data structure version
      * Increment this when making breaking changes to data structure
      */
-    const val CURRENT_DATA_VERSION = 1
+    const val CURRENT_DATA_VERSION = 2
 
     private const val DATA_VERSION_KEY = "data_structure_version"
     private const val logTag = "${TAG}.DataMigrationManager"
@@ -169,23 +169,16 @@ object DataMigrationManager {
     private fun migrateToVersion2(context: Context, preferences: MMKV) {
         Log.d(logTag, "Migrating to version 2")
 
-        // Example migration tasks:
-        // 1. Add new fields with default values
-        // 2. Transform existing data
-        // 3. Move data between MMKV instances
-        // 4. Remove deprecated fields
-
-        // Example:
-        // if (!preferences.contains("new_field_in_v2")) {
-        //     preferences.putBoolean("new_field_in_v2", false)
-        // }
-
-        // Example: Migrate data from one format to another
-        // val oldValue = preferences.getString("old_field", "")
-        // if (oldValue.isNotEmpty()) {
-        //     preferences.putString("new_field", transformData(oldValue))
-        //     preferences.remove("old_field")
-        // }
+        // ChatService moved its interactive /sendsms and /sendussd state out of the shared
+        // single-slot keys in the `chat` namespace into per-message-id records in the new
+        // `session` namespace. Drop the now-orphaned keys so stale data can't be read back.
+        val chatMMKV = MMKV.mmkvWithID(CHAT_ID)
+        for (key in listOf(
+            "slot", "to", "content", "message_id", "command_message_id",
+            "ussd_slot", "ussd_code", "ussd_message_id"
+        )) {
+            chatMMKV.remove(key)
+        }
     }
 
     /**

@@ -18,8 +18,8 @@ import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.data_structure.Entry
 import com.qwe7002.telegram_sms.data_structure.Request as HarRequest
 import com.qwe7002.telegram_sms.static_class.CcSend
+import com.qwe7002.telegram_sms.static_class.JobIds
 import com.qwe7002.telegram_sms.static_class.Network
-import com.qwe7002.telegram_sms.static_class.SnowFlake
 import com.qwe7002.telegram_sms.value.CcType
 import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
@@ -44,9 +44,17 @@ class CcSendJob : JobService() {
         private val gson = Gson()
         private val executor = Executors.newSingleThreadExecutor()
         
-        private val FORM_URLENCODED_TYPE = "application/x-www-form-urlencoded".toMediaTypeOrNull()
-        private val JSON_TYPE = "application/json".toMediaTypeOrNull()
+        private const val FORM_URLENCODED_SUBTYPE = "application/x-www-form-urlencoded"
+        private const val JSON_SUBTYPE = "application/json"
         private val SUPPORTED_METHODS = setOf("GET", "POST", "PUT")
+
+        // Headers that must not be replayed verbatim from a captured HAR: Cookie is rebuilt from
+        // request.cookies, and the rest are connection/content metadata that OkHttp or the
+        // RequestBody recomputes — replaying a stale captured value duplicates or corrupts the request.
+        private val SKIP_HEADERS = setOf(
+            "cookie", "content-type", "content-length", "content-encoding", "host",
+            "connection", "transfer-encoding", "keep-alive", "accept-encoding"
+        )
         
         fun startJob(
             context: Context,
@@ -58,7 +66,7 @@ class CcSendJob : JobService() {
             if (!checkType(type)) return
             
             val jobScheduler = context.getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
-            val jobId = SnowFlake.generate().toString().takeLast(9).toIntOrNull() ?: 0
+            val jobId = JobIds.nextCarbonCopyId()
             
             val extras = PersistableBundle().apply {
                 putString(EXTRA_TITLE, title)
@@ -146,20 +154,22 @@ class CcSendJob : JobService() {
         val encodeMapper = createMapper(title, message, verificationCode, encoded = true)
         
         var successCount = 0
+        var attemptCount = 0
         for (item in enabledList) {
             if (item.har.log.entries.isEmpty()) {
                 Log.e(logTag, "ccSendJob: ${item.name} HAR is empty.")
                 continue
             }
-            
+
             for (entry in item.har.log.entries) {
+                attemptCount++
                 if (sendRequest(entry, okhttpClient, mapper, encodeMapper)) {
                     successCount++
                 }
             }
         }
-        
-        Log.i(logTag, "CC sending completed. Success: $successCount/${enabledList.size}")
+
+        Log.i(logTag, "CC sending completed. Success: $successCount/$attemptCount")
     }
     
     private fun getSendList(mmkv: MMKV): List<CcSendService> {
@@ -204,9 +214,14 @@ class CcSendJob : JobService() {
         
         // addQueryParameter percent-encodes values itself, so feed it the raw mapper
         // (encodeMapper is only for {{placeholders}} substituted directly into the URL string).
+        // Browser-exported HAR carries the query in BOTH request.url and request.queryString, so only
+        // append params the parsed URL doesn't already have — otherwise we get ?k=v&k=v duplicates.
+        val existingParams = httpUrl.queryParameterNames
         val httpUrlBuilder = httpUrl.newBuilder().apply {
             request.queryString.forEach { query ->
-                addQueryParameter(query.name, CcSend.render(query.value, mapper))
+                if (query.name !in existingParams) {
+                    addQueryParameter(query.name, CcSend.render(query.value, mapper))
+                }
             }
         }
 
@@ -229,8 +244,10 @@ class CcSendJob : JobService() {
             addHeaderSafely(requestBuilder, "Cookie", cookieHeader)
         }
 
-        // Add headers
+        // Add headers, skipping Cookie (rebuilt above) and transport/content headers OkHttp owns,
+        // so a stale captured Cookie/Content-Length/Host isn't duplicated onto the request.
         request.headers.forEach { header ->
+            if (header.name.lowercase() in SKIP_HEADERS) return@forEach
             addHeaderSafely(requestBuilder, header.name, CcSend.render(header.value, mapper))
         }
 
@@ -252,21 +269,22 @@ class CcSendJob : JobService() {
         mapper: Map<String, String>
     ): RequestBody? {
         val postData = request.postData ?: return null
-        return when (val mimeType = postData.mimeType.toMediaTypeOrNull()) {
-            null -> {
-                Log.w(logTag, "MIME type is null or invalid: ${postData.mimeType}")
-                null
-            }
-            
-            FORM_URLENCODED_TYPE -> {
+        val mimeType = postData.mimeType.toMediaTypeOrNull() ?: run {
+            Log.w(logTag, "MIME type is null or invalid: ${postData.mimeType}")
+            return null
+        }
+        // Match on type/subtype only — a captured HAR often carries a charset
+        // (e.g. "application/json; charset=utf-8") which must not break the match.
+        return when ("${mimeType.type}/${mimeType.subtype}") {
+            FORM_URLENCODED_SUBTYPE -> {
                 FormBody.Builder().apply {
                     postData.params?.forEach { param ->
                         add(param.name, CcSend.render(param.value, mapper))
                     }
                 }.build()
             }
-            
-            JSON_TYPE -> {
+
+            JSON_SUBTYPE -> {
                 val value = CcSend.renderForJson(postData.text ?: "", mapper)
                 if (value.isNotEmpty()) {
                     try {
@@ -280,7 +298,7 @@ class CcSendJob : JobService() {
                     "{}".toRequestBody(mimeType)
                 }
             }
-            
+
             else -> {
                 Log.w(logTag, "Unsupported MIME type: ${postData.mimeType}")
                 null

@@ -7,6 +7,7 @@ import android.app.job.JobService
 import android.content.ComponentName
 import android.content.Context
 import android.util.Log
+import com.qwe7002.telegram_sms.static_class.JobIds
 import com.qwe7002.telegram_sms.static_class.Service
 import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
@@ -16,7 +17,7 @@ class KeepAliveJob : JobService() {
 
     companion object {
         private val logTag = "${TAG}.KeepAliveJob"
-        private const val JOB_ID = 10
+        private const val JOB_ID = JobIds.KEEP_ALIVE
         private val MIN_LATENCY_MS = TimeUnit.SECONDS.toMillis(5)
 
         fun startJob(context: Context) {

@@ -5,7 +5,12 @@
       "Bash(echo '===== __TRACKED_VAR__/Q&A.md =====')",
       "Bash(grep -nE 'API|api' '__TRACKED_VAR__/Q&A.md')",
       "WebSearch",
-      "Bash(./gradlew.bat :app:assembleDebug --console=plain)"
+      "Bash(./gradlew.bat :app:assembleDebug --console=plain)",
+      "Bash(xargs -n1 basename)",
+      "Bash(./gradlew.bat :app:compileDebugKotlin --console=plain -q)",
+      "Bash(where.exe glab *)",
+      "Bash(where.exe gh *)",
+      "Bash(glab auth *)"
     ]
   }
 }

@@ -4,10 +4,8 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
-import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.net.wifi.WifiManager.WifiLock
 import android.os.Build
@@ -19,8 +17,9 @@ import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import com.qwe7002.telegram_sms.MMKV.CHAT_ID
 import com.qwe7002.telegram_sms.MMKV.CHAT_INFO_ID
+import com.qwe7002.telegram_sms.MMKV.SESSION_ID
+import com.qwe7002.telegram_sms.data_structure.ChatSession
 import com.qwe7002.telegram_sms.data_structure.SMSRequestInfo
 import com.qwe7002.telegram_sms.data_structure.telegram.PollingBody
 import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard.ForceReply
@@ -71,10 +70,11 @@ class ChatService : Service() {
         private val logTag = "${TAG}.ChatService"
         private var RequestOffset: Long = 0
         private lateinit var sharedPreferences: MMKV
-        private var sendSmsNextStatus = SEND_SMS_STATUS.STANDBY_STATUS
-        private var sendUssdNextStatus = SEND_USSD_STATUS.STANDBY_STATUS
         private lateinit var threadMain: Thread
         private var firstRequest = true
+
+        // Sessions older than this (no user interaction) are treated as abandoned and purged.
+        private const val SESSION_TTL_MS = 60 * 60 * 1000L
 
         private fun isNumeric(str: String): Boolean {
             for (element in str) {
@@ -130,24 +130,17 @@ class ChatService : Service() {
         const val SIM2: String = "sim2"
     }
 
+    // Steps of an interactive session (stored in ChatSession.step). SMS_* and USSD_* live
+    // in one space; ChatSession.type disambiguates which flow a record belongs to.
     @Suppress("ClassName")
-    private object SEND_SMS_STATUS {
-        const val STANDBY_STATUS: Int = -1
-        const val SIM_SELECT_STATUS: Int = -2
-        const val PHONE_INPUT_STATUS: Int = 0
-        const val MESSAGE_INPUT_STATUS: Int = 1
-        const val WAITING_TO_SEND_STATUS: Int = 2
-        const val READY_TO_SEND_STATUS: Int = 4
-        const val SEND_STATUS: Int = 3
-    }
-
-    @Suppress("ClassName")
-    private object SEND_USSD_STATUS {
-        const val STANDBY_STATUS: Int = -1
-        const val SIM_SELECT_STATUS: Int = -2
-        const val CODE_INPUT_STATUS: Int = 0
-        const val WAITING_TO_SEND_STATUS: Int = 1
-        const val SEND_STATUS: Int = 2
+    private object SESSION_STEP {
+        const val SMS_SIM_SELECT: Int = 0     // awaiting SIM1/SIM2 inline-button tap
+        const val SMS_PHONE_INPUT: Int = 1    // awaiting phone number (ForceReply)
+        const val SMS_CONTENT_INPUT: Int = 2  // awaiting message body (ForceReply)
+        const val SMS_CONFIRM: Int = 3        // awaiting Send/Cancel inline-button tap
+        const val USSD_SIM_SELECT: Int = 10   // awaiting SIM1/SIM2 inline-button tap
+        const val USSD_CODE_INPUT: Int = 11   // awaiting USSD code (reply)
+        const val USSD_CONFIRM: Int = 12      // awaiting Send/Cancel inline-button tap
     }
 
     private lateinit var chatId: String
@@ -163,8 +156,8 @@ class ChatService : Service() {
     private var botUsername: String = ""
     private val isRunning = AtomicBoolean(false)
 
-    private val chatMMKV = MMKV.mmkvWithID(CHAT_ID)
     private val chatInfoMMKV = MMKV.mmkvWithID(CHAT_INFO_ID)
+    private val sessionMMKV = MMKV.mmkvWithID(SESSION_ID)
 
     private fun receiveHandle(resultObj: JsonObject, getIdOnly: Boolean) {
         val updateId = resultObj["update_id"].asLong
@@ -187,14 +180,31 @@ class ChatService : Service() {
             messageType = "channel"
             jsonObject = resultObj["channel_post"].asJsonObject
         }
-        lateinit var callbackData: String
+        var callbackData = ""
         var callbackMessageId: Long = -1
         if (resultObj.has("callback_query")) {
             messageType = "callback_query"
             val callbackQuery = resultObj["callback_query"].asJsonObject
-            callbackData = callbackQuery["data"].asString
+            // `data` is optional on a callback_query (e.g. game callbacks) — guard it.
+            if (callbackQuery.has("data")) {
+                callbackData = callbackQuery["data"].asString
+            }
             if (callbackQuery.has("message")) {
-                callbackMessageId = callbackQuery["message"].asJsonObject["message_id"].asLong
+                val callbackMessage = callbackQuery["message"].asJsonObject
+                callbackMessageId = callbackMessage["message_id"].asLong
+                // Authorize by the chat the keyboard lives in — the message-path checks
+                // below are bypassed by the early callback dispatch, so without this any
+                // group member who can see the buttons could trigger a send/cancel/delete.
+                val callbackChatId =
+                    if (callbackMessage.has("chat")) {
+                        callbackMessage["chat"].asJsonObject["id"].asString
+                    } else {
+                        ""
+                    }
+                if (callbackChatId.isNotEmpty() && callbackChatId != chatId) {
+                    Log.w(logTag, "Callback chat not authorized: $callbackChatId")
+                    return
+                }
             }
         }
 
@@ -204,252 +214,43 @@ class ChatService : Service() {
             return
         }
 
-        // Handle SMS SIM selection callback
-        if (messageType == "callback_query" && sendSmsNextStatus == SEND_SMS_STATUS.SIM_SELECT_STATUS) {
-            when (callbackData) {
-                CALLBACK_DATA_VALUE.SIM1 -> handleSmsSimSelected(0, "SIM1 ", callbackMessageId)
-                CALLBACK_DATA_VALUE.SIM2 -> handleSmsSimSelected(1, "SIM2 ", callbackMessageId)
-            }
-            return
-        }
-
-        if (messageType == "callback_query" && sendSmsNextStatus != SEND_SMS_STATUS.STANDBY_STATUS) {
-            var slot = chatMMKV.getInt("slot", -1)
-            val messageId = chatMMKV.getLong("message_id", -1L)
-            val to = chatMMKV.getString("to", "").toString()
-            val content = chatMMKV.getString("content", "").toString()
-            if (callbackData != CALLBACK_DATA_VALUE.SEND) {
-                setSmsSendStatusStandby()
-                val requestUri = getUrl(
-                    botToken, "editMessageText"
-                )
-                val dualSim = Phone.getSimDisplayName(applicationContext, slot)
-                requestBody.text = Template.render(
-                    applicationContext,
-                    "TPL_send_sms",
-                    mapOf("SIM" to dualSim, "To" to to, "Content" to content)
-                ) + "\n" + getString(R.string.status) + getString(R.string.cancel_button)
-                requestBody.messageId = messageId
-                val gson = Gson()
-                val requestBodyRaw = gson.toJson(requestBody)
-                val body: RequestBody = requestBodyRaw.toRequestBody(JSON)
-                val okhttpObj = getOkhttpObj(
-                    sharedPreferences.getBoolean("doh_switch", false)
-                )
-                val request: Request =
-                    Request.Builder().url(requestUri).method("POST", body).build()
-                val call = okhttpObj.newCall(request)
-                try {
-                    val response = call.execute()
-                    if (response.code != 200) {
-                        throw IOException(response.code.toString())
-                    }
-                } catch (e: IOException) {
-                    Log.e(logTag, "Failed to edit message: ${e.message}", e)
-                }
+        // Inline-button taps on an interactive prompt: resolve the session by the message
+        // the keyboard is attached to (callback_query.message.message_id). No live record
+        // for that id means a stale/duplicate/expired keyboard — ignore it. This also keeps
+        // us from falling through to message handling, where jsonObject is unset for callbacks.
+        if (messageType == "callback_query") {
+            val session = loadSession(callbackMessageId)
+            if (session == null) {
+                Log.d(logTag, "Callback for unknown/expired session, ignoring")
                 return
             }
-            // First reply to user with "Sending" status before executing send operation
-            setSmsSendStatusStandby()
-            val requestUri = getUrl(botToken, "editMessageText")
-            val dualSim = Phone.getSimDisplayName(applicationContext, slot)
-            requestBody.text = Template.render(
-                applicationContext,
-                "TPL_send_sms",
-                mapOf("SIM" to dualSim, "To" to to, "Content" to content)
-            ) + "\n" + getString(R.string.status) + getString(R.string.sending)
-            requestBody.messageId = messageId
-            val gson = Gson()
-            val requestBodyRaw = gson.toJson(requestBody)
-            val body: RequestBody = requestBodyRaw.toRequestBody(JSON)
-            val okhttpObj = getOkhttpObj(
-                sharedPreferences.getBoolean("doh_switch", false)
-            )
-            val request: Request =
-                Request.Builder().url(requestUri).method("POST", body).build()
-            val call = okhttpObj.newCall(request)
-            try {
-                val response = call.execute()
-                if (response.code != 200) {
-                    throw IOException(response.code.toString())
-                }
-            } catch (e: IOException) {
-                Log.e(logTag, "Failed to edit message: ${e.message}", e)
-            }
-
-            // Now execute the send operation
-            var subId = -1
-            if (getActiveCard(applicationContext) == 1) {
-                slot = -1
-            } else {
-                subId = getSubId(applicationContext, slot)
-            }
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.SEND_SMS
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
-                send(applicationContext, to, content, slot, subId, messageId)
-            }
+            handleSessionCallback(session, callbackMessageId, callbackData, requestBody)
+            return
+        }
+        // Updates that carry neither a message nor a channel_post (edited_message,
+        // my_chat_member, etc.) leave jsonObject uninitialized — ignore them.
+        if (!resultObj.has("message") && !resultObj.has("channel_post")) {
+            Log.d(logTag, "Update without message content, ignoring")
             return
         }
 
-        // Handle USSD SIM selection callback
-        if (messageType == "callback_query" && sendUssdNextStatus == SEND_USSD_STATUS.SIM_SELECT_STATUS) {
-            when (callbackData) {
-                CALLBACK_DATA_VALUE.SIM1 -> {
-                    chatMMKV.putInt("ussd_slot", 0)
-                    sendUssdNextStatus = SEND_USSD_STATUS.WAITING_TO_SEND_STATUS
-                    val requestUri = getUrl(botToken, "editMessageText")
-                    requestBody.text = Template.render(
-                        applicationContext,
-                        "TPL_send_USSD_chat",
-                        mapOf("Content" to "SIM1 ${getString(R.string.enter_ussd_code)}")
-                    )
-                    requestBody.messageId = callbackMessageId
-                    val gson = Gson()
-                    val requestBodyRaw = gson.toJson(requestBody)
-                    val body: RequestBody = requestBodyRaw.toRequestBody(JSON)
-                    val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
-                    val request: Request =
-                        Request.Builder().url(requestUri).method("POST", body).build()
-                    val call = okhttpObj.newCall(request)
-                    try {
-                        val response = call.execute()
-                        if (response.code != 200) {
-                            throw IOException(response.code.toString())
-                        }
-                    } catch (e: IOException) {
-                        Log.e(logTag, "Failed to edit message: ${e.message}", e)
-                    }
-                }
-
-                CALLBACK_DATA_VALUE.SIM2 -> {
-                    chatMMKV.putInt("ussd_slot", 1)
-                    sendUssdNextStatus = SEND_USSD_STATUS.WAITING_TO_SEND_STATUS
-                    val requestUri = getUrl(botToken, "editMessageText")
-                    requestBody.text = Template.render(
-                        applicationContext,
-                        "TPL_send_USSD_chat",
-                        mapOf("Content" to "SIM2 ${getString(R.string.enter_ussd_code)}")
-                    )
-                    requestBody.messageId = callbackMessageId
-                    val gson = Gson()
-                    val requestBodyRaw = gson.toJson(requestBody)
-                    val body: RequestBody = requestBodyRaw.toRequestBody(JSON)
-                    val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
-                    val request: Request =
-                        Request.Builder().url(requestUri).method("POST", body).build()
-                    val call = okhttpObj.newCall(request)
-                    try {
-                        val response = call.execute()
-                        if (response.code != 200) {
-                            throw IOException(response.code.toString())
-                        }
-                    } catch (e: IOException) {
-                        Log.e(logTag, "Failed to edit message: ${e.message}", e)
-                    }
-                }
-            }
-            return
-        }
-
-        // Handle USSD callback
-        if (messageType == "callback_query" && sendUssdNextStatus != SEND_USSD_STATUS.STANDBY_STATUS) {
-            val ussdSlot = chatMMKV.getInt("ussd_slot", -1)
-            val messageId = chatMMKV.getLong("ussd_message_id", -1L)
-            val ussdCode = chatMMKV.getString("ussd_code", "").toString()
-
-            if (callbackData != CALLBACK_DATA_VALUE.USSD_SEND) {
-                // Cancel USSD
-                setUssdSendStatusStandby()
-                val requestUri = getUrl(botToken, "editMessageText")
-                val dualSim = if (ussdSlot != -1) "SIM${ussdSlot + 1} " else ""
-                requestBody.text = Template.render(
-                    applicationContext, "TPL_send_USSD_chat",
-                    mapOf(
-                        "Content" to "${dualSim}USSD: $ussdCode\n${getString(R.string.status)}${
-                            getString(
-                                R.string.cancel_button
-                            )
-                        }"
-                    )
-                )
-                requestBody.messageId = messageId
-                val gson = Gson()
-                val requestBodyRaw = gson.toJson(requestBody)
-                val body: RequestBody = requestBodyRaw.toRequestBody(JSON)
-                val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
-                val request: Request =
-                    Request.Builder().url(requestUri).method("POST", body).build()
-                val call = okhttpObj.newCall(request)
-                try {
-                    val response = call.execute()
-                    if (response.code != 200) {
-                        throw IOException(response.code.toString())
-                    }
-                } catch (e: IOException) {
-                    Log.e(logTag, "Failed to edit message: ${e.message}", e)
-                }
-                return
-            }
-
-            // First reply to user with "Sending" status before executing send operation
-            setUssdSendStatusStandby()
-            val requestUri = getUrl(botToken, "editMessageText")
-            val dualSim = if (ussdSlot != -1) "SIM${ussdSlot + 1} " else ""
-            requestBody.text = Template.render(
-                applicationContext, "TPL_send_USSD_chat",
-                mapOf(
-                    "Content" to "${dualSim}USSD: $ussdCode\n${getString(R.string.status)}${
-                        getString(R.string.sending)
-                    }"
-                )
-            )
-            requestBody.messageId = messageId
-            val gson = Gson()
-            val requestBodyRaw = gson.toJson(requestBody)
-            val body: RequestBody = requestBodyRaw.toRequestBody(JSON)
-            val okhttpObj = getOkhttpObj(sharedPreferences.getBoolean("doh_switch", false))
-            val request: Request =
-                Request.Builder().url(requestUri).method("POST", body).build()
-            val call = okhttpObj.newCall(request)
-            try {
-                val response = call.execute()
-                if (response.code != 200) {
-                    throw IOException(response.code.toString())
-                }
-            } catch (e: IOException) {
-                Log.e(logTag, "Failed to edit message: ${e.message}", e)
-            }
-
-            // Now execute the send operation
-            var subId = -1
-            if (getActiveCard(applicationContext) > 1 && ussdSlot >= 0) {
-                subId = getSubId(applicationContext, ussdSlot)
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.CALL_PHONE
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
-                sendUssd(applicationContext, ussdCode, subId, messageId)
-            }
-            return
-        }
-
-        lateinit var fromObj: JsonObject
         val isPrivate = messageType == "private"
+        // The bot-origin check looks at the sender ("from"); authorization compares the
+        // chat id ("chat"), so chat takes priority when both are present (original behavior).
         if (jsonObject.has("from")) {
-            fromObj = jsonObject["from"].asJsonObject
-            if (!isPrivate && fromObj["is_bot"].asBoolean) {
+            val senderObj = jsonObject["from"].asJsonObject
+            if (!isPrivate && senderObj["is_bot"].asBoolean) {
                 Log.d(logTag, "Message from bot ignored")
                 return
             }
         }
-        if (jsonObject.has("chat")) {
-            fromObj = jsonObject["chat"].asJsonObject
+        val fromObj: JsonObject = when {
+            jsonObject.has("chat") -> jsonObject["chat"].asJsonObject
+            jsonObject.has("from") -> jsonObject["from"].asJsonObject
+            else -> {
+                Log.w(logTag, "Update has neither chat nor from, ignoring")
+                return
+            }
         }
 
         val fromId = fromObj["id"].asString
@@ -477,16 +278,20 @@ class ChatService : Service() {
             requestMsg = jsonObject["text"].asString
         }
         if (jsonObject.has("entities")) {
-            val tempCommand: String
-            val tempCommandLowercase: String
             val entities = jsonObject["entities"].asJsonArray
-            val entitiesObjCommand = entities[0].asJsonObject
-            if (entitiesObjCommand["type"].asString == "bot_command") {
-                val commandOffset = entitiesObjCommand["offset"].asInt
-                val commandEndOffset = commandOffset + entitiesObjCommand["length"].asInt
-                tempCommand =
+            // Don't assume the command is the first entity — a leading mention/format
+            // entity would otherwise hide it. Find the first bot_command anywhere.
+            val commandEntity = entities.firstOrNull {
+                val obj = it.asJsonObject
+                obj.has("type") && obj["type"].asString == "bot_command"
+            }?.asJsonObject
+            if (commandEntity != null) {
+                val commandOffset = commandEntity["offset"].asInt
+                val commandEndOffset = commandOffset + commandEntity["length"].asInt
+                val tempCommand =
                     requestMsg.substring(commandOffset, commandEndOffset).trim { it <= ' ' }
-                tempCommandLowercase = tempCommand.lowercase(Locale.getDefault()).replace("_", "")
+                val tempCommandLowercase =
+                    tempCommand.lowercase(Locale.getDefault()).replace("_", "")
                 command = tempCommandLowercase
                 if (tempCommandLowercase.contains("@")) {
                     val commandAtLocation = tempCommandLowercase.indexOf("@")
@@ -497,10 +302,12 @@ class ChatService : Service() {
         }
         val hasReplyToMessage = jsonObject.has("reply_to_message")
         var isReplyToBot = false
-        var isSmsReply = false
-        var smsReplyContent = ""
+        var replyToBotMsgId = -1L
         if (hasReplyToMessage) {
             val replyToMessage = jsonObject["reply_to_message"].asJsonObject
+            if (replyToMessage.has("message_id")) {
+                replyToBotMsgId = replyToMessage["message_id"].asLong
+            }
             if (replyToMessage.has("from")) {
                 val replyFrom = replyToMessage["from"].asJsonObject
                 val replyFromUsername =
@@ -509,24 +316,6 @@ class ChatService : Service() {
                     replyFromUsername.equals(botUsername, ignoreCase = true)
                 ) {
                     isReplyToBot = true
-                }
-            }
-            if (requestMsg.isNotEmpty()) {
-                val saveItemString = chatInfoMMKV.getString(
-                    replyToMessage["message_id"].asString,
-                    null
-                )
-                if (saveItemString != null) {
-                    smsReplyContent = stripBotEntities(requestMsg, jsonObject)
-                    if (smsReplyContent.isNotEmpty()) {
-                        val saveItem =
-                            Gson().fromJson(saveItemString, SMSRequestInfo::class.java)
-                        sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
-                        chatMMKV.putInt("slot", saveItem.card)
-                        chatMMKV.putString("to", saveItem.phone)
-                        chatMMKV.putString("content", smsReplyContent)
-                        isSmsReply = true
-                    }
                 }
             }
         }
@@ -566,123 +355,8 @@ class ChatService : Service() {
             }
 
             "/sendussd", "/sendussd1", "/sendussd2" -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                    ActivityCompat.checkSelfPermission(
-                        applicationContext,
-                        Manifest.permission.CALL_PHONE
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
-                    val isDualSim = getActiveCard(applicationContext) > 1
-
-                    // Parse command and arguments
-                    val commandList = requestMsg.split(" ").filter { it.isNotEmpty() }
-                    val baseCommand = commandList[0].trim()
-
-                    // Determine slot based on command format
-                    var ussdSlot = -1
-                    var codeIndex = 1 // Default: code is at index 1
-
-                    if (isDualSim) {
-                        when (baseCommand) {
-                            "/sendussd1" -> ussdSlot = 0
-                            "/sendussd2" -> ussdSlot = 1
-                            "/sendussd" -> {
-                                // Check if SIM card number is specified after command
-                                if (commandList.size > 1) {
-                                    when (commandList[1].trim()) {
-                                        "1" -> {
-                                            ussdSlot = 0
-                                            codeIndex = 2 // Code is at index 2
-                                        }
-
-                                        "2" -> {
-                                            ussdSlot = 1
-                                            codeIndex = 2 // Code is at index 2
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    chatMMKV.putInt("ussd_slot", ussdSlot)
-
-                    if (commandList.size > codeIndex) {
-                        // Direct USSD code provided: /sendussd *123# or /sendussd 1 *123#
-                        val ussdCode = commandList[codeIndex]
-                        if (isValidUssdCode(ussdCode)) {
-                            chatMMKV.putString("ussd_code", ussdCode)
-                            sendUssdNextStatus = SEND_USSD_STATUS.SEND_STATUS
-                            // Show confirmation with keyboard
-                            val dualSim = if (chatMMKV.getInt("ussd_slot", -1) != -1)
-                                "SIM${chatMMKV.getInt("ussd_slot", -1) + 1} " else ""
-                            val keyboardMarkup = KeyboardMarkup().apply {
-                                inlineKeyboard = arrayListOf(
-                                    getInlineKeyboardObj(
-                                        getString(R.string.send_button),
-                                        CALLBACK_DATA_VALUE.USSD_SEND
-                                    ),
-                                    getInlineKeyboardObj(
-                                        getString(R.string.cancel_button),
-                                        CALLBACK_DATA_VALUE.USSD_CANCEL
-                                    )
-                                )
-                            }
-                            requestBody.replyMarkup = keyboardMarkup
-                            requestBody.text = Template.render(
-                                applicationContext, "TPL_system_message",
-                                mapOf("Message" to "${dualSim}USSD: $ussdCode")
-                            )
-                        } else {
-                            setUssdSendStatusStandby()
-                            requestBody.text = Template.render(
-                                applicationContext, "TPL_system_message",
-                                mapOf("Message" to getString(R.string.invalid_ussd_code))
-                            )
-                        }
-                        hasCommand = true
-                    } else {
-                        // Interactive mode
-                        Log.d(logTag, "Entering interactive USSD sending mode")
-
-                        // If dual SIM and no specific SIM selected, show SIM selection
-                        if (isDualSim && ussdSlot == -1) {
-                            sendUssdNextStatus = SEND_USSD_STATUS.SIM_SELECT_STATUS
-                            val keyboardMarkup = KeyboardMarkup().apply {
-                                inlineKeyboard = arrayListOf(
-                                    getInlineKeyboardObj(
-                                        "SIM 1",
-                                        CALLBACK_DATA_VALUE.SIM1
-                                    ),
-                                    getInlineKeyboardObj(
-                                        "SIM 2",
-                                        CALLBACK_DATA_VALUE.SIM2
-                                    )
-                                )
-                            }
-                            requestBody.replyMarkup = keyboardMarkup
-                            requestBody.text = Template.render(
-                                applicationContext, "TPL_send_USSD_chat",
-                                mapOf("Content" to getString(R.string.select_sim_card))
-                            )
-                        } else {
-                            // Single SIM or specific SIM command - proceed to code input
-                            val dualSim = if (chatMMKV.getInt("ussd_slot", -1) != -1)
-                                "SIM${chatMMKV.getInt("ussd_slot", -1) + 1} " else ""
-                            requestBody.text = Template.render(
-                                applicationContext, "TPL_send_USSD_chat",
-                                mapOf("Content" to "$dualSim${getString(R.string.enter_ussd_code)}")
-                            )
-                            sendUssdNextStatus = SEND_USSD_STATUS.WAITING_TO_SEND_STATUS
-                        }
-                        hasCommand = true
-                    }
-                } else {
-                    requestBody.text = Template.render(
-                        applicationContext, "TPL_system_message",
-                        mapOf("Message" to getString(R.string.unknown_command))
-                    )
-                    hasCommand = true
-                }
+                startUssdFlow(requestMsg, jsonObject, requestBody)
+                return
             }
 
             "/listsms" -> {
@@ -728,152 +402,25 @@ class ChatService : Service() {
             }
 
             "/sendsms", "/sendsms1", "/sendsms2" -> {
-                var sendSlot = -1
-                val isDualSim = getActiveCard(applicationContext) > 1
-
-                // Parse command and arguments
-                val commandParts = requestMsg.split(" ", "\n", limit = 3).filter { it.isNotEmpty() }
-                val baseCommand = commandParts[0].trim()
-
-                // Determine slot based on command format
-                if (isDualSim) {
-                    when (baseCommand) {
-                        "/sendsms1" -> sendSlot = 0
-                        "/sendsms2" -> sendSlot = 1
-                        "/sendsms" -> {
-                            // Check if SIM card number is specified after command
-                            if (commandParts.size > 1) {
-                                when (commandParts[1].trim()) {
-                                    "1" -> sendSlot = 0
-                                    "2" -> sendSlot = 1
-                                }
-                            }
-                        }
-                    }
-                }
-
-                chatMMKV.putInt("slot", sendSlot)
-                val msgSendList =
-                    requestMsg.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                Log.d(logTag, "SMS send list size: ${msgSendList.size}")
-
-                // Check if phone number is provided
-                val hasPhoneNumber =
-                    if (sendSlot != -1 && baseCommand == "/sendsms" && commandParts.size > 1 && (commandParts[1] == "1" || commandParts[1] == "2")) {
-                        // Format: /sendsms 1\nphone\ncontent or /sendsms 2\nphone\ncontent
-                        msgSendList.size > 2
-                    } else {
-                        msgSendList.size > 1
-                    }
-
-                if (hasPhoneNumber) {
-                    val phoneLineIndex =
-                        if (sendSlot != -1 && baseCommand == "/sendsms" && commandParts.size > 1 && (commandParts[1] == "1" || commandParts[1] == "2")) {
-                            2 // Skip command and SIM number
-                        } else {
-                            1 // Skip only command
-                        }
-
-                    if (msgSendList.size > phoneLineIndex) {
-                        val msgSendTo = getSendPhoneNumber(msgSendList[phoneLineIndex])
-                        if (isPhoneNumber(msgSendTo)) {
-                            chatMMKV.putString("to", msgSendTo)
-                            val sendContent =
-                                msgSendList.drop(phoneLineIndex + 1).joinToString("\n")
-                            chatMMKV.putString("content", sendContent)
-                            sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS
-                            // Show confirmation with keyboard
-                            val dualSim = if (sendSlot != -1) "SIM${sendSlot + 1} " else ""
-                            val keyboardMarkup = KeyboardMarkup().apply {
-                                inlineKeyboard = arrayListOf(
-                                    getInlineKeyboardObj(
-                                        getString(R.string.send_button),
-                                        CALLBACK_DATA_VALUE.SEND
-                                    ),
-                                    getInlineKeyboardObj(
-                                        getString(R.string.cancel_button),
-                                        CALLBACK_DATA_VALUE.CANCEL
-                                    )
-                                )
-                            }
-                            requestBody.replyMarkup = keyboardMarkup
-                            val values = mapOf(
-                                "SIM" to dualSim,
-                                "To" to msgSendTo,
-                                "Content" to sendContent
-                            )
-                            requestBody.text =
-                                Template.render(applicationContext, "TPL_send_sms", values)
-                        } else {
-                            setSmsSendStatusStandby()
-                            requestBody.text = Template.render(
-                                applicationContext,
-                                "TPL_send_sms_chat",
-                                mapOf(
-                                    "SIM" to "",
-                                    "Content" to getString(R.string.unable_get_phone_number)
-                                )
-                            )
-                        }
-                        hasCommand = true
-                    }
-                } else {
-                    // Interactive mode
-                    Log.d(logTag, "Entering interactive SMS sending mode")
-
-                    // Anchor every interactive prompt in this session to the original
-                    // /sendsms command — keeps the force-reply UI targeted at the right
-                    // user (selective=true) and prevents stale replies from driving the
-                    // state machine.
-                    val commandMessageId = jsonObject["message_id"].asLong
-                    chatMMKV.putLong("command_message_id", commandMessageId)
-
-                    // If dual SIM and no specific SIM selected, show SIM selection
-                    if (isDualSim && sendSlot == -1) {
-                        sendSmsNextStatus = SEND_SMS_STATUS.SIM_SELECT_STATUS
-                        val keyboardMarkup = KeyboardMarkup().apply {
-                            inlineKeyboard = arrayListOf(
-                                getInlineKeyboardObj(
-                                    "SIM 1",
-                                    CALLBACK_DATA_VALUE.SIM1
-                                ),
-                                getInlineKeyboardObj(
-                                    "SIM 2",
-                                    CALLBACK_DATA_VALUE.SIM2
-                                )
-                            )
-                        }
-                        requestBody.replyMarkup = keyboardMarkup
-                        requestBody.text = Template.render(
-                            applicationContext,
-                            "TPL_send_sms_chat",
-                            mapOf("SIM" to "", "Content" to getString(R.string.select_sim_card))
-                        )
-                    } else {
-                        // Single SIM or specific SIM command - proceed to phone input
-                        val dualSim = if (sendSlot != -1) "SIM${sendSlot + 1} " else ""
-                        requestBody.text = Template.render(
-                            applicationContext,
-                            "TPL_send_sms_chat",
-                            mapOf(
-                                "SIM" to dualSim,
-                                "Content" to getString(R.string.enter_reply_number)
-                            )
-                        )
-                        requestBody.replyMarkup = ForceReply()
-                        requestBody.replyToMessageId = commandMessageId
-                        requestBody.allowSendingWithoutReply = true
-                        sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
-                    }
-                    hasCommand = true
-                }
+                startSmsFlow(requestMsg, jsonObject, requestBody)
+                return
             }
 
             else -> {
-                if (!isPrivate &&
-                    sendSmsNextStatus == SEND_SMS_STATUS.STANDBY_STATUS &&
-                    sendUssdNextStatus == SEND_USSD_STATUS.STANDBY_STATUS
-                ) {
+                // A reply that continues an interactive session (resolved by the bot prompt
+                // message id the user replied to).
+                if (hasReplyToMessage) {
+                    val session = loadSession(replyToBotMsgId)
+                    if (session != null) {
+                        handleSessionText(session, replyToBotMsgId, requestMsg, jsonObject, requestBody)
+                        return
+                    }
+                    // A reply to a forwarded SMS notification starts a confirm session.
+                    if (startSmsReplyFromNotification(jsonObject, requestMsg, requestBody)) {
+                        return
+                    }
+                }
+                if (!isPrivate) {
                     if (messageType != "supergroup" || messageThreadId.isEmpty()) {
                         Log.d(logTag, "Non-private conversation without topic, ignoring message")
                         return
@@ -883,225 +430,598 @@ class ChatService : Service() {
                     applicationContext, "TPL_system_message",
                     mapOf("Message" to getString(R.string.unknown_command))
                 )
+                hasCommand = true
             }
         }
 
+        // Stateless commands (and the unknown-command fallback) set hasCommand and a text
+        // body above; fire-and-forget the reply. Interactive /sendsms and /sendussd flows
+        // returned earlier after their own session-tracked sync sends.
         if (hasCommand) {
-            Log.d(logTag, "Command processed, entering standby state")
-            // Only reset status if we're not in an interactive mode that needs to continue
-            if (sendSmsNextStatus != SEND_SMS_STATUS.SIM_SELECT_STATUS &&
-                sendSmsNextStatus != SEND_SMS_STATUS.MESSAGE_INPUT_STATUS &&
-                sendSmsNextStatus != SEND_SMS_STATUS.WAITING_TO_SEND_STATUS &&
-                sendSmsNextStatus != SEND_SMS_STATUS.SEND_STATUS
-            ) {
-                setSmsSendStatusStandby()
-            }
-            if (sendUssdNextStatus != SEND_USSD_STATUS.SIM_SELECT_STATUS &&
-                sendUssdNextStatus != SEND_USSD_STATUS.WAITING_TO_SEND_STATUS &&
-                sendUssdNextStatus != SEND_USSD_STATUS.SEND_STATUS
-            ) {
-                setUssdSendStatusStandby()
-            }
+            asyncSend(requestBody)
         }
-        if (!hasCommand && sendSmsNextStatus != SEND_SMS_STATUS.STANDBY_STATUS) {
-            Log.d(logTag, "Entering interactive SMS sending mode, status=$sendSmsNextStatus")
-            val sendSlotTemp = chatMMKV.getInt("slot", -1)
-            val dualSim = if (sendSlotTemp != -1) "SIM${sendSlotTemp + 1} " else ""
+    }
 
-            var resultSend = Template.render(
-                applicationContext,
-                "TPL_send_sms_chat",
-                mapOf("SIM" to dualSim, "Content" to getString(R.string.failed_to_get_information))
-            )
-            Log.d(logTag, "Sending mode status: $sendSmsNextStatus")
-            resultSend = when (sendSmsNextStatus) {
-                SEND_SMS_STATUS.PHONE_INPUT_STATUS -> {
-                    sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
-                    requestBody.replyMarkup = ForceReply()
-                    requestBody.replyToMessageId = jsonObject["message_id"].asLong
-                    requestBody.allowSendingWithoutReply = true
-                    Template.render(
-                        applicationContext,
-                        "TPL_send_sms_chat",
-                        mapOf("SIM" to dualSim, "Content" to getString(R.string.enter_reply_number))
-                    )
+    // --- Interactive session machinery (keyed by bot prompt message id) ---------------
+
+    /**
+     * Send [requestBody] synchronously and return the resulting Telegram message id, or -1
+     * on failure. Used by interactive flows that must key a [ChatSession] under the id of
+     * the prompt they just sent. Failures are queued for resend, matching [asyncSend].
+     */
+    private fun sendMessageForId(requestBody: RequestMessage): Long {
+        val requestUri = getUrl(botToken, "sendMessage")
+        val body: RequestBody = Gson().toJson(requestBody).toRequestBody(JSON)
+        val request: Request = Request.Builder().url(requestUri).method("POST", body).build()
+        return try {
+            okHttpClient.newCall(request).execute().use { response ->
+                val responseString = response.body.string()
+                if (response.code != 200) {
+                    Log.e(logTag, "Send reply failed: ${response.code} $responseString")
+                    addResendLoop(applicationContext, requestBody.text)
+                    -1L
+                } else {
+                    getMessageId(responseString)
                 }
-
-                SEND_SMS_STATUS.MESSAGE_INPUT_STATUS -> {
-                    if (!hasReplyToMessage) {
-                        setSmsSendStatusStandby()
-                        Template.render(
-                            applicationContext,
-                            "TPL_send_sms_chat",
-                            mapOf(
-                                "SIM" to dualSim,
-                                "Content" to getString(R.string.please_reply_to_continue)
-                            )
-                        )
-                    } else {
-                        val tempTo = getSendPhoneNumber(requestMsg)
-                        if (isPhoneNumber(tempTo)) {
-                            chatMMKV.putString("to", tempTo)
-                            sendSmsNextStatus = SEND_SMS_STATUS.WAITING_TO_SEND_STATUS
-                            requestBody.replyMarkup = ForceReply()
-                            requestBody.replyToMessageId = jsonObject["message_id"].asLong
-                            requestBody.allowSendingWithoutReply = true
-                            Template.render(
-                                applicationContext,
-                                "TPL_send_sms_chat",
-                                mapOf(
-                                    "SIM" to dualSim,
-                                    "Content" to getString(R.string.enter_reply_content)
-                                )
-                            )
-                        } else {
-                            setSmsSendStatusStandby()
-                            Template.render(
-                                applicationContext,
-                                "TPL_send_sms_chat",
-                                mapOf(
-                                    "SIM" to dualSim,
-                                    "Content" to getString(R.string.unable_get_phone_number)
-                                )
-                            )
-                        }
-                    }
-                }
-
-                SEND_SMS_STATUS.WAITING_TO_SEND_STATUS, SEND_SMS_STATUS.READY_TO_SEND_STATUS -> {
-                    if (!hasReplyToMessage) {
-                        setSmsSendStatusStandby()
-                        Template.render(
-                            applicationContext,
-                            "TPL_send_sms_chat",
-                            mapOf(
-                                "SIM" to dualSim,
-                                "Content" to getString(R.string.please_reply_to_continue)
-                            )
-                        )
-                    } else {
-                        if (sendSmsNextStatus == SEND_SMS_STATUS.WAITING_TO_SEND_STATUS && !isSmsReply) {
-                            chatMMKV.putString("content", requestMsg)
-                        }
-                        val keyboardMarkup = KeyboardMarkup().apply {
-                            inlineKeyboard = arrayListOf(
-                                getInlineKeyboardObj(
-                                    getString(R.string.send_button),
-                                    CALLBACK_DATA_VALUE.SEND
-                                ),
-                                getInlineKeyboardObj(
-                                    getString(R.string.cancel_button),
-                                    CALLBACK_DATA_VALUE.CANCEL
-                                )
-                            )
-                        }
-                        requestBody.replyMarkup = keyboardMarkup
-                        val values = mapOf(
-                            "SIM" to dualSim,
-                            "To" to chatMMKV.getString("to", "").toString(),
-                            "Content" to chatMMKV.getString("content", "").toString()
-                        )
-                        sendSmsNextStatus = SEND_SMS_STATUS.SEND_STATUS
-                        Template.render(applicationContext, "TPL_send_sms", values)
-                    }
-                }
-
-                else -> resultSend
             }
-            requestBody.text = resultSend
+        } catch (e: IOException) {
+            Log.e(logTag, "Send reply failed: ${e.message}", e)
+            addResendLoop(applicationContext, requestBody.text)
+            -1L
         }
+    }
 
-        // Handle USSD interactive mode
-        if (!hasCommand && sendUssdNextStatus != SEND_USSD_STATUS.STANDBY_STATUS) {
-            Log.d(logTag, "Entering interactive USSD sending mode, status=$sendUssdNextStatus")
-            val ussdSlotTemp = chatMMKV.getInt("ussd_slot", -1)
-            val dualSim = if (ussdSlotTemp != -1) "SIM${ussdSlotTemp + 1} " else ""
-
-            var resultUssd = Template.render(
-                applicationContext, "TPL_send_USSD_chat",
-                mapOf("Content" to getString(R.string.failed_to_get_information))
-            )
-            Log.d(logTag, "USSD sending mode status: $sendUssdNextStatus")
-            resultUssd = when (sendUssdNextStatus) {
-                SEND_USSD_STATUS.CODE_INPUT_STATUS -> {
-                    sendUssdNextStatus = SEND_USSD_STATUS.WAITING_TO_SEND_STATUS
-                    Template.render(
-                        applicationContext, "TPL_send_USSD_chat",
-                        mapOf("Content" to "$dualSim${getString(R.string.enter_ussd_code)}")
-                    )
-                }
-
-                SEND_USSD_STATUS.WAITING_TO_SEND_STATUS -> {
-                    if (!hasReplyToMessage) {
-                        setUssdSendStatusStandby()
-                        Template.render(
-                            applicationContext, "TPL_send_USSD_chat",
-                            mapOf("Content" to getString(R.string.please_reply_to_continue))
-                        )
-                    } else {
-                        val ussdCode = requestMsg.trim()
-                        if (isValidUssdCode(ussdCode)) {
-                            chatMMKV.putString("ussd_code", ussdCode)
-                            val keyboardMarkup = KeyboardMarkup().apply {
-                                inlineKeyboard = arrayListOf(
-                                    getInlineKeyboardObj(
-                                        getString(R.string.send_button),
-                                        CALLBACK_DATA_VALUE.USSD_SEND
-                                    ),
-                                    getInlineKeyboardObj(
-                                        getString(R.string.cancel_button),
-                                        CALLBACK_DATA_VALUE.USSD_CANCEL
-                                    )
-                                )
-                            }
-                            requestBody.replyMarkup = keyboardMarkup
-                            sendUssdNextStatus = SEND_USSD_STATUS.SEND_STATUS
-                            Template.render(
-                                applicationContext, "TPL_send_USSD_chat",
-                                mapOf("Content" to "${dualSim}USSD: $ussdCode")
-                            )
-                        } else {
-                            setUssdSendStatusStandby()
-                            Template.render(
-                                applicationContext, "TPL_send_USSD_chat",
-                                mapOf("Content" to getString(R.string.invalid_ussd_code))
-                            )
-                        }
-                    }
-                }
-
-                else -> resultUssd
-            }
-            requestBody.text = resultUssd
-        }
-
-        val requestUri = getUrl(
-            botToken, "sendMessage"
-        )
+    /** Fire-and-forget send for stateless replies. */
+    private fun asyncSend(requestBody: RequestMessage) {
+        val requestUri = getUrl(botToken, "sendMessage")
         val body: RequestBody = Gson().toJson(requestBody).toRequestBody(JSON)
         val sendRequest: Request = Request.Builder().url(requestUri).method("POST", body).build()
-        val call = okHttpClient.newCall(sendRequest)
-        call.enqueue(object : Callback {
+        okHttpClient.newCall(sendRequest).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Log.e(logTag, "Send reply failed: ${e.message}", e)
                 addResendLoop(applicationContext, requestBody.text)
             }
 
-            @Throws(IOException::class)
             override fun onResponse(call: Call, response: Response) {
-                val responseString = Objects.requireNonNull(response.body).string()
-                if (response.code != 200) {
-                    Log.e(logTag, "Send reply failed: ${response.code} $responseString")
-                    addResendLoop(applicationContext, requestBody.text)
-                }
-                if (sendSmsNextStatus == SEND_SMS_STATUS.SEND_STATUS) {
-                    chatMMKV.putLong("message_id", getMessageId(responseString))
-                }
-                if (sendUssdNextStatus == SEND_USSD_STATUS.SEND_STATUS) {
-                    chatMMKV.putLong("ussd_message_id", getMessageId(responseString))
+                response.use {
+                    val responseString = it.body.string()
+                    if (it.code != 200) {
+                        Log.e(logTag, "Send reply failed: ${it.code} $responseString")
+                        addResendLoop(applicationContext, requestBody.text)
+                    }
                 }
             }
         })
+    }
+
+    private fun loadSession(messageId: Long): ChatSession? {
+        if (messageId <= 0) return null
+        val raw = sessionMMKV.getString(messageId.toString(), null) ?: return null
+        return try {
+            val session = Gson().fromJson(raw, ChatSession::class.java)
+            if (System.currentTimeMillis() - session.createdAt > SESSION_TTL_MS) {
+                sessionMMKV.remove(messageId.toString())
+                null
+            } else {
+                session
+            }
+        } catch (e: Exception) {
+            Log.e(logTag, "Failed to parse session $messageId: ${e.message}", e)
+            sessionMMKV.remove(messageId.toString())
+            null
+        }
+    }
+
+    private fun saveSession(messageId: Long, session: ChatSession) {
+        if (messageId <= 0) return
+        session.createdAt = System.currentTimeMillis()
+        sessionMMKV.putString(messageId.toString(), Gson().toJson(session))
+    }
+
+    private fun deleteSession(messageId: Long) {
+        if (messageId <= 0) return
+        sessionMMKV.remove(messageId.toString())
+    }
+
+    private fun purgeExpiredSessions() {
+        val keys = sessionMMKV.allKeys() ?: return
+        val now = System.currentTimeMillis()
+        for (key in keys) {
+            val raw = sessionMMKV.getString(key, null)
+            if (raw == null) {
+                sessionMMKV.remove(key)
+                continue
+            }
+            try {
+                val session = Gson().fromJson(raw, ChatSession::class.java)
+                if (now - session.createdAt > SESSION_TTL_MS) {
+                    sessionMMKV.remove(key)
+                }
+            } catch (e: Exception) {
+                sessionMMKV.remove(key)
+            }
+        }
+    }
+
+    private fun smsConfirmKeyboard() = KeyboardMarkup().apply {
+        inlineKeyboard = arrayListOf(
+            getInlineKeyboardObj(getString(R.string.send_button), CALLBACK_DATA_VALUE.SEND),
+            getInlineKeyboardObj(getString(R.string.cancel_button), CALLBACK_DATA_VALUE.CANCEL)
+        )
+    }
+
+    private fun ussdConfirmKeyboard() = KeyboardMarkup().apply {
+        inlineKeyboard = arrayListOf(
+            getInlineKeyboardObj(getString(R.string.send_button), CALLBACK_DATA_VALUE.USSD_SEND),
+            getInlineKeyboardObj(getString(R.string.cancel_button), CALLBACK_DATA_VALUE.USSD_CANCEL)
+        )
+    }
+
+    private fun simSelectKeyboard() = KeyboardMarkup().apply {
+        inlineKeyboard = arrayListOf(
+            getInlineKeyboardObj("SIM 1", CALLBACK_DATA_VALUE.SIM1),
+            getInlineKeyboardObj("SIM 2", CALLBACK_DATA_VALUE.SIM2)
+        )
+    }
+
+    /** Start an interactive /sendsms flow, creating and persisting a session. */
+    private fun startSmsFlow(requestMsg: String, jsonObject: JsonObject, requestBody: RequestMessage) {
+        purgeExpiredSessions()
+        var sendSlot = -1
+        val isDualSim = getActiveCard(applicationContext) > 1
+        val commandParts = requestMsg.split(" ", "\n", limit = 3).filter { it.isNotEmpty() }
+        val baseCommand = commandParts[0].trim()
+        if (isDualSim) {
+            when (baseCommand) {
+                "/sendsms1" -> sendSlot = 0
+                "/sendsms2" -> sendSlot = 1
+                "/sendsms" -> if (commandParts.size > 1) when (commandParts[1].trim()) {
+                    "1" -> sendSlot = 0
+                    "2" -> sendSlot = 1
+                }
+            }
+        }
+        val commandMessageId = jsonObject["message_id"].asLong
+        val simSpecified = sendSlot != -1 && baseCommand == "/sendsms" &&
+                commandParts.size > 1 && (commandParts[1] == "1" || commandParts[1] == "2")
+        val msgSendList =
+            requestMsg.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val phoneLineIndex = if (simSpecified) 2 else 1
+        val hasPhoneNumber = msgSendList.size > phoneLineIndex
+
+        if (hasPhoneNumber) {
+            val msgSendTo = getSendPhoneNumber(msgSendList[phoneLineIndex])
+            if (isPhoneNumber(msgSendTo)) {
+                val sendContent = msgSendList.drop(phoneLineIndex + 1).joinToString("\n")
+                val dualSim = if (sendSlot != -1) "SIM${sendSlot + 1} " else ""
+                requestBody.replyMarkup = smsConfirmKeyboard()
+                requestBody.text = Template.render(
+                    applicationContext, "TPL_send_sms",
+                    mapOf("SIM" to dualSim, "To" to msgSendTo, "Content" to sendContent)
+                )
+                val session = ChatSession().apply {
+                    type = ChatSession.TYPE_SMS
+                    step = SESSION_STEP.SMS_CONFIRM
+                    slot = sendSlot
+                    to = msgSendTo
+                    content = sendContent
+                    this.commandMessageId = commandMessageId
+                }
+                val id = sendMessageForId(requestBody)
+                if (id > 0) saveSession(id, session)
+            } else {
+                requestBody.text = Template.render(
+                    applicationContext, "TPL_send_sms_chat",
+                    mapOf("SIM" to "", "Content" to getString(R.string.unable_get_phone_number))
+                )
+                asyncSend(requestBody)
+            }
+            return
+        }
+
+        // Interactive mode.
+        Log.d(logTag, "Entering interactive SMS sending mode")
+        if (isDualSim && sendSlot == -1) {
+            requestBody.replyMarkup = simSelectKeyboard()
+            requestBody.text = Template.render(
+                applicationContext, "TPL_send_sms_chat",
+                mapOf("SIM" to "", "Content" to getString(R.string.select_sim_card))
+            )
+            val session = ChatSession().apply {
+                type = ChatSession.TYPE_SMS
+                step = SESSION_STEP.SMS_SIM_SELECT
+                this.commandMessageId = commandMessageId
+            }
+            val id = sendMessageForId(requestBody)
+            if (id > 0) saveSession(id, session)
+        } else {
+            val dualSim = if (sendSlot != -1) "SIM${sendSlot + 1} " else ""
+            requestBody.text = Template.render(
+                applicationContext, "TPL_send_sms_chat",
+                mapOf("SIM" to dualSim, "Content" to getString(R.string.enter_reply_number))
+            )
+            requestBody.replyMarkup = ForceReply()
+            requestBody.replyToMessageId = commandMessageId
+            requestBody.allowSendingWithoutReply = true
+            val session = ChatSession().apply {
+                type = ChatSession.TYPE_SMS
+                step = SESSION_STEP.SMS_PHONE_INPUT
+                slot = sendSlot
+                this.commandMessageId = commandMessageId
+            }
+            val id = sendMessageForId(requestBody)
+            if (id > 0) saveSession(id, session)
+        }
+    }
+
+    /** Start an interactive /sendussd flow, creating and persisting a session. */
+    private fun startUssdFlow(requestMsg: String, jsonObject: JsonObject, requestBody: RequestMessage) {
+        if (!(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                    ActivityCompat.checkSelfPermission(
+                        applicationContext, Manifest.permission.CALL_PHONE
+                    ) == PackageManager.PERMISSION_GRANTED)
+        ) {
+            requestBody.text = Template.render(
+                applicationContext, "TPL_system_message",
+                mapOf("Message" to getString(R.string.unknown_command))
+            )
+            asyncSend(requestBody)
+            return
+        }
+        purgeExpiredSessions()
+        val isDualSim = getActiveCard(applicationContext) > 1
+        val commandList = requestMsg.split(" ").filter { it.isNotEmpty() }
+        val baseCommand = commandList[0].trim()
+        val commandMessageId = jsonObject["message_id"].asLong
+        var ussdSlot = -1
+        var codeIndex = 1
+        if (isDualSim) {
+            when (baseCommand) {
+                "/sendussd1" -> ussdSlot = 0
+                "/sendussd2" -> ussdSlot = 1
+                "/sendussd" -> if (commandList.size > 1) when (commandList[1].trim()) {
+                    "1" -> { ussdSlot = 0; codeIndex = 2 }
+                    "2" -> { ussdSlot = 1; codeIndex = 2 }
+                }
+            }
+        }
+
+        if (commandList.size > codeIndex) {
+            val ussdCode = commandList[codeIndex]
+            if (isValidUssdCode(ussdCode)) {
+                val dualSim = if (ussdSlot != -1) "SIM${ussdSlot + 1} " else ""
+                requestBody.replyMarkup = ussdConfirmKeyboard()
+                requestBody.text = Template.render(
+                    applicationContext, "TPL_system_message",
+                    mapOf("Message" to "${dualSim}USSD: $ussdCode")
+                )
+                val session = ChatSession().apply {
+                    type = ChatSession.TYPE_USSD
+                    step = SESSION_STEP.USSD_CONFIRM
+                    slot = ussdSlot
+                    this.ussdCode = ussdCode
+                }
+                val id = sendMessageForId(requestBody)
+                if (id > 0) saveSession(id, session)
+            } else {
+                requestBody.text = Template.render(
+                    applicationContext, "TPL_system_message",
+                    mapOf("Message" to getString(R.string.invalid_ussd_code))
+                )
+                asyncSend(requestBody)
+            }
+            return
+        }
+
+        // Interactive mode.
+        Log.d(logTag, "Entering interactive USSD sending mode")
+        if (isDualSim && ussdSlot == -1) {
+            requestBody.replyMarkup = simSelectKeyboard()
+            requestBody.text = Template.render(
+                applicationContext, "TPL_send_USSD_chat",
+                mapOf("Content" to getString(R.string.select_sim_card))
+            )
+            val session = ChatSession().apply {
+                type = ChatSession.TYPE_USSD
+                step = SESSION_STEP.USSD_SIM_SELECT
+                this.commandMessageId = commandMessageId
+            }
+            val id = sendMessageForId(requestBody)
+            if (id > 0) saveSession(id, session)
+        } else {
+            val dualSim = if (ussdSlot != -1) "SIM${ussdSlot + 1} " else ""
+            requestBody.text = Template.render(
+                applicationContext, "TPL_send_USSD_chat",
+                mapOf("Content" to "$dualSim${getString(R.string.enter_ussd_code)}")
+            )
+            // ForceReply so the user's code reply auto-binds to this prompt and resolves
+            // the session by reply_to_message.message_id.
+            requestBody.replyMarkup = ForceReply()
+            requestBody.replyToMessageId = commandMessageId
+            requestBody.allowSendingWithoutReply = true
+            val session = ChatSession().apply {
+                type = ChatSession.TYPE_USSD
+                step = SESSION_STEP.USSD_CODE_INPUT
+                slot = ussdSlot
+                this.commandMessageId = commandMessageId
+            }
+            val id = sendMessageForId(requestBody)
+            if (id > 0) saveSession(id, session)
+        }
+    }
+
+    /**
+     * A reply to a forwarded SMS notification (resolved via chatInfoMMKV -> SMSRequestInfo)
+     * starts a confirm session. Returns true if it handled the message.
+     */
+    private fun startSmsReplyFromNotification(
+        jsonObject: JsonObject,
+        requestMsg: String,
+        requestBody: RequestMessage
+    ): Boolean {
+        if (requestMsg.isEmpty()) return false
+        val replyToMessage = jsonObject["reply_to_message"].asJsonObject
+        val saveItemString =
+            chatInfoMMKV.getString(replyToMessage["message_id"].asString, null) ?: return false
+        val content = stripBotEntities(requestMsg, jsonObject)
+        if (content.isEmpty()) return false
+        val saveItem = Gson().fromJson(saveItemString, SMSRequestInfo::class.java)
+        val dualSim = if (saveItem.card != -1) "SIM${saveItem.card + 1} " else ""
+        requestBody.replyMarkup = smsConfirmKeyboard()
+        requestBody.text = Template.render(
+            applicationContext, "TPL_send_sms",
+            mapOf("SIM" to dualSim, "To" to saveItem.phone, "Content" to content)
+        )
+        val session = ChatSession().apply {
+            type = ChatSession.TYPE_SMS
+            step = SESSION_STEP.SMS_CONFIRM
+            slot = saveItem.card
+            to = saveItem.phone
+            this.content = content
+        }
+        val id = sendMessageForId(requestBody)
+        if (id > 0) saveSession(id, session)
+        return true
+    }
+
+    /** Drive a session forward from a text reply (phone / content / USSD code input). */
+    private fun handleSessionText(
+        session: ChatSession,
+        promptMsgId: Long,
+        requestMsg: String,
+        jsonObject: JsonObject,
+        requestBody: RequestMessage
+    ) {
+        // The prompt has now been answered; its session record is superseded below.
+        deleteSession(promptMsgId)
+        val anchorId = if (session.commandMessageId != 0L) {
+            session.commandMessageId
+        } else {
+            jsonObject["message_id"].asLong
+        }
+        when (session.step) {
+            SESSION_STEP.SMS_PHONE_INPUT -> {
+                val dualSim = if (session.slot != -1) "SIM${session.slot + 1} " else ""
+                val tempTo = getSendPhoneNumber(requestMsg)
+                if (isPhoneNumber(tempTo)) {
+                    session.to = tempTo
+                    session.step = SESSION_STEP.SMS_CONTENT_INPUT
+                    requestBody.text = Template.render(
+                        applicationContext, "TPL_send_sms_chat",
+                        mapOf("SIM" to dualSim, "Content" to getString(R.string.enter_reply_content))
+                    )
+                    requestBody.replyMarkup = ForceReply()
+                    requestBody.replyToMessageId = anchorId
+                    requestBody.allowSendingWithoutReply = true
+                    val id = sendMessageForId(requestBody)
+                    if (id > 0) saveSession(id, session)
+                } else {
+                    requestBody.text = Template.render(
+                        applicationContext, "TPL_send_sms_chat",
+                        mapOf("SIM" to dualSim, "Content" to getString(R.string.unable_get_phone_number))
+                    )
+                    asyncSend(requestBody)
+                }
+            }
+
+            SESSION_STEP.SMS_CONTENT_INPUT -> {
+                val dualSim = if (session.slot != -1) "SIM${session.slot + 1} " else ""
+                session.content = requestMsg
+                session.step = SESSION_STEP.SMS_CONFIRM
+                requestBody.replyMarkup = smsConfirmKeyboard()
+                requestBody.text = Template.render(
+                    applicationContext, "TPL_send_sms",
+                    mapOf("SIM" to dualSim, "To" to session.to, "Content" to session.content)
+                )
+                val id = sendMessageForId(requestBody)
+                if (id > 0) saveSession(id, session)
+            }
+
+            SESSION_STEP.USSD_CODE_INPUT -> {
+                val dualSim = if (session.slot != -1) "SIM${session.slot + 1} " else ""
+                val ussdCode = requestMsg.trim()
+                if (isValidUssdCode(ussdCode)) {
+                    session.ussdCode = ussdCode
+                    session.step = SESSION_STEP.USSD_CONFIRM
+                    requestBody.replyMarkup = ussdConfirmKeyboard()
+                    requestBody.text = Template.render(
+                        applicationContext, "TPL_send_USSD_chat",
+                        mapOf("Content" to "${dualSim}USSD: $ussdCode")
+                    )
+                    val id = sendMessageForId(requestBody)
+                    if (id > 0) saveSession(id, session)
+                } else {
+                    requestBody.text = Template.render(
+                        applicationContext, "TPL_send_USSD_chat",
+                        mapOf("Content" to getString(R.string.invalid_ussd_code))
+                    )
+                    asyncSend(requestBody)
+                }
+            }
+
+            else -> Log.w(logTag, "Text reply for non-text session step ${session.step}, ignoring")
+        }
+    }
+
+    /** Drive a session forward from an inline-button tap (SIM select / send / cancel). */
+    @SuppressLint("MissingPermission")
+    private fun handleSessionCallback(
+        session: ChatSession,
+        msgId: Long,
+        callbackData: String,
+        requestBody: RequestMessage
+    ) {
+        when (session.step) {
+            SESSION_STEP.SMS_SIM_SELECT -> {
+                val slot = when (callbackData) {
+                    CALLBACK_DATA_VALUE.SIM1 -> 0
+                    CALLBACK_DATA_VALUE.SIM2 -> 1
+                    else -> return
+                }
+                val simLabel = "SIM${slot + 1} "
+                session.slot = slot
+                session.step = SESSION_STEP.SMS_PHONE_INPUT
+                // Acknowledge the choice on the keyboard message (clears the inline keyboard).
+                val ackBody = RequestMessage().apply {
+                    chatId = this@ChatService.chatId
+                    messageThreadId = this@ChatService.messageThreadId
+                    messageId = msgId
+                    text = Template.render(
+                        applicationContext, "TPL_send_sms_chat",
+                        mapOf("SIM" to simLabel, "Content" to "✅")
+                    )
+                }
+                callTelegramApi("editMessageText", ackBody)
+                deleteSession(msgId)
+                // Follow-up ForceReply prompt, anchored to the original command.
+                requestBody.text = Template.render(
+                    applicationContext, "TPL_send_sms_chat",
+                    mapOf("SIM" to simLabel, "Content" to getString(R.string.enter_reply_number))
+                )
+                requestBody.replyMarkup = ForceReply()
+                if (session.commandMessageId != 0L) {
+                    requestBody.replyToMessageId = session.commandMessageId
+                    requestBody.allowSendingWithoutReply = true
+                }
+                val id = sendMessageForId(requestBody)
+                if (id > 0) saveSession(id, session)
+            }
+
+            SESSION_STEP.SMS_CONFIRM -> {
+                var slot = session.slot
+                val dualSim = Phone.getSimDisplayName(applicationContext, slot)
+                if (callbackData != CALLBACK_DATA_VALUE.SEND) {
+                    requestBody.text = Template.render(
+                        applicationContext, "TPL_send_sms",
+                        mapOf("SIM" to dualSim, "To" to session.to, "Content" to session.content)
+                    ) + "\n" + getString(R.string.status) + getString(R.string.cancel_button)
+                    requestBody.messageId = msgId
+                    callTelegramApi("editMessageText", requestBody)
+                    deleteSession(msgId)
+                    return
+                }
+                requestBody.text = Template.render(
+                    applicationContext, "TPL_send_sms",
+                    mapOf("SIM" to dualSim, "To" to session.to, "Content" to session.content)
+                ) + "\n" + getString(R.string.status) + getString(R.string.sending)
+                requestBody.messageId = msgId
+                callTelegramApi("editMessageText", requestBody)
+                deleteSession(msgId)
+
+                var subId = -1
+                if (getActiveCard(applicationContext) == 1) {
+                    slot = -1
+                } else if (slot >= 0) {
+                    subId = getSubId(applicationContext, slot)
+                }
+                if (ActivityCompat.checkSelfPermission(
+                        this, Manifest.permission.SEND_SMS
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    send(applicationContext, session.to, session.content, slot, subId, msgId)
+                }
+            }
+
+            SESSION_STEP.USSD_SIM_SELECT -> {
+                val slot = when (callbackData) {
+                    CALLBACK_DATA_VALUE.SIM1 -> 0
+                    CALLBACK_DATA_VALUE.SIM2 -> 1
+                    else -> return
+                }
+                val simLabel = "SIM${slot + 1} "
+                session.slot = slot
+                session.step = SESSION_STEP.USSD_CODE_INPUT
+                // Acknowledge the choice on the keyboard message (clears the inline keyboard).
+                val ackBody = RequestMessage().apply {
+                    chatId = this@ChatService.chatId
+                    messageThreadId = this@ChatService.messageThreadId
+                    messageId = msgId
+                    text = Template.render(
+                        applicationContext, "TPL_send_USSD_chat",
+                        mapOf("Content" to "$simLabel✅")
+                    )
+                }
+                callTelegramApi("editMessageText", ackBody)
+                deleteSession(msgId)
+                // Follow-up ForceReply prompt so the code reply auto-binds and resolves the
+                // session by its new message id (editMessageText can't carry ForceReply).
+                requestBody.text = Template.render(
+                    applicationContext, "TPL_send_USSD_chat",
+                    mapOf("Content" to "$simLabel${getString(R.string.enter_ussd_code)}")
+                )
+                requestBody.replyMarkup = ForceReply()
+                if (session.commandMessageId != 0L) {
+                    requestBody.replyToMessageId = session.commandMessageId
+                    requestBody.allowSendingWithoutReply = true
+                }
+                val id = sendMessageForId(requestBody)
+                if (id > 0) saveSession(id, session)
+            }
+
+            SESSION_STEP.USSD_CONFIRM -> {
+                val ussdSlot = session.slot
+                val dualSim = if (ussdSlot != -1) "SIM${ussdSlot + 1} " else ""
+                if (callbackData != CALLBACK_DATA_VALUE.USSD_SEND) {
+                    requestBody.text = Template.render(
+                        applicationContext, "TPL_send_USSD_chat",
+                        mapOf(
+                            "Content" to "${dualSim}USSD: ${session.ussdCode}\n${getString(R.string.status)}${
+                                getString(R.string.cancel_button)
+                            }"
+                        )
+                    )
+                    requestBody.messageId = msgId
+                    callTelegramApi("editMessageText", requestBody)
+                    deleteSession(msgId)
+                    return
+                }
+                requestBody.text = Template.render(
+                    applicationContext, "TPL_send_USSD_chat",
+                    mapOf(
+                        "Content" to "${dualSim}USSD: ${session.ussdCode}\n${getString(R.string.status)}${
+                            getString(R.string.sending)
+                        }"
+                    )
+                )
+                requestBody.messageId = msgId
+                callTelegramApi("editMessageText", requestBody)
+                deleteSession(msgId)
+
+                var subId = -1
+                if (getActiveCard(applicationContext) > 1 && ussdSlot >= 0) {
+                    subId = getSubId(applicationContext, ussdSlot)
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                    ActivityCompat.checkSelfPermission(
+                        this, Manifest.permission.CALL_PHONE
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    sendUssd(applicationContext, session.ussdCode, subId, msgId)
+                }
+            }
+
+            else -> Log.w(logTag, "Callback for non-button session step ${session.step}, ignoring")
+        }
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
@@ -1125,8 +1045,10 @@ class ChatService : Service() {
     override fun onCreate() {
         super.onCreate()
         MMKV.initialize(applicationContext)
-        setSmsSendStatusStandby()
-        setUssdSendStatusStandby()
+        // Static flag survives across service restarts in the same process — reset it so
+        // the first poll after a restart uses the quick (timeout=0) drain as intended.
+        firstRequest = true
+        purgeExpiredSessions()
         sharedPreferences = MMKV.defaultMMKV()
         chatId = sharedPreferences.getString("chat_id", "")!!
         botToken = sharedPreferences.getString("bot_token", "")!!
@@ -1161,57 +1083,8 @@ class ChatService : Service() {
         isRunning.set(true)
         threadMain = Thread(ThreadMainRunnable())
         threadMain.start()
-        val intentFilter = IntentFilter()
-        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION)
     }
 
-
-    private fun setSmsSendStatusStandby() {
-        sendSmsNextStatus = SEND_SMS_STATUS.STANDBY_STATUS
-        chatMMKV.remove("slot")
-        chatMMKV.remove("to")
-        chatMMKV.remove("content")
-        chatMMKV.remove("message_id")
-        chatMMKV.remove("command_message_id")
-    }
-
-    private fun handleSmsSimSelected(slot: Int, simLabel: String, callbackMessageId: Long) {
-        chatMMKV.putInt("slot", slot)
-        sendSmsNextStatus = SEND_SMS_STATUS.MESSAGE_INPUT_STATUS
-
-        // Acknowledge the SIM choice on the original message (also clears the inline keyboard).
-        val ackBody = RequestMessage().apply {
-            chatId = this@ChatService.chatId
-            messageThreadId = this@ChatService.messageThreadId
-            messageId = callbackMessageId
-            text = Template.render(
-                applicationContext,
-                "TPL_send_sms_chat",
-                mapOf("SIM" to simLabel, "Content" to "✅")
-            )
-        }
-        callTelegramApi("editMessageText", ackBody)
-
-        // Send a follow-up prompt with force_reply so the input field auto-binds to it.
-        // Anchor the prompt to the original /sendsms command so selective=true forces
-        // only that user to reply, blocking stale/cross-user input from advancing state.
-        val commandMessageId = chatMMKV.getLong("command_message_id", 0L)
-        val promptBody = RequestMessage().apply {
-            chatId = this@ChatService.chatId
-            messageThreadId = this@ChatService.messageThreadId
-            text = Template.render(
-                applicationContext,
-                "TPL_send_sms_chat",
-                mapOf("SIM" to simLabel, "Content" to getString(R.string.enter_reply_number))
-            )
-            replyMarkup = ForceReply()
-            if (commandMessageId != 0L) {
-                replyToMessageId = commandMessageId
-                allowSendingWithoutReply = true
-            }
-        }
-        callTelegramApi("sendMessage", promptBody)
-    }
 
     private fun callTelegramApi(method: String, requestBody: RequestMessage) {
         val requestUri = getUrl(botToken, method)
@@ -1227,13 +1100,6 @@ class ChatService : Service() {
         } catch (e: IOException) {
             Log.e(logTag, "Failed to call Telegram API $method: ${e.message}", e)
         }
-    }
-
-    private fun setUssdSendStatusStandby() {
-        sendUssdNextStatus = SEND_USSD_STATUS.STANDBY_STATUS
-        chatMMKV.remove("ussd_slot")
-        chatMMKV.remove("ussd_code")
-        chatMMKV.remove("ussd_message_id")
     }
 
     private fun isValidUssdCode(code: String): Boolean {
@@ -1432,8 +1298,10 @@ ${sms.body}
             }
 
             override fun onResponse(call: Call, response: Response) {
-                if (response.code != 200) {
-                    Log.e(logTag, "Failed to edit message: ${response.code}")
+                response.use {
+                    if (it.code != 200) {
+                        Log.e(logTag, "Failed to edit message: ${it.code}")
+                    }
                 }
             }
         })
