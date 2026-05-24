@@ -10,19 +10,43 @@ import java.util.Date
 import java.util.Locale
 
 object Resend {
+    // All read-modify-write access to "resend_list" must hold this lock. MMKV offers no atomic
+    // collection update, so concurrent writers (receivers via addResendLoop + ReSendJob removing
+    // sent messages) would otherwise clobber each other and silently drop queued messages.
+    private val resendListLock = Any()
+
     @JvmStatic
     fun addResendLoop(context: Context, msg: String) {
-        var message = msg
-        if (message.isEmpty()) {
+        if (msg.isEmpty()) {
             return
         }
-        val mmkv = MMKV.mmkvWithID(RESEND_ID)
-        val resendList = mmkv.decodeStringSet("resend_list", mutableSetOf())
         val simpleDateFormat = SimpleDateFormat(context.getString(R.string.time_format), Locale.UK)
-        message += "\n"+context.getString(R.string.time) + simpleDateFormat.format(Date(System.currentTimeMillis()))
-        checkNotNull(resendList)
-        resendList.add(message)
-        mmkv.encode("resend_list", resendList)
+        val message = msg + "\n" + context.getString(R.string.time) +
+                simpleDateFormat.format(Date(System.currentTimeMillis()))
+        synchronized(resendListLock) {
+            val mmkv = MMKV.mmkvWithID(RESEND_ID)
+            val resendList = mmkv.decodeStringSet("resend_list", mutableSetOf()) ?: mutableSetOf()
+            resendList.add(message)
+            mmkv.encode("resend_list", resendList)
+        }
         ReSendJob.startJob(context)
+    }
+
+    /** Atomically reads the current resend queue snapshot. */
+    @JvmStatic
+    fun getResendList(): List<String> = synchronized(resendListLock) {
+        val mmkv = MMKV.mmkvWithID(RESEND_ID)
+        mmkv.decodeStringSet("resend_list", setOf())?.toList() ?: emptyList()
+    }
+
+    /** Atomically removes a single message from the resend queue without clobbering concurrent adds. */
+    @JvmStatic
+    fun removeFromResendList(message: String) = synchronized(resendListLock) {
+        val mmkv = MMKV.mmkvWithID(RESEND_ID)
+        val resendList = mmkv.decodeStringSet("resend_list", mutableSetOf())?.toMutableSet()
+            ?: return
+        if (resendList.remove(message)) {
+            mmkv.encode("resend_list", resendList)
+        }
     }
 }
