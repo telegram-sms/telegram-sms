@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(gemini -e code-review -p \"Review these production fixes for correctness: \\(1\\) Other.getNineKeyMapConvert uses Locale.ROOT instead of getDefault\\(\\), \\(2\\) Other.isPhoneNumber now requires at least one digit and only-leading plus, \\(3\\) Other.getMessageId returns 0L on parse failures, \\(4\\) SnowFlake.generate uses updateAndGet to fix wrap-around race. Look for bugs, regressions, or behavioral surprises for callers.\")",
-      "Bash(./gradlew.bat :app:testDebugUnitTest --console=plain --rerun-tasks)"
+      "Bash(./gradlew.bat :app:testDebugUnitTest --console=plain --rerun-tasks)",
+      "Bash(ls README*)",
+      "Bash(grep -rniE \"made \\(by|with\\)\" README*)"
     ]
   }
 }
