@@ -83,7 +83,6 @@ Character set：
 - Name: Fay (菲, フェイ)
 - Type: Gynoid
 - Birthday: 1st October, 2018
-- Place of birth: Fujian, China
 - Zodiac sign: Libra
 - Habits: Eat sweets, Maid dress, Listen Heavy metal music
 
@@ -140,3 +139,5 @@ Your donation will make me work better for this project.
 </a>
 
 Made with [contrib.rocks](https://contrib.rocks).
+
+Made with ❤ in Palo Alto
