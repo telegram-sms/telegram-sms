@@ -669,7 +669,8 @@ class MainActivity : AppCompatActivity() {
             updateMMKV.putLong("last_check", System.currentTimeMillis())
         }
         if (lastCheck + TimeUnit.DAYS.toMillis(15) < System.currentTimeMillis()) {
-            checkUpdate()
+            // Automatic periodic check: stay silent unless an update is actually available.
+            checkUpdate(silent = true)
         }
     }
 
@@ -699,9 +700,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkUpdate() {
+    /**
+     * Check GitHub for a newer release.
+     *
+     * @param silent controls how the outcome is reported:
+     *  - `true`  — automatic background check (from [onResume]). Makes no noise: no
+     *    progress spinner, and "debug build", network failures and "already up to date"
+     *    outcomes are only logged. The *only* UI it ever shows is the update dialog when
+     *    a newer version is genuinely available.
+     *  - `false` — user-initiated check (from the menu). Shows a progress spinner and
+     *    reports every outcome (success, up to date, and each failure) through the UI.
+     */
+    private fun checkUpdate(silent: Boolean) {
         if (BuildConfig.DEBUG) {
-            showErrorDialog("Debug version can not check update.")
+            Log.i(logTag, "checkUpdate: skipped on debug build")
+            if (!silent) showErrorDialog("Debug version can not check update.")
             return
         }
         var appIdentifier = applicationContext.getString(R.string.app_identifier)
@@ -711,13 +724,14 @@ class MainActivity : AppCompatActivity() {
         val updateMMKV = MMKV.mmkvWithID(UPDATE_ID)
         updateMMKV.putLong("last_check", System.currentTimeMillis())
 
-        val progressDialog = ProgressDialog(this@MainActivity)
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
-        progressDialog.setTitle(R.string.check_update)
-        progressDialog.setMessage(getString(R.string.connect_wait_message))
-        progressDialog.isIndeterminate = false
-        progressDialog.setCancelable(false)
-        progressDialog.show()
+        val progressDialog = if (silent) null else ProgressDialog(this@MainActivity).apply {
+            setProgressStyle(ProgressDialog.STYLE_SPINNER)
+            setTitle(R.string.check_update)
+            setMessage(getString(R.string.connect_wait_message))
+            isIndeterminate = false
+            setCancelable(false)
+            show()
+        }
         val okhttpObj = getOkhttpObj(false)
         val requestUri = String.format(
             "https://api.github.com/repos/telegram-sms/%s/releases/latest",
@@ -728,10 +742,10 @@ class MainActivity : AppCompatActivity() {
         call.enqueue(object : Callback {
             @Throws(IOException::class)
             override fun onResponse(call: Call, response: Response) {
-                progressDialog.cancel()
+                progressDialog?.cancel()
                 if (!response.isSuccessful) {
                     Log.e(logTag, "Check update failed: ${response.code}")
-                    runOnUiThread {
+                    if (!silent) runOnUiThread {
                         showErrorDialog(getString(R.string.failed_to_check_for_updates))
                     }
                     return
@@ -744,7 +758,12 @@ class MainActivity : AppCompatActivity() {
                 val metadataAsset = release.assets.find { it.name == "output-metadata.json" }
                 if (metadataAsset != null) {
                     // Download and parse output-metadata.json
-                    checkVersionFromMetadata(release, metadataAsset.browserDownloadUrl, okhttpObj)
+                    checkVersionFromMetadata(
+                        release,
+                        metadataAsset.browserDownloadUrl,
+                        okhttpObj,
+                        silent
+                    )
                 } else {
                     // Fallback to tagName comparison for older releases
                     if (release.tagName != BuildConfig.VERSION_NAME) {
@@ -754,25 +773,35 @@ class MainActivity : AppCompatActivity() {
                                 release.assets[0].browserDownloadUrl
                             )
                         }
+                    } else {
+                        Log.i(logTag, "App is up to date (tag ${release.tagName})")
+                        if (!silent) runOnUiThread {
+                            if (isFinishing || isDestroyed) return@runOnUiThread
+                            Snackbar.make(
+                                findViewById(R.id.bot_token_editview),
+                                getString(R.string.app_is_up_to_date),
+                                Snackbar.LENGTH_LONG
+                            ).show()
+                        }
                     }
                 }
             }
 
             override fun onFailure(call: Call, e: IOException) {
+                progressDialog?.cancel()
                 Log.e(logTag, "onFailure: ${e.message}", e)
-                progressDialog.cancel()
-                runOnUiThread {
-                    showErrorDialog("Failed to check for updates.")
+                if (!silent) runOnUiThread {
+                    showErrorDialog(getString(R.string.failed_to_check_for_updates))
                 }
             }
         })
     }
 
     private fun checkVersionFromMetadata(
-
         release: GitHubRelease,
         metadataUrl: String,
-        okhttpObj: OkHttpClient
+        okhttpObj: OkHttpClient,
+        silent: Boolean
     ) {
         val request: Request = Request.Builder().url(metadataUrl).build()
         val call = okhttpObj.newCall(request)
@@ -781,7 +810,7 @@ class MainActivity : AppCompatActivity() {
             override fun onResponse(call: Call, response: Response) {
                 if (!response.isSuccessful) {
                     Log.e(logTag, "Failed to download output-metadata.json: ${response.code}")
-                    runOnUiThread {
+                    if (!silent) runOnUiThread {
                         showErrorDialog(getString(R.string.failed_to_download_update_metadata))
                     }
                     return
@@ -810,37 +839,35 @@ class MainActivity : AppCompatActivity() {
                             }
                         } else {
                             Log.e(logTag, "No APK asset found in release")
-                            runOnUiThread {
+                            if (!silent) runOnUiThread {
                                 showErrorDialog(getString(R.string.no_apk_found_for_the_update))
                             }
                         }
                     } else {
-                        runOnUiThread {
+                        Log.i(
+                            logTag,
+                            "App is up to date. Current: ${BuildConfig.VERSION_CODE}, Remote: $remoteVersionCode"
+                        )
+                        if (!silent) runOnUiThread {
+                            if (isFinishing || isDestroyed) return@runOnUiThread
                             Snackbar.make(
                                 findViewById(R.id.bot_token_editview),
                                 getString(R.string.app_is_up_to_date),
                                 Snackbar.LENGTH_LONG
                             ).show()
                         }
-                        Log.i(
-                            logTag,
-                            "App is up to date. Current: ${BuildConfig.VERSION_CODE}, Remote: $remoteVersionCode"
-                        )
-
-
                     }
                 } catch (e: Exception) {
                     Log.e(logTag, "Failed to parse output-metadata.json", e)
-                    runOnUiThread {
+                    if (!silent) runOnUiThread {
                         showErrorDialog(getString(R.string.failed_to_parse_update_metadata))
                     }
-
                 }
             }
 
             override fun onFailure(call: Call, e: IOException) {
                 Log.e(logTag, "Failed to fetch output-metadata.json", e)
-                runOnUiThread {
+                if (!silent) runOnUiThread {
                     showErrorDialog(getString(R.string.failed_to_fetch_update_metadata))
                 }
             }
@@ -887,7 +914,8 @@ class MainActivity : AppCompatActivity() {
         var fileName: String? = null
         when (item.itemId) {
             R.id.check_update_menu_item -> {
-                checkUpdate()
+                // User-initiated check: report every outcome via the UI.
+                checkUpdate(silent = false)
                 return true
             }
 
@@ -1149,6 +1177,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showUpdateDialog(newVersion: String, fileURL: String) {
+        // Async callbacks may resolve after the activity is gone; showing a dialog on a
+        // dead window token would throw BadTokenException.
+        if (isFinishing || isDestroyed) return
         val builder = AlertDialog.Builder(this)
         builder.setTitle(R.string.update_dialog_title)
         val message = String.format(
@@ -1171,6 +1202,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun showErrorDialog(message: String) {
+        // Guard against async callbacks that resolve after the activity is destroyed.
+        if (isFinishing || isDestroyed) return
         AlertDialog.Builder(this)
             .setTitle(R.string.error_title)
             .setMessage(message)
