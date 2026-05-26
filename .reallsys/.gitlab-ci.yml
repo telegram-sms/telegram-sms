@@ -282,12 +282,12 @@ build_release:
         expire_in: 1 week
 
 # ------------------------------------------------------------------------------
-# Release Publish Job (Gemini-tagged shell runner)
+# Release Publish Job (agy-tagged shell runner)
 # ------------------------------------------------------------------------------
 release_publish:
     stage: deploy
     tags:
-        - gemini
+        - agy
     retry:
         max: 2
         when:
@@ -327,7 +327,7 @@ release_publish:
             done
             git fetch source --tags --force
 
-            echo "==> Generating changelog with Gemini CLI..."
+            echo "==> Generating changelog with agy CLI..."
             LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
             if [ -z "${LATEST_TAG}" ]; then
               echo "ERROR: No reachable tags after syncing from GitHub source"
@@ -347,10 +347,10 @@ release_publish:
             Commit History:
             ${COMMITS}"
 
-            gemini -p "${PROMPT}" > CHANGELOG.md
+            agy --dangerously-skip-permissions -p "${PROMPT}" > CHANGELOG.md
 
             if [ ! -s CHANGELOG.md ]; then
-              echo "ERROR: Gemini returned empty changelog"
+              echo "ERROR: agy returned empty changelog"
               exit 1
             fi
             echo "==> Generated changelog:"
@@ -370,7 +370,7 @@ release_publish:
             echo "EN summary:"
             cat SUMMARY_EN.txt
         - |
-            echo "==> Translating summary to Traditional Chinese via Gemini..."
+            echo "==> Translating summary to Traditional Chinese via agy..."
             TRANSLATE_PROMPT="You are translating release notes for an Android SMS-to-Telegram app.
             Translate the following short release summary into Traditional Chinese (繁體中文).
             Keep it concise (around 100 characters). Preserve technical terms (Telegram, SMS, APK, MMKV, etc.) in their original form.
@@ -379,9 +379,9 @@ release_publish:
             English summary:
             ${SUMMARY_EN}"
 
-            gemini -p "${TRANSLATE_PROMPT}" > SUMMARY_ZH.txt
+            agy --dangerously-skip-permissions -p "${TRANSLATE_PROMPT}" > SUMMARY_ZH.txt
             if [ ! -s SUMMARY_ZH.txt ]; then
-              echo "ERROR: Gemini returned empty Chinese summary"
+              echo "ERROR: agy returned empty Chinese summary"
               exit 1
             fi
             echo "ZH summary:"

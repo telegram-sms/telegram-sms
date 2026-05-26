@@ -41,6 +41,8 @@ git submodule update --init --recursive    # first checkout
 
 Add new UI strings to `app/src/main/res/values/strings_*.xml` (category files — `strings_sms.xml`, `strings_telegram.xml`, `strings_battery.xml`, `strings_call.xml`, `strings_cc.xml`, `strings_chat.xml`, `strings_network.xml`, `strings_notification.xml`, `strings_privacy_about.xml`, `strings_scanner.xml`, `strings_sms_manage.xml`, `strings_update.xml`, `strings_ussd.xml`). Translations of those keys go into the **language_pack submodule**, not into `app/src/main/res/values-*` directly (those staged copies are gitignored / get clobbered by `copy_language_pack`).
 
+**Auto-align translations after any string change.** Whenever you add, modify, or remove a UI string key in `app/src/main/res/values/strings_*.xml`, immediately bring every locale in the `language_pack` submodule into sync in the same change: add the new key to each `values-<locale>/` file (translated), update the text where the meaning changed, and delete keys you removed. Don't leave the source `values/` strings and the translations out of step. Edit the translations inside the `language_pack` submodule, never the staged `values-*` copies in `res/` (those get clobbered by `copy_language_pack`).
+
 Two other submodules exist and are vendored into the main source tree (no copy step):
 - `app/src/main/java/com/github/sumimakito/awesomeqrcode` — AwesomeQrRenderer
 - `app/src/main/java/com/github/sumimakito/codeauxlib` — CodeauxLibPortable
@@ -92,7 +94,7 @@ All Telegram Bot API calls go through `static_class.TelegramApi` — don't hit `
 GitLab CI ([.reallsys/.gitlab-ci.yml](.reallsys/.gitlab-ci.yml)) is authoritative; GitHub is a mirror. Three pipelines:
 
 - `build_nightly` (branch `nightly`) → publishes prerelease APK to `telegram-sms/telegram-sms-nightly`
-- `build_release` → `release_publish` (uses Gemini CLI to generate `CHANGELOG.md` and a `SUMMARY_ZH.txt`) → `telegram_notify` (posts EN+ZH summaries to two Telegram channels); fires on `master`
+- `build_release` → `release_publish` (uses agy CLI to generate `CHANGELOG.md` and a `SUMMARY_ZH.txt`) → `telegram_notify` (posts EN+ZH summaries to two Telegram channels); fires on `master`
 - `build_debug` (manual web-trigger)
 
 Required CI variables (Protected + Masked): `KEYSTORE` (base64-encoded jks), `KEYSTORE_PASS`, `ALIAS_NAME`, `ALIAS_PASS`, `GITHUB_ACCESS_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHANNEL_ID_EN`, `TELEGRAM_CHANNEL_ID_ZH`.
