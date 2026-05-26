@@ -24,5 +24,7 @@
     <string name="logout_progress_title">Switching Bot API server…</string>
     <string name="logout_progress_message">Please wait…</string>
     <string name="logout_failed">Logout failed.</string>
+    <string name="set_api_release_failed">Couldn\'t release the bot from the current Bot API server (it may be unreachable). Switch to the new server anyway?</string>
+    <string name="set_api_switch_anyway">Switch anyway</string>
 </resources>
 
