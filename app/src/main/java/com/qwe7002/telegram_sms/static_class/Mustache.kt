@@ -21,7 +21,9 @@ package com.qwe7002.telegram_sms.static_class
 object Mustache {
 
     // {{ <sigil?> <name> }} — sigil is one of # ^ / ! ; name captured lazily up to "}}".
-    private val tokenRegex = Regex("""\{\{\s*([#^/!]?)\s*([^{}]*?)\s*}}""")
+    // The closing braces must be escaped: Android's ICU regex engine rejects a bare '}'
+    // as a syntax error (unlike the desktop JVM's lenient java.util.regex used in tests).
+    private val tokenRegex = Regex("""\{\{\s*([#^/!]?)\s*([^\{\}]*?)\s*\}\}""")
 
     private sealed interface Node
     private data class Text(val text: String) : Node
