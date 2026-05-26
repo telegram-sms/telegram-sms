@@ -1343,6 +1343,20 @@ class MainActivity : AppCompatActivity() {
      */
     private fun commitApiAddress(newApiAddress: String) {
         preferences.putString("api_address", newApiAddress)
+        // Rebind the running services to the new server immediately. The in-flight
+        // getUpdates long-poll is otherwise stuck on the old server until it times out
+        // (and hangs indefinitely if the old server is gone). Skipped before first-time
+        // setup, where the save flow starts the services itself once initialized.
+        if (preferences.getBoolean("initialized", false)) {
+            Thread {
+                stopAllService(applicationContext)
+                startService(
+                    applicationContext,
+                    preferences.getBoolean("battery_monitoring_switch", false),
+                    preferences.getBoolean("chat_command", false)
+                )
+            }.start()
+        }
         if (isFinishing || isDestroyed) return
         Snackbar.make(
             findViewById(R.id.doh_switch),
