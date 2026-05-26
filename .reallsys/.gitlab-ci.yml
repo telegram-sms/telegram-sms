@@ -303,6 +303,9 @@ release_publish:
         GIT_STRATEGY: clone
     before_script:
         - set -euo pipefail
+        # agy is installed under the gitlab-runner user's ~/.local/bin, which a
+        # non-login CI shell does not include on PATH; add it explicitly.
+        - export PATH="/home/gitlab-runner/.local/bin:$PATH"
     script:
         - |
             echo "==> Validating credentials..."
