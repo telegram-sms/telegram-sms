@@ -282,12 +282,12 @@ build_release:
         expire_in: 1 week
 
 # ------------------------------------------------------------------------------
-# Release Publish Job (agy-tagged shell runner)
+# Release Publish Job (gemini-tagged shell runner)
 # ------------------------------------------------------------------------------
 release_publish:
     stage: deploy
     tags:
-        - agy
+        - gemini
     retry:
         max: 2
         when:
