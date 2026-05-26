@@ -448,21 +448,22 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                 }
             }
-            if (preferences.getString(
-                    "api_address",
-                    "api.telegram.org"
-                ) != "api.telegram.org"
-            ) {
-                // Before the bot can be used on a custom server it must be released from
-                // the cloud server it is registered on by default.
+            // First-time setup only: a brand-new bot lives on the cloud server by default,
+            // so if a custom server was selected before the bot was ever initialized (the
+            // Set API dialog defers the release until a token exists), release it from the
+            // cloud now so the service can poll the custom server. Later server changes are
+            // owned by the dialog; gating on !initialized stops this from re-releasing — and
+            // tripping the 10-minute lockout / HTTP 429 — on every subsequent save.
+            val targetApiAddress =
+                preferences.getString("api_address", "api.telegram.org") ?: "api.telegram.org"
+            if (!preferences.contains("initialized") && targetApiAddress != "api.telegram.org") {
                 checkAndLogout(
                     botTokenEditView.text.toString().trim { it <= ' ' },
                     "api.telegram.org",
-                    "logOut"
+                    "logOut",
+                    targetApiAddress
                 )
             }
-
-
             val progressDialog = ProgressDialog(this@MainActivity)
             progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
             progressDialog.setTitle(getString(R.string.connect_wait_title))
@@ -537,7 +538,15 @@ class MainActivity : AppCompatActivity() {
                     }
                     MMKV.mmkvWithID(RESEND_ID).clearAll()
                     checkVersionUpgrade()
+                    // clearAll() wipes every default-namespace key, including the custom
+                    // Bot API server chosen via the "Set API Address" dialog. Preserve it
+                    // across the reset so saving the config doesn't silently revert the
+                    // server back to api.telegram.org.
+                    val apiAddress =
+                        preferences.getString("api_address", "api.telegram.org")
+                            ?: "api.telegram.org"
                     preferences.clearAll()
+                    preferences.putString("api_address", apiAddress)
                     preferences.putString("bot_token", newBotToken)
                     preferences.putString(
                         "chat_id",
@@ -1059,17 +1068,29 @@ class MainActivity : AppCompatActivity() {
                     val oldApiAddress =
                         preferences.getString("api_address", "api.telegram.org")
                             ?: "api.telegram.org"
-                    // Release the bot from the server it is leaving before pointing the app
-                    // at the new one (a bot may only live on one Bot API server at a time).
                     val migration = migrationForApiChange(oldApiAddress, apiAddressText)
-                    preferences.putString("api_address", apiAddressText)
-                    if (preferences.contains("initialized") && migration != null) {
-                        checkAndLogout(
-                            preferences.getString("bot_token", "").toString(),
-                            migration.base,
-                            migration.method
-                        )
+                    if (migration == null || !preferences.contains("initialized")) {
+                        // No server change, or nothing is configured yet so there is no
+                        // bot to release — just store the address.
+                        preferences.putString("api_address", apiAddressText)
+                        Snackbar.make(
+                            findViewById(R.id.doh_switch),
+                            getString(R.string.set_api_success),
+                            Snackbar.LENGTH_LONG
+                        ).show()
+                        return@setPositiveButton
                     }
+                    // A bot may only live on one Bot API server at a time. Release it from
+                    // the server it is leaving and switch the app over to the new address
+                    // only once that succeeds (see checkAndLogout) — never persist first,
+                    // or a failed release would strand the app on a server the bot was
+                    // never moved to.
+                    checkAndLogout(
+                        preferences.getString("bot_token", "").toString(),
+                        migration.base,
+                        migration.method,
+                        apiAddressText
+                    )
                 }
                 apiDialog.setNegativeButton("Cancel", null)
                 apiDialog.show()
@@ -1211,7 +1232,16 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    fun checkAndLogout(botToken: String, apiBase: String, method: String) {
+    /**
+     * Switch the configured Bot API server to [newApiAddress], releasing the bot from the
+     * server it is leaving first.
+     *
+     * [apiBase] is the server being left and [method] ("logOut"/"close") how to release it
+     * there (see [migrationForApiChange]). The new address is committed via
+     * [commitApiAddress] only on a confirmed release, so a failed release leaves the app
+     * pointed at the still-valid old server rather than one the bot was never moved to.
+     */
+    fun checkAndLogout(botToken: String, apiBase: String, method: String, newApiAddress: String) {
         val progressDialog = ProgressDialog(this)
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
         progressDialog.setTitle(getString(R.string.logout_progress_title))
@@ -1231,12 +1261,10 @@ class MainActivity : AppCompatActivity() {
             override fun onFailure(call: Call, e: IOException) {
                 progressDialog.cancel()
                 Log.e(logTag, "checkAndLogout getMe onFailure: ", e)
-                // The server the bot is leaving could not be reached, so we cannot know
-                // whether it was released. Surface the failure instead of pretending the
-                // API address change succeeded.
-                runOnUiThread {
-                    showErrorDialog(getString(R.string.set_api_failed))
-                }
+                // The server the bot is leaving could not be reached, so we cannot confirm
+                // the release. Offer to switch anyway so a dead old server can't lock the
+                // user out of ever changing the address.
+                runOnUiThread { showReleaseFailedDialog(newApiAddress) }
             }
 
             override fun onResponse(call: Call, response: Response) {
@@ -1248,35 +1276,25 @@ class MainActivity : AppCompatActivity() {
                         Log.i(logTag, "onResponse: still active, releasing it")
                         // Bot is still active on the server being left, release it.
                         runOnUiThread {
-                            releaseBot(botToken, apiBase, method)
+                            releaseBot(botToken, apiBase, method, newApiAddress)
                         }
                     } else {
-                        Log.i(logTag, "onResponse: Already logged out")
-                        // Already logged out
-                        runOnUiThread {
-                            Snackbar.make(
-                                findViewById(R.id.doh_switch),
-                                getString(R.string.set_api_success),
-                                Snackbar.LENGTH_LONG
-                            ).show()
-                        }
+                        Log.i(logTag, "onResponse: nothing active to release, switching")
+                        // The server responded but the bot is not active there, so there
+                        // is nothing to release — go ahead and switch.
+                        runOnUiThread { commitApiAddress(newApiAddress) }
                     }
                 } else {
-                    Log.w(logTag, "onResponse: ${response.code}")
-                    // Not logged in or error, no need to logout
-                    runOnUiThread {
-                        Snackbar.make(
-                            findViewById(R.id.doh_switch),
-                            getString(R.string.set_api_success),
-                            Snackbar.LENGTH_LONG
-                        ).show()
-                    }
+                    Log.w(logTag, "onResponse: ${response.code}, switching")
+                    // Reached the server but it reports no usable bot session there;
+                    // nothing to release, switch over.
+                    runOnUiThread { commitApiAddress(newApiAddress) }
                 }
             }
         })
     }
 
-    fun releaseBot(botToken: String, apiBase: String, method: String) {
+    fun releaseBot(botToken: String, apiBase: String, method: String, newApiAddress: String) {
         val progressDialog = ProgressDialog(this)
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
         progressDialog.setTitle(getString(R.string.logout_progress_title))
@@ -1299,30 +1317,56 @@ class MainActivity : AppCompatActivity() {
             override fun onFailure(call: Call, e: IOException) {
                 progressDialog.cancel()
                 Log.e(logTag, "releaseBot onFailure: ", e)
-                runOnUiThread { showErrorDialog(getString(R.string.set_api_failed)) }
+                runOnUiThread { showReleaseFailedDialog(newApiAddress) }
             }
 
             override fun onResponse(call: Call, response: Response) {
                 progressDialog.cancel()
                 if (!response.isSuccessful) {
-                    runOnUiThread { showErrorDialog(getString(R.string.logout_failed)) }
+                    runOnUiThread { showReleaseFailedDialog(newApiAddress) }
                 } else {
                     val body = response.body.string()
                     val jsonObj = JsonParser.parseString(body).asJsonObject
                     if (jsonObj.get("ok").asBoolean) {
-                        runOnUiThread {
-                            Snackbar.make(
-                                findViewById(R.id.doh_switch),
-                                getString(R.string.set_api_success),
-                                Snackbar.LENGTH_LONG
-                            ).show()
-                        }
+                        runOnUiThread { commitApiAddress(newApiAddress) }
                     } else {
-                        runOnUiThread { showErrorDialog(getString(R.string.set_api_failed)) }
+                        runOnUiThread { showReleaseFailedDialog(newApiAddress) }
                     }
                 }
             }
         })
+    }
+
+    /**
+     * Persist the new Bot API server address after the bot has been released from the old
+     * one, and report success. Called on the UI thread from the release callbacks.
+     */
+    private fun commitApiAddress(newApiAddress: String) {
+        preferences.putString("api_address", newApiAddress)
+        if (isFinishing || isDestroyed) return
+        Snackbar.make(
+            findViewById(R.id.doh_switch),
+            getString(R.string.set_api_success),
+            Snackbar.LENGTH_LONG
+        ).show()
+    }
+
+    /**
+     * The bot could not be released from the server it is leaving (unreachable, or the
+     * server rejected the logOut/close). Let the user switch over anyway so an offline old
+     * server can't permanently trap the configured address; the bot may need a manual
+     * release on the old server later. Declining keeps the current address.
+     */
+    private fun showReleaseFailedDialog(newApiAddress: String) {
+        if (isFinishing || isDestroyed) return
+        AlertDialog.Builder(this)
+            .setTitle(R.string.error_title)
+            .setMessage(getString(R.string.set_api_release_failed))
+            .setPositiveButton(R.string.set_api_switch_anyway) { _, _ ->
+                commitApiAddress(newApiAddress)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
 }
