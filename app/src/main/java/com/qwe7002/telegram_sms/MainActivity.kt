@@ -50,8 +50,10 @@ import com.qwe7002.telegram_sms.data_structure.ScannerJson
 import com.qwe7002.telegram_sms.data_structure.telegram.PollingBody
 import com.qwe7002.telegram_sms.data_structure.telegram.ReplyMarkupKeyboard
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
+import com.qwe7002.telegram_sms.static_class.Network.buildUrl
 import com.qwe7002.telegram_sms.static_class.Network.getOkhttpObj
 import com.qwe7002.telegram_sms.static_class.Network.getUrl
+import com.qwe7002.telegram_sms.static_class.Network.migrationForApiChange
 import com.qwe7002.telegram_sms.static_class.Other.parseStringToLong
 import com.qwe7002.telegram_sms.static_class.Service.isNotifyListener
 import com.qwe7002.telegram_sms.static_class.Service.startService
@@ -451,7 +453,13 @@ class MainActivity : AppCompatActivity() {
                     "api.telegram.org"
                 ) != "api.telegram.org"
             ) {
-                checkAndLogout(botTokenEditView.text.toString().trim { it <= ' ' })
+                // Before the bot can be used on a custom server it must be released from
+                // the cloud server it is registered on by default.
+                checkAndLogout(
+                    botTokenEditView.text.toString().trim { it <= ' ' },
+                    "api.telegram.org",
+                    "logOut"
+                )
             }
 
 
@@ -1015,21 +1023,24 @@ class MainActivity : AppCompatActivity() {
                 apiDialog.setTitle("Set API Address")
                 apiDialog.setView(apiDialogView)
                 apiDialog.setPositiveButton("OK") { _, _ ->
-                    val apiAddressText = apiAddress.text.toString()
-                    if (preferences.getString(
-                            "api_address",
-                            "api.telegram.org"
-                        ) == apiAddressText
-                    ) {
-                        return@setPositiveButton
-                    }
+                    val apiAddressText = apiAddress.text.toString().trim { it <= ' ' }
                     if (apiAddressText.isEmpty()) {
                         showErrorDialog("API address cannot be empty.")
                         return@setPositiveButton
                     }
+                    val oldApiAddress =
+                        preferences.getString("api_address", "api.telegram.org")
+                            ?: "api.telegram.org"
+                    // Release the bot from the server it is leaving before pointing the app
+                    // at the new one (a bot may only live on one Bot API server at a time).
+                    val migration = migrationForApiChange(oldApiAddress, apiAddressText)
                     preferences.putString("api_address", apiAddressText)
-                    if (preferences.contains("initialized") && apiAddressText != "api.telegram.org") {
-                        checkAndLogout(preferences.getString("bot_token", "").toString())
+                    if (preferences.contains("initialized") && migration != null) {
+                        checkAndLogout(
+                            preferences.getString("bot_token", "").toString(),
+                            migration.base,
+                            migration.method
+                        )
                     }
                 }
                 apiDialog.setNegativeButton("Cancel", null)
@@ -1167,16 +1178,16 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    fun checkAndLogout(botToken: String) {
+    fun checkAndLogout(botToken: String, apiBase: String, method: String) {
         val progressDialog = ProgressDialog(this)
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
-        progressDialog.setTitle(getString(R.string.get_recent_chat_title))
-        progressDialog.setMessage(getString(R.string.get_recent_chat_message))
+        progressDialog.setTitle(getString(R.string.logout_progress_title))
+        progressDialog.setMessage(getString(R.string.logout_progress_message))
         progressDialog.isIndeterminate = false
         progressDialog.setCancelable(false)
         progressDialog.show()
 
-        val getMeUri = "https://api.telegram.org/bot$botToken/getMe"
+        val getMeUri = buildUrl(apiBase, botToken, "getMe")
         var okhttpClient = getOkhttpObj(
             preferences.getBoolean("doh_switch", false)
         )
@@ -1187,12 +1198,11 @@ class MainActivity : AppCompatActivity() {
             override fun onFailure(call: Call, e: IOException) {
                 progressDialog.cancel()
                 Log.e(logTag, "checkAndLogout getMe onFailure: ", e)
+                // The server the bot is leaving could not be reached, so we cannot know
+                // whether it was released. Surface the failure instead of pretending the
+                // API address change succeeded.
                 runOnUiThread {
-                    Snackbar.make(
-                        findViewById(R.id.doh_switch),
-                        getString(R.string.set_api_success),
-                        Snackbar.LENGTH_LONG
-                    ).show()
+                    showErrorDialog(getString(R.string.set_api_failed))
                 }
             }
 
@@ -1202,10 +1212,10 @@ class MainActivity : AppCompatActivity() {
                     val body = response.body.string()
                     val jsonObj = JsonParser.parseString(body).asJsonObject
                     if (jsonObj.get("ok").asBoolean) {
-                        Log.i(logTag, "onResponse: Logged in, proceeding to logout")
-                        // Bot token is still active on official API, need to logout
+                        Log.i(logTag, "onResponse: still active, releasing it")
+                        // Bot is still active on the server being left, release it.
                         runOnUiThread {
-                            logout(botToken)
+                            releaseBot(botToken, apiBase, method)
                         }
                     } else {
                         Log.i(logTag, "onResponse: Already logged out")
@@ -1233,7 +1243,7 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    fun logout(chatId: String) {
+    fun releaseBot(botToken: String, apiBase: String, method: String) {
         val progressDialog = ProgressDialog(this)
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
         progressDialog.setTitle(getString(R.string.logout_progress_title))
@@ -1241,7 +1251,7 @@ class MainActivity : AppCompatActivity() {
         progressDialog.isIndeterminate = false
         progressDialog.setCancelable(false)
         progressDialog.show()
-        val requestUri = "https://api.telegram.org/bot$chatId/logout"
+        val requestUri = buildUrl(apiBase, botToken, method)
         var okhttpClient = getOkhttpObj(
             preferences.getBoolean("doh_switch", false)
         )
@@ -1255,28 +1265,29 @@ class MainActivity : AppCompatActivity() {
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 progressDialog.cancel()
-                Log.e(logTag, "onFailure: ", e)
+                Log.e(logTag, "releaseBot onFailure: ", e)
+                runOnUiThread { showErrorDialog(getString(R.string.set_api_failed)) }
             }
 
             override fun onResponse(call: Call, response: Response) {
                 progressDialog.cancel()
                 if (!response.isSuccessful) {
-                    showErrorDialog(getString(R.string.logout_failed))
+                    runOnUiThread { showErrorDialog(getString(R.string.logout_failed)) }
                 } else {
                     val body = response.body.string()
                     val jsonObj = JsonParser.parseString(body).asJsonObject
                     if (jsonObj.get("ok").asBoolean) {
-                        Snackbar.make(
-                            findViewById(R.id.doh_switch),
-                            getString(R.string.set_api_success),
-                            Snackbar.LENGTH_LONG
-                        ).show()
+                        runOnUiThread {
+                            Snackbar.make(
+                                findViewById(R.id.doh_switch),
+                                getString(R.string.set_api_success),
+                                Snackbar.LENGTH_LONG
+                            ).show()
+                        }
                     } else {
-                        showErrorDialog(getString(R.string.set_api_failed))
+                        runOnUiThread { showErrorDialog(getString(R.string.set_api_failed)) }
                     }
-
                 }
-
             }
         })
     }

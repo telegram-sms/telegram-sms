@@ -42,13 +42,61 @@ object Network {
     }
 
     @JvmStatic
-    fun getUrl( token: String, func: String): String {
-        val preferences = MMKV.defaultMMKV()
-        val telegramAPIAddress = preferences.getString(
-            "api_address",
-            "api.telegram.org"
-        )
-        return "https://$telegramAPIAddress/bot$token/$func"
+    fun getUrl(token: String, func: String): String {
+        val telegramAPIAddress = MMKV.defaultMMKV()
+            .getString("api_address", "api.telegram.org") ?: "api.telegram.org"
+        return buildUrl(telegramAPIAddress, token, func)
+    }
+
+    /**
+     * Normalize a user-supplied Bot API host/base into a request origin.
+     *
+     * - trims surrounding whitespace and any trailing '/'
+     * - keeps an explicit http:// or https:// scheme; defaults to https:// when none
+     * - falls back to the official cloud server when blank
+     *
+     * Pure (no MMKV / Android access) so the URL logic can be unit tested.
+     */
+    @JvmStatic
+    fun normalizeApiBase(apiAddress: String): String {
+        val trimmed = apiAddress.trim().trimEnd('/')
+        if (trimmed.isEmpty()) return "https://api.telegram.org"
+        return if (trimmed.startsWith("http://", ignoreCase = true) ||
+            trimmed.startsWith("https://", ignoreCase = true)
+        ) trimmed else "https://$trimmed"
+    }
+
+    /** Build a full Bot API endpoint URL. Pure / unit testable. */
+    @JvmStatic
+    fun buildUrl(apiAddress: String, token: String, func: String): String =
+        "${normalizeApiBase(apiAddress)}/bot$token/$func"
+
+    /**
+     * A bot migration step: release the bot from server [base] by calling Bot API
+     * method [method] ("logOut" or "close") there.
+     */
+    data class ApiMigration(val base: String, val method: String)
+
+    /**
+     * Decide how to release the bot when the configured server changes from
+     * [oldApiAddress] to [newApiAddress]. A bot may only be active on one Bot API server
+     * at a time, so it must be released from the server it is leaving before another can
+     * claim it. Per the Bot API docs (and go-telegram-bot-api's LogOutConfig/CloseConfig):
+     *
+     *  - to or from the official cloud server -> "logOut"
+     *  - between two local servers            -> "close"
+     *
+     * [ApiMigration.base] is the normalized server to act on (the one being left).
+     * Returns null when the server is effectively unchanged. Pure / unit testable.
+     */
+    @JvmStatic
+    fun migrationForApiChange(oldApiAddress: String, newApiAddress: String): ApiMigration? {
+        val oldBase = normalizeApiBase(oldApiAddress)
+        val newBase = normalizeApiBase(newApiAddress)
+        if (oldBase == newBase) return null
+        val cloud = normalizeApiBase("api.telegram.org")
+        val method = if (oldBase != cloud && newBase != cloud) "close" else "logOut"
+        return ApiMigration(oldBase, method)
     }
 
     @JvmStatic
