@@ -50,6 +50,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
+        android:localeConfig="@xml/locale_config"
         tools:ignore="DataExtractionRules,GoogleAppIndexingWarning,RtlEnabled,UnusedAttribute"
         tools:targetApi="n">
         <receiver
