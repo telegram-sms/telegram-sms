@@ -1,0 +1,21 @@
+# GitHub repo -> 內網 GitLab 專案 對照表。
+#
+# Codex 會讀這個檔:依「當前事件的來源 GitHub repo」查出要鏡像/操作的內網 GitLab 專案。
+# 佈署時會複製到 Codex 的工作目錄,和 AGENTS.md 同一層:
+#   Docker: /app/workspace/projects.toml
+#   deb:    /var/lib/ci-webhook-codex-agent/projects.toml
+#
+# 解析規則(Codex 遵循):
+#   1. 找 github 等於來源 repo 的項目,用它的 gitlab 當內網專案路徑。
+#   2. 找不到就用 default_host + 相同的 <owner>/<repo>。
+#   3. 內網 git 網址一律 = <default_host>/<gitlab 路徑>.git
+
+# 預設內網 GitLab host。
+default_host = "https://git.reall.us"
+
+# 個別對照:只有當內網路徑與 GitHub 的 <owner>/<repo> 不同時才需要列。
+#   github = "<owner>/<repo>"   GitHub 來源 repo
+#   gitlab = "<group>/<proj>"   對應的內網 GitLab 專案路徑
+[[projects]]
+github = "telegram-sms/telegram-sms"
+gitlab = "telegram-sms/telegram-sms"
