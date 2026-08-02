@@ -45,4 +45,7 @@ data class ScannerJson(
 
     @SerializedName("hide_phone_number")
     val hidePhoneNumber: Boolean,
+
+    @SerializedName("doh_switch")
+    val dohSwitch: Boolean? = null
 )

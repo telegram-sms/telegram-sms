@@ -132,7 +132,8 @@ class TransferConfigActivity : AppCompatActivity() {
             preferences.getBoolean("call_notify", false),
             preferences.getString("message_thread_id", "")!!,
             sendList,
-            preferences.getBoolean("hide_phone_number", false)
+            preferences.getBoolean("hide_phone_number", false),
+            preferences.getBoolean("doh_switch", true)
         )
         return gson.toJson(config)
     }

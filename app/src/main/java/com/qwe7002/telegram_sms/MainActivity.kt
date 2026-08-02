@@ -1172,6 +1172,10 @@ class MainActivity : AppCompatActivity() {
                     findViewById<SwitchMaterial>(R.id.hide_phone_number_switch)
                 hidePhoneNumberSwitch.isChecked = jsonConfig.hidePhoneNumber
 
+                jsonConfig.dohSwitch?.let {
+                    findViewById<SwitchMaterial>(R.id.doh_switch).isChecked = it
+                }
+
                 if (jsonConfig.apiAddress.isNotEmpty()) {
                     preferences.putString("api_address", jsonConfig.apiAddress)
                 }
@@ -1384,4 +1388,3 @@ class MainActivity : AppCompatActivity() {
     }
 
 }
-
