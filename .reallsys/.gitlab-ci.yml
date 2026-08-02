@@ -115,7 +115,7 @@ cache:
     script:
         - |
             echo "==> Building APK..."
-            ./gradlew clean assembleRelease --no-daemon
+            ./gradlew clean assembleRelease --no-daemon --stacktrace --debug
 
 
 # ------------------------------------------------------------------------------
