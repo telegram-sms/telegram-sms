@@ -46,6 +46,7 @@ class CcSendJob : JobService() {
         
         private const val FORM_URLENCODED_SUBTYPE = "application/x-www-form-urlencoded"
         private const val JSON_SUBTYPE = "application/json"
+        private const val PLAINTEXT_SUBTYPE = "text/plain"
         private val SUPPORTED_METHODS = setOf("GET", "POST", "PUT")
 
         // Headers that must not be replayed verbatim from a captured HAR: Cookie is rebuilt from
@@ -53,7 +54,7 @@ class CcSendJob : JobService() {
         // RequestBody recomputes — replaying a stale captured value duplicates or corrupts the request.
         private val SKIP_HEADERS = setOf(
             "cookie", "content-type", "content-length", "content-encoding", "host",
-            "connection", "transfer-encoding", "keep-alive", "accept-encoding"
+            "connection", "transfer-encoding", "keep-alive", "accept-encoding", "Authorization"
         )
         
         fun startJob(
@@ -297,6 +298,10 @@ class CcSendJob : JobService() {
                 } else {
                     "{}".toRequestBody(mimeType)
                 }
+            }
+
+            PLAINTEXT_SUBTYPE -> {
+                CcSend.render(postData.text ?: "",mapper).toRequestBody(mimeType)
             }
 
             else -> {
