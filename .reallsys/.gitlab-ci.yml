@@ -287,7 +287,7 @@ build_release:
 release_publish:
     stage: deploy
     tags:
-        - gemini
+      - ai
     retry:
         max: 2
         when:
@@ -303,7 +303,7 @@ release_publish:
         GIT_STRATEGY: clone
     before_script:
         - set -euo pipefail
-        # agy is installed under the gitlab-runner user's ~/.local/bin, which a
+        # opencode is installed under the gitlab-runner user's ~/.local/bin, which a
         # non-login CI shell does not include on PATH; add it explicitly.
         - export PATH="/home/gitlab-runner/.local/bin:$PATH"
     script:
@@ -330,7 +330,7 @@ release_publish:
             done
             git fetch source --tags --force
 
-            echo "==> Generating changelog with agy CLI..."
+            echo "==> Generating changelog with opencode CLI..."
             LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
             if [ -z "${LATEST_TAG}" ]; then
               echo "ERROR: No reachable tags after syncing from GitHub source"
@@ -350,10 +350,10 @@ release_publish:
             Commit History:
             ${COMMITS}"
 
-            agy --dangerously-skip-permissions -p "${PROMPT}" > CHANGELOG.md
+            opencode run "${PROMPT}" > CHANGELOG.md
 
             if [ ! -s CHANGELOG.md ]; then
-              echo "ERROR: agy returned empty changelog"
+              echo "ERROR: opencode returned empty changelog"
               exit 1
             fi
             echo "==> Generated changelog:"
@@ -373,7 +373,7 @@ release_publish:
             echo "EN summary:"
             cat SUMMARY_EN.txt
         - |
-            echo "==> Translating summary to Traditional Chinese via agy..."
+            echo "==> Translating summary to Traditional Chinese via opencode..."
             TRANSLATE_PROMPT="You are translating release notes for an Android SMS-to-Telegram app.
             Translate the following short release summary into Traditional Chinese (繁體中文).
             Keep it concise (around 100 characters). Preserve technical terms (Telegram, SMS, APK, MMKV, etc.) in their original form.
@@ -382,9 +382,9 @@ release_publish:
             English summary:
             ${SUMMARY_EN}"
 
-            agy --dangerously-skip-permissions -p "${TRANSLATE_PROMPT}" > SUMMARY_ZH.txt
+            opencode run "${TRANSLATE_PROMPT}" > SUMMARY_ZH.txt
             if [ ! -s SUMMARY_ZH.txt ]; then
-              echo "ERROR: agy returned empty Chinese summary"
+              echo "ERROR: opencode returned empty Chinese summary"
               exit 1
             fi
             echo "ZH summary:"
