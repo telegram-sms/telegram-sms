@@ -190,7 +190,7 @@ object SMS {
         requestBody.text =
             "$sendContent\n${context.getString(R.string.status)}${context.getString(R.string.sending)}"
         requestBody.messageId = messageId
-        requestBody.messageThreadId = messageThreadId
+        requestBody.messageThreadId = Other.parseMessageThreadId(messageThreadId)
         val gson = Gson()
         val requestBodyRaw = gson.toJson(requestBody)
         val body: RequestBody = requestBodyRaw.toRequestBody(JSON)

@@ -54,6 +54,8 @@ import com.qwe7002.telegram_sms.static_class.Network.buildUrl
 import com.qwe7002.telegram_sms.static_class.Network.getOkhttpObj
 import com.qwe7002.telegram_sms.static_class.Network.getUrl
 import com.qwe7002.telegram_sms.static_class.Network.migrationForApiChange
+import com.qwe7002.telegram_sms.static_class.ConfigImport
+import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Other.parseStringToLong
 import com.qwe7002.telegram_sms.static_class.Service.isNotifyListener
 import com.qwe7002.telegram_sms.static_class.Service.startService
@@ -479,7 +481,8 @@ class MainActivity : AppCompatActivity() {
             )
             val requestBody = RequestMessage()
             requestBody.chatId = chatIdEditView.text.toString().trim { it <= ' ' }
-            requestBody.messageThreadId = messageThreadIdEditView.text.toString().trim { it <= ' ' }
+            requestBody.messageThreadId =
+                Other.parseMessageThreadId(messageThreadIdEditView.text.toString())
             requestBody.text = Template.render(
                 applicationContext,
                 "TPL_system_message",
@@ -1140,6 +1143,16 @@ class MainActivity : AppCompatActivity() {
                     data!!.getStringExtra("config_json"),
                     ScannerJson::class.java
                 )
+                // Gson does not enforce the non-null types (it builds through Unsafe), so a
+                // truncated or unrelated payload parses fine and only fails below, at
+                // jsonConfig.apiAddress.isNotEmpty(). Reject it while there is still a user
+                // to tell.
+                val configProblem = ConfigImport.validate(jsonConfig)
+                if (configProblem != null) {
+                    Log.w(logTag, "Rejected scanned config: $configProblem")
+                    showErrorDialog(getString(R.string.invalid_json_structure))
+                    return
+                }
                 (findViewById<View>(R.id.bot_token_editview) as EditText).setText(jsonConfig.botToken)
                 (findViewById<View>(R.id.chat_id_editview) as EditText).setText(jsonConfig.chatId)
                 (findViewById<View>(R.id.battery_monitoring_switch) as SwitchMaterial).isChecked =

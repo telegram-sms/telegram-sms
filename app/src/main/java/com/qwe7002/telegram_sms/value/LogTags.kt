@@ -16,6 +16,8 @@ val TAG_FILTER = arrayOf(
     "USSDCallBack",
     // Cross-cutting utilities invoked from production paths
     "DataMigrationManager",
+    "NotificationEditStore",
+    "CcRequest",
     "ChatCommand",
     "TelegramApi",
     "USSD",

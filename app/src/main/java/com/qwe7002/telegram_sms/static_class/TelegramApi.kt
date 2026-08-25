@@ -84,10 +84,9 @@ object TelegramApi {
         } catch (_: UninitializedPropertyAccessException) {
             requestBody.chatId = preferences.getString("chat_id", "") ?: ""
         }
-        try {
-            requestBody.messageThreadId
-        } catch (_: UninitializedPropertyAccessException) {
-            requestBody.messageThreadId = preferences.getString("message_thread_id", "") ?: ""
+        if (requestBody.messageThreadId == null) {
+            requestBody.messageThreadId =
+                Other.parseMessageThreadId(preferences.getString("message_thread_id", ""))
         }
 
         val requestUri = Network.getUrl(botToken, method)
@@ -158,10 +157,9 @@ object TelegramApi {
         } catch (_: UninitializedPropertyAccessException) {
             requestBody.chatId = preferences.getString("chat_id", "") ?: ""
         }
-        try {
-            requestBody.messageThreadId
-        } catch (_: UninitializedPropertyAccessException) {
-            requestBody.messageThreadId = preferences.getString("message_thread_id", "") ?: ""
+        if (requestBody.messageThreadId == null) {
+            requestBody.messageThreadId =
+                Other.parseMessageThreadId(preferences.getString("message_thread_id", ""))
         }
 
         val requestUri = Network.getUrl(botToken, method)
@@ -242,8 +240,10 @@ object TelegramApi {
             multipartBuilder.addFormDataPart("caption", caption)
         }
 
-        if (messageThreadId.isNotEmpty()) {
-            multipartBuilder.addFormDataPart("message_thread_id", messageThreadId)
+        // Multipart parts are strings on the wire, but the value still has to be an
+        // Integer for Telegram; send it only when it parses as one.
+        Other.parseMessageThreadId(messageThreadId)?.let {
+            multipartBuilder.addFormDataPart("message_thread_id", it.toString())
         }
 
         val requestBody = multipartBuilder.build()
@@ -324,7 +324,7 @@ object TelegramApi {
 
         return RequestMessage().apply {
             this.chatId = chatId
-            this.messageThreadId = messageThreadId
+            this.messageThreadId = Other.parseMessageThreadId(messageThreadId)
             this.text = text
             parseMode?.let { this.parseMode = it }
             messageId?.let { this.messageId = it }

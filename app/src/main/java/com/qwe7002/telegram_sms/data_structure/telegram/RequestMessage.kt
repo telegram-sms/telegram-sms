@@ -15,8 +15,11 @@ class RequestMessage {
     lateinit var chatId: String
     @SerializedName(value = "text")
     lateinit var text: String
+    // Integer per the Bot API, and omitted entirely when the chat has no topic. Callers
+    // convert the stored preference with Other.parseMessageThreadId; null means "not set",
+    // which lets TelegramApi fill it in from preferences.
     @SerializedName(value = "message_thread_id")
-    lateinit var messageThreadId: String
+    var messageThreadId: Long? = null
     @SerializedName(value = "reply_markup")
     var replyMarkup: Any? = null
 

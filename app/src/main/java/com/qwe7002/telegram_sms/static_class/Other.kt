@@ -65,6 +65,19 @@ object Other {
         }
     }
 
+    /**
+     * Converts the stored `message_thread_id` preference into the Integer the Bot API
+     * expects. The preference is a free-text field, so it can hold anything; blank (no
+     * topic configured) and unparsable values alike become null, which omits the field
+     * from the payload instead of sending something Telegram would have to reject.
+     *
+     * Distinct from [parseStringToLong], which folds those cases into 0 — and 0 would be
+     * a *value* here, not an absence.
+     */
+    @JvmStatic
+    fun parseMessageThreadId(value: String?): Long? =
+        value?.trim()?.takeIf { it.isNotEmpty() }?.toLongOrNull()
+
     fun getSendPhoneNumber(phoneNumber: String): String {
         var phone = phoneNumber
         phone = getNineKeyMapConvert(phone)

@@ -51,7 +51,7 @@ object USSD {
         val requestUri = Network.getUrl(botToken, apiMethod)
         val requestBody = RequestMessage()
         requestBody.chatId = chatId
-        requestBody.messageThreadId = messsageThreadId
+        requestBody.messageThreadId = Other.parseMessageThreadId(messsageThreadId)
         if (messageId != -1L) {
             requestBody.messageId = messageId
         }
