@@ -347,7 +347,7 @@ class CcRequestTest {
                             {"name":"Content-Length","value":"999"},
                             {"name":"Accept-Encoding","value":"br"},
                             {"name":"Connection","value":"close"},
-                            {"name":"Authorization","value":"Bearer t0ken"}]}
+                            {"name":"X-Api-Key","value":"k3y"}]}
                 """.trimIndent()
             ),
             mapper, encodeMapper
@@ -356,7 +356,30 @@ class CcRequestTest {
         assertNull(request.header("Content-Length"))
         assertNull(request.header("Accept-Encoding"))
         assertNull(request.header("Connection"))
-        assertEquals("Bearer t0ken", request.header("Authorization"))
+        assertEquals("k3y", request.header("X-Api-Key")) // anything else is replayed
+    }
+
+    /**
+     * Authorization is in SKIP_HEADERS, so a captured token is dropped rather than
+     * replayed. Note this is a behaviour change: the entry was added capitalised and the
+     * lookup lowercases, so until that was corrected the header went out untouched.
+     * A provider that authenticates this way now needs its token in the URL, the body,
+     * or a differently-named header.
+     */
+    @Test
+    fun dropsACapturedAuthorizationHeader() {
+        val request = CcRequest.build(
+            entry(
+                """
+                {"method":"GET","url":"https://push.example/send","httpVersion":"HTTP/1.1",
+                 "cookies":[],"queryString":[],"headersSize":-1,"bodySize":0,
+                 "headers":[{"name":"Authorization","value":"Bearer t0ken"},
+                            {"name":"authorization","value":"Bearer lower"}]}
+                """.trimIndent()
+            ),
+            mapper, encodeMapper
+        )!!
+        assertNull(request.header("Authorization"))
     }
 
     @Test

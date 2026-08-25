@@ -43,9 +43,12 @@ object CcRequest {
     // Headers that must not be replayed verbatim from a captured HAR: Cookie is rebuilt from
     // request.cookies, and the rest are connection/content metadata that OkHttp or the
     // RequestBody recomputes — replaying a stale captured value duplicates or corrupts the request.
+    //
+    // Compared against header.name.lowercase(), so every entry has to be lower case.
+    // "Authorization" was added capitalised and therefore never matched anything.
     private val SKIP_HEADERS = setOf(
         "cookie", "content-type", "content-length", "content-encoding", "host",
-        "connection", "transfer-encoding", "keep-alive", "accept-encoding", "Authorization"
+        "connection", "transfer-encoding", "keep-alive", "accept-encoding", "authorization"
     )
 
     /**
