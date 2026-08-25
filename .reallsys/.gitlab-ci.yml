@@ -1,6 +1,7 @@
 # GitLab CI/CD Configuration for Telegram SMS
 
 stages:
+    - test
     - build
     - deploy
 
@@ -85,6 +86,35 @@ cache:
               echo "ERROR: Bitwarden returned an empty keystore attachment"
               exit 1
             fi
+
+            # The signing passwords live as custom fields on the same Bitwarden item as the
+            # keystore, so rotating the keystore and its passwords is one edit in one place.
+            #
+            # NOTE: unlike GitLab CI variables, values fetched at runtime are NOT masked in
+            # the job log. Never echo them, and never turn on `set -x` in a job that has
+            # them exported.
+            bw_field() {
+              printf '%s' "${bw_item_json}" | jq -r --arg n "$1" \
+                '(.fields // []) | map(select(.name == $n)) | .[0].value // empty'
+            }
+            bw_item_json="$(bw get item "${BW_KEYSTORE_ITEM_ID}")"
+
+            missing=0
+            for f in KEYSTORE_PASS ALIAS_NAME ALIAS_PASS; do
+              eval "export ${f}=\"\$(bw_field "${f}")\""
+              eval "val=\${$f}"
+              if [ -z "${val}" ]; then
+                echo "ERROR: Bitwarden item ${BW_KEYSTORE_ITEM_ID} has no '${f}' field"
+                missing=1
+              fi
+            done
+            unset bw_item_json
+            if [ "${missing}" -ne 0 ]; then
+              echo "Add the missing field(s) to that item as custom fields (hidden type for the passwords)."
+              exit 1
+            fi
+            echo "==> Signing credentials loaded from Bitwarden."
+
             cleanup_bitwarden
             trap - EXIT
         - |
@@ -261,16 +291,19 @@ build_release:
               echo "ERROR: Keystore file not found at app/keys.jks"
               exit 1
             fi
+            # These are exported by .setup_environment from the Bitwarden item's custom
+            # fields, not from CI/CD variables. Reaching here empty means the job template
+            # did not run or the item lost a field.
             missing=0
             for v in KEYSTORE_PASS ALIAS_NAME ALIAS_PASS; do
               eval "val=\${$v:-}"
               if [ -z "${val}" ]; then
-                echo "ERROR: ${v} CI/CD variable is not set"
+                echo "ERROR: ${v} was not loaded from Bitwarden"
                 missing=1
               fi
             done
             if [ "${missing}" -ne 0 ]; then
-              echo "Set the missing variables under Settings → CI/CD → Variables (Protected + Masked)."
+              echo "Check the custom fields on Bitwarden item ${BW_KEYSTORE_ITEM_ID}."
               exit 1
             fi
 
@@ -621,6 +654,56 @@ telegram_notify:
             send_to_channel "${TELEGRAM_CHANNEL_ID_ZH}" "${MESSAGE_ZH}" "${REPLY_MARKUP_ZH}" || fail=1
             exit "${fail}"
 
+
+# ------------------------------------------------------------------------------
+# Unit Tests
+# ------------------------------------------------------------------------------
+# Gate for everything below. `test` is the first stage, and a job with no `needs:`
+# waits for every earlier stage to succeed, so build_release cannot start — and
+# therefore release_publish and telegram_notify cannot run — unless this passes.
+#
+# Also runs on nightly and on merge requests: a gate that only fires on master
+# tells you the tests are broken after the change is already on the release branch.
+unit_test:
+    stage: test
+    retry:
+        max: 2
+        when:
+            - runner_system_failure
+            - stuck_or_timeout_failure
+    rules:
+        -   if: $CI_PIPELINE_SOURCE == "merge_request_event"
+        -   if: $CI_COMMIT_BRANCH == "master"
+        -   if: $CI_COMMIT_BRANCH == "nightly"
+        -   if: $CI_PIPELINE_SOURCE == "web"
+    # Deliberately NOT *setup_environment: the unit tests run against the debug variant
+    # and need no signing keystore, so pulling one from Bitwarden would only make this
+    # job fail wherever the BW_* variables are unavailable (a fork's merge request, for
+    # one) and would export the signing passwords into a job that has no use for them.
+    before_script:
+        - |
+            echo "==> Setting up Gradle..."
+            mkdir -p "${GRADLE_USER_HOME}"
+            cat >> "${GRADLE_USER_HOME}/gradle.properties" << EOF
+            org.gradle.jvmargs=-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError
+            org.gradle.parallel=true
+            org.gradle.caching=true
+            org.gradle.configureondemand=true
+            EOF
+            chmod +x ./gradlew
+    script:
+        - |
+            echo "==> Running JVM unit tests..."
+            ./gradlew :app:testDebugUnitTest --no-daemon
+    artifacts:
+        # when: always — the reports are worth most on the run that failed.
+        when: always
+        expire_in: 1 week
+        paths:
+            - app/build/reports/tests/
+        reports:
+            junit:
+                - app/build/test-results/test*/TEST-*.xml
 
 # ------------------------------------------------------------------------------
 # Manual Debug Build (for testing)
