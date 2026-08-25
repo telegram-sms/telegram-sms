@@ -126,6 +126,14 @@ dependencies {
     implementation("net.java.dev.jna:jna:5.18.1@aar")
 
     testImplementation("junit:junit:4.13.2")
+    // android.jar is stubbed for local unit tests (see testOptions.unitTests.isReturnDefaultValues),
+    // so org.json.JSONObject would return default values instead of parsing. CodeauxLibPortable
+    // parses its config with it at construction time, so a real implementation has to be on the
+    // test classpath. It has to be *this* one — the JVM port of Android's own org.json — and not
+    // the reference org.json:json: Android coerces types in getString()/getInt() while the
+    // reference implementation throws, and CodeauxLibPortable relies on the coercion
+    // (its recipes store min_ccl as a JSON number and read it back with getString()).
+    testImplementation("com.vaadin.external.google:android-json:0.0.20131108.vaadin1")
 }
 
 tasks.register<Copy>("copy_language_pack") {
