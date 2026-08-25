@@ -30,6 +30,21 @@ object ReplyMarkupKeyboard {
         return ArrayList(buttons.toList())
     }
 
+    /**
+     * Clamps a (page, total) pair to something that can be shown to a user.
+     *
+     * Callers derive both from a query result, so an empty result set arrives as
+     * `totalPages = 0` and a stale callback can arrive with a page past the end or below
+     * zero. Left alone those render as "1/0", "4/3" or "0/3" — and the callback data would
+     * invite a tap onto a page that does not exist. One page always exists, even when it
+     * is empty, so the total floors at 1 and the page is held inside it.
+     */
+    private fun clampPage(currentPage: Int, totalPages: Int): Pair<Int, Int> {
+        val total = if (totalPages < 1) 1 else totalPages
+        val page = currentPage.coerceIn(0, total - 1)
+        return page to total
+    }
+
     @JvmStatic
     fun createPaginationKeyboard(
         currentPage: Int,
@@ -38,15 +53,16 @@ object ReplyMarkupKeyboard {
         prevText: String = "◀️",
         nextText: String = "▶️"
     ): ArrayList<ArrayList<InlineKeyboardButton>> {
+        val (page, total) = clampPage(currentPage, totalPages)
         val keyboard = ArrayList<ArrayList<InlineKeyboardButton>>()
         val navRow = ArrayList<InlineKeyboardButton>()
 
-        if (currentPage > 0) {
-            navRow.add(createButton(prevText, "${callbackPrefix}:${currentPage - 1}"))
+        if (page > 0) {
+            navRow.add(createButton(prevText, "${callbackPrefix}:${page - 1}"))
         }
-        navRow.add(createButton("${currentPage + 1}/$totalPages", "${callbackPrefix}:current"))
-        if (currentPage < totalPages - 1) {
-            navRow.add(createButton(nextText, "${callbackPrefix}:${currentPage + 1}"))
+        navRow.add(createButton("${page + 1}/$total", "${callbackPrefix}:current"))
+        if (page < total - 1) {
+            navRow.add(createButton(nextText, "${callbackPrefix}:${page + 1}"))
         }
 
         if (navRow.isNotEmpty()) {
@@ -62,6 +78,7 @@ object ReplyMarkupKeyboard {
         totalPages: Int,
         type: String
     ): ArrayList<ArrayList<InlineKeyboardButton>> {
+        val (page, total) = clampPage(currentPage, totalPages)
         val keyboard = ArrayList<ArrayList<InlineKeyboardButton>>()
 
         // Add SMS item buttons (each SMS as a row)
@@ -71,12 +88,12 @@ object ReplyMarkupKeyboard {
 
         // Add pagination row
         val navRow = ArrayList<InlineKeyboardButton>()
-        if (currentPage > 0) {
-            navRow.add(createButton("◀️", "sms_page:$type:${currentPage - 1}"))
+        if (page > 0) {
+            navRow.add(createButton("◀️", "sms_page:$type:${page - 1}"))
         }
-        navRow.add(createButton("${currentPage + 1}/$totalPages", "sms_page:$type:current"))
-        if (currentPage < totalPages - 1) {
-            navRow.add(createButton("▶️", "sms_page:$type:${currentPage + 1}"))
+        navRow.add(createButton("${page + 1}/$total", "sms_page:$type:current"))
+        if (page < total - 1) {
+            navRow.add(createButton("▶️", "sms_page:$type:${page + 1}"))
         }
         if (navRow.isNotEmpty()) {
             keyboard.add(navRow)
@@ -106,7 +123,6 @@ object ReplyMarkupKeyboard {
     class KeyboardMarkup {
         @SerializedName("inline_keyboard")
         lateinit var inlineKeyboard: ArrayList<ArrayList<InlineKeyboardButton>>
-        var oneTimeKeyboard: Boolean = true
     }
 
     class InlineKeyboardButton {

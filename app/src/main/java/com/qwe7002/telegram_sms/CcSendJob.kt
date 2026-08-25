@@ -10,26 +10,20 @@ import android.net.Uri
 import android.os.PersistableBundle
 import android.util.Log
 import com.google.gson.Gson
-import com.google.gson.JsonParser
 import com.google.gson.reflect.TypeToken
 import com.qwe7002.telegram_sms.MMKV.CARBON_COPY_ID
 import com.qwe7002.telegram_sms.data_structure.config.CcConfig
 import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.data_structure.Entry
-import com.qwe7002.telegram_sms.data_structure.Request as HarRequest
-import com.qwe7002.telegram_sms.static_class.CcSend
+import com.qwe7002.telegram_sms.static_class.CcRequest
+import com.qwe7002.telegram_sms.static_class.HarImport
 import com.qwe7002.telegram_sms.static_class.JobIds
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.value.CcType
 import com.qwe7002.telegram_sms.value.TAG
 import com.tencent.mmkv.MMKV
-import okhttp3.FormBody
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.util.concurrent.Executors
 
@@ -43,20 +37,7 @@ class CcSendJob : JobService() {
         
         private val gson = Gson()
         private val executor = Executors.newSingleThreadExecutor()
-        
-        private const val FORM_URLENCODED_SUBTYPE = "application/x-www-form-urlencoded"
-        private const val JSON_SUBTYPE = "application/json"
-        private const val PLAINTEXT_SUBTYPE = "text/plain"
-        private val SUPPORTED_METHODS = setOf("GET", "POST", "PUT")
 
-        // Headers that must not be replayed verbatim from a captured HAR: Cookie is rebuilt from
-        // request.cookies, and the rest are connection/content metadata that OkHttp or the
-        // RequestBody recomputes — replaying a stale captured value duplicates or corrupts the request.
-        private val SKIP_HEADERS = setOf(
-            "cookie", "content-type", "content-length", "content-encoding", "host",
-            "connection", "transfer-encoding", "keep-alive", "accept-encoding", "Authorization"
-        )
-        
         fun startJob(
             context: Context,
             type: Int,
@@ -176,7 +157,16 @@ class CcSendJob : JobService() {
     private fun getSendList(mmkv: MMKV): List<CcSendService> {
         val serviceListJson = mmkv.getString("service", "[]") ?: "[]"
         val type = object : TypeToken<ArrayList<CcSendService>>() {}.type
-        return gson.fromJson(serviceListJson, type) ?: emptyList()
+        val stored: List<CcSendService> = gson.fromJson(serviceListJson, type) ?: emptyList()
+        // Services saved before HAR validation existed can carry a capture Gson filled with
+        // nulls; dropping them here keeps one bad entry from aborting every other delivery.
+        return stored.filter { service ->
+            val reason = HarImport.validate(service.har)
+            if (reason != null) {
+                Log.e(logTag, "ccSendJob: skipping ${service.name}, unusable HAR: $reason")
+            }
+            reason == null
+        }
     }
     
     private fun createMapper(
@@ -206,122 +196,12 @@ class CcSendJob : JobService() {
         mapper: Map<String, String>,
         encodeMapper: Map<String, String>
     ): Boolean {
-        val request = entry.request
-        
-        val httpUrl = CcSend.render(request.url, encodeMapper).toHttpUrlOrNull() ?: run {
-            Log.e(logTag, "Invalid URL: ${request.url}")
-            return false
-        }
-        
-        // addQueryParameter percent-encodes values itself, so feed it the raw mapper
-        // (encodeMapper is only for {{placeholders}} substituted directly into the URL string).
-        // Browser-exported HAR carries the query in BOTH request.url and request.queryString, so only
-        // append params the parsed URL doesn't already have — otherwise we get ?k=v&k=v duplicates.
-        val existingParams = httpUrl.queryParameterNames
-        val httpUrlBuilder = httpUrl.newBuilder().apply {
-            request.queryString.forEach { query ->
-                if (query.name !in existingParams) {
-                    addQueryParameter(query.name, CcSend.render(query.value, mapper))
-                }
-            }
-        }
-
-        val body = buildRequestBody(request, mapper) ?: run {
-            if (request.postData != null || request.method !in SUPPORTED_METHODS) {
-                return false
-            }
-            getDefaultBody(request.method)
-        }
-
-        val requestBuilder = Request.Builder()
-            .url(httpUrlBuilder.build())
-            .method(request.method, body)
-        
-        // Add cookies (render placeholders so {{Code}} etc. work in cookie values too)
-        if (request.cookies.isNotEmpty()) {
-            val cookieHeader = request.cookies.joinToString("; ") {
-                "${it.name}=${CcSend.render(it.value, mapper)}"
-            }
-            addHeaderSafely(requestBuilder, "Cookie", cookieHeader)
-        }
-
-        // Add headers, skipping Cookie (rebuilt above) and transport/content headers OkHttp owns,
-        // so a stale captured Cookie/Content-Length/Host isn't duplicated onto the request.
-        request.headers.forEach { header ->
-            if (header.name.lowercase() in SKIP_HEADERS) return@forEach
-            addHeaderSafely(requestBuilder, header.name, CcSend.render(header.value, mapper))
-        }
-
-        return executeRequest(client, requestBuilder.build())
+        // Request construction lives in CcRequest so it can be unit tested off-device;
+        // null means the entry could not produce a sendable request and was already logged.
+        val request = CcRequest.build(entry, mapper, encodeMapper) ?: return false
+        return executeRequest(client, request)
     }
 
-    // OkHttp rejects non-ASCII header names/values with IllegalArgumentException; skip the
-    // offending header instead of letting it abort the whole delivery.
-    private fun addHeaderSafely(builder: Request.Builder, name: String, value: String) {
-        try {
-            builder.addHeader(name, value)
-        } catch (e: IllegalArgumentException) {
-            Log.w(logTag, "Skipping invalid header '$name': ${e.message}")
-        }
-    }
-    
-    private fun buildRequestBody(
-        request: HarRequest,
-        mapper: Map<String, String>
-    ): RequestBody? {
-        val postData = request.postData ?: return null
-        val mimeType = postData.mimeType.toMediaTypeOrNull() ?: run {
-            Log.w(logTag, "MIME type is null or invalid: ${postData.mimeType}")
-            return null
-        }
-        // Match on type/subtype only — a captured HAR often carries a charset
-        // (e.g. "application/json; charset=utf-8") which must not break the match.
-        return when ("${mimeType.type}/${mimeType.subtype}") {
-            FORM_URLENCODED_SUBTYPE -> {
-                FormBody.Builder().apply {
-                    postData.params?.forEach { param ->
-                        add(param.name, CcSend.render(param.value, mapper))
-                    }
-                }.build()
-            }
-
-            JSON_SUBTYPE -> {
-                val value = CcSend.renderForJson(postData.text ?: "", mapper)
-                if (value.isNotEmpty()) {
-                    try {
-                        val jsonElement = JsonParser.parseString(value)
-                        gson.toJson(jsonElement).toRequestBody(mimeType)
-                    } catch (e: Exception) {
-                        Log.e(logTag, "Failed to parse JSON: ${e.message}")
-                        "{}".toRequestBody(mimeType)
-                    }
-                } else {
-                    "{}".toRequestBody(mimeType)
-                }
-            }
-
-            PLAINTEXT_SUBTYPE -> {
-                CcSend.render(postData.text ?: "",mapper).toRequestBody(mimeType)
-            }
-
-            else -> {
-                Log.w(logTag, "Unsupported MIME type: ${postData.mimeType}")
-                null
-            }
-        }
-    }
-    
-    private fun getDefaultBody(method: String): RequestBody? {
-        return when (method) {
-            "GET" -> null
-            "POST", "PUT" -> FormBody.Builder().build()
-            else -> {
-                Log.w(logTag, "Unsupported request method: $method")
-                null
-            }
-        }
-    }
-    
     private fun executeRequest(client: OkHttpClient, request: Request): Boolean {
         return try {
             client.newCall(request).execute().use { response ->

@@ -94,7 +94,7 @@ All Telegram Bot API calls go through `static_class.TelegramApi` — don't hit `
 GitLab CI ([.reallsys/.gitlab-ci.yml](.reallsys/.gitlab-ci.yml)) is authoritative; GitHub is a mirror. Three pipelines:
 
 - `build_nightly` (branch `nightly`) → publishes prerelease APK to `telegram-sms/telegram-sms-nightly`
-- `build_release` → `release_publish` (uses agy CLI to generate `CHANGELOG.md` and a `SUMMARY_ZH.txt`) → `telegram_notify` (posts EN+ZH summaries to two Telegram channels); fires on `master`
+- `build_release` → `release_publish` (uses the GitHub Releases API to select the previous published release, deterministically categorizes commits in that range, then uses opencode only for the English summary and Traditional Chinese translation) → `telegram_notify` (posts EN+ZH summaries to two Telegram channels); fires on `master`
 - `build_debug` (manual web-trigger)
 
-Required CI variables (Protected + Masked): `KEYSTORE` (base64-encoded jks), `KEYSTORE_PASS`, `ALIAS_NAME`, `ALIAS_PASS`, `GITHUB_ACCESS_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHANNEL_ID_EN`, `TELEGRAM_CHANNEL_ID_ZH`.
+Required CI variables (Protected + Masked): `BW_CLIENTID`, `BW_CLIENTSECRET`, `BW_PASSWORD`, `BW_KEYSTORE_ITEM_ID` (Bitwarden item containing the `keys.jks` attachment), `KEYSTORE_PASS`, `ALIAS_NAME`, `ALIAS_PASS`, `GITHUB_ACCESS_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHANNEL_ID_EN`, `TELEGRAM_CHANNEL_ID_ZH`. `BW_KEYSTORE_ATTACHMENT` may override the attachment name (default: `keys.jks`), `BW_SERVER_URL` may point the CLI to Bitwarden EU or a self-hosted server, and `CHANGELOG_BASE_TAG` may override the GitHub API result when bootstrapping release history.

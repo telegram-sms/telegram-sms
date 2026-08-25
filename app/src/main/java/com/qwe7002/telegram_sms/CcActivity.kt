@@ -38,6 +38,8 @@ import com.qwe7002.telegram_sms.data_structure.CcSendService
 import com.qwe7002.telegram_sms.data_structure.HAR
 import com.qwe7002.telegram_sms.data_structure.config.CcConfig
 import com.qwe7002.telegram_sms.static_class.Crypto
+import com.qwe7002.telegram_sms.static_class.ConfigImport
+import com.qwe7002.telegram_sms.static_class.HarImport
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Template
 import com.qwe7002.telegram_sms.value.RESULT_CONFIG_JSON
@@ -104,9 +106,12 @@ class CcActivity : AppCompatActivity() {
                         getString(R.string.cc_service_disabled)
                     }
 
-                    val log = item.har.log
-                    if (log.entries.isNotEmpty()) {
-                        holder.subtitle.text = log.entries[0].request.url
+                    // A service stored before HAR validation existed can still carry a
+                    // structurally broken capture; show the placeholder instead of crashing
+                    // the whole list on a null log/entries.
+                    val entries = if (HarImport.isUsable(item.har)) item.har.log.entries else null
+                    if (!entries.isNullOrEmpty()) {
+                        holder.subtitle.text = entries[0].request.url
                     } else {
                         holder.subtitle.text = getString(R.string.no_entries_available)
                     }
@@ -191,13 +196,20 @@ class CcActivity : AppCompatActivity() {
 
     @SuppressLint("CheckResult")
     private fun isValidHarJson(json: String): Boolean {
-        return try {
+        val har = try {
             gson.fromJson(json, HAR::class.java)
-            true
         } catch (ex: Exception) {
-            ex.printStackTrace()
-            false
+            Log.w(logTag, "HAR is not valid JSON: ${ex.message}", ex)
+            return false
         }
+        // Parsing succeeding is not enough: Gson builds the HAR through Unsafe and leaves
+        // absent fields null, so {"a":1} "parses" into a HAR with a null log.
+        val reason = HarImport.validate(har)
+        if (reason != null) {
+            Log.w(logTag, "HAR is not usable: $reason")
+            return false
+        }
+        return true
     }
 
     private fun saveAndFlush(
@@ -325,6 +337,20 @@ class CcActivity : AppCompatActivity() {
                             val decryptConfig =
                                 Crypto.decrypt(responseBody, Crypto.getKeyFromString(password))
                             val config = gson.fromJson(decryptConfig, CcSendService::class.java)
+                            // Same Unsafe hazard as the scanned path: a decrypted payload
+                            // that is not one of ours parses without complaint.
+                            val problem = ConfigImport.validate(config)
+                            if (problem != null) {
+                                Log.w(logTag, "Rejected downloaded CC service: $problem")
+                                runOnUiThread {
+                                    Snackbar.make(
+                                        findViewById(R.id.cc_list),
+                                        R.string.invalid_json_structure,
+                                        Snackbar.LENGTH_LONG
+                                    ).show()
+                                }
+                                return@Thread
+                            }
                             serviceList.add(config)
                             runOnUiThread {
                                 saveAndFlush(serviceList, listAdapter)
@@ -436,6 +462,16 @@ class CcActivity : AppCompatActivity() {
                     CcSendService::class.java
                 )
                 Log.d(logTag, "onActivityResult: $jsonConfig")
+                val problem = ConfigImport.validate(jsonConfig)
+                if (problem != null) {
+                    Log.w(logTag, "Rejected scanned CC service: $problem")
+                    Snackbar.make(
+                        findViewById(R.id.cc_list),
+                        R.string.invalid_json_structure,
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                    return
+                }
                 serviceList.add(jsonConfig)
                 saveAndFlush(serviceList, listAdapter)
             }

@@ -11,6 +11,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import com.google.gson.Gson
 import com.qwe7002.telegram_sms.data_structure.telegram.RequestMessage
+import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Network
 import com.qwe7002.telegram_sms.static_class.Resend
 import com.qwe7002.telegram_sms.static_class.SMS
@@ -43,7 +44,7 @@ class USSDCallBack(
         this.requestBody = RequestMessage()
         requestBody.chatId = chatId.toString()
         requestBody.messageThreadId =
-            preferences.getString("message_thread_id", "").toString()
+            Other.parseMessageThreadId(preferences.getString("message_thread_id", ""))
         val botToken = preferences.getString("bot_token", "")
         this.requestUri = Network.getUrl(botToken.toString(), "SendMessage")
         if (messageId != -1L) {

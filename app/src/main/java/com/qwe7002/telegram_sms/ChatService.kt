@@ -34,6 +34,7 @@ import com.qwe7002.telegram_sms.static_class.ChatCommand.getInfo
 import com.qwe7002.telegram_sms.static_class.Network.checkNetworkStatus
 import com.qwe7002.telegram_sms.static_class.Network.getOkhttpObj
 import com.qwe7002.telegram_sms.static_class.Network.getUrl
+import com.qwe7002.telegram_sms.static_class.Other
 import com.qwe7002.telegram_sms.static_class.Other.getActiveCard
 import com.qwe7002.telegram_sms.static_class.Other.getMessageId
 import com.qwe7002.telegram_sms.static_class.Other.getNotificationObj
@@ -169,7 +170,7 @@ class ChatService : Service() {
         var messageType = ""
         val requestBody = RequestMessage()
         requestBody.chatId = chatId
-        requestBody.messageThreadId = messageThreadId
+        requestBody.messageThreadId = Other.parseMessageThreadId(messageThreadId)
         lateinit var jsonObject: JsonObject
 
         if (resultObj.has("message")) {
@@ -884,7 +885,7 @@ class ChatService : Service() {
                 // Acknowledge the choice on the keyboard message (clears the inline keyboard).
                 val ackBody = RequestMessage().apply {
                     chatId = this@ChatService.chatId
-                    messageThreadId = this@ChatService.messageThreadId
+                    messageThreadId = Other.parseMessageThreadId(this@ChatService.messageThreadId)
                     messageId = msgId
                     text = Template.render(
                         applicationContext, "TPL_send_sms_chat",
@@ -954,7 +955,7 @@ class ChatService : Service() {
                 // Acknowledge the choice on the keyboard message (clears the inline keyboard).
                 val ackBody = RequestMessage().apply {
                     chatId = this@ChatService.chatId
-                    messageThreadId = this@ChatService.messageThreadId
+                    messageThreadId = Other.parseMessageThreadId(this@ChatService.messageThreadId)
                     messageId = msgId
                     text = Template.render(
                         applicationContext, "TPL_send_USSD_chat",
