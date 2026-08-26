@@ -49,7 +49,7 @@ cache:
         - |
             echo "==> Downloading keystore from Bitwarden..."
             missing=0
-            for v in BW_CLIENTID BW_CLIENTSECRET BW_PASSWORD BW_KEYSTORE_ITEM_ID; do
+            for v in BW_CLIENTID BW_CLIENTSECRET BW_PASSWORD BW_KEYSTORE_ITEM_ID BW_GITHUB_ITEM_ID; do
               eval "val=\${$v:-}"
               if [ -z "${val}" ]; then
                 echo "ERROR: ${v} CI/CD variable is not set"
@@ -114,6 +114,17 @@ cache:
               exit 1
             fi
             echo "==> Signing credentials loaded from Bitwarden."
+
+            # The GitHub token is a Login item whose password IS the token, so reading it
+            # needs no JSON parsing. That matters because release_publish fetches the same
+            # item on a shell runner that has bw but no jq.
+            GITHUB_ACCESS_KEY="$(bw get password "${BW_GITHUB_ITEM_ID}")"
+            export GITHUB_ACCESS_KEY
+            if [ -z "${GITHUB_ACCESS_KEY}" ]; then
+              echo "ERROR: Bitwarden item ${BW_GITHUB_ITEM_ID} has no password set"
+              exit 1
+            fi
+            echo "==> GitHub token loaded from Bitwarden."
 
             cleanup_bitwarden
             trap - EXIT
@@ -240,7 +251,7 @@ build_nightly:
         - |
             echo "==> Validating GitHub credentials..."
             if [ -z "${GITHUB_ACCESS_KEY:-}" ]; then
-              echo "ERROR: GITHUB_ACCESS_KEY is not set"
+              echo "ERROR: GITHUB_ACCESS_KEY was not loaded from Bitwarden item ${BW_GITHUB_ITEM_ID:-<unset>}"
               exit 1
             fi
         - |
@@ -321,7 +332,7 @@ build_release:
         - |
             echo "==> Validating GitHub credentials..."
             if [ -z "${GITHUB_ACCESS_KEY:-}" ]; then
-              echo "ERROR: GITHUB_ACCESS_KEY is not set"
+              echo "ERROR: GITHUB_ACCESS_KEY was not loaded from Bitwarden item ${BW_GITHUB_ITEM_ID:-<unset>}"
               exit 1
             fi
         - |
@@ -414,11 +425,66 @@ release_publish:
         # non-login CI shell does not include on PATH; add it explicitly.
         - export PATH="/home/gitlab-runner/.local/bin:$PATH"
         - export PATH="/home/gitlab-runner/.opencode/bin:$PATH"
+        - |
+            echo "==> Loading GitHub token from Bitwarden..."
+            missing=0
+            for v in BW_CLIENTID BW_CLIENTSECRET BW_PASSWORD BW_GITHUB_ITEM_ID; do
+              eval "val=\${$v:-}"
+              if [ -z "${val}" ]; then
+                echo "ERROR: ${v} CI/CD variable is not set"
+                missing=1
+              fi
+            done
+            if [ "${missing}" -ne 0 ]; then
+              echo "Set the missing variables under Settings → CI/CD → Variables (Protected + Masked)."
+              exit 1
+            fi
+            if ! command -v bw > /dev/null 2>&1; then
+              echo "ERROR: the Bitwarden CLI is not on PATH on this runner."
+              echo "Install it for the gitlab-runner user into ~/.local/bin (already on PATH above)."
+              exit 1
+            fi
+
+            # This is a shell executor, so its state outlives the job. Keep the Bitwarden
+            # session in a throwaway appdata dir and log out even if the fetch fails,
+            # rather than leaving an authenticated CLI behind on the host.
+            export BITWARDENCLI_APPDATA_DIR
+            BITWARDENCLI_APPDATA_DIR="$(mktemp -d)"
+            cleanup_bitwarden() {
+              bw logout > /dev/null 2>&1 || true
+              unset BW_SESSION
+              rm -rf "${BITWARDENCLI_APPDATA_DIR}"
+            }
+            trap cleanup_bitwarden EXIT
+
+            if [ -n "${BW_SERVER_URL:-}" ]; then
+              bw config server "${BW_SERVER_URL}" > /dev/null
+            fi
+            bw login --apikey > /dev/null
+            BW_SESSION="$(bw unlock --passwordenv BW_PASSWORD --raw)"
+            export BW_SESSION
+            bw sync > /dev/null
+
+            # A Login item whose password IS the token: no JSON parsing, so this works
+            # here even though jq is not installed on this runner.
+            #
+            # NOTE: unlike a CI/CD variable this value is not masked in the job log.
+            # Nothing may echo it, and `set -x` must stay off in this job.
+            GITHUB_ACCESS_KEY="$(bw get password "${BW_GITHUB_ITEM_ID}")"
+            export GITHUB_ACCESS_KEY
+            if [ -z "${GITHUB_ACCESS_KEY}" ]; then
+              echo "ERROR: Bitwarden item ${BW_GITHUB_ITEM_ID} has no password set"
+              exit 1
+            fi
+
+            cleanup_bitwarden
+            trap - EXIT
+            echo "==> GitHub token loaded from Bitwarden."
     script:
         - |
             echo "==> Validating credentials..."
             if [ -z "${GITHUB_ACCESS_KEY:-}" ]; then
-              echo "ERROR: GITHUB_ACCESS_KEY is not set"
+              echo "ERROR: GITHUB_ACCESS_KEY was not loaded from Bitwarden item ${BW_GITHUB_ITEM_ID:-<unset>}"
               exit 1
             fi
             if [ -z "${RELEASE_TAG:-}" ]; then
@@ -542,7 +608,57 @@ telegram_notify:
     cache: {}
     before_script:
         - set -euo pipefail
-        - apk --no-cache add bash curl jq
+        # nodejs/npm are only here for the Bitwarden CLI: the standalone bw binary is
+        # built against glibc and will not run on Alpine's musl, so use the npm package.
+        - apk --no-cache add bash curl jq nodejs npm
+        - npm install --global "@bitwarden/cli@${BITWARDEN_CLI_VERSION}"
+        - |
+            echo "==> Loading Telegram credentials from Bitwarden..."
+            missing=0
+            for v in BW_CLIENTID BW_CLIENTSECRET BW_PASSWORD BW_TELEGRAM_ITEM_ID; do
+              eval "val=\${$v:-}"
+              if [ -z "${val}" ]; then
+                echo "ERROR: ${v} CI/CD variable is not set"
+                missing=1
+              fi
+            done
+            [ "${missing}" -eq 0 ] || exit 1
+
+            export BITWARDENCLI_APPDATA_DIR
+            BITWARDENCLI_APPDATA_DIR="$(mktemp -d)"
+            cleanup_bitwarden() {
+              bw logout > /dev/null 2>&1 || true
+              unset BW_SESSION
+            }
+            trap cleanup_bitwarden EXIT
+
+            if [ -n "${BW_SERVER_URL:-}" ]; then
+              bw config server "${BW_SERVER_URL}" > /dev/null
+            fi
+            bw login --apikey > /dev/null
+            BW_SESSION="$(bw unlock --passwordenv BW_PASSWORD --raw)"
+            export BW_SESSION
+            bw sync > /dev/null
+
+            # The bot token is the item's password; the two channel ids are custom fields
+            # on the same item, so the whole notify configuration rotates in one place.
+            #
+            # NOTE: unlike CI/CD variables these are not masked in the job log. Nothing may
+            # echo the token, and `set -x` must stay off in this job.
+            bw_field() {
+              printf '%s' "${bw_item_json}" | jq -r --arg n "$1" \
+                '(.fields // []) | map(select(.name == $n)) | .[0].value // empty'
+            }
+            bw_item_json="$(bw get item "${BW_TELEGRAM_ITEM_ID}")"
+
+            TELEGRAM_BOT_TOKEN="$(printf '%s' "${bw_item_json}" | jq -r '.login.password // empty')"
+            TELEGRAM_CHANNEL_ID_EN="$(bw_field TELEGRAM_CHANNEL_ID_EN)"
+            TELEGRAM_CHANNEL_ID_ZH="$(bw_field TELEGRAM_CHANNEL_ID_ZH)"
+            export TELEGRAM_BOT_TOKEN TELEGRAM_CHANNEL_ID_EN TELEGRAM_CHANNEL_ID_ZH
+            unset bw_item_json
+
+            cleanup_bitwarden
+            trap - EXIT
     script:
         - |
             echo "==> Validating Telegram credentials..."
@@ -550,7 +666,7 @@ telegram_notify:
             for v in TELEGRAM_BOT_TOKEN TELEGRAM_CHANNEL_ID_EN TELEGRAM_CHANNEL_ID_ZH; do
               eval "val=\${$v:-}"
               if [ -z "${val}" ]; then
-                echo "ERROR: ${v} is not set"
+                echo "ERROR: ${v} was not loaded from Bitwarden item ${BW_TELEGRAM_ITEM_ID:-<unset>}"
                 missing=1
               fi
             done
