@@ -652,8 +652,11 @@ telegram_notify:
             bw_item_json="$(bw get item "${BW_TELEGRAM_ITEM_ID}")"
 
             TELEGRAM_BOT_TOKEN="$(printf '%s' "${bw_item_json}" | jq -r '.login.password // empty')"
-            TELEGRAM_CHANNEL_ID_EN="$(bw_field TELEGRAM_CHANNEL_ID_EN)"
-            TELEGRAM_CHANNEL_ID_ZH="$(bw_field TELEGRAM_CHANNEL_ID_ZH)"
+            # Field names as they are spelled in the vault. Note the Chinese channel is
+            # "cn" there while the CI variable it feeds has always been named ZH; renaming
+            # either side would only move the mismatch, so it is mapped here instead.
+            TELEGRAM_CHANNEL_ID_EN="$(bw_field telegram-sms-en)"
+            TELEGRAM_CHANNEL_ID_ZH="$(bw_field telegram-sms-cn)"
             export TELEGRAM_BOT_TOKEN TELEGRAM_CHANNEL_ID_EN TELEGRAM_CHANNEL_ID_ZH
             unset bw_item_json
 
